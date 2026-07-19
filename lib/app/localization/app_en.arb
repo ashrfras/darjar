@@ -1,17 +1,32 @@
 {
   "@@locale": "en",
   "appName": "DarJar",
-  "foundationTitle": "Foundation ready",
-  "foundationDescription": "One application for mobile and web, ready for Arabic from day one.",
-  "windowSizeLabel": "Window size: {size}",
-  "@windowSizeLabel": {
-    "placeholders": {
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "compactSize": "compact",
-  "mediumSize": "medium",
-  "expandedSize": "expanded"
+  "brandLatin": "DarJar",
+  "community": "Community",
+  "marketplace": "Marketplace",
+  "services": "Services",
+  "demoResidence": "Yasmeen Residence",
+  "communityDescription": "News, announcements, and discussions for residence neighbors.",
+  "marketplaceDescription": "A trusted place to sell, give, and request within the residence.",
+  "servicesDescription": "One place for maintenance, documents, and residence management information.",
+  "shellPreviewDescription": "A preview of the responsive navigation shell. Product functionality arrives in Milestone 2.",
+  "milestoneTwo": "Coming in Milestone 2",
+  "componentGallery": "Component gallery",
+  "componentGalleryDescription": "An internal reference for DarJar interface elements and their basic states.",
+  "buttons": "Buttons",
+  "primaryAction": "Primary action",
+  "secondaryAction": "Secondary action",
+  "disabledAction": "Unavailable",
+  "fields": "Fields",
+  "residenceName": "Residence name",
+  "residenceNameHint": "Example: Yasmeen Residence",
+  "chipsAndBadges": "Chips and badges",
+  "all": "All",
+  "announcements": "Announcements",
+  "newLabel": "New",
+  "completedLabel": "Completed",
+  "processingLabel": "Processing",
+  "cards": "Cards",
+  "sampleCardTitle": "Residence announcement",
+  "sampleCardDescription": "An example of a simple, clear content card in DarJar."
 }

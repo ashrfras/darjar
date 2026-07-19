@@ -29,6 +29,7 @@ Mock-data versions of:
 - dues status
 - management information
 - profile/settings
+- exactly same design as ref.png everything should be the same
 
 All flows must be navigable on phone and web. This is a product-review checkpoint.
 
