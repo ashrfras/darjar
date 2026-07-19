@@ -18,11 +18,12 @@ class CommunityFeedPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final posts = ref.watch(communityPostsProvider);
+    final compact = MediaQuery.sizeOf(context).width < 600;
 
     return Scaffold(
       key: const Key('community-feed-page'),
       backgroundColor: Colors.transparent,
-      floatingActionButton: MediaQuery.sizeOf(context).width < 600
+      floatingActionButton: compact
           ? FloatingActionButton.extended(
               key: const Key('create-post-fab'),
               onPressed: () => context.go(AppRoutes.createPost),
@@ -31,7 +32,12 @@ class CommunityFeedPage extends ConsumerWidget {
             )
           : null,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.xLarge),
+        padding: EdgeInsets.fromLTRB(
+          compact ? 12 : AppSpacing.xLarge,
+          compact ? 8 : AppSpacing.xLarge,
+          compact ? 12 : AppSpacing.xLarge,
+          compact ? 96 : AppSpacing.xLarge,
+        ),
         child: Align(
           alignment: AlignmentDirectional.topCenter,
           child: ConstrainedBox(
@@ -39,19 +45,19 @@ class CommunityFeedPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                DarJarPageHeader(
-                  title: localizations.community,
-                  description: localizations.communityFeedDescription,
-                  action: MediaQuery.sizeOf(context).width >= 600
-                      ? DarJarButton(
-                          key: const Key('create-post-button'),
-                          label: localizations.newPost,
-                          icon: Icons.add_rounded,
-                          onPressed: () => context.go(AppRoutes.createPost),
-                        )
-                      : null,
-                ),
-                const SizedBox(height: AppSpacing.xLarge),
+                if (!compact) ...[
+                  DarJarPageHeader(
+                    title: localizations.community,
+                    description: localizations.communityFeedDescription,
+                    action: DarJarButton(
+                      key: const Key('create-post-button'),
+                      label: localizations.newPost,
+                      icon: Icons.add_rounded,
+                      onPressed: () => context.go(AppRoutes.createPost),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xLarge),
+                ],
                 for (final post in posts) ...[
                   _PostCard(post: post),
                   const SizedBox(height: AppSpacing.medium),
@@ -77,28 +83,43 @@ class _PostCard extends StatelessWidget {
     final accent = isAnnouncement ? AppColors.services : AppColors.community;
 
     return DarJarCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                backgroundColor: accent.withValues(alpha: 0.10),
+                radius: 21,
+                backgroundColor: accent.withValues(alpha: 0.11),
                 foregroundColor: accent,
                 child: Icon(
                   isAnnouncement
-                      ? Icons.campaign_rounded
+                      ? Icons.water_drop_rounded
                       : Icons.person_rounded,
+                  size: 21,
                 ),
               ),
-              const SizedBox(width: AppSpacing.medium),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      post.author,
-                      style: Theme.of(context).textTheme.titleMedium,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            post.author,
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
+                        ),
+                        if (isAnnouncement)
+                          DarJarBadge(
+                            label: localizations.officialAnnouncement,
+                            tone: DarJarBadgeTone.info,
+                          ),
+                      ],
                     ),
                     Text(
                       post.timeLabel,
@@ -107,18 +128,51 @@ class _PostCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (isAnnouncement)
-                DarJarBadge(
-                  label: localizations.officialAnnouncement,
-                  tone: DarJarBadgeTone.info,
-                ),
             ],
           ),
-          const SizedBox(height: AppSpacing.large),
-          Text(post.title, style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: AppSpacing.small),
-          Text(post.body, style: Theme.of(context).textTheme.bodyLarge),
-          const SizedBox(height: AppSpacing.large),
+          const SizedBox(height: 14),
+          if (isAnnouncement)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _PostCopy(post: post)),
+                const SizedBox(width: 12),
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: AppColors.services,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.water_drop_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _PostCopy(post: post)),
+                const SizedBox(width: 12),
+                Container(
+                  width: 104,
+                  height: 94,
+                  decoration: BoxDecoration(
+                    color: AppColors.marketplaceSoft,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.chair_alt_rounded,
+                    size: 48,
+                    color: AppColors.marketplace.withValues(alpha: .8),
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(height: 14),
           const Divider(),
           const SizedBox(height: AppSpacing.medium),
           Row(
@@ -139,6 +193,31 @@ class _PostCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PostCopy extends StatelessWidget {
+  const _PostCopy({required this.post});
+
+  final CommunityPost post;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(post.title, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 5),
+        Text(
+          post.body,
+          maxLines: 4,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.ink),
+        ),
+      ],
     );
   }
 }

@@ -62,13 +62,16 @@ class _CompactShell extends StatelessWidget {
     return Scaffold(
       key: const Key('compact-shell'),
       appBar: AppBar(
-        titleSpacing: AppSpacing.large,
-        title: const _Brand(compact: true),
-        actions: const [
-          _GalleryAction(),
-          _ProfileAction(),
-          SizedBox(width: AppSpacing.small),
-        ],
+        toolbarHeight: 76,
+        centerTitle: true,
+        leadingWidth: 58,
+        leading: const _GalleryAction(asNotification: true),
+        title: const _Brand(compact: true, centered: true),
+        actions: const [_ResidenceAction(), _ProfileAction()],
+        bottom: _CompactSectionTabs(
+          destinations: destinations,
+          selectedIndex: selectedIndex,
+        ),
       ),
       body: child,
       bottomNavigationBar: NavigationBar(
@@ -282,13 +285,39 @@ class _SidebarDestination extends StatelessWidget {
 }
 
 class _Brand extends StatelessWidget {
-  const _Brand({this.compact = false});
+  const _Brand({this.compact = false, this.centered = false});
 
   final bool compact;
+  final bool centered;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+
+    if (centered) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            localizations.appName,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontSize: 21,
+              fontWeight: FontWeight.w800,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            localizations.brandLatin,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: AppColors.ink,
+              fontSize: 10,
+              letterSpacing: 3,
+            ),
+          ),
+        ],
+      );
+    }
 
     return Row(
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
@@ -328,7 +357,9 @@ class _Brand extends StatelessWidget {
 }
 
 class _GalleryAction extends StatelessWidget {
-  const _GalleryAction();
+  const _GalleryAction({this.asNotification = false});
+
+  final bool asNotification;
 
   @override
   Widget build(BuildContext context) {
@@ -337,7 +368,16 @@ class _GalleryAction extends StatelessWidget {
       key: const Key('gallery-button'),
       tooltip: localizations.componentGallery,
       onPressed: () => context.go(AppRoutes.gallery),
-      icon: const Icon(Icons.palette_outlined),
+      icon: Badge(
+        isLabelVisible: asNotification,
+        smallSize: 8,
+        backgroundColor: AppColors.warning,
+        child: Icon(
+          asNotification
+              ? Icons.notifications_none_rounded
+              : Icons.palette_outlined,
+        ),
+      ),
     );
   }
 }
@@ -352,7 +392,127 @@ class _ProfileAction extends StatelessWidget {
       key: const Key('profile-button'),
       tooltip: localizations.profile,
       onPressed: () => context.go(AppRoutes.profile),
-      icon: const Icon(Icons.account_circle_outlined),
+      icon: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: AppColors.marketplaceSoft,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.outline),
+        ),
+        child: const Icon(Icons.apartment_rounded, size: 20),
+      ),
+    );
+  }
+}
+
+class _ResidenceAction extends StatelessWidget {
+  const _ResidenceAction();
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            localizations.demoResidence,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: AppColors.ink),
+          ),
+          const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactSectionTabs extends StatelessWidget
+    implements PreferredSizeWidget {
+  const _CompactSectionTabs({
+    required this.destinations,
+    required this.selectedIndex,
+  });
+
+  final List<_ShellDestination> destinations;
+  final int selectedIndex;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(82);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: preferredSize.height,
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.outline.withValues(alpha: .7)),
+      ),
+      child: Row(
+        children: [
+          for (var index = 0; index < destinations.length; index++) ...[
+            if (index > 0)
+              Container(width: 1, height: 40, color: AppColors.outline),
+            Expanded(
+              child: _CompactSectionTab(
+                destination: destinations[index],
+                selected: index == selectedIndex,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactSectionTab extends StatelessWidget {
+  const _CompactSectionTab({required this.destination, required this.selected});
+
+  final _ShellDestination destination;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => context.go(destination.path),
+      borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  selected ? destination.selectedIcon : destination.icon,
+                  color: selected ? destination.color : AppColors.inkMuted,
+                  size: 25,
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  '${destination.label}\u200F',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: selected ? destination.color : AppColors.ink,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            height: 2,
+            margin: const EdgeInsets.symmetric(horizontal: 18),
+            color: selected ? destination.color : Colors.transparent,
+          ),
+        ],
+      ),
     );
   }
 }
