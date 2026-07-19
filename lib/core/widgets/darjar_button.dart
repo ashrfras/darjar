@@ -29,7 +29,13 @@ class DarJarButton extends StatelessWidget {
             children: [
               Icon(icon),
               const SizedBox(width: AppSpacing.small),
-              Text(label),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           );
     final button = switch (variant) {

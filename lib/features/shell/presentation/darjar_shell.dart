@@ -66,6 +66,7 @@ class _CompactShell extends StatelessWidget {
         title: const _Brand(compact: true),
         actions: const [
           _GalleryAction(),
+          _ProfileAction(),
           SizedBox(width: AppSpacing.small),
         ],
       ),
@@ -105,6 +106,7 @@ class _MediumShell extends StatelessWidget {
         title: const _Brand(compact: true),
         actions: const [
           _GalleryAction(),
+          _ProfileAction(),
           SizedBox(width: AppSpacing.large),
         ],
       ),
@@ -196,6 +198,22 @@ class _ExpandedShell extends StatelessWidget {
                       ),
                     ),
                   const Spacer(),
+                  Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      key: const Key('profile-button'),
+                      leading: const Icon(Icons.person_outline_rounded),
+                      title: Text(localizations.profile),
+                      selected:
+                          GoRouterState.of(context).uri.path ==
+                          AppRoutes.profile,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
+                      ),
+                      onTap: () => context.go(AppRoutes.profile),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.small),
                   Material(
                     color: Colors.transparent,
                     child: ListTile(
@@ -320,6 +338,21 @@ class _GalleryAction extends StatelessWidget {
       tooltip: localizations.componentGallery,
       onPressed: () => context.go(AppRoutes.gallery),
       icon: const Icon(Icons.palette_outlined),
+    );
+  }
+}
+
+class _ProfileAction extends StatelessWidget {
+  const _ProfileAction();
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return IconButton(
+      key: const Key('profile-button'),
+      tooltip: localizations.profile,
+      onPressed: () => context.go(AppRoutes.profile),
+      icon: const Icon(Icons.account_circle_outlined),
     );
   }
 }
