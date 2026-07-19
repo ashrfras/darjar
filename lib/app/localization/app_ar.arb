@@ -1,0 +1,17 @@
+{
+  "@@locale": "ar",
+  "appName": "دارجار",
+  "foundationTitle": "الأساس جاهز",
+  "foundationDescription": "تطبيق واحد للجوال والويب، جاهز للعربية من البداية.",
+  "windowSizeLabel": "حجم النافذة: {size}",
+  "@windowSizeLabel": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "compactSize": "صغير",
+  "mediumSize": "متوسط",
+  "expandedSize": "واسع"
+}

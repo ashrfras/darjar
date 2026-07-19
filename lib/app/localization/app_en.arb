@@ -1,0 +1,17 @@
+{
+  "@@locale": "en",
+  "appName": "DarJar",
+  "foundationTitle": "Foundation ready",
+  "foundationDescription": "One application for mobile and web, ready for Arabic from day one.",
+  "windowSizeLabel": "Window size: {size}",
+  "@windowSizeLabel": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "compactSize": "compact",
+  "mediumSize": "medium",
+  "expandedSize": "expanded"
+}
