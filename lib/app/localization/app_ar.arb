@@ -1,17 +1,32 @@
 {
   "@@locale": "ar",
   "appName": "دارجار",
-  "foundationTitle": "الأساس جاهز",
-  "foundationDescription": "تطبيق واحد للجوال والويب، جاهز للعربية من البداية.",
-  "windowSizeLabel": "حجم النافذة: {size}",
-  "@windowSizeLabel": {
-    "placeholders": {
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "compactSize": "صغير",
-  "mediumSize": "متوسط",
-  "expandedSize": "واسع"
+  "brandLatin": "DarJar",
+  "community": "المجتمع",
+  "marketplace": "السوق",
+  "services": "الخدمات",
+  "demoResidence": "إقامة الياسمين",
+  "communityDescription": "مساحة أخبار الجيران والإعلانات والنقاشات داخل الإقامة.",
+  "marketplaceDescription": "مساحة آمنة للبيع والعطاء والطلب بين سكان الإقامة.",
+  "servicesDescription": "مكان موحّد للصيانة والوثائق ومعلومات إدارة الإقامة.",
+  "shellPreviewDescription": "معاينة هيكل التنقل المتجاوب. ستُضاف وظائف المنتج في المرحلة الثانية.",
+  "milestoneTwo": "قريباً في المرحلة الثانية",
+  "componentGallery": "معرض المكوّنات",
+  "componentGalleryDescription": "مرجع داخلي لعناصر واجهة دارجار وحالاتها الأساسية.",
+  "buttons": "الأزرار",
+  "primaryAction": "إجراء أساسي",
+  "secondaryAction": "إجراء ثانوي",
+  "disabledAction": "غير متاح",
+  "fields": "الحقول",
+  "residenceName": "اسم الإقامة",
+  "residenceNameHint": "مثال: إقامة الياسمين",
+  "chipsAndBadges": "الشرائح والشارات",
+  "all": "الكل",
+  "announcements": "الإعلانات",
+  "newLabel": "جديد",
+  "completedLabel": "مكتمل",
+  "processingLabel": "قيد المعالجة",
+  "cards": "البطاقات",
+  "sampleCardTitle": "إعلان من الإقامة",
+  "sampleCardDescription": "نموذج لبطاقة محتوى بسيطة وواضحة داخل دارجار."
 }

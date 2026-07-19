@@ -104,41 +104,173 @@ abstract class AppLocalizations {
   /// **'دارجار'**
   String get appName;
 
-  /// No description provided for @foundationTitle.
+  /// No description provided for @brandLatin.
   ///
   /// In ar, this message translates to:
-  /// **'الأساس جاهز'**
-  String get foundationTitle;
+  /// **'DarJar'**
+  String get brandLatin;
 
-  /// No description provided for @foundationDescription.
+  /// No description provided for @community.
   ///
   /// In ar, this message translates to:
-  /// **'تطبيق واحد للجوال والويب، جاهز للعربية من البداية.'**
-  String get foundationDescription;
+  /// **'المجتمع'**
+  String get community;
 
-  /// No description provided for @windowSizeLabel.
+  /// No description provided for @marketplace.
   ///
   /// In ar, this message translates to:
-  /// **'حجم النافذة: {size}'**
-  String windowSizeLabel(String size);
+  /// **'السوق'**
+  String get marketplace;
 
-  /// No description provided for @compactSize.
+  /// No description provided for @services.
   ///
   /// In ar, this message translates to:
-  /// **'صغير'**
-  String get compactSize;
+  /// **'الخدمات'**
+  String get services;
 
-  /// No description provided for @mediumSize.
+  /// No description provided for @demoResidence.
   ///
   /// In ar, this message translates to:
-  /// **'متوسط'**
-  String get mediumSize;
+  /// **'إقامة الياسمين'**
+  String get demoResidence;
 
-  /// No description provided for @expandedSize.
+  /// No description provided for @communityDescription.
   ///
   /// In ar, this message translates to:
-  /// **'واسع'**
-  String get expandedSize;
+  /// **'مساحة أخبار الجيران والإعلانات والنقاشات داخل الإقامة.'**
+  String get communityDescription;
+
+  /// No description provided for @marketplaceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'مساحة آمنة للبيع والعطاء والطلب بين سكان الإقامة.'**
+  String get marketplaceDescription;
+
+  /// No description provided for @servicesDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكان موحّد للصيانة والوثائق ومعلومات إدارة الإقامة.'**
+  String get servicesDescription;
+
+  /// No description provided for @shellPreviewDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'معاينة هيكل التنقل المتجاوب. ستُضاف وظائف المنتج في المرحلة الثانية.'**
+  String get shellPreviewDescription;
+
+  /// No description provided for @milestoneTwo.
+  ///
+  /// In ar, this message translates to:
+  /// **'قريباً في المرحلة الثانية'**
+  String get milestoneTwo;
+
+  /// No description provided for @componentGallery.
+  ///
+  /// In ar, this message translates to:
+  /// **'معرض المكوّنات'**
+  String get componentGallery;
+
+  /// No description provided for @componentGalleryDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'مرجع داخلي لعناصر واجهة دارجار وحالاتها الأساسية.'**
+  String get componentGalleryDescription;
+
+  /// No description provided for @buttons.
+  ///
+  /// In ar, this message translates to:
+  /// **'الأزرار'**
+  String get buttons;
+
+  /// No description provided for @primaryAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'إجراء أساسي'**
+  String get primaryAction;
+
+  /// No description provided for @secondaryAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'إجراء ثانوي'**
+  String get secondaryAction;
+
+  /// No description provided for @disabledAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير متاح'**
+  String get disabledAction;
+
+  /// No description provided for @fields.
+  ///
+  /// In ar, this message translates to:
+  /// **'الحقول'**
+  String get fields;
+
+  /// No description provided for @residenceName.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم الإقامة'**
+  String get residenceName;
+
+  /// No description provided for @residenceNameHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'مثال: إقامة الياسمين'**
+  String get residenceNameHint;
+
+  /// No description provided for @chipsAndBadges.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشرائح والشارات'**
+  String get chipsAndBadges;
+
+  /// No description provided for @all.
+  ///
+  /// In ar, this message translates to:
+  /// **'الكل'**
+  String get all;
+
+  /// No description provided for @announcements.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإعلانات'**
+  String get announcements;
+
+  /// No description provided for @newLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'جديد'**
+  String get newLabel;
+
+  /// No description provided for @completedLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكتمل'**
+  String get completedLabel;
+
+  /// No description provided for @processingLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'قيد المعالجة'**
+  String get processingLabel;
+
+  /// No description provided for @cards.
+  ///
+  /// In ar, this message translates to:
+  /// **'البطاقات'**
+  String get cards;
+
+  /// No description provided for @sampleCardTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعلان من الإقامة'**
+  String get sampleCardTitle;
+
+  /// No description provided for @sampleCardDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'نموذج لبطاقة محتوى بسيطة وواضحة داخل دارجار.'**
+  String get sampleCardDescription;
 }
 
 class _AppLocalizationsDelegate
