@@ -1,5 +1,6 @@
 import 'package:darjar/features/community/presentation/community_feed_page.dart';
 import 'package:darjar/features/community/presentation/create_post_page.dart';
+import 'package:darjar/features/community/presentation/community_post_detail_page.dart';
 import 'package:darjar/features/component_gallery/presentation/component_gallery_page.dart';
 import 'package:darjar/features/directory/presentation/directory_page.dart';
 import 'package:darjar/features/directory/presentation/directory_profile_page.dart';
@@ -32,6 +33,7 @@ abstract final class AppRoutes {
   static const gallery = '/gallery';
 
   static String directoryProfile(String id) => '/directory/$id';
+  static String communityPost(String id) => '/community/post/$id';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -59,6 +61,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.createPost,
             builder: (context, state) => const CreatePostPage(),
+          ),
+          GoRoute(
+            path: '/community/post/:postId',
+            builder: (context, state) => CommunityPostDetailPage(
+              postId: state.pathParameters['postId']!,
+            ),
           ),
           GoRoute(
             path: AppRoutes.directory,

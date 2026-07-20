@@ -1,0 +1,273 @@
+import 'package:darjar/app/routing/app_router.dart';
+import 'package:darjar/app/theme/app_colors.dart';
+import 'package:darjar/app/theme/app_radius.dart';
+import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/features/community/data/community_repository.dart';
+import 'package:darjar/features/community/presentation/community_post_card.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+class CommunityPostDetailPage extends ConsumerStatefulWidget {
+  const CommunityPostDetailPage({required this.postId, super.key});
+
+  final String postId;
+
+  @override
+  ConsumerState<CommunityPostDetailPage> createState() =>
+      _CommunityPostDetailPageState();
+}
+
+class _CommunityPostDetailPageState
+    extends ConsumerState<CommunityPostDetailPage> {
+  final _commentController = TextEditingController();
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.watch(communityPostsProvider);
+    final post = ref.read(communityPostsProvider.notifier).post(widget.postId);
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final compact = MediaQuery.sizeOf(context).width < 600;
+
+    if (post == null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.forum_outlined, size: 48),
+            const SizedBox(height: AppSpacing.medium),
+            Text(ar ? 'لم يتم العثور على المنشور' : 'Post not found'),
+            TextButton(
+              onPressed: () => context.go(AppRoutes.community),
+              child: Text(ar ? 'العودة إلى المجتمع' : 'Back to community'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      key: const Key('community-post-detail-page'),
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          tooltip: ar ? 'رجوع' : 'Back',
+          onPressed: () => context.go(AppRoutes.community),
+          icon: Icon(
+            Directionality.of(context) == TextDirection.rtl
+                ? Icons.arrow_forward_rounded
+                : Icons.arrow_back_rounded,
+          ),
+        ),
+        title: Text(post.kind.label(context)),
+      ),
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(
+          compact ? 12 : AppSpacing.xLarge,
+          AppSpacing.large,
+          compact ? 12 : AppSpacing.xLarge,
+          AppSpacing.xxLarge,
+        ),
+        children: [
+          Align(
+            alignment: AlignmentDirectional.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CommunityPostCard(
+                    post: post,
+                    expanded: true,
+                    onOpen: () {},
+                    onLike: () => ref
+                        .read(communityPostsProvider.notifier)
+                        .toggleLike(post.id),
+                    onSave: () => ref
+                        .read(communityPostsProvider.notifier)
+                        .toggleSaved(post.id),
+                    onVote: (optionId) => ref
+                        .read(communityPostsProvider.notifier)
+                        .vote(post.id, optionId),
+                  ),
+                  const SizedBox(height: AppSpacing.large),
+                  Text(
+                    ar
+                        ? 'التعليقات (${post.comments.length})'
+                        : 'Comments (${post.comments.length})',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: AppSpacing.medium),
+                  _CommentComposer(
+                    controller: _commentController,
+                    onSubmit: () => _submitComment(post.id),
+                  ),
+                  const SizedBox(height: AppSpacing.medium),
+                  if (post.comments.isEmpty)
+                    _NoComments()
+                  else
+                    for (final comment in post.comments) ...[
+                      _CommentTile(comment: comment),
+                      const SizedBox(height: AppSpacing.small),
+                    ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _submitComment(String postId) {
+    final value = _commentController.text.trim();
+    if (value.isEmpty) return;
+    ref.read(communityPostsProvider.notifier).addComment(postId, value);
+    _commentController.clear();
+    FocusScope.of(context).unfocus();
+  }
+}
+
+class _CommentComposer extends StatelessWidget {
+  const _CommentComposer({required this.controller, required this.onSubmit});
+
+  final TextEditingController controller;
+  final VoidCallback onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return DarJarCard(
+      padding: const EdgeInsets.all(AppSpacing.medium),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          const CircleAvatar(
+            radius: 19,
+            backgroundColor: AppColors.primarySoft,
+            foregroundColor: AppColors.primary,
+            child: Icon(Icons.person_rounded, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.small),
+          Expanded(
+            child: TextField(
+              key: const Key('comment-field'),
+              controller: controller,
+              minLines: 1,
+              maxLines: 4,
+              textInputAction: TextInputAction.newline,
+              decoration: InputDecoration(
+                hintText: ar ? 'اكتب تعليقاً...' : 'Write a comment…',
+                isDense: true,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.small),
+          IconButton.filled(
+            key: const Key('submit-comment-button'),
+            tooltip: ar ? 'إرسال' : 'Send',
+            onPressed: onSubmit,
+            icon: Icon(
+              Directionality.of(context) == TextDirection.rtl
+                  ? Icons.send_rounded
+                  : Icons.send_rounded,
+              size: 20,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CommentTile extends StatelessWidget {
+  const _CommentTile({required this.comment});
+
+  final CommunityComment comment;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.medium),
+      decoration: BoxDecoration(
+        color: comment.isAuthor ? AppColors.primarySoft : AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+        border: Border.all(color: AppColors.outline),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: comment.isAuthor
+                ? AppColors.primary
+                : AppColors.canvas,
+            foregroundColor: comment.isAuthor
+                ? Colors.white
+                : AppColors.inkMuted,
+            child: Text(comment.author.characters.first),
+          ),
+          const SizedBox(width: AppSpacing.medium),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        comment.author,
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                    ),
+                    Text(
+                      comment.timeLabel,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.inkMuted,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(comment.body),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoComments extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.xLarge),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.chat_bubble_outline_rounded,
+            color: AppColors.inkMuted,
+          ),
+          const SizedBox(height: AppSpacing.small),
+          Text(
+            ar ? 'كن أول من يعلّق على هذا المنشور' : 'Be the first to comment',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.inkMuted),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -47,6 +47,27 @@ void main() {
         expect(residence.getMaintenanceRequests().first.title, 'عطل جديد');
       },
     );
+
+    test('community mock supports every post type and local interactions', () {
+      final community = MockCommunityRepository();
+
+      expect(
+        community.getPosts().map((post) => post.kind).toSet(),
+        containsAll(CommunityPostKind.values),
+      );
+
+      final post = community.getPost('poll-garden')!;
+      final votesBefore = post.pollOptions.first.votes;
+      community.vote(post.id, post.pollOptions.first.id);
+      community.toggleLike(post.id);
+      community.addComment(post.id, 'سأشارك بالتأكيد');
+
+      final updated = community.getPost(post.id)!;
+      expect(updated.selectedPollOptionId, post.pollOptions.first.id);
+      expect(updated.pollOptions.first.votes, votesBefore + 1);
+      expect(updated.isLiked, isTrue);
+      expect(updated.comments.last.body, 'سأشارك بالتأكيد');
+    });
   });
 
   testWidgets('onboarding creates a residence and enters the compact app', (
@@ -104,10 +125,45 @@ void main() {
     expect(fields, findsNWidgets(2));
     await tester.enterText(fields.at(0), 'لقاء الجيران');
     await tester.enterText(fields.at(1), 'نلتقي مساء السبت في الحديقة.');
+    await tester.ensureVisible(find.byKey(const Key('publish-post-button')));
     await tester.tap(find.byKey(const Key('publish-post-button')));
     await tester.pumpAndSettle();
 
     expect(find.text('لقاء الجيران'), findsOneWidget);
+  });
+
+  testWidgets('community filters posts and opens details with local comments', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+
+    await tester.tap(find.byKey(const Key('category-filter-announcement')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('community-post-announcement-elevator')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('community-post-question-plumber')),
+      findsNothing,
+    );
+
+    final announcement = find.byKey(
+      const ValueKey('community-post-announcement-elevator'),
+    );
+    await tester.ensureVisible(announcement);
+    await tester.tap(announcement);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('community-post-detail-page')), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('comment-field')),
+      'شكراً على التوضيح',
+    );
+    await tester.tap(find.byKey(const Key('submit-comment-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('شكراً على التوضيح'), findsOneWidget);
   });
 
   testWidgets('resident can browse a craftsman profile and recommend it', (

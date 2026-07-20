@@ -1,0 +1,515 @@
+import 'package:darjar/app/theme/app_colors.dart';
+import 'package:darjar/app/theme/app_radius.dart';
+import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/features/community/data/community_repository.dart';
+import 'package:flutter/material.dart';
+
+extension CommunityPostKindUi on CommunityPostKind {
+  String label(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return switch (this) {
+      CommunityPostKind.announcement => ar ? 'إعلان رسمي' : 'Announcement',
+      CommunityPostKind.question => ar ? 'سؤال' : 'Question',
+      CommunityPostKind.complaint => ar ? 'شكوى' : 'Complaint',
+      CommunityPostKind.suggestion => ar ? 'اقتراح' : 'Suggestion',
+      CommunityPostKind.alert => ar ? 'تنبيه' : 'Alert',
+      CommunityPostKind.general => ar ? 'منشور عام' : 'General',
+      CommunityPostKind.poll => ar ? 'استطلاع' : 'Poll',
+      CommunityPostKind.event => ar ? 'مناسبة' : 'Event',
+    };
+  }
+
+  IconData get icon => switch (this) {
+    CommunityPostKind.announcement => Icons.campaign_outlined,
+    CommunityPostKind.question => Icons.help_outline_rounded,
+    CommunityPostKind.complaint => Icons.report_problem_outlined,
+    CommunityPostKind.suggestion => Icons.lightbulb_outline_rounded,
+    CommunityPostKind.alert => Icons.notifications_active_outlined,
+    CommunityPostKind.general => Icons.forum_outlined,
+    CommunityPostKind.poll => Icons.poll_outlined,
+    CommunityPostKind.event => Icons.celebration_outlined,
+  };
+
+  Color get color => switch (this) {
+    CommunityPostKind.announcement => const Color(0xFF087F5B),
+    CommunityPostKind.question => const Color(0xFF6650D8),
+    CommunityPostKind.complaint => const Color(0xFFE76F00),
+    CommunityPostKind.suggestion => const Color(0xFF2B8A3E),
+    CommunityPostKind.alert => const Color(0xFF2878D4),
+    CommunityPostKind.general => const Color(0xFF52606D),
+    CommunityPostKind.poll => const Color(0xFF9C36B5),
+    CommunityPostKind.event => const Color(0xFFC2255C),
+  };
+}
+
+class CommunityPostCard extends StatelessWidget {
+  const CommunityPostCard({
+    required this.post,
+    required this.onOpen,
+    required this.onLike,
+    required this.onSave,
+    required this.onVote,
+    this.expanded = false,
+    super.key,
+  });
+
+  final CommunityPost post;
+  final VoidCallback onOpen;
+  final VoidCallback onLike;
+  final VoidCallback onSave;
+  final ValueChanged<String> onVote;
+  final bool expanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).width < 600;
+    final color = post.kind.color;
+
+    return DarJarCard(
+      key: ValueKey('community-post-${post.id}'),
+      padding: EdgeInsets.zero,
+      onTap: expanded ? null : onOpen,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(height: 3, color: color),
+          Padding(
+            padding: EdgeInsets.all(compact ? 14 : AppSpacing.large),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _PostHeader(post: post),
+                const SizedBox(height: AppSpacing.medium),
+                _KindLabel(post: post),
+                const SizedBox(height: AppSpacing.small),
+                Text(
+                  post.title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  post.body,
+                  maxLines: expanded ? null : 3,
+                  overflow: expanded ? null : TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.inkMuted,
+                    height: 1.65,
+                  ),
+                ),
+                if (post.visualSeed > 0) ...[
+                  const SizedBox(height: AppSpacing.medium),
+                  _PostVisual(kind: post.kind, seed: post.visualSeed),
+                ],
+                if (post.eventDate != null) ...[
+                  const SizedBox(height: AppSpacing.medium),
+                  _EventDetails(post: post),
+                ],
+                if (post.pollOptions.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.large),
+                  PollPanel(post: post, onVote: onVote),
+                ],
+                const SizedBox(height: AppSpacing.medium),
+                const Divider(),
+                const SizedBox(height: AppSpacing.xSmall),
+                _PostActions(
+                  post: post,
+                  onLike: onLike,
+                  onComment: onOpen,
+                  onSave: onSave,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PostHeader extends StatelessWidget {
+  const _PostHeader({required this.post});
+
+  final CommunityPost post;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = post.kind.color;
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 22,
+          backgroundColor: color.withValues(alpha: .12),
+          foregroundColor: color,
+          child: Text(
+            post.author.characters.first,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.medium),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      post.author,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelLarge?.copyWith(color: AppColors.ink),
+                    ),
+                  ),
+                  if (post.isOfficial) ...[
+                    const SizedBox(width: 5),
+                    const Icon(
+                      Icons.verified_rounded,
+                      size: 17,
+                      color: AppColors.primary,
+                    ),
+                  ],
+                ],
+              ),
+              Text(
+                [
+                  post.authorUnit,
+                  post.timeLabel,
+                ].whereType<String>().join(' · '),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(color: AppColors.inkMuted),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
+          onPressed: () {},
+          icon: const Icon(Icons.more_horiz_rounded),
+        ),
+      ],
+    );
+  }
+}
+
+class _KindLabel extends StatelessWidget {
+  const _KindLabel({required this.post});
+
+  final CommunityPost post;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = post.kind.color;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(post.kind.icon, size: 19, color: color),
+        const SizedBox(width: 6),
+        Text(
+          post.kind.label(context),
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(color: color),
+        ),
+      ],
+    );
+  }
+}
+
+class _PostVisual extends StatelessWidget {
+  const _PostVisual({required this.kind, required this.seed});
+
+  final CommunityPostKind kind;
+  final int seed;
+
+  @override
+  Widget build(BuildContext context) {
+    final palettes = <List<Color>>[
+      [const Color(0xFFE5F3F1), const Color(0xFFB8DED8)],
+      [const Color(0xFFE7E2D8), const Color(0xFFB9A88B)],
+      [const Color(0xFFDDE5E7), const Color(0xFF8FA7AA)],
+      [const Color(0xFF17241E), const Color(0xFF527A5E)],
+      [const Color(0xFFDDEBD6), const Color(0xFF70A264)],
+      [const Color(0xFFDFE8EC), const Color(0xFF6F8E9C)],
+    ];
+    final palette = palettes[seed % palettes.length];
+    return Container(
+      height: 128,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: palette,
+        ),
+      ),
+      child: Stack(
+        children: [
+          PositionedDirectional(
+            end: 18,
+            top: 16,
+            child: Icon(
+              kind.icon,
+              size: 58,
+              color: Colors.white.withValues(alpha: .82),
+            ),
+          ),
+          PositionedDirectional(
+            start: 18,
+            bottom: 14,
+            child: Text(
+              kind.label(context),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                shadows: const [Shadow(color: Colors.black26, blurRadius: 8)],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EventDetails extends StatelessWidget {
+  const _EventDetails({required this.post});
+
+  final CommunityPost post;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.medium),
+      decoration: BoxDecoration(
+        color: post.kind.color.withValues(alpha: .07),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+      ),
+      child: Column(
+        children: [
+          _EventLine(
+            icon: Icons.calendar_today_outlined,
+            text: post.eventDate!,
+          ),
+          if (post.eventLocation != null) ...[
+            const SizedBox(height: AppSpacing.small),
+            _EventLine(
+              icon: Icons.location_on_outlined,
+              text: post.eventLocation!,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _EventLine extends StatelessWidget {
+  const _EventLine({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 19, color: CommunityPostKind.event.color),
+        const SizedBox(width: AppSpacing.small),
+        Expanded(child: Text(text)),
+      ],
+    );
+  }
+}
+
+class PollPanel extends StatelessWidget {
+  const PollPanel({required this.post, required this.onVote, super.key});
+
+  final CommunityPost post;
+  final ValueChanged<String> onVote;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = post.pollOptions.fold<int>(
+      0,
+      (sum, option) => sum + option.votes,
+    );
+    final hasVoted = post.selectedPollOptionId != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final option in post.pollOptions) ...[
+          _PollOptionTile(
+            option: option,
+            total: total,
+            hasVoted: hasVoted,
+            selected: post.selectedPollOptionId == option.id,
+            onTap: hasVoted ? null : () => onVote(option.id),
+          ),
+          const SizedBox(height: AppSpacing.small),
+        ],
+        Text(
+          Localizations.localeOf(context).languageCode == 'ar'
+              ? '$total صوت${hasVoted ? ' · تم تسجيل صوتك' : ''}'
+              : '$total votes${hasVoted ? ' · Vote recorded' : ''}',
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(color: AppColors.inkMuted),
+        ),
+      ],
+    );
+  }
+}
+
+class _PollOptionTile extends StatelessWidget {
+  const _PollOptionTile({
+    required this.option,
+    required this.total,
+    required this.hasVoted,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final PollOption option;
+  final int total;
+  final bool hasVoted;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = total == 0 ? 0.0 : option.votes / total;
+    return Semantics(
+      button: !hasVoted,
+      selected: selected,
+      child: InkWell(
+        key: ValueKey('poll-option-${option.id}'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        child: Container(
+          height: 46,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: selected
+                  ? CommunityPostKind.poll.color
+                  : AppColors.outline,
+              width: selected ? 1.5 : 1,
+            ),
+            borderRadius: BorderRadius.circular(AppRadius.medium),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (hasVoted)
+                FractionallySizedBox(
+                  alignment: AlignmentDirectional.centerStart,
+                  widthFactor: ratio,
+                  child: ColoredBox(
+                    color: CommunityPostKind.poll.color.withValues(alpha: .10),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 13),
+                child: Row(
+                  children: [
+                    if (selected) ...[
+                      Icon(
+                        Icons.check_circle_rounded,
+                        size: 18,
+                        color: CommunityPostKind.poll.color,
+                      ),
+                      const SizedBox(width: 7),
+                    ],
+                    Expanded(child: Text(option.label)),
+                    if (hasVoted) Text('${(ratio * 100).round()}٪'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PostActions extends StatelessWidget {
+  const _PostActions({
+    required this.post,
+    required this.onLike,
+    required this.onComment,
+    required this.onSave,
+  });
+
+  final CommunityPost post;
+  final VoidCallback onLike;
+  final VoidCallback onComment;
+  final VoidCallback onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _ActionButton(
+          key: ValueKey('like-${post.id}'),
+          icon: post.isLiked
+              ? Icons.favorite_rounded
+              : Icons.favorite_border_rounded,
+          label: '${post.likes}',
+          color: post.isLiked ? AppColors.danger : AppColors.inkMuted,
+          onTap: onLike,
+        ),
+        _ActionButton(
+          icon: Icons.chat_bubble_outline_rounded,
+          label: '${post.comments.length}',
+          onTap: onComment,
+        ),
+        const Spacer(),
+        IconButton(
+          key: ValueKey('save-${post.id}'),
+          tooltip: Localizations.localeOf(context).languageCode == 'ar'
+              ? 'حفظ'
+              : 'Save',
+          onPressed: onSave,
+          color: post.isSaved ? AppColors.primary : AppColors.inkMuted,
+          icon: Icon(
+            post.isSaved
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_border_rounded,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.color = AppColors.inkMuted,
+    super.key,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onTap,
+      style: TextButton.styleFrom(foregroundColor: color),
+      icon: Icon(icon, size: 20),
+      label: Text(label),
+    );
+  }
+}
