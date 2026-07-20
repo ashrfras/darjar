@@ -3,13 +3,14 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
-import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+enum CommunityFeedFilter { all, official, mine, saved }
 
 class CommunityFeedPage extends ConsumerStatefulWidget {
   const CommunityFeedPage({super.key});
@@ -19,33 +20,34 @@ class CommunityFeedPage extends ConsumerStatefulWidget {
 }
 
 class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
-  CommunityPostKind? _filter;
+  CommunityFeedFilter _filter = CommunityFeedFilter.all;
 
   @override
   Widget build(BuildContext context) {
     final posts = ref.watch(communityPostsProvider);
     final compact = MediaQuery.sizeOf(context).width < 600;
     final wide = MediaQuery.sizeOf(context).width >= 1180;
-    final filtered = _filter == null
-        ? posts
-        : posts.where((post) => post.kind == _filter).toList();
+    final filtered = posts.where((post) {
+      return switch (_filter) {
+        CommunityFeedFilter.all => true,
+        CommunityFeedFilter.official =>
+          post.kind == CommunityPostKind.announcement,
+        CommunityFeedFilter.mine => post.isCurrentUser,
+        CommunityFeedFilter.saved => post.isSaved,
+      };
+    }).toList();
 
     return Scaffold(
       key: const Key('community-feed-page'),
       backgroundColor: Colors.transparent,
       floatingActionButton: compact
-          ? FloatingActionButton(
+          ? _CreatePostFloatingButton(
               key: const Key('create-post-fab'),
-              tooltip: AppLocalizations.of(context).newPost,
               onPressed: () => context.go(AppRoutes.createPost),
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              child: const Icon(Icons.edit_rounded),
             )
           : null,
       body: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(child: _CommunityHero(compact: compact)),
           SliverPersistentHeader(
             pinned: compact,
             delegate: _FilterHeaderDelegate(
@@ -80,7 +82,9 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                             const SizedBox(height: AppSpacing.large),
                             if (filtered.isEmpty)
                               _EmptyFilter(
-                                onReset: () => setState(() => _filter = null),
+                                onReset: () => setState(
+                                  () => _filter = CommunityFeedFilter.all,
+                                ),
                               )
                             else
                               for (final post in filtered) ...[
@@ -120,69 +124,6 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
   }
 }
 
-class _CommunityHero extends StatelessWidget {
-  const _CommunityHero({required this.compact});
-
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
-    return Container(
-      color: AppColors.surface,
-      padding: EdgeInsets.fromLTRB(
-        compact ? 16 : AppSpacing.xLarge,
-        compact ? 14 : AppSpacing.xLarge,
-        compact ? 16 : AppSpacing.xLarge,
-        compact ? 12 : AppSpacing.large,
-      ),
-      child: Align(
-        alignment: AlignmentDirectional.center,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1080),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      ar
-                          ? 'مجتمعك، صوتك، تفاعلك'
-                          : 'Your community, your voice',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.ink,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      ar
-                          ? 'كل ما يهم سكان إقامتك في مكان واحد'
-                          : 'Everything happening in your residence, in one place',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.inkMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (!compact)
-                DarJarButton(
-                  key: const Key('create-post-button'),
-                  label: AppLocalizations.of(context).newPost,
-                  icon: Icons.add_rounded,
-                  onPressed: () => context.go(AppRoutes.createPost),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
   _FilterHeaderDelegate({
     required this.selected,
@@ -191,13 +132,13 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.textDirection,
   });
 
-  final CommunityPostKind? selected;
-  final ValueChanged<CommunityPostKind?> onSelected;
+  final CommunityFeedFilter selected;
+  final ValueChanged<CommunityFeedFilter> onSelected;
   final bool compact;
   final TextDirection textDirection;
 
   @override
-  double get minExtent => compact ? 84 : 96;
+  double get minExtent => 60;
 
   @override
   double get maxExtent => minExtent;
@@ -212,31 +153,25 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
       textDirection: textDirection,
       child: Container(
         color: AppColors.canvas,
-        padding: EdgeInsets.symmetric(vertical: compact ? 10 : 16),
+        padding: const EdgeInsets.symmetric(vertical: 7),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1080),
             child: ListView(
+              key: const Key('community-filter-list'),
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 0),
               children: [
-                _FilterChip(
-                  key: const Key('category-filter-all'),
-                  label: AppLocalizations.of(context).all,
-                  icon: Icons.dynamic_feed_outlined,
-                  selected: selected == null,
-                  color: AppColors.primary,
-                  onTap: () => onSelected(null),
-                ),
-                for (final kind in CommunityPostKind.values) ...[
-                  const SizedBox(width: AppSpacing.small),
+                for (final filter in CommunityFeedFilter.values) ...[
+                  if (filter != CommunityFeedFilter.all)
+                    const SizedBox(width: AppSpacing.small),
                   _FilterChip(
-                    key: ValueKey('category-filter-${kind.name}'),
-                    label: kind.label(context),
-                    icon: kind.icon,
-                    selected: selected == kind,
-                    color: kind.color,
-                    onTap: () => onSelected(kind),
+                    key: ValueKey('community-filter-${filter.name}'),
+                    label: filter.label(context),
+                    icon: filter.icon,
+                    selected: selected == filter,
+                    color: AppColors.primary,
+                    onTap: () => onSelected(filter),
                   ),
                 ],
               ],
@@ -252,6 +187,63 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
     return oldDelegate.selected != selected ||
         oldDelegate.compact != compact ||
         oldDelegate.textDirection != textDirection;
+  }
+}
+
+extension on CommunityFeedFilter {
+  String label(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return switch (this) {
+      CommunityFeedFilter.all => ar ? 'الكل' : 'All',
+      CommunityFeedFilter.official =>
+        ar ? 'المنشورات الرسمية' : 'Official posts',
+      CommunityFeedFilter.mine => ar ? 'منشوراتي الشخصية' : 'My posts',
+      CommunityFeedFilter.saved => ar ? 'المنشورات المحفوظة' : 'Saved posts',
+    };
+  }
+
+  IconData get icon => switch (this) {
+    CommunityFeedFilter.all => Icons.dynamic_feed_outlined,
+    CommunityFeedFilter.official => Icons.verified_outlined,
+    CommunityFeedFilter.mine => Icons.person_outline_rounded,
+    CommunityFeedFilter.saved => Icons.bookmark_border_rounded,
+  };
+}
+
+class _CreatePostFloatingButton extends StatelessWidget {
+  const _CreatePostFloatingButton({required this.onPressed, super.key});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: AppLocalizations.of(context).newPost,
+      child: GestureDetector(
+        onTap: onPressed,
+        behavior: HitTestBehavior.opaque,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(AppRadius.large),
+            border: Border.all(color: Colors.white.withValues(alpha: .28)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x330F766E),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: const SizedBox(
+            width: 56,
+            height: 56,
+            child: Icon(Icons.edit_rounded, color: Colors.white, size: 25),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -280,8 +272,7 @@ class _FilterChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.medium),
         child: Container(
-          width: 94,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.medium),
             border: Border.all(
@@ -290,19 +281,18 @@ class _FilterChip extends StatelessWidget {
                   : AppColors.outline,
             ),
           ),
-          child: Column(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 icon,
                 color: selected ? color : AppColors.inkMuted,
-                size: 22,
+                size: 17,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(width: 5),
               Text(
                 label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: selected ? color : AppColors.ink,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,

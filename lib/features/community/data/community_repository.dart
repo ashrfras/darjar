@@ -54,9 +54,10 @@ class CommunityPost {
     required this.comments,
     this.authorUnit,
     this.isOfficial = false,
+    this.isCurrentUser = false,
     this.isLiked = false,
     this.isSaved = false,
-    this.visualSeed = 0,
+    this.imagePaths = const [],
     this.pollOptions = const [],
     this.selectedPollOptionId,
     this.eventDate,
@@ -73,9 +74,10 @@ class CommunityPost {
   final int likes;
   final List<CommunityComment> comments;
   final bool isOfficial;
+  final bool isCurrentUser;
   final bool isLiked;
   final bool isSaved;
-  final int visualSeed;
+  final List<String> imagePaths;
   final List<PollOption> pollOptions;
   final String? selectedPollOptionId;
   final String? eventDate;
@@ -100,9 +102,10 @@ class CommunityPost {
       likes: likes ?? this.likes,
       comments: comments ?? this.comments,
       isOfficial: isOfficial,
+      isCurrentUser: isCurrentUser,
       isLiked: isLiked ?? this.isLiked,
       isSaved: isSaved ?? this.isSaved,
-      visualSeed: visualSeed,
+      imagePaths: imagePaths,
       pollOptions: pollOptions ?? this.pollOptions,
       selectedPollOptionId: selectedPollOptionId ?? this.selectedPollOptionId,
       eventDate: eventDate,
@@ -121,6 +124,7 @@ abstract interface class CommunityRepository {
     required String body,
     CommunityPostKind kind,
     List<String> pollOptions,
+    List<String> imagePaths,
     String? eventDate,
     String? eventLocation,
   });
@@ -147,7 +151,12 @@ class MockCommunityRepository implements CommunityRepository {
       kind: CommunityPostKind.announcement,
       likes: 12,
       isOfficial: true,
-      visualSeed: 1,
+      imagePaths: const [
+        'assets/images/community/elevator-maintenance.jpg',
+        'assets/images/community/elevator-panel.jpg',
+        'assets/images/community/elevator-corridor.jpg',
+        'assets/images/community/elevator-tools.jpg',
+      ],
       comments: const [
         CommunityComment(
           id: 'c1',
@@ -173,7 +182,8 @@ class MockCommunityRepository implements CommunityRepository {
           'عندي تسرّب في المطبخ وأبحث عن سبّاك موثوق وبسعر مناسب. يفضّل أن يكون متاحاً اليوم.',
       kind: CommunityPostKind.question,
       likes: 4,
-      visualSeed: 2,
+      isCurrentUser: true,
+      imagePaths: const ['assets/images/community/plumber.jpg'],
       comments: const [
         CommunityComment(
           id: 'c3',
@@ -193,7 +203,7 @@ class MockCommunityRepository implements CommunityRepository {
           'الرجاء من الجميع مراعاة الهدوء بعد الساعة 11 ليلاً في الحديقة، خصوصاً خلال أيام الأسبوع.',
       kind: CommunityPostKind.complaint,
       likes: 5,
-      visualSeed: 3,
+      imagePaths: const ['assets/images/community/garden-night.jpg'],
       comments: const [
         CommunityComment(
           id: 'c4',
@@ -219,7 +229,8 @@ class MockCommunityRepository implements CommunityRepository {
           'أقترح على السانديك زراعة المزيد من الأشجار في المنطقة الشرقية للحديقة وتخصيص يوم تطوعي للسكان.',
       kind: CommunityPostKind.suggestion,
       likes: 15,
-      visualSeed: 4,
+      isSaved: true,
+      imagePaths: ['assets/images/community/tree-saplings.jpg'],
       comments: [],
     ),
     const CommunityPost(
@@ -233,7 +244,6 @@ class MockCommunityRepository implements CommunityRepository {
       kind: CommunityPostKind.alert,
       likes: 18,
       isOfficial: true,
-      visualSeed: 5,
       comments: [],
     ),
     CommunityPost(
@@ -297,6 +307,7 @@ class MockCommunityRepository implements CommunityRepository {
     required String body,
     CommunityPostKind kind = CommunityPostKind.general,
     List<String> pollOptions = const [],
+    List<String> imagePaths = const [],
     String? eventDate,
     String? eventLocation,
   }) {
@@ -310,6 +321,8 @@ class MockCommunityRepository implements CommunityRepository {
       kind: kind,
       likes: 0,
       comments: const [],
+      isCurrentUser: true,
+      imagePaths: imagePaths.take(4).toList(growable: false),
       pollOptions: [
         for (var index = 0; index < pollOptions.length; index++)
           PollOption(id: 'option-$index', label: pollOptions[index], votes: 0),
@@ -407,6 +420,7 @@ class CommunityPostsController extends Notifier<List<CommunityPost>> {
     required String body,
     CommunityPostKind kind = CommunityPostKind.general,
     List<String> pollOptions = const [],
+    List<String> imagePaths = const [],
     String? eventDate,
     String? eventLocation,
   }) {
@@ -415,6 +429,7 @@ class CommunityPostsController extends Notifier<List<CommunityPost>> {
       body: body,
       kind: kind,
       pollOptions: pollOptions,
+      imagePaths: imagePaths,
       eventDate: eventDate,
       eventLocation: eventLocation,
     );

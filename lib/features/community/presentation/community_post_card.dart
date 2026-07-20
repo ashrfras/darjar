@@ -100,9 +100,12 @@ class CommunityPostCard extends StatelessWidget {
                     height: 1.65,
                   ),
                 ),
-                if (post.visualSeed > 0) ...[
+                if (post.imagePaths.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.medium),
-                  _PostVisual(kind: post.kind, seed: post.visualSeed),
+                  _PostImages(
+                    key: ValueKey('post-images-${post.id}'),
+                    imagePaths: post.imagePaths,
+                  ),
                 ],
                 if (post.eventDate != null) ...[
                   const SizedBox(height: AppSpacing.medium),
@@ -221,57 +224,115 @@ class _KindLabel extends StatelessWidget {
   }
 }
 
-class _PostVisual extends StatelessWidget {
-  const _PostVisual({required this.kind, required this.seed});
+class _PostImages extends StatelessWidget {
+  const _PostImages({required this.imagePaths, super.key});
 
-  final CommunityPostKind kind;
-  final int seed;
+  final List<String> imagePaths;
 
   @override
   Widget build(BuildContext context) {
-    final palettes = <List<Color>>[
-      [const Color(0xFFE5F3F1), const Color(0xFFB8DED8)],
-      [const Color(0xFFE7E2D8), const Color(0xFFB9A88B)],
-      [const Color(0xFFDDE5E7), const Color(0xFF8FA7AA)],
-      [const Color(0xFF17241E), const Color(0xFF527A5E)],
-      [const Color(0xFFDDEBD6), const Color(0xFF70A264)],
-      [const Color(0xFFDFE8EC), const Color(0xFF6F8E9C)],
-    ];
-    final palette = palettes[seed % palettes.length];
-    return Container(
-      height: 128,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        gradient: LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: palette,
-        ),
-      ),
-      child: Stack(
-        children: [
-          PositionedDirectional(
-            end: 18,
-            top: 16,
-            child: Icon(
-              kind.icon,
-              size: 58,
-              color: Colors.white.withValues(alpha: .82),
-            ),
+    final images = imagePaths.take(4).toList(growable: false);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.medium),
+      child: AspectRatio(
+        aspectRatio: images.length == 1 ? 16 / 9 : 3 / 2,
+        child: switch (images.length) {
+          1 => _ImageTile(path: images[0]),
+          2 => Row(
+            children: [
+              Expanded(child: _ImageTile(path: images[0])),
+              const SizedBox(width: 3),
+              Expanded(child: _ImageTile(path: images[1])),
+            ],
           ),
-          PositionedDirectional(
-            start: 18,
-            bottom: 14,
-            child: Text(
-              kind.label(context),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                shadows: const [Shadow(color: Colors.black26, blurRadius: 8)],
+          3 => Row(
+            children: [
+              Expanded(flex: 2, child: _ImageTile(path: images[0])),
+              const SizedBox(width: 3),
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(child: _ImageTile(path: images[1])),
+                    const SizedBox(height: 3),
+                    Expanded(child: _ImageTile(path: images[2])),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          _ => Column(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(child: _ImageTile(path: images[0])),
+                    const SizedBox(width: 3),
+                    Expanded(child: _ImageTile(path: images[1])),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 3),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(child: _ImageTile(path: images[2])),
+                    const SizedBox(width: 3),
+                    Expanded(child: _ImageTile(path: images[3])),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        },
+      ),
+    );
+  }
+}
+
+class _ImageTile extends StatelessWidget {
+  const _ImageTile({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.canvas,
+      child: Ink.image(
+        image: AssetImage(path),
+        fit: BoxFit.cover,
+        child: InkWell(
+          onTap: () => showDialog<void>(
+            context: context,
+            builder: (context) => Dialog.fullscreen(
+              backgroundColor: Colors.black,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: InteractiveViewer(
+                      child: Center(
+                        child: Image.asset(path, fit: BoxFit.contain),
+                      ),
+                    ),
+                  ),
+                  PositionedDirectional(
+                    top: AppSpacing.large,
+                    end: AppSpacing.large,
+                    child: SafeArea(
+                      child: IconButton.filledTonal(
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).closeButtonTooltip,
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

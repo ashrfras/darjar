@@ -60,13 +60,22 @@ void main() {
       final votesBefore = post.pollOptions.first.votes;
       community.vote(post.id, post.pollOptions.first.id);
       community.toggleLike(post.id);
+      community.toggleSaved(post.id);
       community.addComment(post.id, 'سأشارك بالتأكيد');
 
       final updated = community.getPost(post.id)!;
       expect(updated.selectedPollOptionId, post.pollOptions.first.id);
       expect(updated.pollOptions.first.votes, votesBefore + 1);
       expect(updated.isLiked, isTrue);
+      expect(updated.isSaved, isTrue);
       expect(updated.comments.last.body, 'سأشارك بالتأكيد');
+
+      final created = community.createPost(
+        title: 'صور الإقامة',
+        body: 'أربع صور كحد أقصى',
+        imagePaths: const ['1', '2', '3', '4', '5'],
+      );
+      expect(created.imagePaths, hasLength(4));
     });
   });
 
@@ -125,6 +134,18 @@ void main() {
     expect(fields, findsNWidgets(2));
     await tester.enterText(fields.at(0), 'لقاء الجيران');
     await tester.enterText(fields.at(1), 'نلتقي مساء السبت في الحديقة.');
+    await tester.ensureVisible(find.byKey(const Key('add-post-images-button')));
+    await tester.tap(find.byKey(const Key('add-post-images-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(
+        const ValueKey(
+          'mock-gallery-assets/images/community/elevator-maintenance.jpg',
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('confirm-post-images-button')));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const Key('publish-post-button')));
     await tester.tap(find.byKey(const Key('publish-post-button')));
     await tester.pumpAndSettle();
@@ -135,10 +156,42 @@ void main() {
   testWidgets('community filters posts and opens details with local comments', (
     tester,
   ) async {
-    await _pumpApp(tester, size: const Size(390, 844));
+    await _pumpApp(tester, size: const Size(1280, 900));
     await _enterResidence(tester);
 
-    await tester.tap(find.byKey(const Key('category-filter-announcement')));
+    expect(find.text('مجتمعك، صوتك، تفاعلك'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('post-images-announcement-elevator')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('post-images-alert-water')), findsNothing);
+
+    for (final filter in ['all', 'official', 'mine', 'saved']) {
+      expect(find.byKey(ValueKey('community-filter-$filter')), findsOneWidget);
+    }
+
+    final mineFilter = find.byKey(const Key('community-filter-mine'));
+    await tester.tap(mineFilter);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('community-post-question-plumber')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('community-post-announcement-elevator')),
+      findsNothing,
+    );
+
+    final savedFilter = find.byKey(const Key('community-filter-saved'));
+    await tester.tap(savedFilter);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('community-post-suggestion-trees')),
+      findsOneWidget,
+    );
+
+    final officialFilter = find.byKey(const Key('community-filter-official'));
+    await tester.tap(officialFilter);
     await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('community-post-announcement-elevator')),
@@ -161,6 +214,9 @@ void main() {
       find.byKey(const Key('comment-field')),
       'شكراً على التوضيح',
     );
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('submit-comment-button')));
     await tester.tap(find.byKey(const Key('submit-comment-button')));
     await tester.pumpAndSettle();
     expect(find.text('شكراً على التوضيح'), findsOneWidget);

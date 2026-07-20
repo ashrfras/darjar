@@ -12,6 +12,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+const _mockGalleryImages = [
+  'assets/images/community/elevator-maintenance.jpg',
+  'assets/images/community/elevator-panel.jpg',
+  'assets/images/community/elevator-corridor.jpg',
+  'assets/images/community/elevator-tools.jpg',
+  'assets/images/community/plumber.jpg',
+  'assets/images/community/garden-night.jpg',
+  'assets/images/community/tree-saplings.jpg',
+];
+
 class CreatePostPage extends ConsumerStatefulWidget {
   const CreatePostPage({super.key});
 
@@ -25,6 +35,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   final _eventDateController = TextEditingController();
   final _eventLocationController = TextEditingController();
   final _pollControllers = [TextEditingController(), TextEditingController()];
+  final List<String> _selectedImagePaths = [];
   CommunityPostKind _kind = CommunityPostKind.general;
 
   @override
@@ -136,6 +147,13 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                           hintText: _bodyHint(ar),
                           alignLabelWithHint: true,
                         ),
+                      ),
+                      const SizedBox(height: AppSpacing.medium),
+                      _PostImagePicker(
+                        imagePaths: _selectedImagePaths,
+                        onAdd: _showMockGallery,
+                        onRemove: (path) =>
+                            setState(() => _selectedImagePaths.remove(path)),
                       ),
                       if (_kind == CommunityPostKind.poll) ...[
                         const SizedBox(height: AppSpacing.large),
@@ -288,6 +306,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           body: body,
           kind: _kind,
           pollOptions: pollOptions,
+          imagePaths: _selectedImagePaths,
           eventDate: _eventDateController.text.trim().isEmpty
               ? null
               : _eventDateController.text.trim(),
@@ -302,6 +321,197 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _showMockGallery() async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, sheetSetState) {
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.large,
+                0,
+                AppSpacing.large,
+                AppSpacing.xLarge,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    ar ? 'اختر صوراً' : 'Choose photos',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    ar
+                        ? '${_selectedImagePaths.length} من 4 صور محددة'
+                        : '${_selectedImagePaths.length} of 4 selected',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+                  ),
+                  const SizedBox(height: AppSpacing.medium),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: AppSpacing.small,
+                          mainAxisSpacing: AppSpacing.small,
+                        ),
+                    itemCount: _mockGalleryImages.length,
+                    itemBuilder: (context, index) {
+                      final path = _mockGalleryImages[index];
+                      final selected = _selectedImagePaths.contains(path);
+                      return _GalleryImageTile(
+                        path: path,
+                        selected: selected,
+                        onTap: () {
+                          if (!selected && _selectedImagePaths.length >= 4) {
+                            return;
+                          }
+                          setState(() {
+                            if (selected) {
+                              _selectedImagePaths.remove(path);
+                            } else {
+                              _selectedImagePaths.add(path);
+                            }
+                          });
+                          sheetSetState(() {});
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.large),
+                  DarJarButton(
+                    key: const Key('confirm-post-images-button'),
+                    label: ar ? 'تم' : 'Done',
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PostImagePicker extends StatelessWidget {
+  const _PostImagePicker({
+    required this.imagePaths,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  final List<String> imagePaths;
+  final VoidCallback onAdd;
+  final ValueChanged<String> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (imagePaths.isNotEmpty) ...[
+          SizedBox(
+            height: 96,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: imagePaths.length,
+              separatorBuilder: (context, index) =>
+                  const SizedBox(width: AppSpacing.small),
+              itemBuilder: (context, index) {
+                final path = imagePaths[index];
+                return Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
+                      child: Image.asset(
+                        path,
+                        width: 112,
+                        height: 96,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    PositionedDirectional(
+                      top: 4,
+                      end: 4,
+                      child: IconButton.filled(
+                        key: ValueKey('remove-post-image-$index'),
+                        tooltip: ar ? 'إزالة الصورة' : 'Remove photo',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => onRemove(path),
+                        icon: const Icon(Icons.close_rounded, size: 17),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: AppSpacing.small),
+        ],
+        if (imagePaths.length < 4)
+          OutlinedButton.icon(
+            key: const Key('add-post-images-button'),
+            onPressed: onAdd,
+            icon: const Icon(Icons.add_photo_alternate_outlined),
+            label: Text(ar ? 'إضافة صور (حتى 4)' : 'Add photos (up to 4)'),
+          ),
+      ],
+    );
+  }
+}
+
+class _GalleryImageTile extends StatelessWidget {
+  const _GalleryImageTile({
+    required this.path,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String path;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.canvas,
+      borderRadius: BorderRadius.circular(AppRadius.medium),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        key: ValueKey('mock-gallery-$path'),
+        onTap: onTap,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(path, fit: BoxFit.cover),
+            if (selected)
+              ColoredBox(color: AppColors.primary.withValues(alpha: .24)),
+            PositionedDirectional(
+              top: 6,
+              end: 6,
+              child: Icon(
+                selected ? Icons.check_circle_rounded : Icons.circle_outlined,
+                color: Colors.white,
+                shadows: const [Shadow(color: Colors.black54, blurRadius: 4)],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
