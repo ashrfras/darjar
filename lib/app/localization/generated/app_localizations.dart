@@ -116,17 +116,11 @@ abstract class AppLocalizations {
   /// **'المجتمع'**
   String get community;
 
-  /// No description provided for @marketplace.
+  /// No description provided for @directory.
   ///
   /// In ar, this message translates to:
-  /// **'السوق'**
-  String get marketplace;
-
-  /// No description provided for @services.
-  ///
-  /// In ar, this message translates to:
-  /// **'الخدمات'**
-  String get services;
+  /// **'الدليل'**
+  String get directory;
 
   /// No description provided for @demoResidence.
   ///
@@ -139,18 +133,6 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'مساحة أخبار الجيران والإعلانات والنقاشات داخل الإقامة.'**
   String get communityDescription;
-
-  /// No description provided for @marketplaceDescription.
-  ///
-  /// In ar, this message translates to:
-  /// **'مساحة آمنة للبيع والعطاء والطلب بين سكان الإقامة.'**
-  String get marketplaceDescription;
-
-  /// No description provided for @servicesDescription.
-  ///
-  /// In ar, this message translates to:
-  /// **'مكان موحّد للصيانة والوثائق ومعلومات إدارة الإقامة.'**
-  String get servicesDescription;
 
   /// No description provided for @shellPreviewDescription.
   ///
@@ -281,7 +263,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingDescription.
   ///
   /// In ar, this message translates to:
-  /// **'تواصل مع جيرانك، تبادل الأشياء والخدمات، وتابع شؤون إقامتك بسهولة وخصوصية.'**
+  /// **'تواصل مع جيرانك، اكتشف خدمات محلية موثوقة، وتابع شؤون إقامتك بسهولة وخصوصية.'**
   String get onboardingDescription;
 
   /// No description provided for @getStarted.
@@ -434,107 +416,203 @@ abstract class AppLocalizations {
   /// **'إلغاء'**
   String get cancel;
 
-  /// No description provided for @marketplacePageDescription.
+  /// No description provided for @directoryPageDescription.
   ///
   /// In ar, this message translates to:
-  /// **'بيع، أعطِ، أو اطلب من جيرانك داخل الإقامة.'**
-  String get marketplacePageDescription;
+  /// **'دليلك المحلي الموثوق لخدمات ومرافق أوصى بها جيرانك.'**
+  String get directoryPageDescription;
 
-  /// No description provided for @newListing.
+  /// No description provided for @directorySearchHint.
   ///
   /// In ar, this message translates to:
-  /// **'إعلان جديد'**
-  String get newListing;
+  /// **'ابحث عن خدمة أو مكان...'**
+  String get directorySearchHint;
 
-  /// No description provided for @offer.
+  /// No description provided for @nearby.
   ///
   /// In ar, this message translates to:
-  /// **'عرض'**
-  String get offer;
+  /// **'قريب'**
+  String get nearby;
 
-  /// No description provided for @giveAway.
+  /// No description provided for @craftspeople.
   ///
   /// In ar, this message translates to:
-  /// **'إهداء'**
-  String get giveAway;
+  /// **'حرفيون'**
+  String get craftspeople;
 
-  /// No description provided for @request.
+  /// No description provided for @restaurants.
   ///
   /// In ar, this message translates to:
-  /// **'طلب'**
-  String get request;
+  /// **'مطاعم'**
+  String get restaurants;
 
-  /// No description provided for @listingNotFound.
+  /// No description provided for @cafes.
   ///
   /// In ar, this message translates to:
-  /// **'لم يتم العثور على الإعلان.'**
-  String get listingNotFound;
+  /// **'مقاهي'**
+  String get cafes;
 
-  /// No description provided for @contactSeller.
+  /// No description provided for @pharmacies.
   ///
   /// In ar, this message translates to:
-  /// **'التواصل مع المعلن'**
-  String get contactSeller;
+  /// **'صيدليات'**
+  String get pharmacies;
 
-  /// No description provided for @createListing.
+  /// No description provided for @nearbyFacilities.
   ///
   /// In ar, this message translates to:
-  /// **'إنشاء إعلان في السوق'**
-  String get createListing;
+  /// **'مرافق'**
+  String get nearbyFacilities;
 
-  /// No description provided for @createListingDescription.
+  /// No description provided for @recommendedByNeighbors.
   ///
   /// In ar, this message translates to:
-  /// **'أضف وصفاً واضحاً حتى يفهم جيرانك ما تعرضه أو تطلبه.'**
-  String get createListingDescription;
+  /// **'موصى بها من جيرانك'**
+  String get recommendedByNeighbors;
 
-  /// No description provided for @listingTitle.
+  /// No description provided for @topRatedCraftspeople.
   ///
   /// In ar, this message translates to:
-  /// **'عنوان الإعلان'**
-  String get listingTitle;
+  /// **'الحرفيون الأعلى توصية'**
+  String get topRatedCraftspeople;
 
-  /// No description provided for @listingTitleHint.
+  /// No description provided for @exploreNearby.
   ///
   /// In ar, this message translates to:
-  /// **'مثال: طاولة صغيرة للبيع'**
-  String get listingTitleHint;
+  /// **'اكتشف ما حولك'**
+  String get exploreNearby;
 
-  /// No description provided for @description.
+  /// No description provided for @viewAll.
   ///
   /// In ar, this message translates to:
-  /// **'الوصف'**
-  String get description;
+  /// **'عرض الكل'**
+  String get viewAll;
 
-  /// No description provided for @listingDescriptionHint.
+  /// No description provided for @recommended.
   ///
   /// In ar, this message translates to:
-  /// **'الحالة، المقاس، وطريقة الاستلام'**
-  String get listingDescriptionHint;
+  /// **'موصى به'**
+  String get recommended;
 
-  /// No description provided for @price.
+  /// No description provided for @recommendedFromResidence.
   ///
   /// In ar, this message translates to:
-  /// **'السعر أو المقابل'**
-  String get price;
+  /// **'موصى به من سكان إقامة الياسمين'**
+  String get recommendedFromResidence;
 
-  /// No description provided for @priceHint.
+  /// No description provided for @searchResults.
   ///
   /// In ar, this message translates to:
-  /// **'مثال: 250 درهم أو مجاناً'**
-  String get priceHint;
+  /// **'نتائج البحث'**
+  String get searchResults;
 
-  /// No description provided for @publishListing.
+  /// No description provided for @noDirectoryResults.
   ///
   /// In ar, this message translates to:
-  /// **'نشر الإعلان'**
-  String get publishListing;
+  /// **'لم نجد نتائج مطابقة. جرّب كلمة أو فئة أخرى.'**
+  String get noDirectoryResults;
 
-  /// No description provided for @servicesPageDescription.
+  /// No description provided for @localRecommendations.
   ///
   /// In ar, this message translates to:
-  /// **'كل ما يتعلق بخدمات وشؤون الإقامة في مكان واحد.'**
-  String get servicesPageDescription;
+  /// **'{count} توصية من جيرانك'**
+  String localRecommendations(int count);
+
+  /// No description provided for @directoryProfileNotFound.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم العثور على الملف.'**
+  String get directoryProfileNotFound;
+
+  /// No description provided for @recommendationScore.
+  ///
+  /// In ar, this message translates to:
+  /// **'نقطة الثقة'**
+  String get recommendationScore;
+
+  /// No description provided for @recommendations.
+  ///
+  /// In ar, this message translates to:
+  /// **'التوصيات'**
+  String get recommendations;
+
+  /// No description provided for @fromYourResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'من إقامتك'**
+  String get fromYourResidence;
+
+  /// No description provided for @call.
+  ///
+  /// In ar, this message translates to:
+  /// **'اتصال'**
+  String get call;
+
+  /// No description provided for @recommend.
+  ///
+  /// In ar, this message translates to:
+  /// **'أوصي به'**
+  String get recommend;
+
+  /// No description provided for @workedInResidences.
+  ///
+  /// In ar, this message translates to:
+  /// **'إقامات عمل فيها سابقاً'**
+  String get workedInResidences;
+
+  /// No description provided for @recentReviews.
+  ///
+  /// In ar, this message translates to:
+  /// **'آراء حديثة'**
+  String get recentReviews;
+
+  /// No description provided for @noReviewsYet.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد آراء مكتوبة بعد.'**
+  String get noReviewsYet;
+
+  /// No description provided for @cityProfileTrustNotice.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذا ملف موحّد على مستوى المدينة. نُبرز لك توصيات سكان إقامتك مع إبقاء الخبرات الموثّقة من الإقامات الأخرى.'**
+  String get cityProfileTrustNotice;
+
+  /// No description provided for @recommendEntry.
+  ///
+  /// In ar, this message translates to:
+  /// **'أوصِ بـ {name}'**
+  String recommendEntry(String name);
+
+  /// No description provided for @recommendationPrompt.
+  ///
+  /// In ar, this message translates to:
+  /// **'شارك تجربتك لمساعدة جيرانك على اتخاذ قرار موثوق.'**
+  String get recommendationPrompt;
+
+  /// No description provided for @recommendationHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'ماذا أعجبك في الخدمة؟'**
+  String get recommendationHint;
+
+  /// No description provided for @publishRecommendation.
+  ///
+  /// In ar, this message translates to:
+  /// **'نشر التوصية'**
+  String get publishRecommendation;
+
+  /// No description provided for @recommendationPublished.
+  ///
+  /// In ar, this message translates to:
+  /// **'شكراً، نُشرت توصيتك لجيرانك.'**
+  String get recommendationPublished;
+
+  /// No description provided for @residencePageDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل ما يتعلق بإدارة وشؤون الإقامة في مكان واحد.'**
+  String get residencePageDescription;
 
   /// No description provided for @maintenanceRequests.
   ///
@@ -758,11 +836,11 @@ abstract class AppLocalizations {
   /// **'إشعارات المجتمع'**
   String get communityNotifications;
 
-  /// No description provided for @servicesNotifications.
+  /// No description provided for @residenceNotifications.
   ///
   /// In ar, this message translates to:
-  /// **'إشعارات الخدمات'**
-  String get servicesNotifications;
+  /// **'إشعارات الإقامة'**
+  String get residenceNotifications;
 }
 
 class _AppLocalizationsDelegate

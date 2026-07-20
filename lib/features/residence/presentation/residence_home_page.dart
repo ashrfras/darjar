@@ -6,13 +6,13 @@ import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
-import 'package:darjar/features/services/data/services_repository.dart';
+import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class ServicesHomePage extends ConsumerWidget {
-  const ServicesHomePage({super.key});
+class ResidenceHomePage extends ConsumerWidget {
+  const ResidenceHomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,12 +20,12 @@ class ServicesHomePage extends ConsumerWidget {
     final compact = MediaQuery.sizeOf(context).width < 600;
 
     if (compact) {
-      return _CompactServicesHome(
+      return _CompactResidenceHome(
         requests: ref.watch(maintenanceRequestsProvider),
       );
     }
 
-    final services = [
+    final residenceAreas = [
       (
         title: localizations.maintenanceRequests,
         description: localizations.maintenanceDescription,
@@ -37,14 +37,14 @@ class ServicesHomePage extends ConsumerWidget {
         title: localizations.duesStatus,
         description: localizations.duesDescription,
         icon: Icons.receipt_long_outlined,
-        color: AppColors.marketplace,
+        color: AppColors.directory,
         route: AppRoutes.dues,
       ),
       (
         title: localizations.managementInformation,
         description: localizations.managementDescription,
         icon: Icons.business_outlined,
-        color: AppColors.services,
+        color: AppColors.residence,
         route: AppRoutes.management,
       ),
       (
@@ -57,7 +57,7 @@ class ServicesHomePage extends ConsumerWidget {
     ];
 
     return SingleChildScrollView(
-      key: const Key('services-home-page'),
+      key: const Key('residence-home-page'),
       padding: const EdgeInsets.all(AppSpacing.xLarge),
       child: Align(
         alignment: AlignmentDirectional.topCenter,
@@ -67,15 +67,15 @@ class ServicesHomePage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DarJarPageHeader(
-                title: localizations.services,
-                description: localizations.servicesPageDescription,
+                title: localizations.residence,
+                description: localizations.residencePageDescription,
               ),
               const SizedBox(height: AppSpacing.xLarge),
               Wrap(
                 spacing: AppSpacing.large,
                 runSpacing: AppSpacing.large,
                 children: [
-                  for (final service in services)
+                  for (final service in residenceAreas)
                     SizedBox(
                       width: 440,
                       child: DarJarCard(
@@ -126,8 +126,8 @@ class ServicesHomePage extends ConsumerWidget {
   }
 }
 
-class _CompactServicesHome extends StatelessWidget {
-  const _CompactServicesHome({required this.requests});
+class _CompactResidenceHome extends StatelessWidget {
+  const _CompactResidenceHome({required this.requests});
 
   final List<MaintenanceRequest> requests;
 
@@ -146,7 +146,7 @@ class _CompactServicesHome extends StatelessWidget {
     ];
 
     return SingleChildScrollView(
-      key: const Key('services-home-page'),
+      key: const Key('residence-home-page'),
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -217,7 +217,7 @@ class _QuickAction extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, color: AppColors.marketplace, size: 25),
+                Icon(icon, color: AppColors.directory, size: 25),
                 const SizedBox(height: 8),
                 Text(
                   label,
@@ -260,15 +260,15 @@ class _DuesSummary extends StatelessWidget {
                     value: .72,
                     strokeWidth: 7,
                     backgroundColor: AppColors.outline,
-                    color: AppColors.marketplace,
+                    color: AppColors.directory,
                   ),
                 ),
                 Text(
                   'مدفوع\nحتى شهر\nيوليو 2026',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppColors.marketplace,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelMedium?.copyWith(color: AppColors.directory),
                 ),
               ],
             ),
@@ -299,9 +299,9 @@ class _DuesSummary extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'عرض التفاصيل  ‹',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppColors.marketplace,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(color: AppColors.directory),
                 ),
               ],
             ),
@@ -368,14 +368,14 @@ class _MaintenanceSummary extends StatelessWidget {
                     width: 58,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.servicesSoft,
+                      color: AppColors.residenceSoft,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       index == 0
                           ? Icons.elevator_outlined
                           : Icons.lightbulb_outline,
-                      color: AppColors.services,
+                      color: AppColors.residence,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -432,12 +432,12 @@ class _FacilityBooking extends StatelessWidget {
             width: 72,
             height: 58,
             decoration: BoxDecoration(
-              color: AppColors.marketplaceSoft,
+              color: AppColors.directorySoft,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
               Icons.meeting_room_outlined,
-              color: AppColors.marketplace,
+              color: AppColors.directory,
             ),
           ),
           const SizedBox(width: 12),
@@ -474,7 +474,7 @@ class _ManagementNotice extends StatelessWidget {
         children: [
           const Icon(
             Icons.notifications_none_rounded,
-            color: AppColors.marketplace,
+            color: AppColors.directory,
             size: 34,
           ),
           const SizedBox(width: 12),

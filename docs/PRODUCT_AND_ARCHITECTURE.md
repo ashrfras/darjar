@@ -1,7 +1,7 @@
 # Product and Architecture
 
 ## Definition
-DarJar is the operating system of apartment living: one application for community, local exchange, and residential services.
+DarJar is the operating system of apartment living: one application for community, a resident-powered local directory, and residence management.
 
 ## Main areas
 
@@ -13,18 +13,19 @@ DarJar is the operating system of apartment living: one application for communit
 - Discussions
 - Lost and found
 
-### Marketplace
-- Sell
-- Give away
-- Request
-- Borrow or lend
-- Recommend a professional
-- Request a nearby service
+### Directory
+- Trusted city-wide profiles with residence-aware recommendations
+- Craftspeople as the highest-priority category
+- Restaurants, cafés, pharmacies, and nearby facilities
+- Search and category browsing
+- Profile details, recommendation scores, and recent resident reviews
+- One shared profile per provider, with recommendations from the current residence highlighted
 
-### Services
+### Residence
 - Maintenance requests
 - Documents
 - Management information
+- Member administration
 - Official notices
 - Manual dues status
 - Reservations later
@@ -51,7 +52,7 @@ Possible statuses:
 - Escrow
 - Full accounting
 - Syndic ERP
-- Public city-wide network
+- Public social network
 - AI assistant
 - Separate web product
 
@@ -107,8 +108,8 @@ lib/
     onboarding/
     residence/
     community/
-    marketplace/
-    services/
+    directory/
+    residence/
     dues/
     management/
     profile/
@@ -135,8 +136,10 @@ users/{userId}
 residences/{residenceId}
 residences/{residenceId}/members/{userId}
 residences/{residenceId}/posts/{postId}
-residences/{residenceId}/listings/{listingId}
-residences/{residenceId}/serviceRequests/{requestId}
+directoryEntries/{entryId}
+directoryEntries/{entryId}/recommendations/{recommendationId}
+residences/{residenceId}/directoryRecommendations/{recommendationId}
+residences/{residenceId}/maintenanceRequests/{requestId}
 residences/{residenceId}/duesPeriods/{periodId}
 residences/{residenceId}/duesPeriods/{periodId}/records/{userId}
 residences/{residenceId}/documents/{documentId}

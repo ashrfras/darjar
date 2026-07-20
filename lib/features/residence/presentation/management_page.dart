@@ -3,7 +3,7 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
-import 'package:darjar/features/services/data/services_repository.dart';
+import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -109,7 +109,7 @@ class _InfoRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.services),
+          Icon(icon, color: AppColors.residence),
           const SizedBox(width: AppSpacing.medium),
           Expanded(
             child: Column(

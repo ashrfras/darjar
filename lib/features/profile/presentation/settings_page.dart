@@ -15,7 +15,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   bool _communityNotifications = true;
-  bool _servicesNotifications = true;
+  bool _residenceNotifications = true;
 
   @override
   Widget build(BuildContext context) {
@@ -91,10 +91,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ),
                     const Divider(),
                     SwitchListTile(
-                      title: Text(localizations.servicesNotifications),
-                      value: _servicesNotifications,
+                      title: Text(localizations.residenceNotifications),
+                      value: _residenceNotifications,
                       onChanged: (value) {
-                        setState(() => _servicesNotifications = value);
+                        setState(() => _residenceNotifications = value);
                       },
                     ),
                   ],

@@ -6,10 +6,10 @@ abstract final class AppColors {
 
   // Semantic feature names all resolve to the single DarJar accent.
   static const community = primary;
-  static const marketplace = primary;
-  static const marketplaceSoft = primarySoft;
-  static const services = primary;
-  static const servicesSoft = primarySoft;
+  static const directory = primary;
+  static const directorySoft = primarySoft;
+  static const residence = primary;
+  static const residenceSoft = primarySoft;
   static const warning = Color(0xFFE97824);
   static const warningSoft = Color(0xFFFFF1E5);
   static const danger = Color(0xFFE5484D);

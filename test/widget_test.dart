@@ -3,8 +3,8 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_theme.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
-import 'package:darjar/features/marketplace/data/marketplace_repository.dart';
-import 'package:darjar/features/services/data/services_repository.dart';
+import 'package:darjar/features/directory/data/directory_repository.dart';
+import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,24 +25,28 @@ void main() {
   });
 
   group('mock repositories', () {
-    test('create community posts, listings, and maintenance requests', () {
-      final community = MockCommunityRepository();
-      final marketplace = MockMarketplaceRepository();
-      final services = MockServicesRepository();
+    test(
+      'create community posts, recommendations, and maintenance requests',
+      () {
+        final community = MockCommunityRepository();
+        final directory = MockDirectoryRepository();
+        final residence = MockResidenceRepository();
 
-      community.createPost(title: 'عنوان', body: 'تفاصيل');
-      marketplace.createListing(
-        title: 'غرض جديد',
-        description: 'وصف',
-        priceLabel: '100 درهم',
-        type: ListingType.offer,
-      );
-      services.createMaintenanceRequest(title: 'عطل جديد', location: 'المدخل');
+        community.createPost(title: 'عنوان', body: 'تفاصيل');
+        directory.recommend(id: 'mohamed-electrician', comment: 'خدمة ممتازة');
+        residence.createMaintenanceRequest(
+          title: 'عطل جديد',
+          location: 'المدخل',
+        );
 
-      expect(community.getPosts().first.title, 'عنوان');
-      expect(marketplace.getListings().first.title, 'غرض جديد');
-      expect(services.getMaintenanceRequests().first.title, 'عطل جديد');
-    });
+        expect(community.getPosts().first.title, 'عنوان');
+        expect(
+          directory.getEntry('mohamed-electrician')!.reviews.first.comment,
+          'خدمة ممتازة',
+        );
+        expect(residence.getMaintenanceRequests().first.title, 'عطل جديد');
+      },
+    );
   });
 
   testWidgets('onboarding creates a residence and enters the compact app', (
@@ -106,39 +110,45 @@ void main() {
     expect(find.text('لقاء الجيران'), findsOneWidget);
   });
 
-  testWidgets('resident can create and open a marketplace listing', (
+  testWidgets('resident can browse a craftsman profile and recommend it', (
     tester,
   ) async {
     await _pumpApp(tester, size: const Size(390, 844));
     await _enterResidence(tester);
 
-    await tester.tap(find.text('السوق'));
+    await tester.tap(find.text('الدليل'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('marketplace-page')), findsOneWidget);
+    expect(find.byKey(const Key('directory-page')), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('create-listing-fab')));
+    final craftsman = find.byKey(
+      const ValueKey('directory-entry-mohamed-electrician'),
+    );
+    await tester.ensureVisible(craftsman);
+    await tester.tap(craftsman);
     await tester.pumpAndSettle();
-    final fields = find.byType(TextField);
-    expect(fields, findsNWidgets(3));
-    await tester.enterText(fields.at(0), 'مصباح للبيع');
-    await tester.enterText(fields.at(1), 'مصباح جديد بحالة ممتازة');
-    await tester.enterText(fields.at(2), '120 درهم');
-    await tester.tap(find.byKey(const Key('publish-listing-button')));
-    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
+    expect(find.text('محمد الكهربائي'), findsOneWidget);
 
-    expect(find.byKey(const Key('listing-details-page')), findsOneWidget);
-    expect(find.text('مصباح للبيع'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('recommend-entry-button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('recommendation-comment')),
+      'خدمة سريعة وموثوقة',
+    );
+    await tester.tap(find.byKey(const Key('submit-recommendation-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('خدمة سريعة وموثوقة'), findsOneWidget);
   });
 
-  testWidgets('services expose maintenance, dues, and management routes', (
+  testWidgets('residence exposes maintenance, dues, and management routes', (
     tester,
   ) async {
     await _pumpApp(tester, size: const Size(390, 844));
     await _enterResidence(tester);
 
-    await tester.tap(find.text('الخدمات'));
+    await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('services-home-page')), findsOneWidget);
+    expect(find.byKey(const Key('residence-home-page')), findsOneWidget);
 
     await tester.tap(find.text('طلبات الصيانة'));
     await tester.pumpAndSettle();
@@ -157,13 +167,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('تسرب ماء'), findsOneWidget);
 
-    await tester.tap(find.text('الخدمات'));
+    await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('حالة الواجبات'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('dues-page')), findsOneWidget);
 
-    await tester.tap(find.text('الخدمات'));
+    await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('معلومات الإدارة'));
     await tester.pumpAndSettle();

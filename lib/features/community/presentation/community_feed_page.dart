@@ -81,7 +81,7 @@ class _PostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final isAnnouncement = post.kind == CommunityPostKind.announcement;
-    final accent = isAnnouncement ? AppColors.services : AppColors.community;
+    final accent = isAnnouncement ? AppColors.residence : AppColors.community;
 
     return DarJarCard(
       padding: const EdgeInsets.all(16),
@@ -142,7 +142,7 @@ class _PostCard extends StatelessWidget {
                   width: 54,
                   height: 54,
                   decoration: BoxDecoration(
-                    color: AppColors.services,
+                    color: AppColors.residence,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
@@ -162,13 +162,13 @@ class _PostCard extends StatelessWidget {
                   width: 104,
                   height: 94,
                   decoration: BoxDecoration(
-                    color: AppColors.marketplaceSoft,
+                    color: AppColors.directorySoft,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.chair_alt_rounded,
                     size: 48,
-                    color: AppColors.marketplace.withValues(alpha: .8),
+                    color: AppColors.directory.withValues(alpha: .8),
                   ),
                 ),
               ],

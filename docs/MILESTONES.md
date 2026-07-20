@@ -14,7 +14,7 @@
 - Spacing and radius tokens
 - Buttons, fields, cards, chips, badges
 - Compact, medium, and expanded shells
-- Community, Marketplace, Services navigation
+- Community, Directory, Residence navigation
 - Internal component gallery
 - same design from ref.png
 
@@ -23,8 +23,11 @@ Mock-data versions of:
 - onboarding
 - create/join residence
 - community feed and post creation
-- marketplace list/details/create
-- services home
+- directory home
+- directory search
+- craftsman profile
+- local business profile
+- residence home
 - maintenance requests
 - dues status
 - management information
@@ -56,13 +59,15 @@ All flows must be navigable on phone and web. This is a product-review checkpoin
 - Attachments when justified
 - Polls later
 
-## 6 — Marketplace
-- Listings
-- Create/edit/archive
-- Residence-scoped discovery
-- Moderation
+## 6 — Directory
+- Craftsman profiles
+- Local businesses
+- City-wide directory
+- Residence-aware recommendations
+- Reviews and ratings
+- Search and categories
 
-## 7 — Services and dues
+## 7 — Residence and dues
 - Maintenance requests
 - Documents
 - Management information

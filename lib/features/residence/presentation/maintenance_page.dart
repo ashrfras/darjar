@@ -6,7 +6,7 @@ import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
-import 'package:darjar/features/services/data/services_repository.dart';
+import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -67,10 +67,10 @@ class _MaintenanceCard extends StatelessWidget {
         children: [
           CircleAvatar(
             backgroundColor: completed
-                ? AppColors.marketplaceSoft
+                ? AppColors.directorySoft
                 : AppColors.warningSoft,
             foregroundColor: completed
-                ? AppColors.marketplace
+                ? AppColors.directory
                 : AppColors.warning,
             child: const Icon(Icons.handyman_outlined),
           ),

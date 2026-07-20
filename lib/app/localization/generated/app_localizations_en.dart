@@ -18,10 +18,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get community => 'Community';
 
   @override
-  String get marketplace => 'Marketplace';
-
-  @override
-  String get services => 'Services';
+  String get directory => 'Directory';
 
   @override
   String get demoResidence => 'Yasmeen Residence';
@@ -29,14 +26,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get communityDescription =>
       'News, announcements, and discussions for residence neighbors.';
-
-  @override
-  String get marketplaceDescription =>
-      'A trusted place to sell, give, and request within the residence.';
-
-  @override
-  String get servicesDescription =>
-      'One place for maintenance, documents, and residence management information.';
 
   @override
   String get shellPreviewDescription =>
@@ -106,7 +95,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingDescription =>
-      'Connect with neighbors, exchange items and services, and follow residence matters with ease and privacy.';
+      'Connect with neighbors, discover trusted local services, and follow residence matters with ease and privacy.';
 
   @override
   String get getStarted => 'Get started';
@@ -188,59 +177,114 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancel => 'Cancel';
 
   @override
-  String get marketplacePageDescription =>
-      'Sell, give, or request from neighbors in your residence.';
+  String get directoryPageDescription =>
+      'Your trusted local guide to services and places recommended by neighbors.';
 
   @override
-  String get newListing => 'New listing';
+  String get directorySearchHint => 'Search for a service or place...';
 
   @override
-  String get offer => 'Offer';
+  String get nearby => 'Nearby';
 
   @override
-  String get giveAway => 'Give away';
+  String get craftspeople => 'Craftspeople';
 
   @override
-  String get request => 'Request';
+  String get restaurants => 'Restaurants';
 
   @override
-  String get listingNotFound => 'Listing not found.';
+  String get cafes => 'Cafés';
 
   @override
-  String get contactSeller => 'Contact resident';
+  String get pharmacies => 'Pharmacies';
 
   @override
-  String get createListing => 'Create marketplace listing';
+  String get nearbyFacilities => 'Facilities';
 
   @override
-  String get createListingDescription =>
-      'Add a clear description so neighbors understand what you offer or need.';
+  String get recommendedByNeighbors => 'Recommended by your neighbors';
 
   @override
-  String get listingTitle => 'Listing title';
+  String get topRatedCraftspeople => 'Most recommended craftspeople';
 
   @override
-  String get listingTitleHint => 'Example: Small table for sale';
+  String get exploreNearby => 'Explore nearby';
 
   @override
-  String get description => 'Description';
+  String get viewAll => 'View all';
 
   @override
-  String get listingDescriptionHint =>
-      'Condition, dimensions, and pickup method';
+  String get recommended => 'Recommended';
 
   @override
-  String get price => 'Price or exchange';
+  String get recommendedFromResidence =>
+      'Recommended by Yasmeen Residence residents';
 
   @override
-  String get priceHint => 'Example: 250 MAD or free';
+  String get searchResults => 'Search results';
 
   @override
-  String get publishListing => 'Publish listing';
+  String get noDirectoryResults =>
+      'No matching results. Try another term or category.';
 
   @override
-  String get servicesPageDescription =>
-      'Everything related to residence services in one place.';
+  String localRecommendations(int count) {
+    return '$count recommendations from your neighbors';
+  }
+
+  @override
+  String get directoryProfileNotFound => 'Directory profile not found.';
+
+  @override
+  String get recommendationScore => 'Trust score';
+
+  @override
+  String get recommendations => 'Recommendations';
+
+  @override
+  String get fromYourResidence => 'From your residence';
+
+  @override
+  String get call => 'Call';
+
+  @override
+  String get recommend => 'Recommend';
+
+  @override
+  String get workedInResidences => 'Residences previously served';
+
+  @override
+  String get recentReviews => 'Recent reviews';
+
+  @override
+  String get noReviewsYet => 'No written reviews yet.';
+
+  @override
+  String get cityProfileTrustNotice =>
+      'This is one shared city profile. DarJar highlights recommendations from your residence while preserving trusted work across other residences.';
+
+  @override
+  String recommendEntry(String name) {
+    return 'Recommend $name';
+  }
+
+  @override
+  String get recommendationPrompt =>
+      'Share your experience to help neighbors make a trusted choice.';
+
+  @override
+  String get recommendationHint => 'What stood out about the service?';
+
+  @override
+  String get publishRecommendation => 'Publish recommendation';
+
+  @override
+  String get recommendationPublished =>
+      'Thanks. Your recommendation is now visible to neighbors.';
+
+  @override
+  String get residencePageDescription =>
+      'Everything related to residence management in one place.';
 
   @override
   String get maintenanceRequests => 'Maintenance requests';
@@ -362,5 +406,5 @@ class AppLocalizationsEn extends AppLocalizations {
   String get communityNotifications => 'Community notifications';
 
   @override
-  String get servicesNotifications => 'Services notifications';
+  String get residenceNotifications => 'Residence notifications';
 }

@@ -19,12 +19,9 @@ class DarJarBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (background, foreground) = switch (tone) {
       DarJarBadgeTone.neutral => (AppColors.canvas, AppColors.inkMuted),
-      DarJarBadgeTone.success => (
-        AppColors.marketplaceSoft,
-        AppColors.marketplace,
-      ),
+      DarJarBadgeTone.success => (AppColors.directorySoft, AppColors.directory),
       DarJarBadgeTone.warning => (AppColors.warningSoft, AppColors.warning),
-      DarJarBadgeTone.info => (AppColors.servicesSoft, AppColors.services),
+      DarJarBadgeTone.info => (AppColors.residenceSoft, AppColors.residence),
     };
 
     return DecoratedBox(
