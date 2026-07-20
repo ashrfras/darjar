@@ -77,6 +77,17 @@ void main() {
       );
       expect(created.imagePaths, hasLength(4));
     });
+
+    test('residence dashboard mock covers every dashboard section', () {
+      final dashboard = MockResidenceRepository().getDashboardData();
+
+      expect(dashboard.monthlyDue, greaterThan(0));
+      expect(dashboard.maintenanceCompleted, greaterThan(0));
+      expect(dashboard.extraordinaryExpense.progress, inInclusiveRange(0, 1));
+      expect(dashboard.notifications, isNotEmpty);
+      expect(dashboard.documents, isNotEmpty);
+      expect(dashboard.unitCount, greaterThan(0));
+    });
   });
 
   testWidgets('onboarding creates a residence and enters the compact app', (
@@ -287,9 +298,30 @@ void main() {
 
     await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('معلومات الإدارة'));
     await tester.tap(find.text('معلومات الإدارة'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('management-page')), findsOneWidget);
+  });
+
+  testWidgets('residence dashboard exposes its six resident modules', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(1280, 1100));
+    await _enterResidence(tester);
+    await tester.tap(find.text('الإقامة'));
+    await tester.pumpAndSettle();
+
+    for (final section in [
+      'المالية',
+      'طلبات الصيانة',
+      'المصاريف الاستثنائية',
+      'الوثائق',
+      'الإشعارات الإدارية',
+      'معلومات الإدارة',
+    ]) {
+      expect(find.text(section), findsOneWidget);
+    }
   });
 
   testWidgets('profile settings can switch the app to English', (tester) async {

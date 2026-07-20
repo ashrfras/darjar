@@ -1,9 +1,8 @@
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
+import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
-import 'package:darjar/core/widgets/darjar_badge.dart';
-import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
@@ -16,108 +15,34 @@ class ResidenceHomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final localizations = AppLocalizations.of(context);
+    final dashboard = ref.watch(residenceDashboardProvider);
     final compact = MediaQuery.sizeOf(context).width < 600;
-
-    if (compact) {
-      return _CompactResidenceHome(
-        requests: ref.watch(maintenanceRequestsProvider),
-      );
-    }
-
-    final residenceAreas = [
-      (
-        title: localizations.maintenanceRequests,
-        description: localizations.maintenanceDescription,
-        icon: Icons.handyman_outlined,
-        color: AppColors.warning,
-        route: AppRoutes.maintenance,
-      ),
-      (
-        title: localizations.duesStatus,
-        description: localizations.duesDescription,
-        icon: Icons.receipt_long_outlined,
-        color: AppColors.directory,
-        route: AppRoutes.dues,
-      ),
-      (
-        title: localizations.managementInformation,
-        description: localizations.managementDescription,
-        icon: Icons.business_outlined,
-        color: AppColors.residence,
-        route: AppRoutes.management,
-      ),
-      (
-        title: localizations.documents,
-        description: localizations.documentsDescription,
-        icon: Icons.folder_outlined,
-        color: AppColors.community,
-        route: '',
-      ),
-    ];
 
     return SingleChildScrollView(
       key: const Key('residence-home-page'),
-      padding: const EdgeInsets.all(AppSpacing.xLarge),
+      padding: EdgeInsets.fromLTRB(
+        compact ? 12 : AppSpacing.xLarge,
+        compact ? 12 : AppSpacing.xLarge,
+        compact ? 12 : AppSpacing.xLarge,
+        compact ? 28 : AppSpacing.xxxLarge,
+      ),
       child: Align(
         alignment: AlignmentDirectional.topCenter,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 980),
+          constraints: const BoxConstraints(maxWidth: 1040),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DarJarPageHeader(
-                title: localizations.residence,
-                description: localizations.residencePageDescription,
-              ),
-              const SizedBox(height: AppSpacing.xLarge),
-              Wrap(
-                spacing: AppSpacing.large,
-                runSpacing: AppSpacing.large,
-                children: [
-                  for (final service in residenceAreas)
-                    SizedBox(
-                      width: 440,
-                      child: DarJarCard(
-                        onTap: service.route.isEmpty
-                            ? null
-                            : () => context.go(service.route),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 28,
-                              backgroundColor: service.color.withValues(
-                                alpha: 0.10,
-                              ),
-                              foregroundColor: service.color,
-                              child: Icon(service.icon),
-                            ),
-                            const SizedBox(width: AppSpacing.large),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    service.title,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium,
-                                  ),
-                                  Text(
-                                    service.description,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+              if (!compact) ...[
+                DarJarPageHeader(
+                  title: AppLocalizations.of(context).residence,
+                  description: AppLocalizations.of(
+                    context,
+                  ).residencePageDescription,
+                ),
+                const SizedBox(height: AppSpacing.xLarge),
+              ],
+              _DashboardGrid(data: dashboard),
             ],
           ),
         ),
@@ -126,182 +51,494 @@ class ResidenceHomePage extends ConsumerWidget {
   }
 }
 
-class _CompactResidenceHome extends StatelessWidget {
-  const _CompactResidenceHome({required this.requests});
+class _DashboardGrid extends StatelessWidget {
+  const _DashboardGrid({required this.data});
 
-  final List<MaintenanceRequest> requests;
+  final ResidenceDashboardData data;
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    final actions = [
-      (localizations.duesStatus, Icons.credit_card_outlined, AppRoutes.dues),
-      ('طلب صيانة', Icons.handyman_outlined, AppRoutes.maintenance),
-      (
-        localizations.managementInformation,
-        Icons.business_outlined,
-        AppRoutes.management,
-      ),
-      (localizations.documents, Icons.copy_all_outlined, ''),
-    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 760;
+        final pairWidth = wide
+            ? (constraints.maxWidth - AppSpacing.large) / 2
+            : constraints.maxWidth;
 
-    return SingleChildScrollView(
-      key: const Key('residence-home-page'),
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
+        return Wrap(
+          spacing: AppSpacing.large,
+          runSpacing: AppSpacing.medium,
+          children: [
+            SizedBox(width: constraints.maxWidth, child: _FinancialCard(data)),
+            SizedBox(width: pairWidth, child: _MaintenanceCard(data)),
+            SizedBox(
+              width: pairWidth,
+              child: _ExpenseCard(data.extraordinaryExpense),
+            ),
+            SizedBox(width: pairWidth, child: _DocumentsCard(data.documents)),
+            SizedBox(
+              width: pairWidth,
+              child: _NotificationsCard(data.notifications),
+            ),
+            SizedBox(
+              width: constraints.maxWidth,
+              child: _ResidenceInfoCard(data),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _DashboardCard extends StatelessWidget {
+  const _DashboardCard({
+    required this.title,
+    required this.icon,
+    required this.iconColor,
+    required this.iconBackground,
+    required this.child,
+    required this.footerLabel,
+    this.onTap,
+  });
+
+  final String title;
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBackground;
+  final Widget child;
+  final String footerLabel;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return DarJarCard(
+      padding: EdgeInsets.zero,
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('اختصارات سريعة', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              for (var index = 0; index < actions.length; index++) ...[
-                if (index > 0) const SizedBox(width: 7),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+            child: Row(
+              children: [
+                _SectionIcon(
+                  icon: icon,
+                  color: iconColor,
+                  background: iconBackground,
+                ),
+                const SizedBox(width: AppSpacing.medium),
                 Expanded(
-                  child: _QuickAction(
-                    label: actions[index].$1,
-                    icon: actions[index].$2,
-                    onTap: actions[index].$3.isEmpty
-                        ? null
-                        : () => context.go(actions[index].$3),
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
               ],
-            ],
+            ),
           ),
-          const SizedBox(height: 14),
-          const _DuesSummary(),
-          const SizedBox(height: 18),
-          _SectionHeading(
-            title: localizations.maintenanceRequests,
-            onTap: () => context.go(AppRoutes.maintenance),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: child,
           ),
-          const SizedBox(height: 8),
-          _MaintenanceSummary(requests: requests),
-          const SizedBox(height: 18),
-          const _SectionHeading(title: 'حجوزات المرافق'),
-          const SizedBox(height: 8),
-          const _FacilityBooking(),
-          const SizedBox(height: 18),
-          const _SectionHeading(title: 'إعلانات الإدارة'),
-          const SizedBox(height: 8),
-          const _ManagementNotice(),
+          const SizedBox(height: 10),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 9, 14, 11),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    footerLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.small),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: AppColors.inkMuted,
+                  size: 13,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({required this.label, required this.icon, this.onTap});
+class _SectionIcon extends StatelessWidget {
+  const _SectionIcon({
+    required this.icon,
+    required this.color,
+    required this.background,
+  });
 
-  final String label;
   final IconData icon;
-  final VoidCallback? onTap;
+  final Color color;
+  final Color background;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        side: const BorderSide(color: AppColors.outline),
-        borderRadius: BorderRadius.circular(10),
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(AppRadius.small),
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: SizedBox(
-          height: 88,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+      child: Icon(icon, color: color, size: 24),
+    );
+  }
+}
+
+class _FinancialCard extends StatelessWidget {
+  const _FinancialCard(this.data);
+
+  final ResidenceDashboardData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return _DashboardCard(
+      title: 'المالية',
+      icon: Icons.account_balance_wallet_outlined,
+      iconColor: AppColors.residence,
+      iconBackground: AppColors.residenceSoft,
+      footerLabel: localizations.duesStatus,
+      onTap: () => context.go(AppRoutes.dues),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final narrow = constraints.maxWidth < 300;
+          final items = [
+            _FinancialMetric(
+              label: 'حالة الاشتراك',
+              value: 'مدفوع',
+              detail: 'شهر ${data.paidThrough}\nلا يوجد أي متأخرات',
+              status: true,
+            ),
+            _FinancialMetric(
+              label: 'المبلغ الشهري',
+              value: '${data.monthlyDue}',
+              suffix: 'درهم',
+              detail: 'السداد قبل 05 يونيو',
+            ),
+            _FinancialMetric(
+              label: 'آخر عملية دفع',
+              value: '${data.lastPayment}',
+              suffix: 'درهم',
+              detail: 'بتاريخ ${data.lastPaymentDate}',
+              receipt: true,
+            ),
+          ];
+          if (narrow) {
+            return Column(
               children: [
-                Icon(icon, color: AppColors.directory, size: 25),
-                const SizedBox(height: 8),
-                Text(
-                  label,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelMedium?.copyWith(color: AppColors.ink),
-                ),
+                for (var i = 0; i < items.length; i++) ...[
+                  items[i],
+                  if (i != items.length - 1) const Divider(),
+                ],
+              ],
+            );
+          }
+          return IntrinsicHeight(
+            child: Row(
+              children: [
+                for (var i = 0; i < items.length; i++) ...[
+                  Expanded(child: items[i]),
+                  if (i != items.length - 1) const VerticalDivider(),
+                ],
               ],
             ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _FinancialMetric extends StatelessWidget {
+  const _FinancialMetric({
+    required this.label,
+    required this.value,
+    required this.detail,
+    this.suffix,
+    this.status = false,
+    this.receipt = false,
+  });
+
+  final String label;
+  final String value;
+  final String detail;
+  final String? suffix;
+  final bool status;
+  final bool receipt;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(height: 7),
+          if (status)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppColors.residenceSoft,
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.check_circle,
+                      color: AppColors.residence,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      value,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.residence,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Text.rich(
+              TextSpan(
+                text: value,
+                children: [
+                  if (suffix != null)
+                    TextSpan(
+                      text: ' $suffix',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: receipt
+                            ? AppColors.residence
+                            : AppColors.inkMuted,
+                      ),
+                    ),
+                ],
+              ),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: receipt ? AppColors.residence : AppColors.ink,
+              ),
+            ),
+          const SizedBox(height: 7),
+          Text(
+            detail,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelMedium,
           ),
+          if (receipt) ...[
+            const SizedBox(height: 7),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.description_outlined,
+                    color: AppColors.residence,
+                    size: 17,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    'عرض الإيصال',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: AppColors.residence,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MaintenanceCard extends StatelessWidget {
+  const _MaintenanceCard(this.data);
+
+  final ResidenceDashboardData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return _DashboardCard(
+      title: localizations.maintenanceRequests,
+      icon: Icons.build_outlined,
+      iconColor: const Color(0xFF367DDB),
+      iconBackground: const Color(0xFFEAF2FF),
+      footerLabel: 'عرض كل الطلبات',
+      onTap: () => context.go(AppRoutes.maintenance),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Expanded(
+              child: _CountMetric(
+                value: data.maintenanceCompleted,
+                label: 'منجزة',
+                color: AppColors.residence,
+              ),
+            ),
+            const VerticalDivider(),
+            Expanded(
+              child: _CountMetric(
+                value: data.maintenanceProcessing,
+                label: 'قيد المعالجة',
+                color: AppColors.warning,
+              ),
+            ),
+            const VerticalDivider(),
+            Expanded(
+              child: _CountMetric(
+                value: data.maintenanceOpen,
+                label: 'طلبات مفتوحة',
+                color: const Color(0xFF367DDB),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _DuesSummary extends StatelessWidget {
-  const _DuesSummary();
+class _CountMetric extends StatelessWidget {
+  const _CountMetric({
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  final int value;
+  final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return DarJarCard(
-      padding: const EdgeInsets.all(16),
-      onTap: () => context.go(AppRoutes.dues),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+      child: Column(
+        children: [
+          Text(
+            '$value',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(color: color),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: color),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExpenseCard extends StatelessWidget {
+  const _ExpenseCard(this.expense);
+
+  final ExtraordinaryExpense expense;
+
+  @override
+  Widget build(BuildContext context) {
+    return _DashboardCard(
+      title: 'المصاريف الاستثنائية',
+      icon: Icons.pie_chart_outline_rounded,
+      iconColor: const Color(0xFF7657D6),
+      iconBackground: const Color(0xFFF0ECFF),
+      footerLabel: 'عرض كل المصاريف الاستثنائية',
       child: Row(
         children: [
-          SizedBox(
-            width: 116,
-            height: 116,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                const SizedBox(
-                  width: 104,
-                  height: 104,
-                  child: CircularProgressIndicator(
-                    value: .72,
-                    strokeWidth: 7,
-                    backgroundColor: AppColors.outline,
-                    color: AppColors.directory,
-                  ),
-                ),
-                Text(
-                  'مدفوع\nحتى شهر\nيوليو 2026',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelMedium?.copyWith(color: AppColors.directory),
-                ),
-              ],
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.small),
+            child: Image.asset(
+              expense.imagePath,
+              width: 88,
+              height: 88,
+              fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'حالة الحساب',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  expense.title,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                const SizedBox(height: 6),
-                const DarJarBadge(
-                  label: 'لا توجد متأخرات',
-                  tone: DarJarBadgeTone.success,
-                ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 3),
                 Text(
-                  'المبلغ المستحق',
+                  expense.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                const SizedBox(height: 9),
+                Text(
+                  '${(expense.progress * 100).round()}% مكتمل',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                const SizedBox(height: 5),
+                LinearProgressIndicator(
+                  value: expense.progress,
+                  minHeight: 6,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  backgroundColor: AppColors.outline,
+                  color: AppColors.residence,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsetsDirectional.only(start: 12),
+            decoration: const BoxDecoration(
+              border: BorderDirectional(
+                start: BorderSide(color: AppColors.outline),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'المبلغ الإجمالي',
                   style: Theme.of(context).textTheme.labelMedium,
                 ),
                 Text(
-                  '450.00 درهم',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  '${expense.totalAmount} درهم',
+                  style: Theme.of(context).textTheme.labelLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'عرض التفاصيل  ‹',
+                  'نصيب شقتك',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                Text(
+                  '${expense.residentShare} درهم',
                   style: Theme.of(
                     context,
-                  ).textTheme.labelLarge?.copyWith(color: AppColors.directory),
+                  ).textTheme.labelLarge?.copyWith(color: AppColors.residence),
                 ),
               ],
             ),
@@ -312,187 +549,182 @@ class _DuesSummary extends StatelessWidget {
   }
 }
 
-class _SectionHeading extends StatelessWidget {
-  const _SectionHeading({required this.title, this.onTap});
+class _DocumentsCard extends StatelessWidget {
+  const _DocumentsCard(this.documents);
 
-  final String title;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: InkWell(
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ),
-          ),
-        ),
-        DarJarButton(
-          label: 'عرض الكل',
-          onPressed: onTap,
-          variant: DarJarButtonVariant.tertiary,
-        ),
-      ],
-    );
-  }
-}
-
-class _MaintenanceSummary extends StatelessWidget {
-  const _MaintenanceSummary({required this.requests});
-
-  final List<MaintenanceRequest> requests;
+  final List<ResidenceDocument> documents;
 
   @override
   Widget build(BuildContext context) {
-    final visible = requests.take(3).toList();
-    return DarJarCard(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      onTap: () => context.go(AppRoutes.maintenance),
+    return _DashboardCard(
+      title: AppLocalizations.of(context).documents,
+      icon: Icons.folder_outlined,
+      iconColor: AppColors.residence,
+      iconBackground: AppColors.residenceSoft,
+      footerLabel: 'عرض كل الوثائق',
       child: Column(
         children: [
-          for (var index = 0; index < visible.length; index++) ...[
+          for (final document in documents)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 children: [
                   Container(
-                    width: 58,
-                    height: 48,
+                    width: 28,
+                    height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.residenceSoft,
-                      borderRadius: BorderRadius.circular(8),
+                      color: const Color(0xFFFFF0EE),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Icon(
-                      index == 0
-                          ? Icons.elevator_outlined
-                          : Icons.lightbulb_outline,
-                      color: AppColors.residence,
+                    child: const Icon(
+                      Icons.picture_as_pdf_outlined,
+                      color: AppColors.danger,
+                      size: 18,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 9),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          visible[index].title,
+                          document.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                         Text(
-                          visible[index].location,
+                          'PDF · ${document.size}',
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                       ],
                     ),
                   ),
-                  DarJarBadge(
-                    label: visible[index].status == MaintenanceStatus.completed
-                        ? 'مكتمل'
-                        : 'قيد المعالجة',
-                    tone: visible[index].status == MaintenanceStatus.completed
-                        ? DarJarBadgeTone.success
-                        : DarJarBadgeTone.warning,
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotificationsCard extends StatelessWidget {
+  const _NotificationsCard(this.notifications);
+
+  final List<AdministrativeNotification> notifications;
+
+  @override
+  Widget build(BuildContext context) {
+    return _DashboardCard(
+      title: 'الإشعارات الإدارية',
+      icon: Icons.notifications_none_rounded,
+      iconColor: AppColors.warning,
+      iconBackground: AppColors.warningSoft,
+      footerLabel: 'عرض كل الإشعارات',
+      child: Column(
+        children: [
+          for (final notification in notifications)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 9),
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 8,
+                    height: 8,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: AppColors.warning,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Text(
+                      notification.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    notification.age,
+                    style: Theme.of(context).textTheme.labelMedium,
                   ),
                 ],
               ),
             ),
-            if (index != visible.length - 1) const Divider(),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResidenceInfoCard extends StatelessWidget {
+  const _ResidenceInfoCard(this.data);
+
+  final ResidenceDashboardData data;
+
+  @override
+  Widget build(BuildContext context) {
+    return _DashboardCard(
+      title: AppLocalizations.of(context).managementInformation,
+      icon: Icons.apartment_outlined,
+      iconColor: AppColors.inkMuted,
+      iconBackground: const Color(0xFFF1F2F4),
+      footerLabel: 'عرض التفاصيل',
+      onTap: () => context.go(AppRoutes.management),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Expanded(
+              child: _InfoMetric(
+                label: 'عدد العمارات',
+                value: '${data.buildingCount}',
+              ),
+            ),
+            const VerticalDivider(),
+            Expanded(
+              child: _InfoMetric(
+                label: 'عدد الشقق',
+                value: '${data.unitCount}',
+              ),
+            ),
+            const VerticalDivider(),
+            Expanded(
+              child: _InfoMetric(
+                label: 'سنة البناء',
+                value: '${data.constructionYear}',
+              ),
+            ),
           ],
-          DarJarButton(
-            onPressed: () => context.go(AppRoutes.createMaintenance),
-            icon: Icons.add_circle_outline_rounded,
-            label: 'طلب صيانة جديد',
-            variant: DarJarButtonVariant.tertiary,
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _FacilityBooking extends StatelessWidget {
-  const _FacilityBooking();
+class _InfoMetric extends StatelessWidget {
+  const _InfoMetric({required this.label, required this.value});
+
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
-    return DarJarCard(
-      padding: const EdgeInsets.all(12),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+      child: Column(
         children: [
-          Container(
-            width: 72,
-            height: 58,
-            decoration: BoxDecoration(
-              color: AppColors.directorySoft,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.meeting_room_outlined,
-              color: AppColors.directory,
-            ),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelMedium,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'قاعة الاجتماعات',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                Text(
-                  'السبت 21 يونيو · 16:00–18:00',
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
-              ],
-            ),
-          ),
-          const DarJarBadge(label: 'مؤكدة', tone: DarJarBadgeTone.success),
-        ],
-      ),
-    );
-  }
-}
-
-class _ManagementNotice extends StatelessWidget {
-  const _ManagementNotice();
-
-  @override
-  Widget build(BuildContext context) {
-    return DarJarCard(
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.notifications_none_rounded,
-            color: AppColors.directory,
-            size: 34,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'تنظيف الخزانات',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  'الثلاثاء 24 يونيو، من 09:00 إلى 13:00',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 4),
+          Text(value, style: Theme.of(context).textTheme.titleMedium),
         ],
       ),
     );
