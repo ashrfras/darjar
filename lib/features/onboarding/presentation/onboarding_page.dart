@@ -153,7 +153,7 @@ class _OnboardingVisual extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
-          colors: [Color(0xFF7657EA), Color(0xFF3E8C79)],
+          colors: [Color(0xFF16988D), Color(0xFF0A5F59)],
         ),
         borderRadius: BorderRadius.circular(AppRadius.large),
       ),

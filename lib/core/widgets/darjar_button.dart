@@ -1,7 +1,8 @@
+import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 
-enum DarJarButtonVariant { primary, secondary }
+enum DarJarButtonVariant { primary, secondary, tertiary }
 
 class DarJarButton extends StatelessWidget {
   const DarJarButton({
@@ -45,6 +46,19 @@ class DarJarButton extends StatelessWidget {
       ),
       DarJarButtonVariant.secondary => OutlinedButton(
         onPressed: onPressed,
+        child: child,
+      ),
+      DarJarButtonVariant.tertiary => TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          minimumSize: Size.zero,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.small,
+            vertical: AppSpacing.small,
+          ),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
         child: child,
       ),
     };

@@ -23,16 +23,6 @@ class MarketplacePage extends ConsumerWidget {
     return Scaffold(
       key: const Key('marketplace-page'),
       backgroundColor: Colors.transparent,
-      floatingActionButton: compact
-          ? FloatingActionButton.extended(
-              key: const Key('create-listing-fab'),
-              backgroundColor: AppColors.marketplace,
-              foregroundColor: Colors.white,
-              onPressed: () => context.go(AppRoutes.createListing),
-              icon: const Icon(Icons.add_rounded),
-              label: Text(localizations.newListing),
-            )
-          : null,
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
           compact ? 12 : AppSpacing.xLarge,
@@ -63,15 +53,11 @@ class MarketplacePage extends ConsumerWidget {
                 if (compact) ...[
                   Row(
                     children: [
-                      FilledButton.icon(
+                      DarJarButton(
+                        key: const Key('create-listing-fab'),
                         onPressed: () => context.go(AppRoutes.createListing),
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: Text(localizations.newListing),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.marketplace,
-                          minimumSize: const Size(0, 46),
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                        ),
+                        icon: Icons.add_rounded,
+                        label: localizations.newListing,
                       ),
                       const SizedBox(width: 8),
                       Expanded(

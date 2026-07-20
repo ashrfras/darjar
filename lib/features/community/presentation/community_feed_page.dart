@@ -23,12 +23,13 @@ class CommunityFeedPage extends ConsumerWidget {
     return Scaffold(
       key: const Key('community-feed-page'),
       backgroundColor: Colors.transparent,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: compact
-          ? FloatingActionButton.extended(
+          ? DarJarButton(
               key: const Key('create-post-fab'),
               onPressed: () => context.go(AppRoutes.createPost),
-              icon: const Icon(Icons.add_rounded),
-              label: Text(localizations.newPost),
+              icon: Icons.add_rounded,
+              label: localizations.newPost,
             )
           : null,
       body: SingleChildScrollView(

@@ -3,6 +3,7 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
+import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/services/data/services_repository.dart';
@@ -335,14 +336,10 @@ class _SectionHeading extends StatelessWidget {
             ),
           ),
         ),
-        TextButton(
+        DarJarButton(
+          label: 'عرض الكل',
           onPressed: onTap,
-          style: TextButton.styleFrom(
-            minimumSize: Size.zero,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: const Text('عرض الكل'),
+          variant: DarJarButtonVariant.tertiary,
         ),
       ],
     );
@@ -410,10 +407,11 @@ class _MaintenanceSummary extends StatelessWidget {
             ),
             if (index != visible.length - 1) const Divider(),
           ],
-          TextButton.icon(
+          DarJarButton(
             onPressed: () => context.go(AppRoutes.createMaintenance),
-            icon: const Icon(Icons.add_circle_outline_rounded),
-            label: const Text('طلب صيانة جديد'),
+            icon: Icons.add_circle_outline_rounded,
+            label: 'طلب صيانة جديد',
+            variant: DarJarButtonVariant.tertiary,
           ),
         ],
       ),

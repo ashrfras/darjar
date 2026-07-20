@@ -64,14 +64,13 @@ class _CompactShell extends StatelessWidget {
       appBar: AppBar(
         toolbarHeight: 76,
         centerTitle: true,
-        leadingWidth: 58,
-        leading: const _GalleryAction(asNotification: true),
+        leadingWidth: 154,
+        leading: const _CompactResidenceLeading(),
         title: const _Brand(compact: true, centered: true),
-        actions: const [_ResidenceAction(), _ProfileAction()],
-        bottom: _CompactSectionTabs(
-          destinations: destinations,
-          selectedIndex: selectedIndex,
-        ),
+        actions: const [
+          _GalleryAction(asNotification: true),
+          SizedBox(width: AppSpacing.xSmall),
+        ],
       ),
       body: child,
       bottomNavigationBar: NavigationBar(
@@ -329,7 +328,7 @@ class _Brand extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topRight,
               end: Alignment.bottomLeft,
-              colors: [Color(0xFF3D8A78), Color(0xFF256758)],
+              colors: [Color(0xFF16988D), Color(0xFF0A5F59)],
             ),
             borderRadius: BorderRadius.circular(AppRadius.medium),
           ),
@@ -406,6 +405,20 @@ class _ProfileAction extends StatelessWidget {
   }
 }
 
+class _CompactResidenceLeading extends StatelessWidget {
+  const _CompactResidenceLeading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        _ProfileAction(),
+        Expanded(child: _ResidenceAction()),
+      ],
+    );
+  }
+}
+
 class _ResidenceAction extends StatelessWidget {
   const _ResidenceAction();
 
@@ -416,101 +429,17 @@ class _ResidenceAction extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            localizations.demoResidence,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(color: AppColors.ink),
+          Flexible(
+            child: Text(
+              localizations.demoResidence,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: AppColors.ink),
+            ),
           ),
           const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
-        ],
-      ),
-    );
-  }
-}
-
-class _CompactSectionTabs extends StatelessWidget
-    implements PreferredSizeWidget {
-  const _CompactSectionTabs({
-    required this.destinations,
-    required this.selectedIndex,
-  });
-
-  final List<_ShellDestination> destinations;
-  final int selectedIndex;
-
-  @override
-  Size get preferredSize => const Size.fromHeight(82);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: preferredSize.height,
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.outline.withValues(alpha: .7)),
-      ),
-      child: Row(
-        children: [
-          for (var index = 0; index < destinations.length; index++) ...[
-            if (index > 0)
-              Container(width: 1, height: 40, color: AppColors.outline),
-            Expanded(
-              child: _CompactSectionTab(
-                destination: destinations[index],
-                selected: index == selectedIndex,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _CompactSectionTab extends StatelessWidget {
-  const _CompactSectionTab({required this.destination, required this.selected});
-
-  final _ShellDestination destination;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => context.go(destination.path),
-      borderRadius: BorderRadius.circular(12),
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  selected ? destination.selectedIcon : destination.icon,
-                  color: selected ? destination.color : AppColors.inkMuted,
-                  size: 25,
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  '${destination.label}\u200F',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: selected ? destination.color : AppColors.ink,
-                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            height: 2,
-            margin: const EdgeInsets.symmetric(horizontal: 18),
-            color: selected ? destination.color : Colors.transparent,
-          ),
         ],
       ),
     );
