@@ -5,6 +5,7 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/responsive/responsive_builder.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
+import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -62,7 +63,7 @@ class _CompactShell extends StatelessWidget {
     return Scaffold(
       key: const Key('compact-shell'),
       appBar: AppBar(
-        toolbarHeight: 76,
+        toolbarHeight: 70,
         centerTitle: true,
         leadingWidth: 154,
         leading: const _CompactResidenceLeading(),
@@ -291,27 +292,29 @@ class _Brand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-
     if (centered) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            localizations.appName,
+            'دارجار ',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontFamily: 'Cairo',
               fontSize: 21,
               fontWeight: FontWeight.w800,
-              height: 1,
+              height: 1.1,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            localizations.brandLatin,
+            'DarJar ',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              fontFamily: 'Cairo',
               color: AppColors.ink,
-              fontSize: 10,
-              letterSpacing: 3,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 3.5,
+              height: 1,
             ),
           ),
         ],
@@ -340,14 +343,24 @@ class _Brand extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              localizations.appName,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            if (!compact)
-              Text(
-                localizations.brandLatin,
-                style: Theme.of(context).textTheme.labelMedium,
+              'دارجار',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontFamily: 'Cairo',
+                fontWeight: FontWeight.w800,
               ),
+            ),
+            if (!compact) ...[
+              const SizedBox(height: 3),
+              Text(
+                'DarJar',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontFamily: 'Cairo',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 2.5,
+                ),
+              ),
+            ],
           ],
         ),
       ],
@@ -367,14 +380,15 @@ class _GalleryAction extends StatelessWidget {
       key: const Key('gallery-button'),
       tooltip: localizations.componentGallery,
       onPressed: () => context.go(AppRoutes.gallery),
+      iconSize: asNotification ? 32 : 24,
+      padding: EdgeInsets.all(asNotification ? 10 : 8),
       icon: Badge(
         isLabelVisible: asNotification,
-        smallSize: 8,
+        smallSize: asNotification ? 10 : 8,
+        offset: asNotification ? const Offset(2, -2) : null,
         backgroundColor: AppColors.warning,
         child: Icon(
-          asNotification
-              ? Icons.notifications_none_rounded
-              : Icons.palette_outlined,
+          asNotification ? CupertinoIcons.bell : Icons.palette_outlined,
         ),
       ),
     );

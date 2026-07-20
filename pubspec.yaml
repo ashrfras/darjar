@@ -56,6 +56,9 @@ flutter:
   generate: true
 
   fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Variable.ttf
     - family: IBM Plex Sans Arabic
       fonts:
         - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
