@@ -18,10 +18,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get community => 'المجتمع';
 
   @override
-  String get marketplace => 'السوق';
-
-  @override
-  String get services => 'الخدمات';
+  String get directory => 'الدليل';
 
   @override
   String get demoResidence => 'إقامة الياسمين';
@@ -29,14 +26,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get communityDescription =>
       'مساحة أخبار الجيران والإعلانات والنقاشات داخل الإقامة.';
-
-  @override
-  String get marketplaceDescription =>
-      'مساحة آمنة للبيع والعطاء والطلب بين سكان الإقامة.';
-
-  @override
-  String get servicesDescription =>
-      'مكان موحّد للصيانة والوثائق ومعلومات إدارة الإقامة.';
 
   @override
   String get shellPreviewDescription =>
@@ -106,7 +95,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboardingDescription =>
-      'تواصل مع جيرانك، تبادل الأشياء والخدمات، وتابع شؤون إقامتك بسهولة وخصوصية.';
+      'تواصل مع جيرانك، اكتشف خدمات محلية موثوقة، وتابع شؤون إقامتك بسهولة وخصوصية.';
 
   @override
   String get getStarted => 'ابدأ الآن';
@@ -186,58 +175,112 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cancel => 'إلغاء';
 
   @override
-  String get marketplacePageDescription =>
-      'بيع، أعطِ، أو اطلب من جيرانك داخل الإقامة.';
+  String get directoryPageDescription =>
+      'دليلك المحلي الموثوق لخدمات ومرافق أوصى بها جيرانك.';
 
   @override
-  String get newListing => 'إعلان جديد';
+  String get directorySearchHint => 'ابحث عن خدمة أو مكان...';
 
   @override
-  String get offer => 'عرض';
+  String get nearby => 'قريب';
 
   @override
-  String get giveAway => 'إهداء';
+  String get craftspeople => 'حرفيون';
 
   @override
-  String get request => 'طلب';
+  String get restaurants => 'مطاعم';
 
   @override
-  String get listingNotFound => 'لم يتم العثور على الإعلان.';
+  String get cafes => 'مقاهي';
 
   @override
-  String get contactSeller => 'التواصل مع المعلن';
+  String get pharmacies => 'صيدليات';
 
   @override
-  String get createListing => 'إنشاء إعلان في السوق';
+  String get nearbyFacilities => 'مرافق';
 
   @override
-  String get createListingDescription =>
-      'أضف وصفاً واضحاً حتى يفهم جيرانك ما تعرضه أو تطلبه.';
+  String get recommendedByNeighbors => 'موصى بها من جيرانك';
 
   @override
-  String get listingTitle => 'عنوان الإعلان';
+  String get topRatedCraftspeople => 'الحرفيون الأعلى توصية';
 
   @override
-  String get listingTitleHint => 'مثال: طاولة صغيرة للبيع';
+  String get exploreNearby => 'اكتشف ما حولك';
 
   @override
-  String get description => 'الوصف';
+  String get viewAll => 'عرض الكل';
 
   @override
-  String get listingDescriptionHint => 'الحالة، المقاس، وطريقة الاستلام';
+  String get recommended => 'موصى به';
 
   @override
-  String get price => 'السعر أو المقابل';
+  String get recommendedFromResidence => 'موصى به من سكان إقامة الياسمين';
 
   @override
-  String get priceHint => 'مثال: 250 درهم أو مجاناً';
+  String get searchResults => 'نتائج البحث';
 
   @override
-  String get publishListing => 'نشر الإعلان';
+  String get noDirectoryResults =>
+      'لم نجد نتائج مطابقة. جرّب كلمة أو فئة أخرى.';
 
   @override
-  String get servicesPageDescription =>
-      'كل ما يتعلق بخدمات وشؤون الإقامة في مكان واحد.';
+  String localRecommendations(int count) {
+    return '$count توصية من جيرانك';
+  }
+
+  @override
+  String get directoryProfileNotFound => 'لم يتم العثور على الملف.';
+
+  @override
+  String get recommendationScore => 'نقطة الثقة';
+
+  @override
+  String get recommendations => 'التوصيات';
+
+  @override
+  String get fromYourResidence => 'من إقامتك';
+
+  @override
+  String get call => 'اتصال';
+
+  @override
+  String get recommend => 'أوصي به';
+
+  @override
+  String get workedInResidences => 'إقامات عمل فيها سابقاً';
+
+  @override
+  String get recentReviews => 'آراء حديثة';
+
+  @override
+  String get noReviewsYet => 'لا توجد آراء مكتوبة بعد.';
+
+  @override
+  String get cityProfileTrustNotice =>
+      'هذا ملف موحّد على مستوى المدينة. نُبرز لك توصيات سكان إقامتك مع إبقاء الخبرات الموثّقة من الإقامات الأخرى.';
+
+  @override
+  String recommendEntry(String name) {
+    return 'أوصِ بـ $name';
+  }
+
+  @override
+  String get recommendationPrompt =>
+      'شارك تجربتك لمساعدة جيرانك على اتخاذ قرار موثوق.';
+
+  @override
+  String get recommendationHint => 'ماذا أعجبك في الخدمة؟';
+
+  @override
+  String get publishRecommendation => 'نشر التوصية';
+
+  @override
+  String get recommendationPublished => 'شكراً، نُشرت توصيتك لجيرانك.';
+
+  @override
+  String get residencePageDescription =>
+      'كل ما يتعلق بإدارة وشؤون الإقامة في مكان واحد.';
 
   @override
   String get maintenanceRequests => 'طلبات الصيانة';
@@ -357,5 +400,5 @@ class AppLocalizationsAr extends AppLocalizations {
   String get communityNotifications => 'إشعارات المجتمع';
 
   @override
-  String get servicesNotifications => 'إشعارات الخدمات';
+  String get residenceNotifications => 'إشعارات الإقامة';
 }

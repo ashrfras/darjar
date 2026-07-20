@@ -409,7 +409,7 @@ class _ProfileAction extends StatelessWidget {
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: AppColors.marketplaceSoft,
+          color: AppColors.directorySoft,
           shape: BoxShape.circle,
           border: Border.all(color: AppColors.outline),
         ),
@@ -486,18 +486,18 @@ List<_ShellDestination> _destinations(AppLocalizations localizations) {
       color: AppColors.community,
     ),
     _ShellDestination(
-      label: localizations.marketplace,
-      path: AppRoutes.marketplace,
-      icon: Icons.shopping_bag_outlined,
-      selectedIcon: Icons.shopping_bag_rounded,
-      color: AppColors.marketplace,
+      label: localizations.directory,
+      path: AppRoutes.directory,
+      icon: Icons.location_on_outlined,
+      selectedIcon: Icons.location_on_rounded,
+      color: AppColors.directory,
     ),
     _ShellDestination(
-      label: localizations.services,
-      path: AppRoutes.services,
-      icon: Icons.home_repair_service_outlined,
-      selectedIcon: Icons.home_repair_service_rounded,
-      color: AppColors.services,
+      label: localizations.residence,
+      path: AppRoutes.residence,
+      icon: Icons.home_outlined,
+      selectedIcon: Icons.home_rounded,
+      color: AppColors.residence,
     ),
   ];
 }

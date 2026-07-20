@@ -48,7 +48,7 @@ class ManagementInfo {
   final String bankAccount;
 }
 
-abstract interface class ServicesRepository {
+abstract interface class ResidenceRepository {
   List<MaintenanceRequest> getMaintenanceRequests();
 
   MaintenanceRequest createMaintenanceRequest({
@@ -61,7 +61,7 @@ abstract interface class ServicesRepository {
   ManagementInfo getManagementInfo();
 }
 
-class MockServicesRepository implements ServicesRepository {
+class MockResidenceRepository implements ResidenceRepository {
   final List<MaintenanceRequest> _requests = [
     const MaintenanceRequest(
       id: 'elevator-b',
@@ -130,8 +130,8 @@ class MockServicesRepository implements ServicesRepository {
   }
 }
 
-final servicesRepositoryProvider = Provider<ServicesRepository>(
-  (ref) => MockServicesRepository(),
+final residenceRepositoryProvider = Provider<ResidenceRepository>(
+  (ref) => MockResidenceRepository(),
 );
 
 final maintenanceRequestsProvider =
@@ -142,21 +142,21 @@ final maintenanceRequestsProvider =
 class MaintenanceRequestsController extends Notifier<List<MaintenanceRequest>> {
   @override
   List<MaintenanceRequest> build() {
-    return ref.read(servicesRepositoryProvider).getMaintenanceRequests();
+    return ref.read(residenceRepositoryProvider).getMaintenanceRequests();
   }
 
   void create({required String title, required String location}) {
     ref
-        .read(servicesRepositoryProvider)
+        .read(residenceRepositoryProvider)
         .createMaintenanceRequest(title: title, location: location);
-    state = ref.read(servicesRepositoryProvider).getMaintenanceRequests();
+    state = ref.read(residenceRepositoryProvider).getMaintenanceRequests();
   }
 }
 
 final duesRecordsProvider = Provider<List<DuesRecord>>(
-  (ref) => ref.read(servicesRepositoryProvider).getDuesRecords(),
+  (ref) => ref.read(residenceRepositoryProvider).getDuesRecords(),
 );
 
 final managementInfoProvider = Provider<ManagementInfo>(
-  (ref) => ref.read(servicesRepositoryProvider).getManagementInfo(),
+  (ref) => ref.read(residenceRepositoryProvider).getManagementInfo(),
 );

@@ -11,5 +11,5 @@ DarJar (دارجار) is the daily digital space of an apartment building or res
 
 ## Product pillars
 1. Community
-2. Marketplace
-3. Residential services
+2. Directory
+3. Residence
