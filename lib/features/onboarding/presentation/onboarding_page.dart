@@ -100,7 +100,8 @@ class _WelcomeContent extends StatelessWidget {
         DarJarButton(
           key: const Key('start-button'),
           label: localizations.getStarted,
-          icon: Icons.arrow_back_rounded,
+          icon: Icons.arrow_forward_rounded,
+          iconAtEnd: true,
           expanded: true,
           onPressed: () => context.go(AppRoutes.residenceSetup),
         ),

@@ -9,6 +9,7 @@ class DarJarButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.icon,
+    this.iconAtEnd = false,
     this.variant = DarJarButtonVariant.primary,
     this.expanded = false,
     super.key,
@@ -17,27 +18,32 @@ class DarJarButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
+  final bool iconAtEnd;
   final DarJarButtonVariant variant;
   final bool expanded;
 
   @override
   Widget build(BuildContext context) {
+    final labelWidget = Flexible(
+      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+    );
+    final iconWidget = Icon(icon);
     final child = icon == null
         ? Text(label)
         : Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon),
-              const SizedBox(width: AppSpacing.small),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+            children: iconAtEnd
+                ? [
+                    labelWidget,
+                    const SizedBox(width: AppSpacing.small),
+                    iconWidget,
+                  ]
+                : [
+                    iconWidget,
+                    const SizedBox(width: AppSpacing.small),
+                    labelWidget,
+                  ],
           );
     final button = switch (variant) {
       DarJarButtonVariant.primary => FilledButton(

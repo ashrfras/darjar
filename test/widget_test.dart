@@ -22,6 +22,19 @@ void main() {
       expect(AppTheme.light.scaffoldBackgroundColor, AppColors.canvas);
       expect(AppTheme.light.colorScheme.primary, AppColors.primary);
     });
+
+    test('uses one short direction-neutral page transition', () {
+      final transitions = AppTheme.light.pageTransitionsTheme.builders;
+
+      expect(transitions.keys, containsAll(TargetPlatform.values));
+      for (final builder in transitions.values) {
+        expect(builder.transitionDuration, const Duration(milliseconds: 180));
+        expect(
+          builder.reverseTransitionDuration,
+          const Duration(milliseconds: 180),
+        );
+      }
+    });
   });
 
   group('mock repositories', () {
@@ -96,6 +109,29 @@ void main() {
     expect(find.byKey(const Key('compact-shell')), findsOneWidget);
     expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);
+  });
+
+  testWidgets('Arabic onboarding copy and start action follow RTL', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+
+    expect(find.text('كل ما يخص إقامتك، في مكان واحد.'), findsOneWidget);
+    expect(
+      find.text(
+        'تابع أخبار إقامتك، واكتشف الخدمات المحلية، واطّلع على الشؤون المالية بكل وضوح وشفافية.',
+      ),
+      findsOneWidget,
+    );
+
+    final button = find.byKey(const Key('start-button'));
+    final label = find.descendant(of: button, matching: find.text('ابدأ الآن'));
+    final arrow = find.descendant(
+      of: button,
+      matching: find.byIcon(Icons.arrow_forward_rounded),
+    );
+
+    expect(tester.getCenter(arrow).dx, lessThan(tester.getCenter(label).dx));
   });
 
   testWidgets('compact header keeps identity right and actions left', (

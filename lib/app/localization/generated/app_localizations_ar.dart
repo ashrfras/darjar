@@ -91,11 +91,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'نموذج لبطاقة محتوى بسيطة وواضحة داخل دارجار.';
 
   @override
-  String get onboardingHeadline => 'كل حياتك في عمارتك، في مكان واحد';
+  String get onboardingHeadline => 'كل ما يخص إقامتك، في مكان واحد.';
 
   @override
   String get onboardingDescription =>
-      'تواصل مع جيرانك، اكتشف خدمات محلية موثوقة، وتابع شؤون إقامتك بسهولة وخصوصية.';
+      'تابع أخبار إقامتك، واكتشف الخدمات المحلية، واطّلع على الشؤون المالية بكل وضوح وشفافية.';
 
   @override
   String get getStarted => 'ابدأ الآن';

@@ -257,13 +257,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingHeadline.
   ///
   /// In ar, this message translates to:
-  /// **'كل حياتك في عمارتك، في مكان واحد'**
+  /// **'كل ما يخص إقامتك، في مكان واحد.'**
   String get onboardingHeadline;
 
   /// No description provided for @onboardingDescription.
   ///
   /// In ar, this message translates to:
-  /// **'تواصل مع جيرانك، اكتشف خدمات محلية موثوقة، وتابع شؤون إقامتك بسهولة وخصوصية.'**
+  /// **'تابع أخبار إقامتك، واكتشف الخدمات المحلية، واطّلع على الشؤون المالية بكل وضوح وشفافية.'**
   String get onboardingDescription;
 
   /// No description provided for @getStarted.

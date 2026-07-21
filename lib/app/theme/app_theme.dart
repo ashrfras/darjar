@@ -20,6 +20,16 @@ abstract final class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.canvas,
       textTheme: AppTypography.textTheme,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _DarJarPageTransitionsBuilder(),
+          TargetPlatform.iOS: _DarJarPageTransitionsBuilder(),
+          TargetPlatform.macOS: _DarJarPageTransitionsBuilder(),
+          TargetPlatform.windows: _DarJarPageTransitionsBuilder(),
+          TargetPlatform.linux: _DarJarPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: _DarJarPageTransitionsBuilder(),
+        },
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.ink,
@@ -90,6 +100,30 @@ abstract final class AppTheme {
         thickness: 1,
         space: 1,
       ),
+    );
+  }
+}
+
+class _DarJarPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _DarJarPageTransitionsBuilder();
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 180);
+
+  @override
+  Duration get reverseTransitionDuration => const Duration(milliseconds: 180);
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return FadeTransition(
+      opacity: animation.drive(CurveTween(curve: Curves.easeInOutCubic)),
+      child: child,
     );
   }
 }
