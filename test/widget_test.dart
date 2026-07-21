@@ -162,6 +162,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('create-post-page')), findsOneWidget);
     expect(find.byType(BackButtonIcon), findsOneWidget);
+    expect(find.byKey(const Key('compact-brand')), findsOneWidget);
+    expect(find.byKey(const Key('subpage-back-button')), findsOneWidget);
+    expect(find.byKey(const Key('subpage-title')), findsOneWidget);
 
     final fields = find.byType(TextField);
     expect(fields, findsNWidgets(2));
@@ -274,6 +277,7 @@ void main() {
     expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
     expect(find.text('محمد الكهربائي'), findsOneWidget);
     expect(find.byType(BackButtonIcon), findsOneWidget);
+    expect(find.byKey(const Key('subpage-title')), findsNothing);
 
     await tester.tap(find.byKey(const Key('recommend-entry-button')));
     await tester.pumpAndSettle();

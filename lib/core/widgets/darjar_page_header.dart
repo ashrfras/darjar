@@ -1,4 +1,5 @@
 import 'package:darjar/app/localization/generated/app_localizations.dart';
+import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -58,26 +59,30 @@ class DarJarPageHeader extends StatelessWidget {
 
 class DarJarSubpageHeader extends StatelessWidget {
   const DarJarSubpageHeader({
-    required this.title,
+    this.title,
     required this.fallbackLocation,
     this.description,
     this.action,
     super.key,
   });
 
-  final String title;
+  final String? title;
   final String fallbackLocation;
   final String? description;
   final Widget? action;
 
   @override
   Widget build(BuildContext context) {
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        IconButton.filledTonal(
+        IconButton(
           key: const Key('subpage-back-button'),
           tooltip: AppLocalizations.of(context).back,
+          color: AppColors.ink,
+          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -87,14 +92,56 @@ class DarJarSubpageHeader extends StatelessWidget {
           },
           icon: const BackButtonIcon(),
         ),
-        const SizedBox(width: AppSpacing.medium),
-        Expanded(
-          child: DarJarPageHeader(
-            title: title,
-            description: description,
-            action: action,
+        if (title != null) ...[
+          SizedBox(width: isCompact ? AppSpacing.small : AppSpacing.medium),
+          Expanded(
+            child: isCompact
+                ? _CompactSubpageCopy(
+                    title: title!,
+                    description: description,
+                    action: action,
+                  )
+                : DarJarPageHeader(
+                    title: title!,
+                    description: description,
+                    action: action,
+                  ),
           ),
+        ],
+      ],
+    );
+  }
+}
+
+class _CompactSubpageCopy extends StatelessWidget {
+  const _CompactSubpageCopy({
+    required this.title,
+    this.description,
+    this.action,
+  });
+
+  final String title;
+  final String? description;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          key: const Key('subpage-title'),
+          style: Theme.of(context).textTheme.titleLarge,
         ),
+        if (description != null) ...[
+          const SizedBox(height: AppSpacing.xSmall),
+          Text(description!, style: Theme.of(context).textTheme.bodySmall),
+        ],
+        if (action != null) ...[
+          const SizedBox(height: AppSpacing.medium),
+          Align(alignment: AlignmentDirectional.centerStart, child: action),
+        ],
       ],
     );
   }

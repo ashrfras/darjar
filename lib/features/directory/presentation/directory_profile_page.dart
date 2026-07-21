@@ -25,10 +25,7 @@ class DirectoryProfilePage extends ConsumerWidget {
       return ListView(
         padding: const EdgeInsets.all(AppSpacing.xLarge),
         children: [
-          DarJarSubpageHeader(
-            title: localizations.directory,
-            fallbackLocation: AppRoutes.directory,
-          ),
+          DarJarSubpageHeader(fallbackLocation: AppRoutes.directory),
           const SizedBox(height: AppSpacing.xxxLarge),
           Center(child: Text(localizations.directoryProfileNotFound)),
         ],
@@ -51,10 +48,7 @@ class DirectoryProfilePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DarJarSubpageHeader(
-                title: localizations.directory,
-                fallbackLocation: AppRoutes.directory,
-              ),
+              DarJarSubpageHeader(fallbackLocation: AppRoutes.directory),
               const SizedBox(height: AppSpacing.large),
               DarJarCard(
                 child: Column(
