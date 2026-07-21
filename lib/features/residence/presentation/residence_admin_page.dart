@@ -4,12 +4,9 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:flutter/material.dart';
 
-enum ResidenceAdminDestination { apartments, projects, residence }
+enum ResidenceAdminDestination { projects, residence }
 
 class ResidenceAdminPage extends StatelessWidget {
-  const ResidenceAdminPage.apartments({super.key})
-    : destination = ResidenceAdminDestination.apartments;
-
   const ResidenceAdminPage.projects({super.key})
     : destination = ResidenceAdminDestination.projects;
 
@@ -22,11 +19,6 @@ class ResidenceAdminPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final (title, description, pageKey) = switch (destination) {
-      ResidenceAdminDestination.apartments => (
-        localizations.apartments,
-        localizations.apartmentsManagementDescription,
-        const Key('apartments-management-page'),
-      ),
       ResidenceAdminDestination.projects => (
         localizations.projects,
         localizations.projectsManagementDescription,

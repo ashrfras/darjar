@@ -10,6 +10,7 @@ import 'package:darjar/features/profile/presentation/settings_page.dart';
 import 'package:darjar/features/residence/presentation/dues_page.dart';
 import 'package:darjar/features/residence/presentation/finance_transactions_page.dart';
 import 'package:darjar/features/residence/presentation/management_page.dart';
+import 'package:darjar/features/residence/presentation/apartments_residents_page.dart';
 import 'package:darjar/features/residence/presentation/residence_admin_page.dart';
 import 'package:darjar/features/residence/presentation/residence_finances_page.dart';
 import 'package:darjar/features/residence/presentation/residence_home_page.dart';
@@ -103,7 +104,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.manageApartments,
-            builder: (context, state) => const ResidenceAdminPage.apartments(),
+            builder: (context, state) => const ApartmentsResidentsPage(),
           ),
           GoRoute(
             path: AppRoutes.manageProjects,

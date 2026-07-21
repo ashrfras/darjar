@@ -7,6 +7,7 @@ import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
+import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -97,6 +98,23 @@ void main() {
       expect(dashboard.notifications, isNotEmpty);
       expect(dashboard.documents, isNotEmpty);
       expect(dashboard.unitCount, greaterThan(0));
+    });
+
+    test('residence member assignments reference configured apartments', () {
+      final data = const MockResidenceMembersRepository().getData();
+      final apartmentIds = data.apartments
+          .map((apartment) => apartment.id)
+          .toSet();
+
+      expect(data.buildings, hasLength(1));
+      expect(data.apartments, isNotEmpty);
+      expect(data.members, isNotEmpty);
+      expect(
+        data.members
+            .where((member) => member.apartmentId != null)
+            .every((member) => apartmentIds.contains(member.apartmentId)),
+        isTrue,
+      );
     });
   });
 
@@ -534,6 +552,93 @@ void main() {
 
     expect(find.byKey(const Key('component-gallery')), findsOneWidget);
     expect(find.byType(BackButtonIcon), findsOneWidget);
+  });
+
+  testWidgets('apartments and residents support daily assignments and roles', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('manage-apartments-link')));
+    await tester.tap(find.byKey(const Key('manage-apartments-link')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('apartments-view')), findsOneWidget);
+    expect(find.byKey(const ValueKey('floor-ground-floor')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('apartment-apartment-12')),
+      findsOneWidget,
+    );
+    expect(find.text('العمارة الرئيسية'), findsNothing);
+    expect(find.text('إعدادات الإقامة'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('add-apartment-button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('new-apartment-number-field')),
+      '03',
+    );
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const Key('confirm-add-apartment-button')),
+    );
+    await tester.tap(find.byKey(const Key('confirm-add-apartment-button')));
+    await tester.pumpAndSettle();
+    final addedApartment = find.byKey(
+      const ValueKey('apartment-apartment-ground-floor-03'),
+    );
+    expect(addedApartment, findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('delete-apartment-apartment-ground-floor-03')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('حذف').last);
+    await tester.pumpAndSettle();
+    expect(addedApartment, findsNothing);
+
+    await tester.tap(find.text('السكان').last);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('residents-view')), findsOneWidget);
+    expect(find.byKey(const Key('residents-search-field')), findsOneWidget);
+    expect(find.byType(PopupMenuButton<dynamic>), findsNothing);
+
+    final actions = find.byKey(const ValueKey('resident-actions-member-karim'));
+    await tester.ensureVisible(actions);
+    await tester.tap(actions);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تعيين الشقة'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('الشقة 22'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تم تحديث تعيين الشقة.'), findsOneWidget);
+    await tester.ensureVisible(actions);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('resident-member-karim')),
+        matching: find.text('الشقة 22'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(actions);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تغيير الدور'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('نائب').last);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('resident-member-karim')),
+        matching: find.text('نائب'),
+      ),
+      findsOneWidget,
+    );
   });
 }
 
