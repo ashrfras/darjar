@@ -1,12 +1,11 @@
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
-import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 
 class DarJarCard extends StatelessWidget {
   const DarJarCard({
     required this.child,
-    this.padding = const EdgeInsets.all(AppSpacing.large),
+    this.padding = const EdgeInsets.all(14),
     this.onTap,
     super.key,
   });

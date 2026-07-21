@@ -5,6 +5,7 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
@@ -73,37 +74,12 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      tooltip: localizations.cancel,
-                      onPressed: () => context.go(AppRoutes.community),
-                      icon: Icon(
-                        Directionality.of(context) == TextDirection.rtl
-                            ? Icons.arrow_forward_rounded
-                            : Icons.arrow_back_rounded,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.small),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            localizations.createPost,
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                          Text(
-                            ar
-                                ? 'اختر نوع المشاركة وأضف التفاصيل المهمة لجيرانك.'
-                                : 'Choose a post type and add the useful details.',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: AppColors.inkMuted),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                DarJarSubpageHeader(
+                  title: localizations.createPost,
+                  fallbackLocation: AppRoutes.community,
+                  description: ar
+                      ? 'اختر نوع المشاركة وأضف التفاصيل المهمة لجيرانك.'
+                      : 'Choose a post type and add the useful details.',
                 ),
                 const SizedBox(height: AppSpacing.xLarge),
                 Text(

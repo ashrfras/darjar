@@ -1,4 +1,5 @@
 import 'package:darjar/app/localization/generated/app_localizations.dart';
+import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
@@ -25,8 +26,9 @@ class ManagementPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DarJarPageHeader(
+              DarJarSubpageHeader(
                 title: localizations.managementInformation,
+                fallbackLocation: AppRoutes.residence,
                 description: localizations.managementPageDescription,
               ),
               const SizedBox(height: AppSpacing.xLarge),

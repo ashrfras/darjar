@@ -103,6 +103,32 @@ void main() {
     expect(find.byType(NavigationBar), findsOneWidget);
   });
 
+  testWidgets('compact header keeps identity right and actions left', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+
+    final brand = find.byKey(const Key('compact-brand'));
+    final residence = find.byKey(const Key('compact-residence'));
+    final notification = find.byKey(const Key('gallery-button'));
+    final profile = find.byKey(const Key('profile-button'));
+
+    expect(tester.getCenter(brand).dx, greaterThan(195));
+    expect(tester.getCenter(residence).dx, greaterThan(195));
+    expect(tester.getCenter(notification).dx, lessThan(195));
+    expect(tester.getCenter(profile).dx, lessThan(195));
+
+    final appBar = tester.widget<AppBar>(find.byType(AppBar));
+    final notificationButton = tester.widget<IconButton>(notification);
+    expect(appBar.toolbarHeight, 58);
+    expect(notificationButton.iconSize, 21);
+
+    final filter = find.byKey(const ValueKey('community-filter-all'));
+    final appBarBottom = tester.getBottomLeft(find.byType(AppBar)).dy;
+    expect(tester.getTopLeft(filter).dy - appBarBottom, 12);
+  });
+
   testWidgets('resident can choose the invitation-based join flow', (
     tester,
   ) async {
@@ -140,6 +166,7 @@ void main() {
     await tester.tap(find.byKey(const Key('create-post-fab')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('create-post-page')), findsOneWidget);
+    expect(find.byType(BackButtonIcon), findsOneWidget);
 
     final fields = find.byType(TextField);
     expect(fields, findsNWidgets(2));
@@ -251,6 +278,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
     expect(find.text('محمد الكهربائي'), findsOneWidget);
+    expect(find.byType(BackButtonIcon), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('recommend-entry-button')));
     await tester.pumpAndSettle();
@@ -276,10 +304,12 @@ void main() {
     await tester.tap(find.text('طلبات الصيانة'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('maintenance-page')), findsOneWidget);
+    expect(find.byType(BackButtonIcon), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('new-maintenance-button')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('create-maintenance-page')), findsOneWidget);
+    expect(find.byType(BackButtonIcon), findsOneWidget);
     final fields = find.byType(TextField);
     await tester.enterText(fields.at(0), 'تسرب ماء');
     await tester.enterText(fields.at(1), 'الطابق الثاني');
@@ -295,13 +325,17 @@ void main() {
     await tester.tap(find.text('حالة الواجبات'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('dues-page')), findsOneWidget);
+    expect(find.byType(BackButtonIcon), findsOneWidget);
 
-    await tester.tap(find.text('الإقامة'));
+    await tester.tap(find.byKey(const Key('subpage-back-button')));
     await tester.pumpAndSettle();
+    expect(find.byKey(const Key('residence-home-page')), findsOneWidget);
+
     await tester.ensureVisible(find.text('معلومات الإدارة'));
     await tester.tap(find.text('معلومات الإدارة'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('management-page')), findsOneWidget);
+    expect(find.byType(BackButtonIcon), findsOneWidget);
   });
 
   testWidgets('residence dashboard exposes its six resident modules', (
@@ -335,6 +369,7 @@ void main() {
     await tester.tap(find.byKey(const Key('settings-link')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('settings-page')), findsOneWidget);
+    expect(find.byType(BackButtonIcon), findsOneWidget);
 
     await tester.tap(find.text('English'));
     await tester.pumpAndSettle();
@@ -355,6 +390,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('component-gallery')), findsOneWidget);
+    expect(find.byType(BackButtonIcon), findsOneWidget);
   });
 
   testWidgets('English onboarding is structurally supported', (tester) async {

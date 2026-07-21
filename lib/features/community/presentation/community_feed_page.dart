@@ -138,7 +138,7 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
   final TextDirection textDirection;
 
   @override
-  double get minExtent => 60;
+  double get minExtent => 55;
 
   @override
   double get maxExtent => minExtent;
@@ -153,7 +153,7 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
       textDirection: textDirection,
       child: Container(
         color: AppColors.canvas,
-        padding: const EdgeInsets.symmetric(vertical: 7),
+        padding: const EdgeInsets.only(top: 12, bottom: 5),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1080),
@@ -164,7 +164,7 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
               children: [
                 for (final filter in CommunityFeedFilter.values) ...[
                   if (filter != CommunityFeedFilter.all)
-                    const SizedBox(width: AppSpacing.small),
+                    const SizedBox(width: 6),
                   _FilterChip(
                     key: ValueKey('community-filter-${filter.name}'),
                     label: filter.label(context),
@@ -267,14 +267,14 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: selected ? color.withValues(alpha: .10) : AppColors.surface,
-      borderRadius: BorderRadius.circular(AppRadius.medium),
+      borderRadius: BorderRadius.circular(AppRadius.small),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.medium),
+        borderRadius: BorderRadius.circular(AppRadius.small),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.medium),
+            borderRadius: BorderRadius.circular(AppRadius.small),
             border: Border.all(
               color: selected
                   ? color.withValues(alpha: .35)
@@ -288,12 +288,13 @@ class _FilterChip extends StatelessWidget {
               Icon(
                 icon,
                 color: selected ? color : AppColors.inkMuted,
-                size: 17,
+                size: 15,
               ),
-              const SizedBox(width: 5),
+              const SizedBox(width: 4),
               Text(
                 label,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontSize: 10,
                   color: selected ? color : AppColors.ink,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 ),

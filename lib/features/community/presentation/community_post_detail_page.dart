@@ -2,12 +2,12 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 class CommunityPostDetailPage extends ConsumerStatefulWidget {
   const CommunityPostDetailPage({required this.postId, super.key});
@@ -37,38 +37,26 @@ class _CommunityPostDetailPageState
     final compact = MediaQuery.sizeOf(context).width < 600;
 
     if (post == null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.forum_outlined, size: 48),
-            const SizedBox(height: AppSpacing.medium),
-            Text(ar ? 'لم يتم العثور على المنشور' : 'Post not found'),
-            TextButton(
-              onPressed: () => context.go(AppRoutes.community),
-              child: Text(ar ? 'العودة إلى المجتمع' : 'Back to community'),
-            ),
-          ],
-        ),
+      return ListView(
+        padding: EdgeInsets.all(compact ? 12 : AppSpacing.xLarge),
+        children: [
+          DarJarSubpageHeader(
+            title: ar ? 'تفاصيل المنشور' : 'Post details',
+            fallbackLocation: AppRoutes.community,
+          ),
+          const SizedBox(height: AppSpacing.xxxLarge),
+          const Icon(Icons.forum_outlined, size: 48),
+          const SizedBox(height: AppSpacing.medium),
+          Center(
+            child: Text(ar ? 'لم يتم العثور على المنشور' : 'Post not found'),
+          ),
+        ],
       );
     }
 
     return Scaffold(
       key: const Key('community-post-detail-page'),
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          tooltip: ar ? 'رجوع' : 'Back',
-          onPressed: () => context.go(AppRoutes.community),
-          icon: Icon(
-            Directionality.of(context) == TextDirection.rtl
-                ? Icons.arrow_forward_rounded
-                : Icons.arrow_back_rounded,
-          ),
-        ),
-        title: Text(post.kind.label(context)),
-      ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
           compact ? 12 : AppSpacing.xLarge,
@@ -84,6 +72,11 @@ class _CommunityPostDetailPageState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  DarJarSubpageHeader(
+                    title: post.kind.label(context),
+                    fallbackLocation: AppRoutes.community,
+                  ),
+                  const SizedBox(height: AppSpacing.large),
                   CommunityPostCard(
                     post: post,
                     expanded: true,

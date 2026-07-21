@@ -42,8 +42,9 @@ class _CreateMaintenancePageState extends ConsumerState<CreateMaintenancePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DarJarPageHeader(
+              DarJarSubpageHeader(
                 title: localizations.createMaintenanceRequest,
+                fallbackLocation: AppRoutes.maintenance,
                 description: localizations.createMaintenanceDescription,
               ),
               const SizedBox(height: AppSpacing.xLarge),

@@ -29,8 +29,9 @@ class MaintenancePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DarJarPageHeader(
+              DarJarSubpageHeader(
                 title: localizations.maintenanceRequests,
+                fallbackLocation: AppRoutes.residence,
                 description: localizations.maintenancePageDescription,
                 action: DarJarButton(
                   key: const Key('new-maintenance-button'),

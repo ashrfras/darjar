@@ -30,7 +30,7 @@ class _ResidenceSetupPageState extends State<ResidenceSetupPage> {
         leading: IconButton(
           tooltip: localizations.back,
           onPressed: () => context.go(AppRoutes.onboarding),
-          icon: const Icon(Icons.arrow_forward_rounded),
+          icon: const BackButtonIcon(),
         ),
       ),
       body: SingleChildScrollView(

@@ -63,14 +63,15 @@ class _CompactShell extends StatelessWidget {
     return Scaffold(
       key: const Key('compact-shell'),
       appBar: AppBar(
-        toolbarHeight: 70,
-        centerTitle: true,
-        leadingWidth: 154,
-        leading: const _CompactResidenceLeading(),
-        title: const _Brand(compact: true, centered: true),
+        toolbarHeight: 58,
+        titleSpacing: 0,
+        leadingWidth: 218,
+        leading: const _CompactIdentity(),
+        title: const SizedBox.shrink(),
         actions: const [
           _GalleryAction(asNotification: true),
-          SizedBox(width: AppSpacing.xSmall),
+          _ProfileAction(compact: true),
+          SizedBox(width: 6),
         ],
       ),
       body: child,
@@ -285,48 +286,19 @@ class _SidebarDestination extends StatelessWidget {
 }
 
 class _Brand extends StatelessWidget {
-  const _Brand({this.compact = false, this.centered = false});
+  const _Brand({this.compact = false});
 
   final bool compact;
-  final bool centered;
 
   @override
   Widget build(BuildContext context) {
-    if (centered) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'دارجار ',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontFamily: 'Cairo',
-              fontSize: 21,
-              fontWeight: FontWeight.w800,
-              height: 1.1,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'DarJar ',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontFamily: 'Cairo',
-              color: AppColors.ink,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 3.5,
-              height: 1,
-            ),
-          ),
-        ],
-      );
-    }
-
     return Row(
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [
         Container(
-          width: 42,
-          height: 42,
+          key: compact ? const Key('compact-brand') : null,
+          width: compact ? 34 : 42,
+          height: compact ? 34 : 42,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topRight,
@@ -335,9 +307,13 @@ class _Brand extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(AppRadius.medium),
           ),
-          child: const Icon(Icons.apartment_rounded, color: Colors.white),
+          child: Icon(
+            Icons.apartment_rounded,
+            color: Colors.white,
+            size: compact ? 19 : 24,
+          ),
         ),
-        const SizedBox(width: AppSpacing.medium),
+        SizedBox(width: compact ? AppSpacing.small : AppSpacing.medium),
         Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,6 +322,7 @@ class _Brand extends StatelessWidget {
               'دارجار',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontFamily: 'Cairo',
+                fontSize: compact ? 16 : null,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -380,12 +357,13 @@ class _GalleryAction extends StatelessWidget {
       key: const Key('gallery-button'),
       tooltip: localizations.componentGallery,
       onPressed: () => context.go(AppRoutes.gallery),
-      iconSize: asNotification ? 32 : 24,
-      padding: EdgeInsets.all(asNotification ? 10 : 8),
+      iconSize: asNotification ? 21 : 24,
+      padding: const EdgeInsets.all(8),
+      constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
       icon: Badge(
         isLabelVisible: asNotification,
-        smallSize: asNotification ? 10 : 8,
-        offset: asNotification ? const Offset(2, -2) : null,
+        smallSize: 7,
+        offset: asNotification ? const Offset(1, -1) : null,
         backgroundColor: AppColors.warning,
         child: Icon(
           asNotification ? CupertinoIcons.bell : Icons.palette_outlined,
@@ -396,7 +374,9 @@ class _GalleryAction extends StatelessWidget {
 }
 
 class _ProfileAction extends StatelessWidget {
-  const _ProfileAction();
+  const _ProfileAction({this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -406,29 +386,35 @@ class _ProfileAction extends StatelessWidget {
       tooltip: localizations.profile,
       onPressed: () => context.go(AppRoutes.profile),
       icon: Container(
-        width: 38,
-        height: 38,
+        width: compact ? 32 : 38,
+        height: compact ? 32 : 38,
         decoration: BoxDecoration(
           color: AppColors.directorySoft,
           shape: BoxShape.circle,
           border: Border.all(color: AppColors.outline),
         ),
-        child: const Icon(Icons.apartment_rounded, size: 20),
+        child: Icon(Icons.person_outline_rounded, size: compact ? 18 : 20),
       ),
     );
   }
 }
 
-class _CompactResidenceLeading extends StatelessWidget {
-  const _CompactResidenceLeading();
+class _CompactIdentity extends StatelessWidget {
+  const _CompactIdentity();
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
-      children: [
-        _ProfileAction(),
-        Expanded(child: _ResidenceAction()),
-      ],
+    return const Padding(
+      padding: EdgeInsetsDirectional.only(start: 12),
+      child: Row(
+        children: [
+          _Brand(compact: true),
+          SizedBox(width: 10),
+          SizedBox(height: 24, child: VerticalDivider()),
+          SizedBox(width: 8),
+          Expanded(child: _ResidenceAction()),
+        ],
+      ),
     );
   }
 }
@@ -441,6 +427,7 @@ class _ResidenceAction extends StatelessWidget {
     final localizations = AppLocalizations.of(context);
     return Center(
       child: Row(
+        key: const Key('compact-residence'),
         mainAxisSize: MainAxisSize.min,
         children: [
           Flexible(
@@ -453,7 +440,8 @@ class _ResidenceAction extends StatelessWidget {
               ).textTheme.labelMedium?.copyWith(color: AppColors.ink),
             ),
           ),
-          const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+          const SizedBox(width: 2),
+          const Icon(Icons.keyboard_arrow_down_rounded, size: 16),
         ],
       ),
     );

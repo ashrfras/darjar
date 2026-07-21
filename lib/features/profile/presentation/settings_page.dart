@@ -1,5 +1,6 @@
 import 'package:darjar/app/localization/app_locale_provider.dart';
 import 'package:darjar/app/localization/generated/app_localizations.dart';
+import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
@@ -32,7 +33,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DarJarPageHeader(title: localizations.settings),
+              DarJarSubpageHeader(
+                title: localizations.settings,
+                fallbackLocation: AppRoutes.profile,
+              ),
               const SizedBox(height: AppSpacing.xLarge),
               DarJarCard(
                 child: Column(

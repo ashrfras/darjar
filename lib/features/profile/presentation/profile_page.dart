@@ -28,7 +28,10 @@ class ProfilePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DarJarPageHeader(title: localizations.profile),
+              DarJarSubpageHeader(
+                title: localizations.profile,
+                fallbackLocation: AppRoutes.community,
+              ),
               const SizedBox(height: AppSpacing.xLarge),
               DarJarCard(
                 child: Column(

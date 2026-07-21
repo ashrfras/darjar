@@ -1,9 +1,11 @@
 import 'package:darjar/app/localization/generated/app_localizations.dart';
+import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_chip.dart';
+import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:flutter/material.dart';
 
@@ -24,14 +26,10 @@ class ComponentGalleryPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                localizations.componentGallery,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: AppSpacing.small),
-              Text(
-                localizations.componentGalleryDescription,
-                style: Theme.of(context).textTheme.bodyMedium,
+              DarJarSubpageHeader(
+                title: localizations.componentGallery,
+                fallbackLocation: AppRoutes.community,
+                description: localizations.componentGalleryDescription,
               ),
               const SizedBox(height: AppSpacing.xLarge),
               _GallerySection(

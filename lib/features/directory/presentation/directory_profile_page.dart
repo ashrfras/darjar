@@ -6,10 +6,10 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 class DirectoryProfilePage extends ConsumerWidget {
   const DirectoryProfilePage({required this.entryId, super.key});
@@ -22,7 +22,17 @@ class DirectoryProfilePage extends ConsumerWidget {
     final entry = ref.read(directoryEntriesProvider.notifier).find(entryId);
     final localizations = AppLocalizations.of(context);
     if (entry == null) {
-      return Center(child: Text(localizations.directoryProfileNotFound));
+      return ListView(
+        padding: const EdgeInsets.all(AppSpacing.xLarge),
+        children: [
+          DarJarSubpageHeader(
+            title: localizations.directory,
+            fallbackLocation: AppRoutes.directory,
+          ),
+          const SizedBox(height: AppSpacing.xxxLarge),
+          Center(child: Text(localizations.directoryProfileNotFound)),
+        ],
+      );
     }
 
     final compact = MediaQuery.sizeOf(context).width < 600;
@@ -41,15 +51,11 @@ class DirectoryProfilePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: IconButton.filledTonal(
-                  tooltip: localizations.back,
-                  onPressed: () => context.go(AppRoutes.directory),
-                  icon: const Icon(Icons.arrow_forward_rounded),
-                ),
+              DarJarSubpageHeader(
+                title: localizations.directory,
+                fallbackLocation: AppRoutes.directory,
               ),
-              const SizedBox(height: AppSpacing.medium),
+              const SizedBox(height: AppSpacing.large),
               DarJarCard(
                 child: Column(
                   children: [
