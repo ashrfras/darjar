@@ -429,22 +429,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get residenceSettings => 'إعدادات الإقامة';
 
   @override
-  String get apartments => 'الشقق';
+  String get apartments => 'الشقق والسكان';
 
   @override
   String get apartmentsManagementDescription =>
-      'إدارة الشقق والسكان والصلاحيات.';
+      'إدارة الشقق، إدارة السكان، تعيين الصلاحيات';
 
   @override
   String get projects => 'المشاريع';
 
   @override
   String get projectsManagementDescription =>
-      'إدارة المشاريع الاستثنائية والإصلاحات.';
+      'المشاريع الاستثنائية، مشاريع الصيانة';
 
   @override
   String get residenceManagementDescription =>
-      'إدارة معلومات الإقامة وقيمة الاشتراك.';
+      'هيكلة الإقامة، معلومات الإقامة، قيمة الاشتراك';
 
   @override
   String get email => 'البريد الإلكتروني';

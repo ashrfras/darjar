@@ -78,46 +78,6 @@ class ProfilePage extends ConsumerWidget {
                   ],
                 ),
               ),
-              // TODO: Restore `profile.canManageResidence` once permission
-              // assignment is connected to the authenticated user.
-              const SizedBox(height: AppSpacing.large),
-              Text(
-                localizations.residenceAdministration,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: AppSpacing.medium),
-              DarJarCard(
-                key: const Key('residence-management-section'),
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    _ManagementLink(
-                      key: const Key('manage-apartments-link'),
-                      icon: Icons.apartment_outlined,
-                      title: localizations.apartments,
-                      description:
-                          localizations.apartmentsManagementDescription,
-                      route: AppRoutes.manageApartments,
-                    ),
-                    const Divider(),
-                    _ManagementLink(
-                      key: const Key('manage-projects-link'),
-                      icon: Icons.construction_outlined,
-                      title: localizations.projects,
-                      description: localizations.projectsManagementDescription,
-                      route: AppRoutes.manageProjects,
-                    ),
-                    const Divider(),
-                    _ManagementLink(
-                      key: const Key('manage-residence-link'),
-                      icon: Icons.domain_outlined,
-                      title: localizations.residenceSettings,
-                      description: localizations.residenceManagementDescription,
-                      route: AppRoutes.manageResidence,
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: AppSpacing.large),
               DarJarCard(
                 padding: EdgeInsets.zero,
@@ -136,6 +96,46 @@ class ProfilePage extends ConsumerWidget {
                       title: Text(localizations.replayOnboarding),
                       trailing: const _NavigationChevron(),
                       onTap: () => context.go(AppRoutes.onboarding),
+                    ),
+                  ],
+                ),
+              ),
+              // TODO: Restore `profile.canManageResidence` once permission
+              // assignment is connected to the authenticated user.
+              const SizedBox(height: AppSpacing.large),
+              Text(
+                localizations.residenceAdministration,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: AppSpacing.medium),
+              DarJarCard(
+                key: const Key('residence-management-section'),
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _ManagementLink(
+                      key: const Key('manage-residence-link'),
+                      icon: Icons.domain_outlined,
+                      title: localizations.residenceSettings,
+                      description: localizations.residenceManagementDescription,
+                      route: AppRoutes.manageResidence,
+                    ),
+                    const Divider(),
+                    _ManagementLink(
+                      key: const Key('manage-apartments-link'),
+                      icon: Icons.apartment_outlined,
+                      title: localizations.apartments,
+                      description:
+                          localizations.apartmentsManagementDescription,
+                      route: AppRoutes.manageApartments,
+                    ),
+                    const Divider(),
+                    _ManagementLink(
+                      key: const Key('manage-projects-link'),
+                      icon: Icons.construction_outlined,
+                      title: localizations.projects,
+                      description: localizations.projectsManagementDescription,
+                      route: AppRoutes.manageProjects,
                     ),
                   ],
                 ),

@@ -474,11 +474,35 @@ void main() {
       find.byKey(const Key('residence-management-section')),
       findsOneWidget,
     );
+    expect(
+      tester
+          .getTopLeft(find.byKey(const Key('residence-management-section')))
+          .dy,
+      greaterThan(tester.getTopLeft(find.byKey(const Key('settings-link'))).dy),
+    );
     expect(find.text('إدارة الإقامة'), findsOneWidget);
-    expect(find.text('إدارة الشقق والسكان والصلاحيات.'), findsOneWidget);
-    expect(find.text('إدارة المشاريع الاستثنائية والإصلاحات.'), findsOneWidget);
-    expect(find.text('إدارة معلومات الإقامة وقيمة الاشتراك.'), findsOneWidget);
+    expect(
+      find.text('إدارة الشقق، إدارة السكان، تعيين الصلاحيات'),
+      findsOneWidget,
+    );
+    expect(find.text('المشاريع الاستثنائية، مشاريع الصيانة'), findsOneWidget);
+    expect(
+      find.text('هيكلة الإقامة، معلومات الإقامة، قيمة الاشتراك'),
+      findsOneWidget,
+    );
     expect(find.text('إعدادات الإقامة'), findsOneWidget);
+
+    final residenceLink = find.byKey(const Key('manage-residence-link'));
+    final apartmentsLink = find.byKey(const Key('manage-apartments-link'));
+    final projectsLink = find.byKey(const Key('manage-projects-link'));
+    expect(
+      tester.getTopLeft(residenceLink).dy,
+      lessThan(tester.getTopLeft(apartmentsLink).dy),
+    );
+    expect(
+      tester.getTopLeft(apartmentsLink).dy,
+      lessThan(tester.getTopLeft(projectsLink).dy),
+    );
 
     final chevrons = find.byIcon(Icons.chevron_left_rounded);
     expect(chevrons, findsNWidgets(5));
@@ -487,9 +511,9 @@ void main() {
     }
 
     for (final navigation in [
+      (link: 'manage-residence-link', page: 'residence-management-page'),
       (link: 'manage-apartments-link', page: 'apartments-management-page'),
       (link: 'manage-projects-link', page: 'projects-management-page'),
-      (link: 'manage-residence-link', page: 'residence-management-page'),
     ]) {
       await tester.ensureVisible(find.byKey(Key(navigation.link)));
       await tester.tap(find.byKey(Key(navigation.link)));

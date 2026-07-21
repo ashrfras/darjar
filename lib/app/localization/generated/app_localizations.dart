@@ -893,13 +893,13 @@ abstract class AppLocalizations {
   /// No description provided for @apartments.
   ///
   /// In ar, this message translates to:
-  /// **'الشقق'**
+  /// **'الشقق والسكان'**
   String get apartments;
 
   /// No description provided for @apartmentsManagementDescription.
   ///
   /// In ar, this message translates to:
-  /// **'إدارة الشقق والسكان والصلاحيات.'**
+  /// **'إدارة الشقق، إدارة السكان، تعيين الصلاحيات'**
   String get apartmentsManagementDescription;
 
   /// No description provided for @projects.
@@ -911,13 +911,13 @@ abstract class AppLocalizations {
   /// No description provided for @projectsManagementDescription.
   ///
   /// In ar, this message translates to:
-  /// **'إدارة المشاريع الاستثنائية والإصلاحات.'**
+  /// **'المشاريع الاستثنائية، مشاريع الصيانة'**
   String get projectsManagementDescription;
 
   /// No description provided for @residenceManagementDescription.
   ///
   /// In ar, this message translates to:
-  /// **'إدارة معلومات الإقامة وقيمة الاشتراك.'**
+  /// **'هيكلة الإقامة، معلومات الإقامة، قيمة الاشتراك'**
   String get residenceManagementDescription;
 
   /// No description provided for @email.
