@@ -73,6 +73,13 @@ class DarJarSubpageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (title != null && description == null && action == null) {
+      return _TitleOnlySubpageHeader(
+        title: title!,
+        fallbackLocation: fallbackLocation,
+      );
+    }
+
     final isCompact = MediaQuery.sizeOf(context).width < 600;
     final backOnly = title == null;
 
@@ -116,6 +123,56 @@ class DarJarSubpageHeader extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _TitleOnlySubpageHeader extends StatelessWidget {
+  const _TitleOnlySubpageHeader({
+    required this.title,
+    required this.fallbackLocation,
+  });
+
+  final String title;
+  final String fallbackLocation;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      key: const Key('title-only-subpage-header'),
+      height: 40,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(
+            key: const Key('subpage-back-button'),
+            tooltip: AppLocalizations.of(context).back,
+            color: AppColors.ink,
+            padding: EdgeInsets.zero,
+            visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+            iconSize: 22,
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go(fallbackLocation);
+              }
+            },
+            icon: const BackButtonIcon(),
+          ),
+          const SizedBox(width: AppSpacing.small),
+          Expanded(
+            child: Text(
+              title,
+              key: const Key('subpage-title'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

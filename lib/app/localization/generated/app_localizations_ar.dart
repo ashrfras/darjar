@@ -423,6 +423,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profile => 'حسابي';
 
   @override
+  String get residenceAdministration => 'إدارة الإقامة';
+
+  @override
+  String get residenceSettings => 'إعدادات الإقامة';
+
+  @override
+  String get apartments => 'الشقق';
+
+  @override
+  String get apartmentsManagementDescription =>
+      'إدارة الشقق والسكان والصلاحيات.';
+
+  @override
+  String get projects => 'المشاريع';
+
+  @override
+  String get projectsManagementDescription =>
+      'إدارة المشاريع الاستثنائية والإصلاحات.';
+
+  @override
+  String get residenceManagementDescription =>
+      'إدارة معلومات الإقامة وقيمة الاشتراك.';
+
+  @override
   String get email => 'البريد الإلكتروني';
 
   @override

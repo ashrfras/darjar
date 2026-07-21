@@ -38,13 +38,18 @@ class _CommunityPostDetailPageState
 
     if (post == null) {
       return ListView(
-        padding: EdgeInsets.all(compact ? 12 : AppSpacing.xLarge),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.xLarge,
+          AppSpacing.small,
+          AppSpacing.xLarge,
+          AppSpacing.xLarge,
+        ),
         children: [
           DarJarSubpageHeader(
             title: ar ? 'تفاصيل المنشور' : 'Post details',
             fallbackLocation: AppRoutes.community,
           ),
-          const SizedBox(height: AppSpacing.xxxLarge),
+          const SizedBox(height: AppSpacing.large),
           const Icon(Icons.forum_outlined, size: 48),
           const SizedBox(height: AppSpacing.medium),
           Center(

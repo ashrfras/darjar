@@ -878,6 +878,48 @@ abstract class AppLocalizations {
   /// **'حسابي'**
   String get profile;
 
+  /// No description provided for @residenceAdministration.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة الإقامة'**
+  String get residenceAdministration;
+
+  /// No description provided for @residenceSettings.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعدادات الإقامة'**
+  String get residenceSettings;
+
+  /// No description provided for @apartments.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشقق'**
+  String get apartments;
+
+  /// No description provided for @apartmentsManagementDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة الشقق والسكان والصلاحيات.'**
+  String get apartmentsManagementDescription;
+
+  /// No description provided for @projects.
+  ///
+  /// In ar, this message translates to:
+  /// **'المشاريع'**
+  String get projects;
+
+  /// No description provided for @projectsManagementDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة المشاريع الاستثنائية والإصلاحات.'**
+  String get projectsManagementDescription;
+
+  /// No description provided for @residenceManagementDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة معلومات الإقامة وقيمة الاشتراك.'**
+  String get residenceManagementDescription;
+
   /// No description provided for @email.
   ///
   /// In ar, this message translates to:

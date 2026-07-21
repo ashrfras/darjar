@@ -20,7 +20,12 @@ class ProfilePage extends ConsumerWidget {
 
     return SingleChildScrollView(
       key: const Key('profile-page'),
-      padding: const EdgeInsets.all(AppSpacing.xLarge),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xLarge,
+        AppSpacing.small,
+        AppSpacing.xLarge,
+        AppSpacing.xLarge,
+      ),
       child: Align(
         alignment: AlignmentDirectional.topCenter,
         child: ConstrainedBox(
@@ -32,7 +37,7 @@ class ProfilePage extends ConsumerWidget {
                 title: localizations.profile,
                 fallbackLocation: AppRoutes.community,
               ),
-              const SizedBox(height: AppSpacing.xLarge),
+              const SizedBox(height: AppSpacing.small),
               DarJarCard(
                 child: Column(
                   children: [
@@ -73,6 +78,46 @@ class ProfilePage extends ConsumerWidget {
                   ],
                 ),
               ),
+              // TODO: Restore `profile.canManageResidence` once permission
+              // assignment is connected to the authenticated user.
+              const SizedBox(height: AppSpacing.large),
+              Text(
+                localizations.residenceAdministration,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: AppSpacing.medium),
+              DarJarCard(
+                key: const Key('residence-management-section'),
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _ManagementLink(
+                      key: const Key('manage-apartments-link'),
+                      icon: Icons.apartment_outlined,
+                      title: localizations.apartments,
+                      description:
+                          localizations.apartmentsManagementDescription,
+                      route: AppRoutes.manageApartments,
+                    ),
+                    const Divider(),
+                    _ManagementLink(
+                      key: const Key('manage-projects-link'),
+                      icon: Icons.construction_outlined,
+                      title: localizations.projects,
+                      description: localizations.projectsManagementDescription,
+                      route: AppRoutes.manageProjects,
+                    ),
+                    const Divider(),
+                    _ManagementLink(
+                      key: const Key('manage-residence-link'),
+                      icon: Icons.domain_outlined,
+                      title: localizations.residenceSettings,
+                      description: localizations.residenceManagementDescription,
+                      route: AppRoutes.manageResidence,
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: AppSpacing.large),
               DarJarCard(
                 padding: EdgeInsets.zero,
@@ -82,14 +127,14 @@ class ProfilePage extends ConsumerWidget {
                       key: const Key('settings-link'),
                       leading: const Icon(Icons.settings_outlined),
                       title: Text(localizations.settings),
-                      trailing: const Icon(Icons.chevron_left_rounded),
+                      trailing: const _NavigationChevron(),
                       onTap: () => context.go(AppRoutes.settings),
                     ),
                     const Divider(),
                     ListTile(
                       leading: const Icon(Icons.restart_alt_rounded),
                       title: Text(localizations.replayOnboarding),
-                      trailing: const Icon(Icons.chevron_left_rounded),
+                      trailing: const _NavigationChevron(),
                       onTap: () => context.go(AppRoutes.onboarding),
                     ),
                   ],
@@ -99,6 +144,44 @@ class ProfilePage extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ManagementLink extends StatelessWidget {
+  const _ManagementLink({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.route,
+    super.key,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final String route;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: Text(description),
+      trailing: const _NavigationChevron(),
+      onTap: () => context.go(route),
+    );
+  }
+}
+
+class _NavigationChevron extends StatelessWidget {
+  const _NavigationChevron();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Icon(
+      Icons.chevron_left_rounded,
+      textDirection: TextDirection.ltr,
     );
   }
 }

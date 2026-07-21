@@ -1,7 +1,9 @@
 import 'package:darjar/app/app.dart';
 import 'package:darjar/app/theme/app_colors.dart';
+import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_theme.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
+import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
@@ -421,28 +423,82 @@ void main() {
     }
   });
 
-  testWidgets('profile settings can switch the app to English', (tester) async {
+  testWidgets('profile settings expose Arabic notification preferences', (
+    tester,
+  ) async {
     await _pumpApp(tester, size: const Size(390, 844));
     await _enterResidence(tester);
 
     await tester.tap(find.byKey(const Key('profile-button')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('profile-page')), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('subpage-back-button'))).height,
+      40,
+    );
+    expect(
+      tester.getCenter(find.byKey(const Key('subpage-title'))).dy,
+      closeTo(
+        tester.getCenter(find.byKey(const Key('subpage-back-button'))).dy,
+        1,
+      ),
+    );
+    final compactHeader = find.byKey(const Key('title-only-subpage-header'));
+    final profileCard = find.byType(DarJarCard).first;
+    expect(
+      tester.getTopLeft(profileCard).dy -
+          tester.getBottomLeft(compactHeader).dy,
+      AppSpacing.small,
+    );
 
+    await tester.ensureVisible(find.byKey(const Key('settings-link')));
     await tester.tap(find.byKey(const Key('settings-link')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('settings-page')), findsOneWidget);
     expect(find.byType(BackButtonIcon), findsOneWidget);
 
-    await tester.tap(find.text('English'));
+    expect(find.text('اللغة'), findsNothing);
+    expect(find.byType(SegmentedButton<String>), findsNothing);
+    expect(find.text('الإشعارات'), findsOneWidget);
+  });
+
+  testWidgets('residence management links are visible and navigate', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
     await tester.pumpAndSettle();
-    expect(find.text('Settings'), findsOneWidget);
+
     expect(
-      tester
-          .widget<Directionality>(find.byType(Directionality).first)
-          .textDirection,
-      TextDirection.ltr,
+      find.byKey(const Key('residence-management-section')),
+      findsOneWidget,
     );
+    expect(find.text('إدارة الإقامة'), findsOneWidget);
+    expect(find.text('إدارة الشقق والسكان والصلاحيات.'), findsOneWidget);
+    expect(find.text('إدارة المشاريع الاستثنائية والإصلاحات.'), findsOneWidget);
+    expect(find.text('إدارة معلومات الإقامة وقيمة الاشتراك.'), findsOneWidget);
+    expect(find.text('إعدادات الإقامة'), findsOneWidget);
+
+    final chevrons = find.byIcon(Icons.chevron_left_rounded);
+    expect(chevrons, findsNWidgets(5));
+    for (final icon in tester.widgetList<Icon>(chevrons)) {
+      expect(icon.textDirection, TextDirection.ltr);
+    }
+
+    for (final navigation in [
+      (link: 'manage-apartments-link', page: 'apartments-management-page'),
+      (link: 'manage-projects-link', page: 'projects-management-page'),
+      (link: 'manage-residence-link', page: 'residence-management-page'),
+    ]) {
+      await tester.ensureVisible(find.byKey(Key(navigation.link)));
+      await tester.tap(find.byKey(Key(navigation.link)));
+      await tester.pumpAndSettle();
+      expect(find.byKey(Key(navigation.page)), findsOneWidget);
+      await tester.tap(find.byKey(const Key('subpage-back-button')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('profile-page')), findsOneWidget);
+    }
   });
 
   testWidgets('internal component gallery remains navigable', (tester) async {
@@ -455,36 +511,15 @@ void main() {
     expect(find.byKey(const Key('component-gallery')), findsOneWidget);
     expect(find.byType(BackButtonIcon), findsOneWidget);
   });
-
-  testWidgets('English onboarding is structurally supported', (tester) async {
-    await _pumpApp(
-      tester,
-      size: const Size(390, 844),
-      locale: const Locale('en'),
-    );
-
-    expect(find.text('Apartment living, all in one place'), findsOneWidget);
-    expect(find.text('Get started'), findsOneWidget);
-    expect(
-      tester
-          .widget<Directionality>(find.byType(Directionality).first)
-          .textDirection,
-      TextDirection.ltr,
-    );
-  });
 }
 
-Future<void> _pumpApp(
-  WidgetTester tester, {
-  required Size size,
-  Locale? locale,
-}) async {
+Future<void> _pumpApp(WidgetTester tester, {required Size size}) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  await tester.pumpWidget(ProviderScope(child: DarJarApp(locale: locale)));
+  await tester.pumpWidget(const ProviderScope(child: DarJarApp()));
   await tester.pumpAndSettle();
 }
 

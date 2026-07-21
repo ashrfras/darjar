@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+enum ProfilePermission { manageResidence }
+
 class ResidentProfile {
   const ResidentProfile({
     required this.name,
@@ -7,6 +9,7 @@ class ResidentProfile {
     required this.residence,
     required this.unit,
     required this.role,
+    this.permissions = const {},
   });
 
   final String name;
@@ -14,6 +17,10 @@ class ResidentProfile {
   final String residence;
   final String unit;
   final String role;
+  final Set<ProfilePermission> permissions;
+
+  bool get canManageResidence =>
+      permissions.contains(ProfilePermission.manageResidence);
 }
 
 abstract interface class ProfileRepository {

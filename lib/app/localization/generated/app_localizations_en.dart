@@ -429,6 +429,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile => 'Profile';
 
   @override
+  String get residenceAdministration => 'Residence management';
+
+  @override
+  String get residenceSettings => 'Residence settings';
+
+  @override
+  String get apartments => 'Apartments';
+
+  @override
+  String get apartmentsManagementDescription =>
+      'Manage apartments, residents, and permissions.';
+
+  @override
+  String get projects => 'Projects';
+
+  @override
+  String get projectsManagementDescription =>
+      'Manage exceptional projects and repairs.';
+
+  @override
+  String get residenceManagementDescription =>
+      'Manage residence information and the dues amount.';
+
+  @override
   String get email => 'Email';
 
   @override

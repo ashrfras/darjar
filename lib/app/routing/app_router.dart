@@ -10,6 +10,7 @@ import 'package:darjar/features/profile/presentation/settings_page.dart';
 import 'package:darjar/features/residence/presentation/dues_page.dart';
 import 'package:darjar/features/residence/presentation/finance_transactions_page.dart';
 import 'package:darjar/features/residence/presentation/management_page.dart';
+import 'package:darjar/features/residence/presentation/residence_admin_page.dart';
 import 'package:darjar/features/residence/presentation/residence_finances_page.dart';
 import 'package:darjar/features/residence/presentation/residence_home_page.dart';
 import 'package:darjar/features/residence/presentation/residence_setup_page.dart';
@@ -28,6 +29,9 @@ abstract final class AppRoutes {
   static const residenceFinances = '/residence/finances';
   static const financeTransactions = '/residence/finances/transactions';
   static const management = '/residence/management';
+  static const manageApartments = '/residence/admin/apartments';
+  static const manageProjects = '/residence/admin/projects';
+  static const manageResidence = '/residence/admin/details';
   static const profile = '/profile';
   static const settings = '/settings';
   static const gallery = '/gallery';
@@ -96,6 +100,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.management,
             builder: (context, state) => const ManagementPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.manageApartments,
+            builder: (context, state) => const ResidenceAdminPage.apartments(),
+          ),
+          GoRoute(
+            path: AppRoutes.manageProjects,
+            builder: (context, state) => const ResidenceAdminPage.projects(),
+          ),
+          GoRoute(
+            path: AppRoutes.manageResidence,
+            builder: (context, state) => const ResidenceAdminPage.residence(),
           ),
           GoRoute(
             path: AppRoutes.profile,
