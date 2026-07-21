@@ -9,6 +9,7 @@ import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class ResidenceHomePage extends ConsumerWidget {
   const ResidenceHomePage({super.key});
@@ -69,11 +70,10 @@ class _DashboardGrid extends StatelessWidget {
           spacing: AppSpacing.large,
           runSpacing: AppSpacing.medium,
           children: [
-            SizedBox(width: constraints.maxWidth, child: _FinancialCard(data)),
-            SizedBox(width: pairWidth, child: _MaintenanceCard(data)),
+            SizedBox(width: constraints.maxWidth, child: _AccountCard(data)),
             SizedBox(
-              width: pairWidth,
-              child: _ExpenseCard(data.extraordinaryExpense),
+              width: constraints.maxWidth,
+              child: _ResidenceFinancesCard(data.finances),
             ),
             SizedBox(width: pairWidth, child: _DocumentsCard(data.documents)),
             SizedBox(
@@ -195,8 +195,8 @@ class _SectionIcon extends StatelessWidget {
   }
 }
 
-class _FinancialCard extends StatelessWidget {
-  const _FinancialCard(this.data);
+class _AccountCard extends StatelessWidget {
+  const _AccountCard(this.data);
 
   final ResidenceDashboardData data;
 
@@ -204,7 +204,7 @@ class _FinancialCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     return _DashboardCard(
-      title: 'المالية',
+      title: localizations.myAccount,
       icon: Icons.account_balance_wallet_outlined,
       iconColor: AppColors.residence,
       iconBackground: AppColors.residenceSoft,
@@ -369,178 +369,119 @@ class _FinancialMetric extends StatelessWidget {
   }
 }
 
-class _MaintenanceCard extends StatelessWidget {
-  const _MaintenanceCard(this.data);
+class _ResidenceFinancesCard extends StatelessWidget {
+  const _ResidenceFinancesCard(this.finances);
 
-  final ResidenceDashboardData data;
+  final ResidenceFinances finances;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     return _DashboardCard(
-      title: localizations.maintenanceRequests,
-      icon: Icons.build_outlined,
-      iconColor: const Color(0xFF367DDB),
-      iconBackground: const Color(0xFFEAF2FF),
-      footerLabel: 'عرض كل الطلبات',
-      onTap: () => context.go(AppRoutes.maintenance),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Expanded(
-              child: _CountMetric(
-                value: data.maintenanceCompleted,
-                label: 'منجزة',
-                color: AppColors.residence,
-              ),
-            ),
-            const VerticalDivider(),
-            Expanded(
-              child: _CountMetric(
-                value: data.maintenanceProcessing,
-                label: 'قيد المعالجة',
-                color: AppColors.warning,
-              ),
-            ),
-            const VerticalDivider(),
-            Expanded(
-              child: _CountMetric(
-                value: data.maintenanceOpen,
-                label: 'طلبات مفتوحة',
-                color: const Color(0xFF367DDB),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CountMetric extends StatelessWidget {
-  const _CountMetric({
-    required this.value,
-    required this.label,
-    required this.color,
-  });
-
-  final int value;
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
-      child: Column(
-        children: [
-          Text(
-            '$value',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(color: color),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(color: color),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ExpenseCard extends StatelessWidget {
-  const _ExpenseCard(this.expense);
-
-  final ExtraordinaryExpense expense;
-
-  @override
-  Widget build(BuildContext context) {
-    return _DashboardCard(
-      title: 'المصاريف الاستثنائية',
-      icon: Icons.pie_chart_outline_rounded,
+      title: localizations.residenceFinances,
+      icon: Icons.account_balance_outlined,
       iconColor: const Color(0xFF7657D6),
       iconBackground: const Color(0xFFF0ECFF),
-      footerLabel: 'عرض كل المصاريف الاستثنائية',
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.small),
-            child: Image.asset(
-              expense.imagePath,
-              width: 88,
-              height: 88,
-              fit: BoxFit.cover,
+      footerLabel: localizations.viewFinanceDetails,
+      onTap: () => context.go(AppRoutes.residenceFinances),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final items = [
+            _FinanceOverviewMetric(
+              label: localizations.totalIncome,
+              value:
+                  '${_formatAmount(context, finances.totalIncome)} ${localizations.currency}',
+              color: AppColors.residence,
+              icon: Icons.south_west_rounded,
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  expense.title,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  expense.description,
-                  maxLines: 2,
+            _FinanceOverviewMetric(
+              label: localizations.totalExpenses,
+              value:
+                  '${_formatAmount(context, finances.totalExpenses)} ${localizations.currency}',
+              color: AppColors.warning,
+              icon: Icons.north_east_rounded,
+            ),
+            _FinanceOverviewMetric(
+              label: localizations.currentBalance,
+              value:
+                  '${_formatAmount(context, finances.currentBalance)} ${localizations.currency}',
+              color: const Color(0xFF7657D6),
+              icon: Icons.account_balance_wallet_outlined,
+            ),
+            _FinanceOverviewMetric(
+              label: localizations.collectionRate,
+              value: _formatPercentage(finances.collectionRate),
+              color: const Color(0xFF367DDB),
+              icon: Icons.donut_large_rounded,
+            ),
+          ];
+          final columns = constraints.maxWidth < 700 ? 2 : 4;
+          final itemWidth =
+              (constraints.maxWidth - AppSpacing.small * (columns - 1)) /
+              columns;
+          return Wrap(
+            spacing: AppSpacing.small,
+            runSpacing: AppSpacing.small,
+            children: [
+              for (final item in items) SizedBox(width: itemWidth, child: item),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _FinanceOverviewMetric extends StatelessWidget {
+  const _FinanceOverviewMetric({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 94),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.small),
+        border: Border.all(color: AppColors.outline),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 17, color: color),
+              const SizedBox(width: 5),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelMedium,
                 ),
-                const SizedBox(height: 9),
-                Text(
-                  '${(expense.progress * 100).round()}% مكتمل',
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
-                const SizedBox(height: 5),
-                LinearProgressIndicator(
-                  value: expense.progress,
-                  minHeight: 6,
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  backgroundColor: AppColors.outline,
-                  color: AppColors.residence,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsetsDirectional.only(start: 12),
-            decoration: const BoxDecoration(
-              border: BorderDirectional(
-                start: BorderSide(color: AppColors.outline),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'المبلغ الإجمالي',
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
-                Text(
-                  '${expense.totalAmount} درهم',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'نصيب شقتك',
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
-                Text(
-                  '${expense.residentShare} درهم',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelLarge?.copyWith(color: AppColors.residence),
-                ),
-              ],
+            ],
+          ),
+          const SizedBox(height: AppSpacing.small),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: color),
             ),
           ),
         ],
@@ -729,4 +670,14 @@ class _InfoMetric extends StatelessWidget {
       ),
     );
   }
+}
+
+String _formatAmount(BuildContext context, int amount) {
+  return NumberFormat.decimalPattern(
+    Localizations.localeOf(context).languageCode,
+  ).format(amount);
+}
+
+String _formatPercentage(double value) {
+  return '${(value * 100).round()}%';
 }

@@ -287,11 +287,56 @@ class AppLocalizationsEn extends AppLocalizations {
       'Everything related to residence management in one place.';
 
   @override
-  String get maintenanceRequests => 'Maintenance requests';
+  String get myAccount => 'My account';
 
   @override
-  String get maintenanceDescription =>
-      'Report a problem and follow its status.';
+  String get residenceFinances => 'Residence finances';
+
+  @override
+  String get residenceFinancesDescription =>
+      'A clear view of residence income, expenses, and how the shared budget is used.';
+
+  @override
+  String get totalIncome => 'Income this year';
+
+  @override
+  String get totalExpenses => 'Expenses this year';
+
+  @override
+  String get currentBalance => 'Current balance';
+
+  @override
+  String get collectionRate => 'Collection rate';
+
+  @override
+  String get expenseBreakdown => 'Expense breakdown';
+
+  @override
+  String get recentExpenses => 'Recent expenses';
+
+  @override
+  String get viewFinanceDetails => 'View residence finance details';
+
+  @override
+  String get currency => 'MAD';
+
+  @override
+  String get supportingDocument => 'Supporting document';
+
+  @override
+  String get noSupportingDocument => 'No document attached';
+
+  @override
+  String get expenseCategoryMaintenance => 'Maintenance and repairs';
+
+  @override
+  String get expenseCategoryUtilities => 'Water and electricity';
+
+  @override
+  String get expenseCategoryCleaning => 'Cleaning';
+
+  @override
+  String get expenseCategorySecurity => 'Security';
 
   @override
   String get duesStatus => 'Dues status';
@@ -311,35 +356,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get documentsDescription =>
       'Official notices and documents coming soon.';
-
-  @override
-  String get maintenancePageDescription =>
-      'Follow shared issues and requests submitted by residents.';
-
-  @override
-  String get newRequest => 'New request';
-
-  @override
-  String get createMaintenanceRequest => 'Submit maintenance request';
-
-  @override
-  String get createMaintenanceDescription =>
-      'Describe the issue and its location to help resolve it.';
-
-  @override
-  String get issueTitle => 'Issue';
-
-  @override
-  String get issueTitleHint => 'Example: Entrance light is not working';
-
-  @override
-  String get issueLocation => 'Location';
-
-  @override
-  String get issueLocationHint => 'Example: Building A, floor 2';
-
-  @override
-  String get submitRequest => 'Submit request';
 
   @override
   String get duesPageDescription =>

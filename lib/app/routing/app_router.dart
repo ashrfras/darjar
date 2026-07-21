@@ -7,10 +7,9 @@ import 'package:darjar/features/directory/presentation/directory_profile_page.da
 import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
 import 'package:darjar/features/profile/presentation/profile_page.dart';
 import 'package:darjar/features/profile/presentation/settings_page.dart';
-import 'package:darjar/features/residence/presentation/create_maintenance_page.dart';
 import 'package:darjar/features/residence/presentation/dues_page.dart';
-import 'package:darjar/features/residence/presentation/maintenance_page.dart';
 import 'package:darjar/features/residence/presentation/management_page.dart';
+import 'package:darjar/features/residence/presentation/residence_finances_page.dart';
 import 'package:darjar/features/residence/presentation/residence_home_page.dart';
 import 'package:darjar/features/residence/presentation/residence_setup_page.dart';
 import 'package:darjar/features/shell/presentation/darjar_shell.dart';
@@ -24,9 +23,8 @@ abstract final class AppRoutes {
   static const createPost = '/community/create';
   static const directory = '/directory';
   static const residence = '/residence';
-  static const maintenance = '/residence/maintenance';
-  static const createMaintenance = '/residence/maintenance/create';
   static const dues = '/residence/dues';
+  static const residenceFinances = '/residence/finances';
   static const management = '/residence/management';
   static const profile = '/profile';
   static const settings = '/settings';
@@ -82,16 +80,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ResidenceHomePage(),
           ),
           GoRoute(
-            path: AppRoutes.maintenance,
-            builder: (context, state) => const MaintenancePage(),
-          ),
-          GoRoute(
-            path: AppRoutes.createMaintenance,
-            builder: (context, state) => const CreateMaintenancePage(),
-          ),
-          GoRoute(
             path: AppRoutes.dues,
             builder: (context, state) => const DuesPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.residenceFinances,
+            builder: (context, state) => const ResidenceFinancesPage(),
           ),
           GoRoute(
             path: AppRoutes.management,

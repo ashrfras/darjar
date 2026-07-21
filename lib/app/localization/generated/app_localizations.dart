@@ -614,17 +614,107 @@ abstract class AppLocalizations {
   /// **'كل ما يتعلق بإدارة وشؤون الإقامة في مكان واحد.'**
   String get residencePageDescription;
 
-  /// No description provided for @maintenanceRequests.
+  /// No description provided for @myAccount.
   ///
   /// In ar, this message translates to:
-  /// **'طلبات الصيانة'**
-  String get maintenanceRequests;
+  /// **'حسابي'**
+  String get myAccount;
 
-  /// No description provided for @maintenanceDescription.
+  /// No description provided for @residenceFinances.
   ///
   /// In ar, this message translates to:
-  /// **'أبلغ عن مشكلة وتابع حالتها.'**
-  String get maintenanceDescription;
+  /// **'مالية الإقامة'**
+  String get residenceFinances;
+
+  /// No description provided for @residenceFinancesDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'نظرة واضحة على مداخيل الإقامة ومصاريفها وكيفية استخدام الميزانية.'**
+  String get residenceFinancesDescription;
+
+  /// No description provided for @totalIncome.
+  ///
+  /// In ar, this message translates to:
+  /// **'مداخيل السنة'**
+  String get totalIncome;
+
+  /// No description provided for @totalExpenses.
+  ///
+  /// In ar, this message translates to:
+  /// **'مصاريف السنة'**
+  String get totalExpenses;
+
+  /// No description provided for @currentBalance.
+  ///
+  /// In ar, this message translates to:
+  /// **'الرصيد الحالي'**
+  String get currentBalance;
+
+  /// No description provided for @collectionRate.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسبة التحصيل'**
+  String get collectionRate;
+
+  /// No description provided for @expenseBreakdown.
+  ///
+  /// In ar, this message translates to:
+  /// **'توزيع المصاريف'**
+  String get expenseBreakdown;
+
+  /// No description provided for @recentExpenses.
+  ///
+  /// In ar, this message translates to:
+  /// **'أحدث المصاريف'**
+  String get recentExpenses;
+
+  /// No description provided for @viewFinanceDetails.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض تفاصيل مالية الإقامة'**
+  String get viewFinanceDetails;
+
+  /// No description provided for @currency.
+  ///
+  /// In ar, this message translates to:
+  /// **'درهم'**
+  String get currency;
+
+  /// No description provided for @supportingDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'الوثيقة المثبتة'**
+  String get supportingDocument;
+
+  /// No description provided for @noSupportingDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد وثيقة مرفقة'**
+  String get noSupportingDocument;
+
+  /// No description provided for @expenseCategoryMaintenance.
+  ///
+  /// In ar, this message translates to:
+  /// **'الصيانة والإصلاحات'**
+  String get expenseCategoryMaintenance;
+
+  /// No description provided for @expenseCategoryUtilities.
+  ///
+  /// In ar, this message translates to:
+  /// **'الماء والكهرباء'**
+  String get expenseCategoryUtilities;
+
+  /// No description provided for @expenseCategoryCleaning.
+  ///
+  /// In ar, this message translates to:
+  /// **'النظافة'**
+  String get expenseCategoryCleaning;
+
+  /// No description provided for @expenseCategorySecurity.
+  ///
+  /// In ar, this message translates to:
+  /// **'الحراسة'**
+  String get expenseCategorySecurity;
 
   /// No description provided for @duesStatus.
   ///
@@ -661,60 +751,6 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'الإعلانات والوثائق الرسمية قريباً.'**
   String get documentsDescription;
-
-  /// No description provided for @maintenancePageDescription.
-  ///
-  /// In ar, this message translates to:
-  /// **'تابع الأعطال المشتركة والطلبات التي أرسلها السكان.'**
-  String get maintenancePageDescription;
-
-  /// No description provided for @newRequest.
-  ///
-  /// In ar, this message translates to:
-  /// **'طلب جديد'**
-  String get newRequest;
-
-  /// No description provided for @createMaintenanceRequest.
-  ///
-  /// In ar, this message translates to:
-  /// **'إرسال طلب صيانة'**
-  String get createMaintenanceRequest;
-
-  /// No description provided for @createMaintenanceDescription.
-  ///
-  /// In ar, this message translates to:
-  /// **'صف المشكلة وحدد مكانها لتسهيل معالجتها.'**
-  String get createMaintenanceDescription;
-
-  /// No description provided for @issueTitle.
-  ///
-  /// In ar, this message translates to:
-  /// **'المشكلة'**
-  String get issueTitle;
-
-  /// No description provided for @issueTitleHint.
-  ///
-  /// In ar, this message translates to:
-  /// **'مثال: مصباح المدخل لا يعمل'**
-  String get issueTitleHint;
-
-  /// No description provided for @issueLocation.
-  ///
-  /// In ar, this message translates to:
-  /// **'المكان'**
-  String get issueLocation;
-
-  /// No description provided for @issueLocationHint.
-  ///
-  /// In ar, this message translates to:
-  /// **'مثال: العمارة A، الطابق 2'**
-  String get issueLocationHint;
-
-  /// No description provided for @submitRequest.
-  ///
-  /// In ar, this message translates to:
-  /// **'إرسال الطلب'**
-  String get submitRequest;
 
   /// No description provided for @duesPageDescription.
   ///

@@ -1,23 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum MaintenanceStatus { processing, completed }
-
-class MaintenanceRequest {
-  const MaintenanceRequest({
-    required this.id,
-    required this.title,
-    required this.location,
-    required this.timeLabel,
-    required this.status,
-  });
-
-  final String id;
-  final String title;
-  final String location;
-  final String timeLabel;
-  final MaintenanceStatus status;
-}
-
 class DuesRecord {
   const DuesRecord({
     required this.period,
@@ -48,16 +30,70 @@ class ManagementInfo {
   final String bankAccount;
 }
 
+enum ResidenceExpenseCategory { maintenance, utilities, cleaning, security }
+
+class ResidenceExpenseBreakdown {
+  const ResidenceExpenseBreakdown({
+    required this.category,
+    required this.amount,
+  });
+
+  final ResidenceExpenseCategory category;
+  final int amount;
+}
+
+class ResidenceExpense {
+  const ResidenceExpense({
+    required this.id,
+    required this.amount,
+    required this.category,
+    required this.date,
+    required this.descriptionAr,
+    required this.descriptionEn,
+    this.supportingDocument,
+  });
+
+  final String id;
+  final int amount;
+  final ResidenceExpenseCategory category;
+  final DateTime date;
+  final String descriptionAr;
+  final String descriptionEn;
+  final String? supportingDocument;
+}
+
+class ResidenceFinances {
+  const ResidenceFinances({
+    required this.totalIncome,
+    required this.totalExpenses,
+    required this.currentBalance,
+    required this.paidResidents,
+    required this.totalResidents,
+    required this.breakdown,
+    required this.recentExpenses,
+  });
+
+  final int totalIncome;
+  final int totalExpenses;
+  final int currentBalance;
+  final int paidResidents;
+  final int totalResidents;
+  final List<ResidenceExpenseBreakdown> breakdown;
+  final List<ResidenceExpense> recentExpenses;
+
+  double get collectionRate {
+    if (totalResidents == 0) return 0;
+    return paidResidents / totalResidents;
+  }
+}
+
 class ResidenceDashboardData {
   const ResidenceDashboardData({
     required this.monthlyDue,
     required this.lastPayment,
     required this.lastPaymentDate,
     required this.paidThrough,
-    required this.maintenanceCompleted,
-    required this.maintenanceProcessing,
-    required this.maintenanceOpen,
-    required this.extraordinaryExpense,
+    required this.finances,
     required this.notifications,
     required this.documents,
     required this.buildingCount,
@@ -69,33 +105,12 @@ class ResidenceDashboardData {
   final int lastPayment;
   final String lastPaymentDate;
   final String paidThrough;
-  final int maintenanceCompleted;
-  final int maintenanceProcessing;
-  final int maintenanceOpen;
-  final ExtraordinaryExpense extraordinaryExpense;
+  final ResidenceFinances finances;
   final List<AdministrativeNotification> notifications;
   final List<ResidenceDocument> documents;
   final int buildingCount;
   final int unitCount;
   final int constructionYear;
-}
-
-class ExtraordinaryExpense {
-  const ExtraordinaryExpense({
-    required this.title,
-    required this.description,
-    required this.totalAmount,
-    required this.residentShare,
-    required this.progress,
-    required this.imagePath,
-  });
-
-  final String title;
-  final String description;
-  final int totalAmount;
-  final int residentShare;
-  final double progress;
-  final String imagePath;
 }
 
 class AdministrativeNotification {
@@ -113,59 +128,16 @@ class ResidenceDocument {
 }
 
 abstract interface class ResidenceRepository {
-  List<MaintenanceRequest> getMaintenanceRequests();
-
-  MaintenanceRequest createMaintenanceRequest({
-    required String title,
-    required String location,
-  });
-
   List<DuesRecord> getDuesRecords();
 
   ManagementInfo getManagementInfo();
+
+  ResidenceFinances getResidenceFinances();
 
   ResidenceDashboardData getDashboardData();
 }
 
 class MockResidenceRepository implements ResidenceRepository {
-  final List<MaintenanceRequest> _requests = [
-    const MaintenanceRequest(
-      id: 'elevator-b',
-      title: 'المصعد لا يعمل في الطابق B',
-      location: 'العمارة B — الطابق 3',
-      timeLabel: 'منذ ساعة',
-      status: MaintenanceStatus.processing,
-    ),
-    const MaintenanceRequest(
-      id: 'garage-light',
-      title: 'مصباح المرآب لا يعمل',
-      location: 'المرآب — المدخل الشرقي',
-      timeLabel: 'أمس',
-      status: MaintenanceStatus.completed,
-    ),
-  ];
-
-  @override
-  List<MaintenanceRequest> getMaintenanceRequests() {
-    return List.unmodifiable(_requests);
-  }
-
-  @override
-  MaintenanceRequest createMaintenanceRequest({
-    required String title,
-    required String location,
-  }) {
-    final request = MaintenanceRequest(
-      id: 'request-${_requests.length + 1}',
-      title: title,
-      location: location,
-      timeLabel: 'الآن',
-      status: MaintenanceStatus.processing,
-    );
-    _requests.insert(0, request);
-    return request;
-  }
-
   @override
   List<DuesRecord> getDuesRecords() {
     return const [
@@ -196,35 +168,91 @@ class MockResidenceRepository implements ResidenceRepository {
   }
 
   @override
+  ResidenceFinances getResidenceFinances() {
+    return ResidenceFinances(
+      totalIncome: 128400,
+      totalExpenses: 96500,
+      currentBalance: 31900,
+      paidResidents: 78,
+      totalResidents: 96,
+      breakdown: const [
+        ResidenceExpenseBreakdown(
+          category: ResidenceExpenseCategory.maintenance,
+          amount: 38600,
+        ),
+        ResidenceExpenseBreakdown(
+          category: ResidenceExpenseCategory.utilities,
+          amount: 27100,
+        ),
+        ResidenceExpenseBreakdown(
+          category: ResidenceExpenseCategory.cleaning,
+          amount: 18400,
+        ),
+        ResidenceExpenseBreakdown(
+          category: ResidenceExpenseCategory.security,
+          amount: 12400,
+        ),
+      ],
+      recentExpenses: [
+        ResidenceExpense(
+          id: 'elevator-service-july',
+          amount: 4800,
+          category: ResidenceExpenseCategory.maintenance,
+          date: DateTime(2026, 7, 14),
+          descriptionAr: 'الصيانة الدورية للمصعدين',
+          descriptionEn: 'Scheduled maintenance for both elevators',
+          supportingDocument: 'فاتورة-صيانة-المصاعد.pdf',
+        ),
+        ResidenceExpense(
+          id: 'electricity-june',
+          amount: 3260,
+          category: ResidenceExpenseCategory.utilities,
+          date: DateTime(2026, 7, 8),
+          descriptionAr: 'فاتورة كهرباء المرافق المشتركة لشهر يونيو',
+          descriptionEn: 'Common-area electricity bill for June',
+          supportingDocument: 'فاتورة-الكهرباء-يونيو.pdf',
+        ),
+        ResidenceExpense(
+          id: 'cleaning-supplies',
+          amount: 1450,
+          category: ResidenceExpenseCategory.cleaning,
+          date: DateTime(2026, 7, 3),
+          descriptionAr: 'مواد تنظيف المداخل والممرات',
+          descriptionEn: 'Cleaning supplies for entrances and corridors',
+        ),
+        ResidenceExpense(
+          id: 'security-june',
+          amount: 6200,
+          category: ResidenceExpenseCategory.security,
+          date: DateTime(2026, 6, 30),
+          descriptionAr: 'خدمة الحراسة لشهر يونيو',
+          descriptionEn: 'Security service for June',
+          supportingDocument: 'وصل-الحراسة-يونيو.pdf',
+        ),
+      ],
+    );
+  }
+
+  @override
   ResidenceDashboardData getDashboardData() {
-    return const ResidenceDashboardData(
+    return ResidenceDashboardData(
       monthlyDue: 350,
       lastPayment: 350,
       lastPaymentDate: '05 مايو 2026',
       paidThrough: 'مايو 2026',
-      maintenanceCompleted: 5,
-      maintenanceProcessing: 1,
-      maintenanceOpen: 2,
-      extraordinaryExpense: ExtraordinaryExpense(
-        title: 'مشروع إصلاح المصعد',
-        description: 'مساهمة موحّدة لتحديث مصعد العمارة',
-        totalAmount: 42000,
-        residentShare: 350,
-        progress: .35,
-        imagePath: 'assets/images/community/elevator-corridor.jpg',
-      ),
-      notifications: [
+      finances: getResidenceFinances(),
+      notifications: const [
         AdministrativeNotification(
           title: 'إنذار لعدم سداد الاشتراك',
           age: 'منذ يومين',
         ),
         AdministrativeNotification(title: 'مخالفة إزعاج', age: 'منذ 5 أيام'),
         AdministrativeNotification(
-          title: 'تنبيه خاص بالصيانة',
+          title: 'تنبيه خاص بالمرافق',
           age: 'منذ 8 أيام',
         ),
       ],
-      documents: [
+      documents: const [
         ResidenceDocument(title: 'القانون الداخلي', size: '2.4 MB'),
         ResidenceDocument(title: 'محضر اجتماع 2025-04', size: '1.8 MB'),
         ResidenceDocument(title: 'الميزانية السنوية 2025', size: '3.1 MB'),
@@ -240,31 +268,16 @@ final residenceRepositoryProvider = Provider<ResidenceRepository>(
   (ref) => MockResidenceRepository(),
 );
 
-final maintenanceRequestsProvider =
-    NotifierProvider<MaintenanceRequestsController, List<MaintenanceRequest>>(
-      MaintenanceRequestsController.new,
-    );
-
-class MaintenanceRequestsController extends Notifier<List<MaintenanceRequest>> {
-  @override
-  List<MaintenanceRequest> build() {
-    return ref.read(residenceRepositoryProvider).getMaintenanceRequests();
-  }
-
-  void create({required String title, required String location}) {
-    ref
-        .read(residenceRepositoryProvider)
-        .createMaintenanceRequest(title: title, location: location);
-    state = ref.read(residenceRepositoryProvider).getMaintenanceRequests();
-  }
-}
-
 final duesRecordsProvider = Provider<List<DuesRecord>>(
   (ref) => ref.read(residenceRepositoryProvider).getDuesRecords(),
 );
 
 final managementInfoProvider = Provider<ManagementInfo>(
   (ref) => ref.read(residenceRepositoryProvider).getManagementInfo(),
+);
+
+final residenceFinancesProvider = Provider<ResidenceFinances>(
+  (ref) => ref.read(residenceRepositoryProvider).getResidenceFinances(),
 );
 
 final residenceDashboardProvider = Provider<ResidenceDashboardData>(

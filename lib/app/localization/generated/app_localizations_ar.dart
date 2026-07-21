@@ -283,10 +283,56 @@ class AppLocalizationsAr extends AppLocalizations {
       'كل ما يتعلق بإدارة وشؤون الإقامة في مكان واحد.';
 
   @override
-  String get maintenanceRequests => 'طلبات الصيانة';
+  String get myAccount => 'حسابي';
 
   @override
-  String get maintenanceDescription => 'أبلغ عن مشكلة وتابع حالتها.';
+  String get residenceFinances => 'مالية الإقامة';
+
+  @override
+  String get residenceFinancesDescription =>
+      'نظرة واضحة على مداخيل الإقامة ومصاريفها وكيفية استخدام الميزانية.';
+
+  @override
+  String get totalIncome => 'مداخيل السنة';
+
+  @override
+  String get totalExpenses => 'مصاريف السنة';
+
+  @override
+  String get currentBalance => 'الرصيد الحالي';
+
+  @override
+  String get collectionRate => 'نسبة التحصيل';
+
+  @override
+  String get expenseBreakdown => 'توزيع المصاريف';
+
+  @override
+  String get recentExpenses => 'أحدث المصاريف';
+
+  @override
+  String get viewFinanceDetails => 'عرض تفاصيل مالية الإقامة';
+
+  @override
+  String get currency => 'درهم';
+
+  @override
+  String get supportingDocument => 'الوثيقة المثبتة';
+
+  @override
+  String get noSupportingDocument => 'لا توجد وثيقة مرفقة';
+
+  @override
+  String get expenseCategoryMaintenance => 'الصيانة والإصلاحات';
+
+  @override
+  String get expenseCategoryUtilities => 'الماء والكهرباء';
+
+  @override
+  String get expenseCategoryCleaning => 'النظافة';
+
+  @override
+  String get expenseCategorySecurity => 'الحراسة';
 
   @override
   String get duesStatus => 'حالة الواجبات';
@@ -305,35 +351,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get documentsDescription => 'الإعلانات والوثائق الرسمية قريباً.';
-
-  @override
-  String get maintenancePageDescription =>
-      'تابع الأعطال المشتركة والطلبات التي أرسلها السكان.';
-
-  @override
-  String get newRequest => 'طلب جديد';
-
-  @override
-  String get createMaintenanceRequest => 'إرسال طلب صيانة';
-
-  @override
-  String get createMaintenanceDescription =>
-      'صف المشكلة وحدد مكانها لتسهيل معالجتها.';
-
-  @override
-  String get issueTitle => 'المشكلة';
-
-  @override
-  String get issueTitleHint => 'مثال: مصباح المدخل لا يعمل';
-
-  @override
-  String get issueLocation => 'المكان';
-
-  @override
-  String get issueLocationHint => 'مثال: العمارة A، الطابق 2';
-
-  @override
-  String get submitRequest => 'إرسال الطلب';
 
   @override
   String get duesPageDescription =>

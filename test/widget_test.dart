@@ -25,28 +25,19 @@ void main() {
   });
 
   group('mock repositories', () {
-    test(
-      'create community posts, recommendations, and maintenance requests',
-      () {
-        final community = MockCommunityRepository();
-        final directory = MockDirectoryRepository();
-        final residence = MockResidenceRepository();
+    test('create community posts and recommendations', () {
+      final community = MockCommunityRepository();
+      final directory = MockDirectoryRepository();
 
-        community.createPost(title: 'عنوان', body: 'تفاصيل');
-        directory.recommend(id: 'mohamed-electrician', comment: 'خدمة ممتازة');
-        residence.createMaintenanceRequest(
-          title: 'عطل جديد',
-          location: 'المدخل',
-        );
+      community.createPost(title: 'عنوان', body: 'تفاصيل');
+      directory.recommend(id: 'mohamed-electrician', comment: 'خدمة ممتازة');
 
-        expect(community.getPosts().first.title, 'عنوان');
-        expect(
-          directory.getEntry('mohamed-electrician')!.reviews.first.comment,
-          'خدمة ممتازة',
-        );
-        expect(residence.getMaintenanceRequests().first.title, 'عطل جديد');
-      },
-    );
+      expect(community.getPosts().first.title, 'عنوان');
+      expect(
+        directory.getEntry('mohamed-electrician')!.reviews.first.comment,
+        'خدمة ممتازة',
+      );
+    });
 
     test('community mock supports every post type and local interactions', () {
       final community = MockCommunityRepository();
@@ -82,8 +73,12 @@ void main() {
       final dashboard = MockResidenceRepository().getDashboardData();
 
       expect(dashboard.monthlyDue, greaterThan(0));
-      expect(dashboard.maintenanceCompleted, greaterThan(0));
-      expect(dashboard.extraordinaryExpense.progress, inInclusiveRange(0, 1));
+      expect(dashboard.finances.totalIncome, greaterThan(0));
+      expect(dashboard.finances.totalExpenses, greaterThan(0));
+      expect(dashboard.finances.currentBalance, greaterThanOrEqualTo(0));
+      expect(dashboard.finances.collectionRate, closeTo(78 / 96, .001));
+      expect(dashboard.finances.breakdown, isNotEmpty);
+      expect(dashboard.finances.recentExpenses, isNotEmpty);
       expect(dashboard.notifications, isNotEmpty);
       expect(dashboard.documents, isNotEmpty);
       expect(dashboard.unitCount, greaterThan(0));
@@ -291,7 +286,7 @@ void main() {
     expect(find.text('خدمة سريعة وموثوقة'), findsOneWidget);
   });
 
-  testWidgets('residence exposes maintenance, dues, and management routes', (
+  testWidgets('residence exposes account, finances, and management routes', (
     tester,
   ) async {
     await _pumpApp(tester, size: const Size(390, 844));
@@ -301,27 +296,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('residence-home-page')), findsOneWidget);
 
-    await tester.tap(find.text('طلبات الصيانة'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('maintenance-page')), findsOneWidget);
-    expect(find.byType(BackButtonIcon), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('new-maintenance-button')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('create-maintenance-page')), findsOneWidget);
-    expect(find.byType(BackButtonIcon), findsOneWidget);
-    final fields = find.byType(TextField);
-    await tester.enterText(fields.at(0), 'تسرب ماء');
-    await tester.enterText(fields.at(1), 'الطابق الثاني');
-    await tester.ensureVisible(
-      find.byKey(const Key('submit-maintenance-button')),
-    );
-    await tester.tap(find.byKey(const Key('submit-maintenance-button')));
-    await tester.pumpAndSettle();
-    expect(find.text('تسرب ماء'), findsOneWidget);
-
-    await tester.tap(find.text('الإقامة'));
-    await tester.pumpAndSettle();
     await tester.tap(find.text('حالة الواجبات'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('dues-page')), findsOneWidget);
@@ -331,6 +305,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('residence-home-page')), findsOneWidget);
 
+    await tester.ensureVisible(find.text('مالية الإقامة'));
+    await tester.tap(find.text('مالية الإقامة'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('residence-finances-page')), findsOneWidget);
+    expect(find.byKey(const Key('finance-total-income')), findsOneWidget);
+    expect(find.byKey(const Key('finance-total-expenses')), findsOneWidget);
+    expect(find.byKey(const Key('finance-current-balance')), findsOneWidget);
+    expect(find.byKey(const Key('finance-collection-rate')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('residence-expense-elevator-service-july')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const Key('subpage-back-button')));
+    await tester.pumpAndSettle();
+
     await tester.ensureVisible(find.text('معلومات الإدارة'));
     await tester.tap(find.text('معلومات الإدارة'));
     await tester.pumpAndSettle();
@@ -338,7 +328,7 @@ void main() {
     expect(find.byType(BackButtonIcon), findsOneWidget);
   });
 
-  testWidgets('residence dashboard exposes its six resident modules', (
+  testWidgets('residence dashboard exposes its five resident modules', (
     tester,
   ) async {
     await _pumpApp(tester, size: const Size(1280, 1100));
@@ -346,10 +336,9 @@ void main() {
     await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
 
+    expect(find.text('حسابي'), findsWidgets);
     for (final section in [
-      'المالية',
-      'طلبات الصيانة',
-      'المصاريف الاستثنائية',
+      'مالية الإقامة',
       'الوثائق',
       'الإشعارات الإدارية',
       'معلومات الإدارة',
