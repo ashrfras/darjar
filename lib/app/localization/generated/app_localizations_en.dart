@@ -315,6 +315,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recentExpenses => 'Recent expenses';
 
   @override
+  String get viewAllTransactions => 'View all transactions';
+
+  @override
+  String get financeTransactions => 'Financial transactions';
+
+  @override
+  String get financeTransactionsDescription =>
+      'A detailed record of residence income and expenses for the selected period.';
+
+  @override
+  String get selectPeriod => 'Select date range';
+
+  @override
+  String periodFromTo(String start, String end) {
+    return 'From $start to $end';
+  }
+
+  @override
+  String get income => 'Income';
+
+  @override
+  String get expense => 'Expense';
+
+  @override
+  String get periodIncome => 'Period income';
+
+  @override
+  String get periodExpenses => 'Period expenses';
+
+  @override
+  String get noTransactionsInPeriod =>
+      'No transactions in the selected period.';
+
+  @override
   String get viewFinanceDetails => 'View residence finance details';
 
   @override

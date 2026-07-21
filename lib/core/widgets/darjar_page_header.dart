@@ -74,6 +74,7 @@ class DarJarSubpageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCompact = MediaQuery.sizeOf(context).width < 600;
+    final backOnly = title == null;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,7 +83,13 @@ class DarJarSubpageHeader extends StatelessWidget {
           key: const Key('subpage-back-button'),
           tooltip: AppLocalizations.of(context).back,
           color: AppColors.ink,
-          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+          padding: backOnly ? EdgeInsets.zero : null,
+          visualDensity: backOnly ? VisualDensity.compact : null,
+          constraints: BoxConstraints.tightFor(
+            width: backOnly ? 40 : 44,
+            height: backOnly ? 40 : 44,
+          ),
+          iconSize: backOnly ? 22 : 24,
           onPressed: () {
             if (context.canPop()) {
               context.pop();

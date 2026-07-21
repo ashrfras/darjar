@@ -8,6 +8,7 @@ import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
 import 'package:darjar/features/profile/presentation/profile_page.dart';
 import 'package:darjar/features/profile/presentation/settings_page.dart';
 import 'package:darjar/features/residence/presentation/dues_page.dart';
+import 'package:darjar/features/residence/presentation/finance_transactions_page.dart';
 import 'package:darjar/features/residence/presentation/management_page.dart';
 import 'package:darjar/features/residence/presentation/residence_finances_page.dart';
 import 'package:darjar/features/residence/presentation/residence_home_page.dart';
@@ -25,6 +26,7 @@ abstract final class AppRoutes {
   static const residence = '/residence';
   static const dues = '/residence/dues';
   static const residenceFinances = '/residence/finances';
+  static const financeTransactions = '/residence/finances/transactions';
   static const management = '/residence/management';
   static const profile = '/profile';
   static const settings = '/settings';
@@ -86,6 +88,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.residenceFinances,
             builder: (context, state) => const ResidenceFinancesPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.financeTransactions,
+            builder: (context, state) => const FinanceTransactionsPage(),
           ),
           GoRoute(
             path: AppRoutes.management,

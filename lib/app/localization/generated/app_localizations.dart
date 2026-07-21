@@ -668,6 +668,66 @@ abstract class AppLocalizations {
   /// **'أحدث المصاريف'**
   String get recentExpenses;
 
+  /// No description provided for @viewAllTransactions.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض جميع العمليات'**
+  String get viewAllTransactions;
+
+  /// No description provided for @financeTransactions.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجل العمليات المالية'**
+  String get financeTransactions;
+
+  /// No description provided for @financeTransactionsDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجل مفصل لمداخيل الإقامة ومصاريفها خلال الفترة المختارة.'**
+  String get financeTransactionsDescription;
+
+  /// No description provided for @selectPeriod.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار الفترة الزمنية'**
+  String get selectPeriod;
+
+  /// No description provided for @periodFromTo.
+  ///
+  /// In ar, this message translates to:
+  /// **'من {start} إلى {end}'**
+  String periodFromTo(String start, String end);
+
+  /// No description provided for @income.
+  ///
+  /// In ar, this message translates to:
+  /// **'مداخيل'**
+  String get income;
+
+  /// No description provided for @expense.
+  ///
+  /// In ar, this message translates to:
+  /// **'مصاريف'**
+  String get expense;
+
+  /// No description provided for @periodIncome.
+  ///
+  /// In ar, this message translates to:
+  /// **'مداخيل الفترة'**
+  String get periodIncome;
+
+  /// No description provided for @periodExpenses.
+  ///
+  /// In ar, this message translates to:
+  /// **'مصاريف الفترة'**
+  String get periodExpenses;
+
+  /// No description provided for @noTransactionsInPeriod.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد عمليات خلال الفترة المختارة.'**
+  String get noTransactionsInPeriod;
+
   /// No description provided for @viewFinanceDetails.
   ///
   /// In ar, this message translates to:

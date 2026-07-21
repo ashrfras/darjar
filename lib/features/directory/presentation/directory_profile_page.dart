@@ -26,7 +26,7 @@ class DirectoryProfilePage extends ConsumerWidget {
         padding: const EdgeInsets.all(AppSpacing.xLarge),
         children: [
           DarJarSubpageHeader(fallbackLocation: AppRoutes.directory),
-          const SizedBox(height: AppSpacing.xxxLarge),
+          const SizedBox(height: AppSpacing.large),
           Center(child: Text(localizations.directoryProfileNotFound)),
         ],
       );
@@ -49,7 +49,7 @@ class DirectoryProfilePage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DarJarSubpageHeader(fallbackLocation: AppRoutes.directory),
-              const SizedBox(height: AppSpacing.large),
+              const SizedBox(height: AppSpacing.small),
               DarJarCard(
                 child: Column(
                   children: [

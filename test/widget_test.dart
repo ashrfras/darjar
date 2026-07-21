@@ -245,6 +245,11 @@ void main() {
     await tester.tap(announcement);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('community-post-detail-page')), findsOneWidget);
+    expect(find.byKey(const Key('subpage-title')), findsNothing);
+    expect(
+      tester.getSize(find.byKey(const Key('subpage-back-button'))).height,
+      40,
+    );
 
     await tester.enterText(
       find.byKey(const Key('comment-field')),
@@ -322,6 +327,35 @@ void main() {
       findsOneWidget,
     );
 
+    final incomeCard = tester.getRect(
+      find.byKey(const Key('finance-total-income')),
+    );
+    final expensesCard = tester.getRect(
+      find.byKey(const Key('finance-total-expenses')),
+    );
+    expect(incomeCard.top, expensesCard.top);
+    expect(incomeCard.left, isNot(expensesCard.left));
+
+    await tester.ensureVisible(
+      find.byKey(const Key('view-all-transactions-button')),
+    );
+    await tester.tap(find.byKey(const Key('view-all-transactions-button')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('finance-transactions-page')), findsOneWidget);
+    expect(find.byKey(const Key('finance-period-picker')), findsOneWidget);
+    expect(find.byKey(const Key('period-income-total')), findsOneWidget);
+    expect(find.byKey(const Key('period-expenses-total')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('finance-transaction-dues-july')),
+      findsOneWidget,
+    );
+
+    await tester.ensureVisible(find.byKey(const Key('subpage-back-button')));
+    await tester.tap(find.byKey(const Key('subpage-back-button')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('residence-finances-page')), findsOneWidget);
+
+    await tester.ensureVisible(find.byKey(const Key('subpage-back-button')));
     await tester.tap(find.byKey(const Key('subpage-back-button')));
     await tester.pumpAndSettle();
 

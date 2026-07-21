@@ -32,6 +32,30 @@ class ManagementInfo {
 
 enum ResidenceExpenseCategory { maintenance, utilities, cleaning, security }
 
+enum ResidenceTransactionType { income, expense }
+
+class ResidenceTransaction {
+  const ResidenceTransaction({
+    required this.id,
+    required this.type,
+    required this.amount,
+    required this.date,
+    required this.descriptionAr,
+    required this.descriptionEn,
+    this.expenseCategory,
+    this.supportingDocument,
+  });
+
+  final String id;
+  final ResidenceTransactionType type;
+  final int amount;
+  final DateTime date;
+  final String descriptionAr;
+  final String descriptionEn;
+  final ResidenceExpenseCategory? expenseCategory;
+  final String? supportingDocument;
+}
+
 class ResidenceExpenseBreakdown {
   const ResidenceExpenseBreakdown({
     required this.category,
@@ -71,6 +95,7 @@ class ResidenceFinances {
     required this.totalResidents,
     required this.breakdown,
     required this.recentExpenses,
+    required this.transactions,
   });
 
   final int totalIncome;
@@ -80,6 +105,7 @@ class ResidenceFinances {
   final int totalResidents;
   final List<ResidenceExpenseBreakdown> breakdown;
   final List<ResidenceExpense> recentExpenses;
+  final List<ResidenceTransaction> transactions;
 
   double get collectionRate {
     if (totalResidents == 0) return 0;
@@ -228,6 +254,107 @@ class MockResidenceRepository implements ResidenceRepository {
           descriptionAr: 'خدمة الحراسة لشهر يونيو',
           descriptionEn: 'Security service for June',
           supportingDocument: 'وصل-الحراسة-يونيو.pdf',
+        ),
+      ],
+      transactions: [
+        ResidenceTransaction(
+          id: 'dues-july',
+          type: ResidenceTransactionType.income,
+          amount: 27300,
+          date: DateTime(2026, 7, 18),
+          descriptionAr: 'واجبات السكان المحصلة لشهر يوليو',
+          descriptionEn: 'Resident dues collected for July',
+        ),
+        ResidenceTransaction(
+          id: 'elevator-service-july',
+          type: ResidenceTransactionType.expense,
+          amount: 4800,
+          date: DateTime(2026, 7, 14),
+          descriptionAr: 'الصيانة الدورية للمصعدين',
+          descriptionEn: 'Scheduled maintenance for both elevators',
+          expenseCategory: ResidenceExpenseCategory.maintenance,
+          supportingDocument: 'فاتورة-صيانة-المصاعد.pdf',
+        ),
+        ResidenceTransaction(
+          id: 'electricity-june',
+          type: ResidenceTransactionType.expense,
+          amount: 3260,
+          date: DateTime(2026, 7, 8),
+          descriptionAr: 'فاتورة كهرباء المرافق المشتركة لشهر يونيو',
+          descriptionEn: 'Common-area electricity bill for June',
+          expenseCategory: ResidenceExpenseCategory.utilities,
+          supportingDocument: 'فاتورة-الكهرباء-يونيو.pdf',
+        ),
+        ResidenceTransaction(
+          id: 'cleaning-supplies',
+          type: ResidenceTransactionType.expense,
+          amount: 1450,
+          date: DateTime(2026, 7, 3),
+          descriptionAr: 'مواد تنظيف المداخل والممرات',
+          descriptionEn: 'Cleaning supplies for entrances and corridors',
+          expenseCategory: ResidenceExpenseCategory.cleaning,
+        ),
+        ResidenceTransaction(
+          id: 'dues-june',
+          type: ResidenceTransactionType.income,
+          amount: 30100,
+          date: DateTime(2026, 7, 1),
+          descriptionAr: 'واجبات السكان المحصلة لشهر يونيو',
+          descriptionEn: 'Resident dues collected for June',
+        ),
+        ResidenceTransaction(
+          id: 'security-june',
+          type: ResidenceTransactionType.expense,
+          amount: 6200,
+          date: DateTime(2026, 6, 30),
+          descriptionAr: 'خدمة الحراسة لشهر يونيو',
+          descriptionEn: 'Security service for June',
+          expenseCategory: ResidenceExpenseCategory.security,
+          supportingDocument: 'وصل-الحراسة-يونيو.pdf',
+        ),
+        ResidenceTransaction(
+          id: 'dues-may',
+          type: ResidenceTransactionType.income,
+          amount: 26600,
+          date: DateTime(2026, 6, 2),
+          descriptionAr: 'واجبات السكان المحصلة لشهر مايو',
+          descriptionEn: 'Resident dues collected for May',
+        ),
+        ResidenceTransaction(
+          id: 'water-may',
+          type: ResidenceTransactionType.expense,
+          amount: 2180,
+          date: DateTime(2026, 5, 27),
+          descriptionAr: 'فاتورة ماء المرافق المشتركة',
+          descriptionEn: 'Common-area water bill',
+          expenseCategory: ResidenceExpenseCategory.utilities,
+          supportingDocument: 'فاتورة-الماء-مايو.pdf',
+        ),
+        ResidenceTransaction(
+          id: 'dues-april',
+          type: ResidenceTransactionType.income,
+          amount: 24400,
+          date: DateTime(2026, 5, 3),
+          descriptionAr: 'واجبات السكان المحصلة لشهر أبريل',
+          descriptionEn: 'Resident dues collected for April',
+        ),
+        ResidenceTransaction(
+          id: 'entrance-repair',
+          type: ResidenceTransactionType.expense,
+          amount: 3650,
+          date: DateTime(2026, 4, 19),
+          descriptionAr: 'إصلاح باب المدخل الرئيسي',
+          descriptionEn: 'Main entrance door repair',
+          expenseCategory: ResidenceExpenseCategory.maintenance,
+          supportingDocument: 'فاتورة-إصلاح-المدخل.pdf',
+        ),
+        ResidenceTransaction(
+          id: 'dues-march',
+          type: ResidenceTransactionType.income,
+          amount: 20000,
+          date: DateTime(2026, 4, 2),
+          descriptionAr: 'واجبات السكان المحصلة لشهر مارس',
+          descriptionEn: 'Resident dues collected for March',
         ),
       ],
     );

@@ -4,10 +4,12 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class ResidenceFinancesPage extends ConsumerWidget {
@@ -126,10 +128,21 @@ class _Summary extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        if (constraints.maxWidth >= 300 && constraints.maxWidth < 760) {
+          return GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: AppSpacing.medium,
+            mainAxisSpacing: AppSpacing.medium,
+            childAspectRatio: 1.3,
+            children: [
+              for (final card in cards) _SummaryCard.compact(card: card),
+            ],
+          );
+        }
         final cardWidth = constraints.maxWidth >= 760
             ? (constraints.maxWidth - AppSpacing.medium * 3) / 4
-            : constraints.maxWidth >= 460
-            ? (constraints.maxWidth - AppSpacing.medium) / 2
             : constraints.maxWidth;
         return Wrap(
           spacing: AppSpacing.medium,
@@ -151,18 +164,35 @@ class _SummaryCard extends StatelessWidget {
     required this.color,
     required this.background,
     super.key,
-  });
+  }) : compact = false;
+
+  _SummaryCard.compact({required _SummaryCard card})
+    : label = card.label,
+      value = card.value,
+      icon = card.icon,
+      color = card.color,
+      background = card.background,
+      compact = true,
+      super(key: card.key);
 
   final String label;
   final String value;
   final IconData icon;
   final Color color;
   final Color background;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return DarJarCard(
-      child: Row(
+      child: Flex(
+        direction: compact ? Axis.vertical : Axis.horizontal,
+        mainAxisAlignment: compact
+            ? MainAxisAlignment.center
+            : MainAxisAlignment.start,
+        crossAxisAlignment: compact
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.center,
         children: [
           Container(
             width: 44,
@@ -173,15 +203,21 @@ class _SummaryCard extends StatelessWidget {
             ),
             child: Icon(icon, color: color, size: 22),
           ),
-          const SizedBox(width: AppSpacing.medium),
-          Expanded(
+          SizedBox(
+            width: compact ? 0 : AppSpacing.medium,
+            height: compact ? AppSpacing.medium : 0,
+          ),
+          Flexible(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label, style: Theme.of(context).textTheme.labelMedium),
                 const SizedBox(height: AppSpacing.xSmall),
                 Text(
                   value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(color: color),
@@ -302,6 +338,14 @@ class _RecentExpensesCard extends StatelessWidget {
             if (index != finances.recentExpenses.length - 1)
               const Divider(height: AppSpacing.xLarge),
           ],
+          const SizedBox(height: AppSpacing.medium),
+          DarJarButton(
+            key: const Key('view-all-transactions-button'),
+            label: AppLocalizations.of(context).viewAllTransactions,
+            icon: Icons.receipt_long_outlined,
+            variant: DarJarButtonVariant.tertiary,
+            onPressed: () => context.push(AppRoutes.financeTransactions),
+          ),
         ],
       ),
     );

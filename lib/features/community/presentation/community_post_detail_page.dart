@@ -72,11 +72,8 @@ class _CommunityPostDetailPageState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  DarJarSubpageHeader(
-                    title: post.kind.label(context),
-                    fallbackLocation: AppRoutes.community,
-                  ),
-                  const SizedBox(height: AppSpacing.large),
+                  DarJarSubpageHeader(fallbackLocation: AppRoutes.community),
+                  const SizedBox(height: AppSpacing.small),
                   CommunityPostCard(
                     post: post,
                     expanded: true,

@@ -311,6 +311,39 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recentExpenses => 'أحدث المصاريف';
 
   @override
+  String get viewAllTransactions => 'عرض جميع العمليات';
+
+  @override
+  String get financeTransactions => 'سجل العمليات المالية';
+
+  @override
+  String get financeTransactionsDescription =>
+      'سجل مفصل لمداخيل الإقامة ومصاريفها خلال الفترة المختارة.';
+
+  @override
+  String get selectPeriod => 'اختيار الفترة الزمنية';
+
+  @override
+  String periodFromTo(String start, String end) {
+    return 'من $start إلى $end';
+  }
+
+  @override
+  String get income => 'مداخيل';
+
+  @override
+  String get expense => 'مصاريف';
+
+  @override
+  String get periodIncome => 'مداخيل الفترة';
+
+  @override
+  String get periodExpenses => 'مصاريف الفترة';
+
+  @override
+  String get noTransactionsInPeriod => 'لا توجد عمليات خلال الفترة المختارة.';
+
+  @override
   String get viewFinanceDetails => 'عرض تفاصيل مالية الإقامة';
 
   @override
