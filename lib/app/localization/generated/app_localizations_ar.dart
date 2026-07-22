@@ -377,6 +377,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get managementInformation => 'معلومات الإدارة';
 
   @override
+  String get managementSettingsDescription =>
+      'بيانات جهة الإدارة والتواصل والحساب البنكي.';
+
+  @override
   String get managementDescription => 'بيانات التواصل والتحويل البنكي.';
 
   @override
@@ -411,6 +415,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get bank => 'البنك';
+
+  @override
+  String get bankName => 'اسم البنك';
 
   @override
   String get bankAccount => 'رقم الحساب';
@@ -475,4 +482,159 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get residenceNotifications => 'إشعارات الإقامة';
+
+  @override
+  String get residenceSettingsPageDescription =>
+      'تحكّم في معلومات الإقامة وهيكلها والاشتراك وطلبات الانضمام.';
+
+  @override
+  String get saveChanges => 'حفظ التغييرات';
+
+  @override
+  String get residenceInformation => 'معلومات الإقامة';
+
+  @override
+  String get residenceInformationDescription =>
+      'البيانات الأساسية التي تظهر لسكان الإقامة.';
+
+  @override
+  String get residenceImage => 'صورة أو شعار الإقامة';
+
+  @override
+  String get residenceImageOptional => 'اختياري، ويمكن تغييره في أي وقت.';
+
+  @override
+  String get addImage => 'إضافة صورة';
+
+  @override
+  String get removeImage => 'إزالة الصورة';
+
+  @override
+  String get address => 'العنوان';
+
+  @override
+  String get establishmentYear => 'سنة التأسيس';
+
+  @override
+  String get residenceStructure => 'هيكل الإقامة';
+
+  @override
+  String get residenceStructureDescription =>
+      'أنشئ مباني الإقامة وحدد اسماً وعدد الطوابق لكل مبنى.';
+
+  @override
+  String get buildings => 'البنايات';
+
+  @override
+  String get floors => 'الطوابق';
+
+  @override
+  String get manageStructure => 'إدارة الهيكل';
+
+  @override
+  String get buildingName => 'اسم المبنى';
+
+  @override
+  String get buildingNameHint => 'مثال: المبنى A';
+
+  @override
+  String get floorCount => 'عدد الطوابق';
+
+  @override
+  String buildingFloorCount(int count) {
+    return 'عدد الطوابق: $count';
+  }
+
+  @override
+  String get addBuilding => 'إضافة مبنى';
+
+  @override
+  String get editBuilding => 'تعديل المبنى';
+
+  @override
+  String get deleteBuilding => 'حذف المبنى';
+
+  @override
+  String get atLeastOneBuilding =>
+      'يجب أن تحتوي الإقامة على مبنى واحد على الأقل.';
+
+  @override
+  String get checkBuildingFields => 'أدخل اسم المبنى وعدد طوابق صحيحاً.';
+
+  @override
+  String confirmDeleteBuilding(String name) {
+    return 'هل تريد حذف $name من هيكل الإقامة؟';
+  }
+
+  @override
+  String get delete => 'حذف';
+
+  @override
+  String get subscription => 'الاشتراك';
+
+  @override
+  String get subscriptionDescription =>
+      'حدّد القيمة الافتراضية لاشتراك سكان الإقامة.';
+
+  @override
+  String get defaultSubscription => 'الاشتراك الافتراضي';
+
+  @override
+  String get monthly => 'شهري';
+
+  @override
+  String get amount => 'القيمة';
+
+  @override
+  String get joiningResidence => 'الانضمام للإقامة';
+
+  @override
+  String get joiningResidenceDescription =>
+      'شارك الدعوة وتحكّم في استقبال طلبات السكان الجدد.';
+
+  @override
+  String get permanentInvitationLink => 'رابط الدعوة الدائم';
+
+  @override
+  String get copyLink => 'نسخ الرابط';
+
+  @override
+  String get showQrCode => 'عرض رمز QR';
+
+  @override
+  String get hideQrCode => 'إخفاء رمز QR';
+
+  @override
+  String get invitationQrCode => 'رمز دعوة الإقامة';
+
+  @override
+  String get close => 'إغلاق';
+
+  @override
+  String get scanToJoin => 'امسح الرمز للانضمام';
+
+  @override
+  String get allowJoinRequests => 'السماح بطلبات انضمام جديدة';
+
+  @override
+  String get joinRequestsEnabledDescription =>
+      'يمكن للسكان الجدد إرسال طلب للانضمام.';
+
+  @override
+  String get joinRequestsDisabledDescription =>
+      'طلبات الانضمام الجديدة متوقفة حالياً.';
+
+  @override
+  String get invitationExplorationNotice =>
+      'يبقى الرابط صالحاً لاستكشاف الإقامة على الويب، لكن لا يمكن إرسال طلب انضمام جديد.';
+
+  @override
+  String get invitationLinkCopied => 'تم نسخ رابط الدعوة.';
+
+  @override
+  String get residenceSettingsSaved => 'تم حفظ إعدادات الإقامة.';
+
+  @override
+  String get checkResidenceSettingsFields =>
+      'تحقّق من معلومات الإقامة وقيمة الاشتراك.';
 }

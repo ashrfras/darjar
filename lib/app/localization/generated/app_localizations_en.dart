@@ -382,6 +382,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get managementInformation => 'Management information';
 
   @override
+  String get managementSettingsDescription =>
+      'Management contact and bank account details.';
+
+  @override
   String get managementDescription => 'Contact and bank transfer information.';
 
   @override
@@ -417,6 +421,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bank => 'Bank';
+
+  @override
+  String get bankName => 'Bank name';
 
   @override
   String get bankAccount => 'Account number';
@@ -481,4 +488,161 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get residenceNotifications => 'Residence notifications';
+
+  @override
+  String get residenceSettingsPageDescription =>
+      'Manage residence information, structure, subscriptions, and join requests.';
+
+  @override
+  String get saveChanges => 'Save changes';
+
+  @override
+  String get residenceInformation => 'Residence information';
+
+  @override
+  String get residenceInformationDescription =>
+      'Core information visible to residence members.';
+
+  @override
+  String get residenceImage => 'Residence image or logo';
+
+  @override
+  String get residenceImageOptional =>
+      'Optional, and can be changed at any time.';
+
+  @override
+  String get addImage => 'Add image';
+
+  @override
+  String get removeImage => 'Remove image';
+
+  @override
+  String get address => 'Address';
+
+  @override
+  String get establishmentYear => 'Establishment year';
+
+  @override
+  String get residenceStructure => 'Residence structure';
+
+  @override
+  String get residenceStructureDescription =>
+      'Create residence buildings and set a name and floor count for each one.';
+
+  @override
+  String get buildings => 'Buildings';
+
+  @override
+  String get floors => 'Floors';
+
+  @override
+  String get manageStructure => 'Manage structure';
+
+  @override
+  String get buildingName => 'Building name';
+
+  @override
+  String get buildingNameHint => 'Example: Building A';
+
+  @override
+  String get floorCount => 'Number of floors';
+
+  @override
+  String buildingFloorCount(int count) {
+    return 'Floors: $count';
+  }
+
+  @override
+  String get addBuilding => 'Add building';
+
+  @override
+  String get editBuilding => 'Edit building';
+
+  @override
+  String get deleteBuilding => 'Delete building';
+
+  @override
+  String get atLeastOneBuilding =>
+      'A residence must have at least one building.';
+
+  @override
+  String get checkBuildingFields =>
+      'Enter a building name and a valid number of floors.';
+
+  @override
+  String confirmDeleteBuilding(String name) {
+    return 'Delete $name from the residence structure?';
+  }
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get subscription => 'Subscription';
+
+  @override
+  String get subscriptionDescription =>
+      'Set the default subscription amount for residents.';
+
+  @override
+  String get defaultSubscription => 'Default subscription';
+
+  @override
+  String get monthly => 'Monthly';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get joiningResidence => 'Joining the residence';
+
+  @override
+  String get joiningResidenceDescription =>
+      'Share the invitation and control new resident requests.';
+
+  @override
+  String get permanentInvitationLink => 'Permanent invitation link';
+
+  @override
+  String get copyLink => 'Copy link';
+
+  @override
+  String get showQrCode => 'Show QR code';
+
+  @override
+  String get hideQrCode => 'Hide QR code';
+
+  @override
+  String get invitationQrCode => 'Residence invitation QR code';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get scanToJoin => 'Scan to join';
+
+  @override
+  String get allowJoinRequests => 'Allow new join requests';
+
+  @override
+  String get joinRequestsEnabledDescription =>
+      'New residents can submit a request to join.';
+
+  @override
+  String get joinRequestsDisabledDescription =>
+      'New join requests are currently paused.';
+
+  @override
+  String get invitationExplorationNotice =>
+      'The link remains valid for exploring the residence on the web, but a new join request cannot be submitted.';
+
+  @override
+  String get invitationLinkCopied => 'Invitation link copied.';
+
+  @override
+  String get residenceSettingsSaved => 'Residence settings saved.';
+
+  @override
+  String get checkResidenceSettingsFields =>
+      'Check the residence information and subscription amount.';
 }

@@ -794,6 +794,12 @@ abstract class AppLocalizations {
   /// **'معلومات الإدارة'**
   String get managementInformation;
 
+  /// No description provided for @managementSettingsDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'بيانات جهة الإدارة والتواصل والحساب البنكي.'**
+  String get managementSettingsDescription;
+
   /// No description provided for @managementDescription.
   ///
   /// In ar, this message translates to:
@@ -859,6 +865,12 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'البنك'**
   String get bank;
+
+  /// No description provided for @bankName.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم البنك'**
+  String get bankName;
 
   /// No description provided for @bankAccount.
   ///
@@ -979,6 +991,288 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'إشعارات الإقامة'**
   String get residenceNotifications;
+
+  /// No description provided for @residenceSettingsPageDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحكّم في معلومات الإقامة وهيكلها والاشتراك وطلبات الانضمام.'**
+  String get residenceSettingsPageDescription;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظ التغييرات'**
+  String get saveChanges;
+
+  /// No description provided for @residenceInformation.
+  ///
+  /// In ar, this message translates to:
+  /// **'معلومات الإقامة'**
+  String get residenceInformation;
+
+  /// No description provided for @residenceInformationDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'البيانات الأساسية التي تظهر لسكان الإقامة.'**
+  String get residenceInformationDescription;
+
+  /// No description provided for @residenceImage.
+  ///
+  /// In ar, this message translates to:
+  /// **'صورة أو شعار الإقامة'**
+  String get residenceImage;
+
+  /// No description provided for @residenceImageOptional.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختياري، ويمكن تغييره في أي وقت.'**
+  String get residenceImageOptional;
+
+  /// No description provided for @addImage.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة صورة'**
+  String get addImage;
+
+  /// No description provided for @removeImage.
+  ///
+  /// In ar, this message translates to:
+  /// **'إزالة الصورة'**
+  String get removeImage;
+
+  /// No description provided for @address.
+  ///
+  /// In ar, this message translates to:
+  /// **'العنوان'**
+  String get address;
+
+  /// No description provided for @establishmentYear.
+  ///
+  /// In ar, this message translates to:
+  /// **'سنة التأسيس'**
+  String get establishmentYear;
+
+  /// No description provided for @residenceStructure.
+  ///
+  /// In ar, this message translates to:
+  /// **'هيكل الإقامة'**
+  String get residenceStructure;
+
+  /// No description provided for @residenceStructureDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أنشئ مباني الإقامة وحدد اسماً وعدد الطوابق لكل مبنى.'**
+  String get residenceStructureDescription;
+
+  /// No description provided for @buildings.
+  ///
+  /// In ar, this message translates to:
+  /// **'البنايات'**
+  String get buildings;
+
+  /// No description provided for @floors.
+  ///
+  /// In ar, this message translates to:
+  /// **'الطوابق'**
+  String get floors;
+
+  /// No description provided for @manageStructure.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة الهيكل'**
+  String get manageStructure;
+
+  /// No description provided for @buildingName.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم المبنى'**
+  String get buildingName;
+
+  /// No description provided for @buildingNameHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'مثال: المبنى A'**
+  String get buildingNameHint;
+
+  /// No description provided for @floorCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'عدد الطوابق'**
+  String get floorCount;
+
+  /// No description provided for @buildingFloorCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'عدد الطوابق: {count}'**
+  String buildingFloorCount(int count);
+
+  /// No description provided for @addBuilding.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة مبنى'**
+  String get addBuilding;
+
+  /// No description provided for @editBuilding.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل المبنى'**
+  String get editBuilding;
+
+  /// No description provided for @deleteBuilding.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف المبنى'**
+  String get deleteBuilding;
+
+  /// No description provided for @atLeastOneBuilding.
+  ///
+  /// In ar, this message translates to:
+  /// **'يجب أن تحتوي الإقامة على مبنى واحد على الأقل.'**
+  String get atLeastOneBuilding;
+
+  /// No description provided for @checkBuildingFields.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل اسم المبنى وعدد طوابق صحيحاً.'**
+  String get checkBuildingFields;
+
+  /// No description provided for @confirmDeleteBuilding.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد حذف {name} من هيكل الإقامة؟'**
+  String confirmDeleteBuilding(String name);
+
+  /// No description provided for @delete.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف'**
+  String get delete;
+
+  /// No description provided for @subscription.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاشتراك'**
+  String get subscription;
+
+  /// No description provided for @subscriptionDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدّد القيمة الافتراضية لاشتراك سكان الإقامة.'**
+  String get subscriptionDescription;
+
+  /// No description provided for @defaultSubscription.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاشتراك الافتراضي'**
+  String get defaultSubscription;
+
+  /// No description provided for @monthly.
+  ///
+  /// In ar, this message translates to:
+  /// **'شهري'**
+  String get monthly;
+
+  /// No description provided for @amount.
+  ///
+  /// In ar, this message translates to:
+  /// **'القيمة'**
+  String get amount;
+
+  /// No description provided for @joiningResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'الانضمام للإقامة'**
+  String get joiningResidence;
+
+  /// No description provided for @joiningResidenceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'شارك الدعوة وتحكّم في استقبال طلبات السكان الجدد.'**
+  String get joiningResidenceDescription;
+
+  /// No description provided for @permanentInvitationLink.
+  ///
+  /// In ar, this message translates to:
+  /// **'رابط الدعوة الدائم'**
+  String get permanentInvitationLink;
+
+  /// No description provided for @copyLink.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسخ الرابط'**
+  String get copyLink;
+
+  /// No description provided for @showQrCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض رمز QR'**
+  String get showQrCode;
+
+  /// No description provided for @hideQrCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'إخفاء رمز QR'**
+  String get hideQrCode;
+
+  /// No description provided for @invitationQrCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز دعوة الإقامة'**
+  String get invitationQrCode;
+
+  /// No description provided for @close.
+  ///
+  /// In ar, this message translates to:
+  /// **'إغلاق'**
+  String get close;
+
+  /// No description provided for @scanToJoin.
+  ///
+  /// In ar, this message translates to:
+  /// **'امسح الرمز للانضمام'**
+  String get scanToJoin;
+
+  /// No description provided for @allowJoinRequests.
+  ///
+  /// In ar, this message translates to:
+  /// **'السماح بطلبات انضمام جديدة'**
+  String get allowJoinRequests;
+
+  /// No description provided for @joinRequestsEnabledDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكن للسكان الجدد إرسال طلب للانضمام.'**
+  String get joinRequestsEnabledDescription;
+
+  /// No description provided for @joinRequestsDisabledDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلبات الانضمام الجديدة متوقفة حالياً.'**
+  String get joinRequestsDisabledDescription;
+
+  /// No description provided for @invitationExplorationNotice.
+  ///
+  /// In ar, this message translates to:
+  /// **'يبقى الرابط صالحاً لاستكشاف الإقامة على الويب، لكن لا يمكن إرسال طلب انضمام جديد.'**
+  String get invitationExplorationNotice;
+
+  /// No description provided for @invitationLinkCopied.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم نسخ رابط الدعوة.'**
+  String get invitationLinkCopied;
+
+  /// No description provided for @residenceSettingsSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حفظ إعدادات الإقامة.'**
+  String get residenceSettingsSaved;
+
+  /// No description provided for @checkResidenceSettingsFields.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحقّق من معلومات الإقامة وقيمة الاشتراك.'**
+  String get checkResidenceSettingsFields;
 }
 
 class _AppLocalizationsDelegate

@@ -8,6 +8,7 @@ import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
+import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -115,6 +116,25 @@ void main() {
             .every((member) => apartmentIds.contains(member.apartmentId)),
         isTrue,
       );
+    });
+
+    test('residence settings mock persists management changes', () {
+      final repository = MockResidenceSettingsRepository();
+      final original = repository.getSettings();
+
+      repository.saveSettings(
+        original.copyWith(
+          defaultSubscriptionAmount: 450,
+          joinRequestsEnabled: false,
+        ),
+      );
+
+      expect(repository.getSettings().defaultSubscriptionAmount, 450);
+      expect(repository.getSettings().joinRequestsEnabled, isFalse);
+      expect(repository.getSettings().invitationUrl, original.invitationUrl);
+      expect(repository.getSettings().buildings.single.floorCount, 3);
+      expect(repository.getSettings().managementOrganization, isNotEmpty);
+      expect(repository.getSettings().bankAccount, isNotEmpty);
     });
   });
 
@@ -529,7 +549,7 @@ void main() {
     }
 
     for (final navigation in [
-      (link: 'manage-residence-link', page: 'residence-management-page'),
+      (link: 'manage-residence-link', page: 'residence-settings-page'),
       (link: 'manage-apartments-link', page: 'apartments-management-page'),
       (link: 'manage-projects-link', page: 'projects-management-page'),
     ]) {
@@ -541,6 +561,146 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('profile-page')), findsOneWidget);
     }
+  });
+
+  testWidgets('residence settings manage details, invitation, and requests', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('manage-residence-link')));
+    await tester.tap(find.byKey(const Key('manage-residence-link')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('residence-settings-page')), findsOneWidget);
+    expect(
+      find.byKey(const Key('residence-information-section')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('residence-structure-section')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('management-information-section')),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .getTopLeft(find.byKey(const Key('management-information-section')))
+          .dy,
+      greaterThan(
+        tester
+            .getTopLeft(find.byKey(const Key('residence-information-section')))
+            .dy,
+      ),
+    );
+    for (final fieldKey in [
+      'management-organization-field',
+      'management-phone-field',
+      'management-office-hours-field',
+      'management-bank-name-field',
+      'management-bank-account-field',
+    ]) {
+      expect(find.byKey(Key(fieldKey)), findsOneWidget);
+    }
+    expect(
+      find.byKey(const Key('residence-subscription-section')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('sticky-save-bar')), findsOneWidget);
+    expect(
+      find.byKey(const Key('save-residence-settings-button')).hitTestable(),
+      findsOneWidget,
+    );
+    await tester.enterText(
+      find.byKey(const Key('establishment-year-field')),
+      '20ab25',
+    );
+    expect(
+      tester
+          .widget<TextField>(
+            find.descendant(
+              of: find.byKey(const Key('establishment-year-field')),
+              matching: find.byType(TextField),
+            ),
+          )
+          .controller
+          ?.text,
+      '2025',
+    );
+
+    await tester.ensureVisible(find.byKey(const Key('add-building-button')));
+    await tester.tap(find.byKey(const Key('add-building-button')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('building-editor-dialog')), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const Key('building-name-field')),
+      'المبنى B',
+    );
+    await tester.enterText(
+      find.byKey(const Key('building-floor-count-field')),
+      '5 طوابق',
+    );
+    expect(
+      tester
+          .widget<TextField>(
+            find.descendant(
+              of: find.byKey(const Key('building-floor-count-field')),
+              matching: find.byType(TextField),
+            ),
+          )
+          .controller
+          ?.text,
+      '5',
+    );
+    await tester.tap(find.byKey(const Key('confirm-building-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('المبنى B'), findsOneWidget);
+    expect(find.text('عدد الطوابق: 5'), findsOneWidget);
+    final deleteBuildingButton = find.byTooltip('حذف المبنى').last;
+    await tester.ensureVisible(deleteBuildingButton);
+    await tester.tap(deleteBuildingButton);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('delete-building-dialog')), findsOneWidget);
+    expect(find.text('هل تريد حذف المبنى B من هيكل الإقامة؟'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('confirm-delete-building-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('المبنى B'), findsNothing);
+
+    await tester.ensureVisible(
+      find.byKey(const Key('residence-joining-section')),
+    );
+    expect(find.byKey(const Key('permanent-invitation-link')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('show-invitation-qr-button')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('invitation-qr-dialog')), findsOneWidget);
+    expect(find.byKey(const Key('invitation-qr-code')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('close-qr-dialog-button')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('invitation-qr-dialog')), findsNothing);
+
+    await tester.ensureVisible(find.byKey(const Key('join-requests-toggle')));
+    await tester.tap(find.byKey(const Key('join-requests-toggle')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('join-requests-disabled-notice')),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        'يبقى الرابط صالحاً لاستكشاف الإقامة على الويب، لكن لا يمكن إرسال طلب انضمام جديد.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const Key('save-residence-settings-button')).hitTestable(),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('تم حفظ إعدادات الإقامة.'), findsOneWidget);
   });
 
   testWidgets('internal component gallery remains navigable', (tester) async {

@@ -4,7 +4,7 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
-import 'package:darjar/features/residence/data/residence_repository.dart';
+import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,7 +14,7 @@ class ManagementPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
-    final info = ref.watch(managementInfoProvider);
+    final settings = ref.watch(residenceSettingsProvider);
 
     return SingleChildScrollView(
       key: const Key('management-page'),
@@ -38,19 +38,19 @@ class ManagementPage extends ConsumerWidget {
                     _InfoRow(
                       icon: Icons.business_outlined,
                       label: localizations.managementCompany,
-                      value: info.managerName,
+                      value: settings.managementOrganization,
                     ),
                     const Divider(),
                     _InfoRow(
                       icon: Icons.phone_outlined,
                       label: localizations.phone,
-                      value: info.phone,
+                      value: settings.managementPhone,
                     ),
                     const Divider(),
                     _InfoRow(
                       icon: Icons.schedule_outlined,
                       label: localizations.officeHours,
-                      value: info.officeHours,
+                      value: settings.managementOfficeHours,
                     ),
                   ],
                 ),
@@ -68,13 +68,13 @@ class ManagementPage extends ConsumerWidget {
                     _InfoRow(
                       icon: Icons.account_balance_outlined,
                       label: localizations.bank,
-                      value: info.bankName,
+                      value: settings.bankName,
                     ),
                     const Divider(),
                     _InfoRow(
                       icon: Icons.numbers_rounded,
                       label: localizations.bankAccount,
-                      value: info.bankAccount,
+                      value: settings.bankAccount,
                     ),
                     const SizedBox(height: AppSpacing.medium),
                     Text(

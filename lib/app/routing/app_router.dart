@@ -15,6 +15,7 @@ import 'package:darjar/features/residence/presentation/residence_admin_page.dart
 import 'package:darjar/features/residence/presentation/residence_finances_page.dart';
 import 'package:darjar/features/residence/presentation/residence_home_page.dart';
 import 'package:darjar/features/residence/presentation/residence_setup_page.dart';
+import 'package:darjar/features/residence/presentation/residence_settings_page.dart';
 import 'package:darjar/features/shell/presentation/darjar_shell.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -112,7 +113,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.manageResidence,
-            builder: (context, state) => const ResidenceAdminPage.residence(),
+            builder: (context, state) => const ResidenceSettingsPage(),
           ),
           GoRoute(
             path: AppRoutes.profile,
