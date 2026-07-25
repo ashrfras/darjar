@@ -3,6 +3,7 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/app/theme/app_typography.dart';
 import 'package:darjar/core/responsive/responsive_builder.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
 import 'package:flutter/cupertino.dart' show CupertinoIcons;
@@ -320,21 +321,18 @@ class _Brand extends StatelessWidget {
           children: [
             Text(
               'دارجار',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontFamily: 'Cairo',
+              style: AppTypography.brandArabic.copyWith(
+                color: AppColors.ink,
                 fontSize: compact ? 16 : null,
-                fontWeight: FontWeight.w800,
               ),
             ),
             if (!compact) ...[
               const SizedBox(height: 3),
               Text(
                 'DarJar',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontFamily: 'Cairo',
+                style: AppTypography.brandLatin.copyWith(
+                  color: AppColors.inkMuted,
                   fontSize: 10,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 2.5,
                 ),
               ),
             ],

@@ -206,7 +206,7 @@ void main() {
     expect(tester.getTopLeft(filter).dy - appBarBottom, 12);
   });
 
-  testWidgets('resident can choose the invitation-based join flow', (
+  testWidgets('resident can verify a phone that has no residence', (
     tester,
   ) async {
     await _pumpApp(tester, size: const Size(390, 844));
@@ -214,14 +214,37 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('start-button')));
     await tester.tap(find.byKey(const Key('start-button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('الانضمام إلى إقامة'));
+    expect(find.text('الانضمام إلى إقامتي'), findsOneWidget);
+    expect(find.text('إنشاء إقامة جديدة'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('join-my-residence-option')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('join-residence-form')), findsOneWidget);
-    await tester.ensureVisible(find.text('الانضمام والمتابعة'));
-    await tester.tap(find.text('الانضمام والمتابعة'));
+    expect(find.byKey(const Key('join-phone-field')), findsOneWidget);
+    expect(find.text('سيتم إرسال رمز تحقق إلى رقم هاتفك.'), findsOneWidget);
+    expect(find.byKey(const Key('verification-code-field')), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('join-phone-field')),
+      '0612345678',
+    );
+    await tester.enterText(
+      find.byKey(const Key('verification-code-field')),
+      '1234',
+    );
+    await tester.ensureVisible(find.byKey(const Key('verify-phone-button')));
+    await tester.tap(find.byKey(const Key('verify-phone-button')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+
+    expect(find.byKey(const ValueKey('residence-not-found')), findsOneWidget);
+    expect(find.text('هذا الرقم غير مسجل في أي إقامة'), findsOneWidget);
+    expect(
+      find.text(
+        'إذا كنت قد حصلت على رابط دعوة، فيرجى الضغط عليه للانضمام إلى الإقامة.',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('medium and expanded shells remain available', (tester) async {
@@ -914,6 +937,25 @@ Future<void> _enterResidence(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('start-button')));
   await tester.pumpAndSettle();
   expect(find.byKey(const Key('residence-setup-page')), findsOneWidget);
+  final setupBrand = tester.widget<Text>(
+    find.byKey(const Key('setup-brand-title')),
+  );
+  expect(setupBrand.style?.fontFamily, 'Cairo');
+  expect(setupBrand.style?.fontWeight, FontWeight.w800);
+
+  await tester.tap(find.byKey(const Key('create-new-residence-option')));
+  await tester.pumpAndSettle();
+  expect(find.byKey(const ValueKey('create-residence-form')), findsOneWidget);
+  expect(find.byKey(const Key('residence-name-field')), findsOneWidget);
+  expect(find.byKey(const Key('residence-address-field')), findsOneWidget);
+  expect(find.byKey(const Key('residence-city-field')), findsOneWidget);
+  expect(find.text('معلومات الإقامة'), findsOneWidget);
+  expect(find.text('معلوماتك'), findsOneWidget);
+  expect(find.byKey(const Key('country-code-field')), findsOneWidget);
+  expect(find.text('+212'), findsOneWidget);
+  expect(find.byKey(const Key('resident-phone-field')), findsOneWidget);
+  expect(find.byKey(const Key('resident-first-name-field')), findsOneWidget);
+  expect(find.byKey(const Key('resident-last-name-field')), findsOneWidget);
 
   await tester.ensureVisible(find.byKey(const Key('enter-residence-button')));
   await tester.tap(find.byKey(const Key('enter-residence-button')));

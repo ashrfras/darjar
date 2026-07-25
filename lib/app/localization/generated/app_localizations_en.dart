@@ -104,11 +104,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get back => 'Back';
 
   @override
-  String get residenceSetupTitle => 'Connect to your residence';
+  String get residenceSetupTitle => 'How would you like to start?';
 
   @override
   String get residenceSetupDescription =>
-      'Any resident can create a new residence or join with an invitation from a neighbor.';
+      'Join your current residence or create a new one for your neighbors.';
+
+  @override
+  String get joinMyResidence => 'Join my residence';
+
+  @override
+  String get joinMyResidenceDescription =>
+      'Verify your phone number to find your residence.';
+
+  @override
+  String get createNewResidence => 'Create a new residence';
+
+  @override
+  String get createNewResidenceDescription =>
+      'Add your residence and start inviting your neighbors.';
+
+  @override
+  String get createResidenceFormDescription =>
+      'Enter the residence details and your basic information to continue.';
+
+  @override
+  String get yourInformation => 'Your information';
 
   @override
   String get createResidence => 'Create residence';
@@ -121,6 +142,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cityHint => 'Example: Casablanca';
+
+  @override
+  String get citySelectHint => 'Select a city';
+
+  @override
+  String get cityCasablanca => 'Casablanca';
+
+  @override
+  String get cityRabat => 'Rabat';
+
+  @override
+  String get cityMarrakesh => 'Marrakesh';
+
+  @override
+  String get cityTangier => 'Tangier';
+
+  @override
+  String get cityAgadir => 'Agadir';
+
+  @override
+  String get cityFes => 'Fes';
 
   @override
   String get unit => 'Unit';
@@ -139,6 +181,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get joinAndContinue => 'Join and continue';
+
+  @override
+  String get residenceAddressHint => 'Example: 12 Yasmeen Street, Maarif';
+
+  @override
+  String get countryCode => 'Country code';
+
+  @override
+  String get phoneNumber => 'Phone number';
+
+  @override
+  String get phoneNumberHint => 'Example: 06 12 34 56 78';
+
+  @override
+  String get localPhoneNumberHint => 'Example: 6 12 34 56 78';
+
+  @override
+  String get firstName => 'First name';
+
+  @override
+  String get firstNameHint => 'Enter your first name';
+
+  @override
+  String get lastName => 'Last name';
+
+  @override
+  String get lastNameHint => 'Enter your last name';
+
+  @override
+  String get joinPhoneDescription =>
+      'Enter your phone number to check whether it is linked to a residence.';
+
+  @override
+  String get verificationCodeNotice =>
+      'A verification code will be sent to your phone number.';
+
+  @override
+  String get verificationCode => 'Verification code';
+
+  @override
+  String get verificationCodeHint => 'Enter any code for testing for now';
+
+  @override
+  String get verify => 'Verify';
+
+  @override
+  String get phoneNotRegisteredTitle =>
+      'This number is not registered in any residence';
+
+  @override
+  String get phoneNotRegisteredDescription =>
+      'If you received an invitation link, please tap it to join the residence.';
 
   @override
   String get communityFeedDescription =>

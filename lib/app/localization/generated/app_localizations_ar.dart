@@ -104,11 +104,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get back => 'رجوع';
 
   @override
-  String get residenceSetupTitle => 'لنربطك بإقامتك';
+  String get residenceSetupTitle => 'كيف تريد أن تبدأ؟';
 
   @override
   String get residenceSetupDescription =>
-      'يمكن لأي ساكن إنشاء إقامة جديدة أو الانضمام بدعوة من أحد الجيران.';
+      'انضم إلى إقامتك الحالية أو أنشئ إقامة جديدة لجيرانك.';
+
+  @override
+  String get joinMyResidence => 'الانضمام إلى إقامتي';
+
+  @override
+  String get joinMyResidenceDescription =>
+      'تحقّق من رقم هاتفك للعثور على إقامتك.';
+
+  @override
+  String get createNewResidence => 'إنشاء إقامة جديدة';
+
+  @override
+  String get createNewResidenceDescription =>
+      'أضف إقامتك وابدأ دعوة جيرانك إليها.';
+
+  @override
+  String get createResidenceFormDescription =>
+      'أدخل معلومات الإقامة ومعلوماتك الأساسية للمتابعة.';
+
+  @override
+  String get yourInformation => 'معلوماتك';
 
   @override
   String get createResidence => 'إنشاء إقامة';
@@ -121,6 +142,27 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get cityHint => 'مثال: الدار البيضاء';
+
+  @override
+  String get citySelectHint => 'اختر المدينة';
+
+  @override
+  String get cityCasablanca => 'الدار البيضاء';
+
+  @override
+  String get cityRabat => 'الرباط';
+
+  @override
+  String get cityMarrakesh => 'مراكش';
+
+  @override
+  String get cityTangier => 'طنجة';
+
+  @override
+  String get cityAgadir => 'أكادير';
+
+  @override
+  String get cityFes => 'فاس';
 
   @override
   String get unit => 'السكن';
@@ -139,6 +181,56 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get joinAndContinue => 'الانضمام والمتابعة';
+
+  @override
+  String get residenceAddressHint => 'مثال: 12 شارع الياسمين، حي المعاريف';
+
+  @override
+  String get countryCode => 'رمز الدولة';
+
+  @override
+  String get phoneNumber => 'رقم الهاتف';
+
+  @override
+  String get phoneNumberHint => 'مثال: 06 12 34 56 78';
+
+  @override
+  String get localPhoneNumberHint => 'مثال: 6 12 34 56 78';
+
+  @override
+  String get firstName => 'الاسم';
+
+  @override
+  String get firstNameHint => 'أدخل اسمك';
+
+  @override
+  String get lastName => 'النسب';
+
+  @override
+  String get lastNameHint => 'أدخل نسبك';
+
+  @override
+  String get joinPhoneDescription =>
+      'أدخل رقم هاتفك للتحقق مما إذا كان مرتبطاً بإقامة.';
+
+  @override
+  String get verificationCodeNotice => 'سيتم إرسال رمز تحقق إلى رقم هاتفك.';
+
+  @override
+  String get verificationCode => 'رمز التحقق';
+
+  @override
+  String get verificationCodeHint => 'أدخل أي رمز للاختبار حالياً';
+
+  @override
+  String get verify => 'تحقّق';
+
+  @override
+  String get phoneNotRegisteredTitle => 'هذا الرقم غير مسجل في أي إقامة';
+
+  @override
+  String get phoneNotRegisteredDescription =>
+      'إذا كنت قد حصلت على رابط دعوة، فيرجى الضغط عليه للانضمام إلى الإقامة.';
 
   @override
   String get communityFeedDescription => 'آخر أخبار وإعلانات إقامة الياسمين.';

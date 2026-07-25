@@ -281,14 +281,50 @@ abstract class AppLocalizations {
   /// No description provided for @residenceSetupTitle.
   ///
   /// In ar, this message translates to:
-  /// **'لنربطك بإقامتك'**
+  /// **'كيف تريد أن تبدأ؟'**
   String get residenceSetupTitle;
 
   /// No description provided for @residenceSetupDescription.
   ///
   /// In ar, this message translates to:
-  /// **'يمكن لأي ساكن إنشاء إقامة جديدة أو الانضمام بدعوة من أحد الجيران.'**
+  /// **'انضم إلى إقامتك الحالية أو أنشئ إقامة جديدة لجيرانك.'**
   String get residenceSetupDescription;
+
+  /// No description provided for @joinMyResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'الانضمام إلى إقامتي'**
+  String get joinMyResidence;
+
+  /// No description provided for @joinMyResidenceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحقّق من رقم هاتفك للعثور على إقامتك.'**
+  String get joinMyResidenceDescription;
+
+  /// No description provided for @createNewResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء إقامة جديدة'**
+  String get createNewResidence;
+
+  /// No description provided for @createNewResidenceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف إقامتك وابدأ دعوة جيرانك إليها.'**
+  String get createNewResidenceDescription;
+
+  /// No description provided for @createResidenceFormDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل معلومات الإقامة ومعلوماتك الأساسية للمتابعة.'**
+  String get createResidenceFormDescription;
+
+  /// No description provided for @yourInformation.
+  ///
+  /// In ar, this message translates to:
+  /// **'معلوماتك'**
+  String get yourInformation;
 
   /// No description provided for @createResidence.
   ///
@@ -313,6 +349,48 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'مثال: الدار البيضاء'**
   String get cityHint;
+
+  /// No description provided for @citySelectHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر المدينة'**
+  String get citySelectHint;
+
+  /// No description provided for @cityCasablanca.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدار البيضاء'**
+  String get cityCasablanca;
+
+  /// No description provided for @cityRabat.
+  ///
+  /// In ar, this message translates to:
+  /// **'الرباط'**
+  String get cityRabat;
+
+  /// No description provided for @cityMarrakesh.
+  ///
+  /// In ar, this message translates to:
+  /// **'مراكش'**
+  String get cityMarrakesh;
+
+  /// No description provided for @cityTangier.
+  ///
+  /// In ar, this message translates to:
+  /// **'طنجة'**
+  String get cityTangier;
+
+  /// No description provided for @cityAgadir.
+  ///
+  /// In ar, this message translates to:
+  /// **'أكادير'**
+  String get cityAgadir;
+
+  /// No description provided for @cityFes.
+  ///
+  /// In ar, this message translates to:
+  /// **'فاس'**
+  String get cityFes;
 
   /// No description provided for @unit.
   ///
@@ -349,6 +427,102 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'الانضمام والمتابعة'**
   String get joinAndContinue;
+
+  /// No description provided for @residenceAddressHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'مثال: 12 شارع الياسمين، حي المعاريف'**
+  String get residenceAddressHint;
+
+  /// No description provided for @countryCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز الدولة'**
+  String get countryCode;
+
+  /// No description provided for @phoneNumber.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم الهاتف'**
+  String get phoneNumber;
+
+  /// No description provided for @phoneNumberHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'مثال: 06 12 34 56 78'**
+  String get phoneNumberHint;
+
+  /// No description provided for @localPhoneNumberHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'مثال: 6 12 34 56 78'**
+  String get localPhoneNumberHint;
+
+  /// No description provided for @firstName.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاسم'**
+  String get firstName;
+
+  /// No description provided for @firstNameHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل اسمك'**
+  String get firstNameHint;
+
+  /// No description provided for @lastName.
+  ///
+  /// In ar, this message translates to:
+  /// **'النسب'**
+  String get lastName;
+
+  /// No description provided for @lastNameHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل نسبك'**
+  String get lastNameHint;
+
+  /// No description provided for @joinPhoneDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل رقم هاتفك للتحقق مما إذا كان مرتبطاً بإقامة.'**
+  String get joinPhoneDescription;
+
+  /// No description provided for @verificationCodeNotice.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيتم إرسال رمز تحقق إلى رقم هاتفك.'**
+  String get verificationCodeNotice;
+
+  /// No description provided for @verificationCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز التحقق'**
+  String get verificationCode;
+
+  /// No description provided for @verificationCodeHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل أي رمز للاختبار حالياً'**
+  String get verificationCodeHint;
+
+  /// No description provided for @verify.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحقّق'**
+  String get verify;
+
+  /// No description provided for @phoneNotRegisteredTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذا الرقم غير مسجل في أي إقامة'**
+  String get phoneNotRegisteredTitle;
+
+  /// No description provided for @phoneNotRegisteredDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'إذا كنت قد حصلت على رابط دعوة، فيرجى الضغط عليه للانضمام إلى الإقامة.'**
+  String get phoneNotRegisteredDescription;
 
   /// No description provided for @communityFeedDescription.
   ///

@@ -3,6 +3,15 @@ import 'package:flutter/material.dart';
 
 abstract final class AppTypography {
   static const fontFamily = 'IBM Plex Sans Arabic';
+  static const brandArabic = TextStyle(
+    fontFamily: 'Cairo',
+    fontWeight: FontWeight.w800,
+  );
+  static const brandLatin = TextStyle(
+    fontFamily: 'Cairo',
+    fontWeight: FontWeight.w400,
+    letterSpacing: 2.5,
+  );
 
   static TextTheme get textTheme {
     return const TextTheme(

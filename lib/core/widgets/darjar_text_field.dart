@@ -12,6 +12,8 @@ class DarJarTextField extends StatelessWidget {
     this.onTap,
     this.suffixText,
     this.inputFormatters,
+    this.textInputAction,
+    this.textDirection,
     super.key,
   });
 
@@ -24,6 +26,8 @@ class DarJarTextField extends StatelessWidget {
   final VoidCallback? onTap;
   final String? suffixText;
   final List<TextInputFormatter>? inputFormatters;
+  final TextInputAction? textInputAction;
+  final TextDirection? textDirection;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +37,8 @@ class DarJarTextField extends StatelessWidget {
       readOnly: readOnly,
       onTap: onTap,
       inputFormatters: inputFormatters,
+      textInputAction: textInputAction,
+      textDirection: textDirection,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
