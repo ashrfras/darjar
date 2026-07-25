@@ -22,6 +22,7 @@ class ResidenceBuildingConfiguration {
 
 class ResidenceSettings {
   const ResidenceSettings({
+    required this.residenceId,
     required this.name,
     required this.address,
     required this.establishmentYear,
@@ -37,6 +38,7 @@ class ResidenceSettings {
     required this.bankAccount,
   });
 
+  final String residenceId;
   final String name;
   final String address;
   final int establishmentYear;
@@ -67,6 +69,7 @@ class ResidenceSettings {
     String? bankAccount,
   }) {
     return ResidenceSettings(
+      residenceId: residenceId,
       name: name ?? this.name,
       address: address ?? this.address,
       establishmentYear: establishmentYear ?? this.establishmentYear,
@@ -95,6 +98,7 @@ abstract interface class ResidenceSettingsRepository {
 
 class MockResidenceSettingsRepository implements ResidenceSettingsRepository {
   ResidenceSettings _settings = ResidenceSettings(
+    residenceId: '10284736',
     name: 'إقامة الياسمين',
     address: '12 شارع الياسمين، المعاريف، الدار البيضاء',
     establishmentYear: 2018,

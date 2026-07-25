@@ -485,7 +485,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get residenceSettingsPageDescription =>
-      'تحكّم في معلومات الإقامة وهيكلها والاشتراك وطلبات الانضمام.';
+      'تحكّم في معلومات الإقامة وهيكلها والاشتراك.';
 
   @override
   String get saveChanges => 'حفظ التغييرات';
@@ -496,6 +496,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get residenceInformationDescription =>
       'البيانات الأساسية التي تظهر لسكان الإقامة.';
+
+  @override
+  String get residenceId => 'معرّف الإقامة';
 
   @override
   String get residenceImage => 'صورة أو شعار الإقامة';

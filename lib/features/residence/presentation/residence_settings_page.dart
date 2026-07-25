@@ -11,7 +11,6 @@ import 'package:darjar/features/residence/data/residence_settings_repository.dar
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 class ResidenceSettingsPage extends ConsumerStatefulWidget {
   const ResidenceSettingsPage({super.key});
@@ -22,6 +21,7 @@ class ResidenceSettingsPage extends ConsumerStatefulWidget {
 }
 
 class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
+  late final TextEditingController _residenceIdController;
   late final TextEditingController _nameController;
   late final TextEditingController _addressController;
   late final TextEditingController _yearController;
@@ -32,13 +32,13 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
   late final TextEditingController _bankNameController;
   late final TextEditingController _bankAccountController;
   late bool _hasImage;
-  late bool _joinRequestsEnabled;
   late List<ResidenceBuildingConfiguration> _buildings;
 
   @override
   void initState() {
     super.initState();
     final settings = ref.read(residenceSettingsProvider);
+    _residenceIdController = TextEditingController(text: settings.residenceId);
     _nameController = TextEditingController(text: settings.name);
     _addressController = TextEditingController(text: settings.address);
     _yearController = TextEditingController(
@@ -59,12 +59,12 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
     _bankNameController = TextEditingController(text: settings.bankName);
     _bankAccountController = TextEditingController(text: settings.bankAccount);
     _hasImage = settings.hasImage;
-    _joinRequestsEnabled = settings.joinRequestsEnabled;
     _buildings = List.of(settings.buildings);
   }
 
   @override
   void dispose() {
+    _residenceIdController.dispose();
     _nameController.dispose();
     _addressController.dispose();
     _yearController.dispose();
@@ -80,7 +80,6 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final settings = ref.watch(residenceSettingsProvider);
     final compact = MediaQuery.sizeOf(context).width < 600;
 
     return Stack(
@@ -116,6 +115,7 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _ResidenceInformationSection(
+                              residenceIdController: _residenceIdController,
                               nameController: _nameController,
                               addressController: _addressController,
                               yearController: _yearController,
@@ -144,16 +144,6 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
                             _SubscriptionSection(
                               amountController: _amountController,
                             ),
-                            const SizedBox(height: AppSpacing.large),
-                            _JoiningSection(
-                              settings: settings,
-                              joinRequestsEnabled: _joinRequestsEnabled,
-                              onCopy: _copyInvitationLink,
-                              onShowQr: _showQrCodeDialog,
-                              onToggleRequests: (enabled) {
-                                setState(() => _joinRequestsEnabled = enabled);
-                              },
-                            ),
                           ],
                         );
                       }
@@ -167,6 +157,8 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
                                 child: Column(
                                   children: [
                                     _ResidenceInformationSection(
+                                      residenceIdController:
+                                          _residenceIdController,
                                       nameController: _nameController,
                                       addressController: _addressController,
                                       yearController: _yearController,
@@ -210,16 +202,6 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
                                 ),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: AppSpacing.large),
-                          _JoiningSection(
-                            settings: settings,
-                            joinRequestsEnabled: _joinRequestsEnabled,
-                            onCopy: _copyInvitationLink,
-                            onShowQr: _showQrCodeDialog,
-                            onToggleRequests: (enabled) {
-                              setState(() => _joinRequestsEnabled = enabled);
-                            },
                           ),
                         ],
                       );
@@ -309,70 +291,6 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
     });
   }
 
-  Future<void> _showQrCodeDialog() async {
-    final localizations = AppLocalizations.of(context);
-    final url = ref.read(residenceSettingsProvider).invitationUrl;
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        key: const Key('invitation-qr-dialog'),
-        title: Text(localizations.invitationQrCode),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              key: const Key('invitation-qr-code'),
-              padding: const EdgeInsets.all(AppSpacing.medium),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                border: Border.all(color: AppColors.outline),
-                borderRadius: BorderRadius.circular(AppRadius.large),
-              ),
-              child: SizedBox.square(
-                dimension: 220,
-                child: QrImageView(
-                  data: url,
-                  version: QrVersions.auto,
-                  size: 220,
-                  padding: EdgeInsets.zero,
-                  eyeStyle: const QrEyeStyle(
-                    eyeShape: QrEyeShape.square,
-                    color: AppColors.ink,
-                  ),
-                  dataModuleStyle: const QrDataModuleStyle(
-                    dataModuleShape: QrDataModuleShape.square,
-                    color: AppColors.ink,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.medium),
-            Text(
-              localizations.scanToJoin,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            key: const Key('close-qr-dialog-button'),
-            onPressed: () => Navigator.pop(context),
-            child: Text(localizations.close),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _copyInvitationLink() async {
-    final localizations = AppLocalizations.of(context);
-    final url = ref.read(residenceSettingsProvider).invitationUrl;
-    await Clipboard.setData(ClipboardData(text: url));
-    if (!mounted) return;
-    _showMessage(localizations.invitationLinkCopied);
-  }
-
   void _save() {
     final localizations = AppLocalizations.of(context);
     final amount = int.tryParse(_amountController.text.trim());
@@ -403,7 +321,6 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
             establishmentYear: establishmentYear,
             defaultSubscriptionAmount: amount,
             hasImage: _hasImage,
-            joinRequestsEnabled: _joinRequestsEnabled,
             buildings: _buildings,
             managementOrganization: _managementOrganizationController.text
                 .trim(),
@@ -520,6 +437,7 @@ class _BuildingEditorDialogState extends State<_BuildingEditorDialog> {
 
 class _ResidenceInformationSection extends StatelessWidget {
   const _ResidenceInformationSection({
+    required this.residenceIdController,
     required this.nameController,
     required this.addressController,
     required this.yearController,
@@ -527,6 +445,7 @@ class _ResidenceInformationSection extends StatelessWidget {
     required this.onToggleImage,
   });
 
+  final TextEditingController residenceIdController;
   final TextEditingController nameController;
   final TextEditingController addressController;
   final TextEditingController yearController;
@@ -597,6 +516,15 @@ class _ResidenceInformationSection extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: AppSpacing.large),
+          DarJarTextField(
+            key: const Key('residence-id-field'),
+            controller: residenceIdController,
+            label: localizations.residenceId,
+            prefixIcon: Icons.numbers_rounded,
+            keyboardType: TextInputType.number,
+            readOnly: true,
           ),
           const SizedBox(height: AppSpacing.large),
           DarJarTextField(
@@ -807,176 +735,45 @@ class _SubscriptionSection extends StatelessWidget {
       icon: Icons.receipt_long_outlined,
       title: localizations.subscription,
       description: localizations.subscriptionDescription,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.medium),
-        decoration: BoxDecoration(
-          color: AppColors.canvas,
-          border: Border.all(color: AppColors.outline),
-          borderRadius: BorderRadius.circular(AppRadius.medium),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    localizations.defaultSubscription,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.small,
-                    vertical: AppSpacing.xSmall,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySoft,
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                  ),
-                  child: Text(
-                    localizations.monthly,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.labelSmall?.copyWith(color: AppColors.primary),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.medium),
-            DarJarTextField(
-              key: const Key('default-subscription-amount-field'),
-              controller: amountController,
-              label: localizations.amount,
-              prefixIcon: Icons.payments_outlined,
-              suffixText: localizations.currency,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _JoiningSection extends StatelessWidget {
-  const _JoiningSection({
-    required this.settings,
-    required this.joinRequestsEnabled,
-    required this.onCopy,
-    required this.onShowQr,
-    required this.onToggleRequests,
-  });
-
-  final ResidenceSettings settings;
-  final bool joinRequestsEnabled;
-  final VoidCallback onCopy;
-  final VoidCallback onShowQr;
-  final ValueChanged<bool> onToggleRequests;
-
-  @override
-  Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    return _SettingsSection(
-      key: const Key('residence-joining-section'),
-      icon: Icons.person_add_alt_1_outlined,
-      title: localizations.joiningResidence,
-      description: localizations.joiningResidenceDescription,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            localizations.permanentInvitationLink,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: AppSpacing.small),
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.medium),
-            decoration: BoxDecoration(
-              color: AppColors.canvas,
-              border: Border.all(color: AppColors.outline),
-              borderRadius: BorderRadius.circular(AppRadius.medium),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.link_rounded, color: AppColors.primary),
-                const SizedBox(width: AppSpacing.small),
-                Expanded(
-                  child: Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Text(
-                      settings.invitationUrl,
-                      key: const Key('permanent-invitation-link'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.medium),
-          Wrap(
-            spacing: AppSpacing.small,
-            runSpacing: AppSpacing.small,
+          Row(
             children: [
-              DarJarButton(
-                key: const Key('copy-invitation-link-button'),
-                label: localizations.copyLink,
-                icon: Icons.content_copy_rounded,
-                variant: DarJarButtonVariant.secondary,
-                onPressed: onCopy,
+              Expanded(
+                child: Text(
+                  localizations.defaultSubscription,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
               ),
-              DarJarButton(
-                key: const Key('show-invitation-qr-button'),
-                label: localizations.showQrCode,
-                icon: Icons.qr_code_2_rounded,
-                variant: DarJarButtonVariant.secondary,
-                onPressed: onShowQr,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.small,
+                  vertical: AppSpacing.xSmall,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+                child: Text(
+                  localizations.monthly,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: AppColors.primary),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.large),
-          const Divider(),
-          SwitchListTile(
-            key: const Key('join-requests-toggle'),
-            contentPadding: EdgeInsets.zero,
-            title: Text(localizations.allowJoinRequests),
-            subtitle: Text(
-              joinRequestsEnabled
-                  ? localizations.joinRequestsEnabledDescription
-                  : localizations.joinRequestsDisabledDescription,
-            ),
-            value: joinRequestsEnabled,
-            onChanged: onToggleRequests,
+          const SizedBox(height: AppSpacing.medium),
+          DarJarTextField(
+            key: const Key('default-subscription-amount-field'),
+            controller: amountController,
+            label: localizations.amount,
+            prefixIcon: Icons.payments_outlined,
+            suffixText: localizations.currency,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ),
-          if (!joinRequestsEnabled)
-            Container(
-              key: const Key('join-requests-disabled-notice'),
-              padding: const EdgeInsets.all(AppSpacing.medium),
-              decoration: BoxDecoration(
-                color: AppColors.warningSoft,
-                borderRadius: BorderRadius.circular(AppRadius.medium),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.info_outline_rounded,
-                    color: AppColors.warning,
-                  ),
-                  const SizedBox(width: AppSpacing.small),
-                  Expanded(
-                    child: Text(
-                      localizations.invitationExplorationNotice,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );

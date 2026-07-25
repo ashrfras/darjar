@@ -6,7 +6,6 @@ class ResidenceMember {
   const ResidenceMember({
     required this.id,
     required this.name,
-    required this.email,
     required this.phone,
     required this.role,
     this.apartmentId,
@@ -14,7 +13,6 @@ class ResidenceMember {
 
   final String id;
   final String name;
-  final String email;
   final String phone;
   final ResidenceMemberRole role;
   final String? apartmentId;
@@ -27,7 +25,6 @@ class ResidenceMember {
     return ResidenceMember(
       id: id,
       name: name,
-      email: email,
       phone: phone,
       role: role ?? this.role,
       apartmentId: clearApartment ? null : apartmentId ?? this.apartmentId,
@@ -199,40 +196,35 @@ class MockResidenceMembersRepository implements ResidenceMembersRepository {
         ResidenceMember(
           id: 'member-youssef',
           name: 'يوسف العلوي',
-          email: 'youssef@example.com',
-          phone: '06 12 34 56 78',
+          phone: '+212 6 12 34 56 78',
           role: ResidenceMemberRole.president,
           apartmentId: 'apartment-12',
         ),
         ResidenceMember(
           id: 'member-salma',
           name: 'سلمى بنعمر',
-          email: 'salma@example.com',
-          phone: '06 23 45 67 89',
+          phone: '+212 6 23 45 67 89',
           role: ResidenceMemberRole.deputy,
           apartmentId: 'apartment-12',
         ),
         ResidenceMember(
           id: 'member-hamza',
           name: 'حمزة الإدريسي',
-          email: 'hamza@example.com',
-          phone: '06 34 56 78 90',
+          phone: '+212 6 34 56 78 90',
           role: ResidenceMemberRole.treasurer,
           apartmentId: 'apartment-21',
         ),
         ResidenceMember(
           id: 'member-amina',
           name: 'أمينة المريني',
-          email: 'amina@example.com',
-          phone: '06 45 67 89 01',
+          phone: '+212 6 45 67 89 01',
           role: ResidenceMemberRole.resident,
           apartmentId: 'apartment-01',
         ),
         ResidenceMember(
           id: 'member-karim',
           name: 'كريم التازي',
-          email: 'karim@example.com',
-          phone: '06 56 78 90 12',
+          phone: '+212 6 56 78 90 12',
           role: ResidenceMemberRole.resident,
         ),
       ],
@@ -279,6 +271,34 @@ class ResidenceMembersController extends Notifier<ResidenceMembersData> {
       members: state.members
           .where((member) => member.id != memberId)
           .toList(growable: false),
+    );
+  }
+
+  void addResident({
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String apartmentId,
+  }) {
+    final normalizedPhone = phone.trim();
+    final phoneIdentity = normalizedPhone.replaceAll(RegExp(r'\s'), '');
+    if (state.members.any(
+      (member) => member.phone.replaceAll(RegExp(r'\s'), '') == phoneIdentity,
+    )) {
+      return;
+    }
+    final idSuffix = normalizedPhone.replaceAll(RegExp(r'\D'), '');
+    state = state.copyWith(
+      members: [
+        ...state.members,
+        ResidenceMember(
+          id: 'member-$idSuffix',
+          name: '${firstName.trim()} ${lastName.trim()}',
+          phone: normalizedPhone,
+          role: ResidenceMemberRole.resident,
+          apartmentId: apartmentId,
+        ),
+      ],
     );
   }
 

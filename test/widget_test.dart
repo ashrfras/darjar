@@ -111,6 +111,10 @@ void main() {
       expect(data.apartments, isNotEmpty);
       expect(data.members, isNotEmpty);
       expect(
+        data.members.every((member) => member.phone.startsWith('+')),
+        isTrue,
+      );
+      expect(
         data.members
             .where((member) => member.apartmentId != null)
             .every((member) => apartmentIds.contains(member.apartmentId)),
@@ -131,6 +135,8 @@ void main() {
 
       expect(repository.getSettings().defaultSubscriptionAmount, 450);
       expect(repository.getSettings().joinRequestsEnabled, isFalse);
+      expect(original.residenceId, matches(RegExp(r'^\d+$')));
+      expect(repository.getSettings().residenceId, original.residenceId);
       expect(repository.getSettings().invitationUrl, original.invitationUrl);
       expect(repository.getSettings().buildings.single.floorCount, 3);
       expect(repository.getSettings().managementOrganization, isNotEmpty);
@@ -563,145 +569,140 @@ void main() {
     }
   });
 
-  testWidgets('residence settings manage details, invitation, and requests', (
-    tester,
-  ) async {
-    await _pumpApp(tester, size: const Size(390, 844));
-    await _enterResidence(tester);
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byKey(const Key('manage-residence-link')));
-    await tester.tap(find.byKey(const Key('manage-residence-link')));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'residence settings manage details, structure, and subscription',
+    (tester) async {
+      await _pumpApp(tester, size: const Size(390, 844));
+      await _enterResidence(tester);
+      await tester.tap(find.byKey(const Key('profile-button')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('manage-residence-link')),
+      );
+      await tester.tap(find.byKey(const Key('manage-residence-link')));
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('residence-settings-page')), findsOneWidget);
-    expect(
-      find.byKey(const Key('residence-information-section')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const Key('residence-structure-section')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const Key('management-information-section')),
-      findsOneWidget,
-    );
-    expect(
-      tester
-          .getTopLeft(find.byKey(const Key('management-information-section')))
-          .dy,
-      greaterThan(
+      expect(find.byKey(const Key('residence-settings-page')), findsOneWidget);
+      expect(
+        find.byKey(const Key('residence-information-section')),
+        findsOneWidget,
+      );
+      final residenceIdField = find.descendant(
+        of: find.byKey(const Key('residence-id-field')),
+        matching: find.byType(TextField),
+      );
+      expect(residenceIdField, findsOneWidget);
+      expect(tester.widget<TextField>(residenceIdField).readOnly, isTrue);
+      expect(
+        tester.widget<TextField>(residenceIdField).controller?.text,
+        matches(RegExp(r'^\d+$')),
+      );
+      expect(
+        find.byKey(const Key('residence-structure-section')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('management-information-section')),
+        findsOneWidget,
+      );
+      expect(
         tester
-            .getTopLeft(find.byKey(const Key('residence-information-section')))
+            .getTopLeft(find.byKey(const Key('management-information-section')))
             .dy,
-      ),
-    );
-    for (final fieldKey in [
-      'management-organization-field',
-      'management-phone-field',
-      'management-office-hours-field',
-      'management-bank-name-field',
-      'management-bank-account-field',
-    ]) {
-      expect(find.byKey(Key(fieldKey)), findsOneWidget);
-    }
-    expect(
-      find.byKey(const Key('residence-subscription-section')),
-      findsOneWidget,
-    );
-    expect(find.byKey(const Key('sticky-save-bar')), findsOneWidget);
-    expect(
-      find.byKey(const Key('save-residence-settings-button')).hitTestable(),
-      findsOneWidget,
-    );
-    await tester.enterText(
-      find.byKey(const Key('establishment-year-field')),
-      '20ab25',
-    );
-    expect(
-      tester
-          .widget<TextField>(
-            find.descendant(
-              of: find.byKey(const Key('establishment-year-field')),
-              matching: find.byType(TextField),
-            ),
-          )
-          .controller
-          ?.text,
-      '2025',
-    );
+        greaterThan(
+          tester
+              .getTopLeft(
+                find.byKey(const Key('residence-information-section')),
+              )
+              .dy,
+        ),
+      );
+      for (final fieldKey in [
+        'management-organization-field',
+        'management-phone-field',
+        'management-office-hours-field',
+        'management-bank-name-field',
+        'management-bank-account-field',
+      ]) {
+        expect(find.byKey(Key(fieldKey)), findsOneWidget);
+      }
+      expect(
+        find.byKey(const Key('residence-subscription-section')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('sticky-save-bar')), findsOneWidget);
+      expect(
+        find.byKey(const Key('save-residence-settings-button')).hitTestable(),
+        findsOneWidget,
+      );
+      await tester.enterText(
+        find.byKey(const Key('establishment-year-field')),
+        '20ab25',
+      );
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(const Key('establishment-year-field')),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller
+            ?.text,
+        '2025',
+      );
 
-    await tester.ensureVisible(find.byKey(const Key('add-building-button')));
-    await tester.tap(find.byKey(const Key('add-building-button')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('building-editor-dialog')), findsOneWidget);
-    await tester.enterText(
-      find.byKey(const Key('building-name-field')),
-      'المبنى B',
-    );
-    await tester.enterText(
-      find.byKey(const Key('building-floor-count-field')),
-      '5 طوابق',
-    );
-    expect(
-      tester
-          .widget<TextField>(
-            find.descendant(
-              of: find.byKey(const Key('building-floor-count-field')),
-              matching: find.byType(TextField),
-            ),
-          )
-          .controller
-          ?.text,
-      '5',
-    );
-    await tester.tap(find.byKey(const Key('confirm-building-button')));
-    await tester.pumpAndSettle();
-    expect(find.text('المبنى B'), findsOneWidget);
-    expect(find.text('عدد الطوابق: 5'), findsOneWidget);
-    final deleteBuildingButton = find.byTooltip('حذف المبنى').last;
-    await tester.ensureVisible(deleteBuildingButton);
-    await tester.tap(deleteBuildingButton);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('delete-building-dialog')), findsOneWidget);
-    expect(find.text('هل تريد حذف المبنى B من هيكل الإقامة؟'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('confirm-delete-building-button')));
-    await tester.pumpAndSettle();
-    expect(find.text('المبنى B'), findsNothing);
+      await tester.ensureVisible(find.byKey(const Key('add-building-button')));
+      await tester.tap(find.byKey(const Key('add-building-button')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('building-editor-dialog')), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const Key('building-name-field')),
+        'المبنى B',
+      );
+      await tester.enterText(
+        find.byKey(const Key('building-floor-count-field')),
+        '5 طوابق',
+      );
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(const Key('building-floor-count-field')),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller
+            ?.text,
+        '5',
+      );
+      await tester.tap(find.byKey(const Key('confirm-building-button')));
+      await tester.pumpAndSettle();
+      expect(find.text('المبنى B'), findsOneWidget);
+      expect(find.text('عدد الطوابق: 5'), findsOneWidget);
+      final deleteBuildingButton = find.byTooltip('حذف المبنى').last;
+      await tester.ensureVisible(deleteBuildingButton);
+      await tester.tap(deleteBuildingButton);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('delete-building-dialog')), findsOneWidget);
+      expect(
+        find.text('هل تريد حذف المبنى B من هيكل الإقامة؟'),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('confirm-delete-building-button')));
+      await tester.pumpAndSettle();
+      expect(find.text('المبنى B'), findsNothing);
 
-    await tester.ensureVisible(
-      find.byKey(const Key('residence-joining-section')),
-    );
-    expect(find.byKey(const Key('permanent-invitation-link')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('show-invitation-qr-button')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('invitation-qr-dialog')), findsOneWidget);
-    expect(find.byKey(const Key('invitation-qr-code')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('close-qr-dialog-button')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('invitation-qr-dialog')), findsNothing);
+      expect(find.byKey(const Key('residence-joining-section')), findsNothing);
+      expect(find.byKey(const Key('permanent-invitation-link')), findsNothing);
 
-    await tester.ensureVisible(find.byKey(const Key('join-requests-toggle')));
-    await tester.tap(find.byKey(const Key('join-requests-toggle')));
-    await tester.pumpAndSettle();
-    expect(
-      find.byKey(const Key('join-requests-disabled-notice')),
-      findsOneWidget,
-    );
-    expect(
-      find.text(
-        'يبقى الرابط صالحاً لاستكشاف الإقامة على الويب، لكن لا يمكن إرسال طلب انضمام جديد.',
-      ),
-      findsOneWidget,
-    );
-
-    await tester.tap(
-      find.byKey(const Key('save-residence-settings-button')).hitTestable(),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('تم حفظ إعدادات الإقامة.'), findsOneWidget);
-  });
+      await tester.tap(
+        find.byKey(const Key('save-residence-settings-button')).hitTestable(),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('تم حفظ إعدادات الإقامة.'), findsOneWidget);
+    },
+  );
 
   testWidgets('internal component gallery remains navigable', (tester) async {
     await _pumpApp(tester, size: const Size(390, 844));
@@ -752,15 +753,21 @@ void main() {
     );
     expect(addedApartment, findsOneWidget);
 
-    await tester.tap(
-      find.byKey(const ValueKey('delete-apartment-apartment-ground-floor-03')),
+    final deleteAddedApartment = find.byKey(
+      const ValueKey('delete-apartment-apartment-ground-floor-03'),
     );
+    await tester.ensureVisible(deleteAddedApartment);
+    await tester.pumpAndSettle();
+    await tester.tap(deleteAddedApartment);
     await tester.pumpAndSettle();
     await tester.tap(find.text('حذف').last);
     await tester.pumpAndSettle();
     expect(addedApartment, findsNothing);
 
-    await tester.tap(find.text('السكان').last);
+    final residentsTab = find.text('السكان').last;
+    await tester.ensureVisible(residentsTab);
+    await tester.pumpAndSettle();
+    await tester.tap(residentsTab);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('residents-view')), findsOneWidget);
     expect(find.byKey(const Key('residents-search-field')), findsOneWidget);
@@ -797,6 +804,96 @@ void main() {
         of: find.byKey(const ValueKey('resident-member-karim')),
         matching: find.text('نائب'),
       ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('residents use international phones and group invitations', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('manage-apartments-link')));
+    await tester.tap(find.byKey(const Key('manage-apartments-link')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('group-invitation-button')), findsNothing);
+    await tester.tap(find.text('السكان').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('+212 6 12 34 56 78'), findsOneWidget);
+    expect(find.textContaining('@example.com'), findsNothing);
+    final searchField = find.byKey(const Key('residents-search-field'));
+    final addResidentButton = find.byKey(const Key('add-resident-button'));
+    final groupInvitationButton = find.byKey(
+      const Key('group-invitation-button'),
+    );
+    expect(
+      tester.getBottomLeft(addResidentButton).dy,
+      lessThan(tester.getTopLeft(searchField).dy),
+    );
+    expect(
+      tester.getTopLeft(addResidentButton).dy,
+      closeTo(tester.getTopLeft(groupInvitationButton).dy, 2),
+    );
+    await tester.tap(find.byKey(const Key('add-resident-button')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find
+          .byKey(const Key('resident-country-code-field'))
+          .evaluate()
+          .single
+          .widget,
+      isA<DropdownButtonFormField<String>>(),
+    );
+    await tester.enterText(
+      find.byKey(const Key('resident-first-name-field')),
+      'مريم',
+    );
+    await tester.enterText(
+      find.byKey(const Key('resident-last-name-field')),
+      'المنصوري',
+    );
+    await tester.enterText(
+      find.byKey(const Key('resident-phone-field')),
+      '06 98 76 54 32',
+    );
+    tester.testTextInput.hide();
+    await tester.tap(find.byKey(const Key('resident-apartment-field')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('الشقة 23 · الطابق الثاني').last);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const Key('confirm-add-resident-button')),
+    );
+    await tester.tap(find.byKey(const Key('confirm-add-resident-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('مريم المنصوري'), findsOneWidget);
+    expect(find.text('+212 6 98 76 54 32'), findsOneWidget);
+
+    await tester.ensureVisible(groupInvitationButton);
+    await tester.pumpAndSettle();
+    await tester.tap(groupInvitationButton);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('group-invitation-page')), findsOneWidget);
+    expect(find.text('الدعوة الجماعية'), findsOneWidget);
+    expect(find.byKey(const Key('public-invitation-link')), findsOneWidget);
+    expect(find.byKey(const Key('group-invitation-qr-code')), findsOneWidget);
+    expect(find.text('السماح بالانضمام عبر الرابط'), findsOneWidget);
+    expect(
+      find.byKey(const Key('copy-group-invitation-link-button')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('share-group-invitation-link-button')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('print-group-invitation-qr-button')),
       findsOneWidget,
     );
   });

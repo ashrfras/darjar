@@ -491,7 +491,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get residenceSettingsPageDescription =>
-      'Manage residence information, structure, subscriptions, and join requests.';
+      'Manage residence information, structure, and subscriptions.';
 
   @override
   String get saveChanges => 'Save changes';
@@ -502,6 +502,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get residenceInformationDescription =>
       'Core information visible to residence members.';
+
+  @override
+  String get residenceId => 'Residence ID';
 
   @override
   String get residenceImage => 'Residence image or logo';

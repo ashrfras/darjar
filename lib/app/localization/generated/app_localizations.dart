@@ -995,7 +995,7 @@ abstract class AppLocalizations {
   /// No description provided for @residenceSettingsPageDescription.
   ///
   /// In ar, this message translates to:
-  /// **'تحكّم في معلومات الإقامة وهيكلها والاشتراك وطلبات الانضمام.'**
+  /// **'تحكّم في معلومات الإقامة وهيكلها والاشتراك.'**
   String get residenceSettingsPageDescription;
 
   /// No description provided for @saveChanges.
@@ -1015,6 +1015,12 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'البيانات الأساسية التي تظهر لسكان الإقامة.'**
   String get residenceInformationDescription;
+
+  /// No description provided for @residenceId.
+  ///
+  /// In ar, this message translates to:
+  /// **'معرّف الإقامة'**
+  String get residenceId;
 
   /// No description provided for @residenceImage.
   ///

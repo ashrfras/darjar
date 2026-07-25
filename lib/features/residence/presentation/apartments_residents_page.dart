@@ -3,10 +3,12 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
+import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -108,6 +110,9 @@ class _ApartmentsResidentsPageState
                         onQueryChanged: (value) {
                           setState(() => _query = value);
                         },
+                        onAddResident: _showAddResidentSheet,
+                        onGroupInvitation: () =>
+                            context.push(AppRoutes.groupInvitation),
                         onAssign: _showApartmentDialog,
                         onChangeRole: _showRoleDialog,
                         onRemove: _showRemoveDialog,
@@ -168,6 +173,39 @@ class _ApartmentsResidentsPageState
         .read(residenceMembersProvider.notifier)
         .assignApartment(member.id, selection == '__none__' ? null : selection);
     _showSavedMessage(copy.assignmentUpdated);
+  }
+
+  Future<void> _showAddResidentSheet() async {
+    final data = ref.read(residenceMembersProvider);
+    final copy = _Copy.of(context);
+    final result = await showModalBottomSheet<_NewResident>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => _AddResidentSheet(data: data, copy: copy),
+    );
+    if (!mounted || result == null) return;
+    final duplicate = data.members.any(
+      (member) =>
+          member.phone.replaceAll(' ', '') == result.phone.replaceAll(' ', ''),
+    );
+    if (duplicate) {
+      _showSavedMessage(copy.phoneAlreadyRegistered);
+      return;
+    }
+    ref
+        .read(residenceMembersProvider.notifier)
+        .addResident(
+          firstName: result.firstName,
+          lastName: result.lastName,
+          phone: result.phone,
+          apartmentId: result.apartmentId,
+        );
+    _showSavedMessage(copy.residentAdded);
   }
 
   Future<void> _showAddApartmentSheet(ResidenceBuilding building) async {
@@ -297,6 +335,257 @@ class _NewApartment {
 
   final String floorId;
   final String number;
+}
+
+class _NewResident {
+  const _NewResident({
+    required this.firstName,
+    required this.lastName,
+    required this.phone,
+    required this.apartmentId,
+  });
+
+  final String firstName;
+  final String lastName;
+  final String phone;
+  final String apartmentId;
+}
+
+class _CountryCallingCode {
+  const _CountryCallingCode(this.code);
+
+  final String code;
+}
+
+const _countryCallingCodes = [
+  _CountryCallingCode('+212'),
+  _CountryCallingCode('+213'),
+  _CountryCallingCode('+216'),
+  _CountryCallingCode('+33'),
+  _CountryCallingCode('+34'),
+  _CountryCallingCode('+1'),
+];
+
+class _AddResidentSheet extends StatefulWidget {
+  const _AddResidentSheet({required this.data, required this.copy});
+
+  final ResidenceMembersData data;
+  final _Copy copy;
+
+  @override
+  State<_AddResidentSheet> createState() => _AddResidentSheetState();
+}
+
+class _AddResidentSheetState extends State<_AddResidentSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  String _countryCode = '+212';
+  String? _apartmentId;
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final apartments = widget.data.apartments;
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.xLarge,
+        AppSpacing.medium,
+        AppSpacing.xLarge,
+        AppSpacing.xLarge + bottomInset,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.outline,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.large),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.copy.addResident,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                IconButton(
+                  tooltip: widget.copy.cancel,
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.large),
+            TextFormField(
+              key: const Key('resident-first-name-field'),
+              controller: _firstNameController,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(labelText: widget.copy.firstName),
+              validator: _requiredValidator,
+            ),
+            const SizedBox(height: AppSpacing.medium),
+            TextFormField(
+              key: const Key('resident-last-name-field'),
+              controller: _lastNameController,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(labelText: widget.copy.lastName),
+              validator: _requiredValidator,
+            ),
+            const SizedBox(height: AppSpacing.medium),
+            Directionality(
+              textDirection: TextDirection.ltr,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 132,
+                    child: DropdownButtonFormField<String>(
+                      key: const Key('resident-country-code-field'),
+                      initialValue: _countryCode,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: widget.copy.countryCode,
+                      ),
+                      items: [
+                        for (final country in _countryCallingCodes)
+                          DropdownMenuItem(
+                            value: country.code,
+                            child: Text(country.code),
+                          ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _countryCode = value);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.small),
+                  Expanded(
+                    child: TextFormField(
+                      key: const Key('resident-phone-field'),
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      textDirection: TextDirection.ltr,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[\d\s-]')),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: widget.copy.phoneNumber,
+                        hintText: widget.copy.phoneHint,
+                      ),
+                      validator: (value) {
+                        final digits = (value ?? '').replaceAll(
+                          RegExp(r'\D'),
+                          '',
+                        );
+                        if (digits.length < 8 || digits.length > 12) {
+                          return widget.copy.validPhoneRequired;
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.medium),
+            DropdownButtonFormField<String>(
+              key: const Key('resident-apartment-field'),
+              initialValue: _apartmentId,
+              isExpanded: true,
+              decoration: InputDecoration(labelText: widget.copy.apartment),
+              items: [
+                for (final building in widget.data.buildings)
+                  for (final floor in building.floors)
+                    for (final apartment in floor.apartments)
+                      DropdownMenuItem(
+                        value: apartment.id,
+                        child: Text(
+                          '${widget.copy.apartmentNumber(apartment.number)} · '
+                          '${widget.copy.floorName(floor)}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+              ],
+              onChanged: (value) => setState(() => _apartmentId = value),
+              validator: (value) =>
+                  value == null ? widget.copy.apartmentRequired : null,
+            ),
+            const SizedBox(height: AppSpacing.xLarge),
+            FilledButton.icon(
+              key: const Key('confirm-add-resident-button'),
+              onPressed: apartments.isEmpty ? null : _submit,
+              icon: const Icon(Icons.person_add_alt_1_rounded),
+              label: Text(widget.copy.addResident),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String? _requiredValidator(String? value) =>
+      value == null || value.trim().isEmpty ? widget.copy.fieldRequired : null;
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    Navigator.pop(
+      context,
+      _NewResident(
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        phone: _formatInternationalPhone(_countryCode, _phoneController.text),
+        apartmentId: _apartmentId!,
+      ),
+    );
+  }
+}
+
+String _formatInternationalPhone(String countryCode, String nationalNumber) {
+  var digits = nationalNumber.replaceAll(RegExp(r'\D'), '');
+  if (digits.startsWith('0')) digits = digits.substring(1);
+  final groups = <String>[];
+  if (countryCode == '+212' && digits.length == 9) {
+    groups
+      ..add(digits.substring(0, 1))
+      ..addAll([
+        for (var index = 1; index < digits.length; index += 2)
+          digits.substring(
+            index,
+            index + 2 < digits.length ? index + 2 : digits.length,
+          ),
+      ]);
+  } else {
+    for (var index = 0; index < digits.length; index += 3) {
+      groups.add(
+        digits.substring(
+          index,
+          index + 3 < digits.length ? index + 3 : digits.length,
+        ),
+      );
+    }
+  }
+  return '$countryCode ${groups.join(' ')}';
 }
 
 class _AddApartmentSheet extends StatefulWidget {
@@ -742,6 +1031,8 @@ class _ResidentsView extends StatelessWidget {
     required this.copy,
     required this.query,
     required this.onQueryChanged,
+    required this.onAddResident,
+    required this.onGroupInvitation,
     required this.onAssign,
     required this.onChangeRole,
     required this.onRemove,
@@ -752,6 +1043,8 @@ class _ResidentsView extends StatelessWidget {
   final _Copy copy;
   final String query;
   final ValueChanged<String> onQueryChanged;
+  final VoidCallback onAddResident;
+  final VoidCallback onGroupInvitation;
   final ValueChanged<ResidenceMember> onAssign;
   final ValueChanged<ResidenceMember> onChangeRole;
   final ValueChanged<ResidenceMember> onRemove;
@@ -763,7 +1056,6 @@ class _ResidentsView extends StatelessWidget {
         .where((member) {
           return normalized.isEmpty ||
               member.name.toLowerCase().contains(normalized) ||
-              member.email.toLowerCase().contains(normalized) ||
               member.phone.contains(normalized);
         })
         .toList(growable: false);
@@ -771,6 +1063,31 @@ class _ResidentsView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Row(
+          children: [
+            Expanded(
+              child: DarJarButton(
+                key: const Key('add-resident-button'),
+                label: copy.addResident,
+                icon: Icons.person_add_alt_1_rounded,
+                expanded: true,
+                onPressed: onAddResident,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.small),
+            Expanded(
+              child: DarJarButton(
+                key: const Key('group-invitation-button'),
+                label: copy.groupInvitation,
+                icon: Icons.group_add_outlined,
+                variant: DarJarButtonVariant.secondary,
+                expanded: true,
+                onPressed: onGroupInvitation,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.medium),
         TextField(
           key: const Key('residents-search-field'),
           onChanged: onQueryChanged,
@@ -886,7 +1203,7 @@ class _ResidentCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xSmall),
                 Text(
-                  member.email,
+                  member.phone,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textDirection: TextDirection.ltr,
@@ -1176,6 +1493,23 @@ class _Copy {
       ? 'أضف الشقق وأدر توزيع السكان عليها.'
       : 'Add apartments and manage resident assignments.';
   String get addApartment => arabic ? 'إضافة شقة' : 'Add apartment';
+  String get addResident => arabic ? 'إضافة ساكن' : 'Add resident';
+  String get firstName => arabic ? 'الاسم' : 'First name';
+  String get lastName => arabic ? 'النسب' : 'Last name';
+  String get phoneNumber => arabic ? 'رقم الهاتف' : 'Phone number';
+  String get countryCode => arabic ? 'رمز الدولة' : 'Country code';
+  String get phoneHint => arabic ? '6 12 34 56 78' : '6 12 34 56 78';
+  String get apartment => arabic ? 'الشقة' : 'Apartment';
+  String get fieldRequired =>
+      arabic ? 'هذا الحقل مطلوب.' : 'This field is required.';
+  String get validPhoneRequired =>
+      arabic ? 'أدخل رقم هاتف صحيحاً.' : 'Enter a valid phone number.';
+  String get apartmentRequired =>
+      arabic ? 'اختر شقة للساكن.' : 'Choose the resident’s apartment.';
+  String get residentAdded => arabic ? 'تمت إضافة الساكن.' : 'Resident added.';
+  String get phoneAlreadyRegistered => arabic
+      ? 'رقم الهاتف مسجل لساكن آخر.'
+      : 'This phone number is already registered.';
   String get chooseFloor => arabic ? 'اختر الطابق' : 'Choose a floor';
   String get apartmentNumberLabel =>
       arabic ? 'رقم أو اسم الشقة' : 'Apartment number or name';
@@ -1197,8 +1531,8 @@ class _Copy {
       ? 'تُدار المباني والأجنحة والطوابق من إعدادات الإقامة.'
       : 'Manage buildings, wings, and floors from residence settings.';
   String get searchResidents => arabic
-      ? 'ابحث بالاسم أو البريد أو الهاتف...'
-      : 'Search by name, email, or phone...';
+      ? 'ابحث بالاسم أو رقم الهاتف...'
+      : 'Search by name or phone number...';
   String get clear => arabic ? 'مسح البحث' : 'Clear search';
   String get noSearchResults => arabic
       ? 'لا يوجد سكان مطابقون لبحثك.'
@@ -1219,6 +1553,7 @@ class _Copy {
       arabic ? 'تم تحديث دور الساكن.' : 'Resident role updated.';
   String get residentRemoved =>
       arabic ? 'تمت إزالة الساكن من الإقامة.' : 'Resident removed.';
+  String get groupInvitation => arabic ? 'الدعوة الجماعية' : 'Group invitation';
 
   String buildingName(ResidenceBuilding building) =>
       arabic ? building.nameAr : building.nameEn;
