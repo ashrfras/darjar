@@ -789,4 +789,74 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get checkResidenceSettingsFields =>
       'Check the residence information and subscription amount.';
+
+  @override
+  String get authPhoneTitle => 'Sign in with your phone';
+
+  @override
+  String get authPhoneDescription =>
+      'We will send a short code to verify your phone number and protect your account.';
+
+  @override
+  String get authPhoneHint => '0600000001';
+
+  @override
+  String get authSendCode => 'Send verification code';
+
+  @override
+  String get authSendingCode => 'Sending code…';
+
+  @override
+  String get authCodeTitle => 'Enter the verification code';
+
+  @override
+  String authCodeDescription(String phoneNumber) {
+    return 'Enter the 6-digit code sent to $phoneNumber.';
+  }
+
+  @override
+  String get authCodeHint => '6 digits';
+
+  @override
+  String get authVerifying => 'Verifying…';
+
+  @override
+  String get authChangePhone => 'Change phone number';
+
+  @override
+  String get authPrivacyNotice =>
+      'Your phone number is used to sign in and protect your account under the privacy policy.';
+
+  @override
+  String get authInvalidPhone => 'Enter a valid Moroccan phone number.';
+
+  @override
+  String get authInvalidCode =>
+      'The verification code is incorrect. Check it and try again.';
+
+  @override
+  String get authCodeExpired => 'The code has expired. Request a new one.';
+
+  @override
+  String get authTooManyRequests =>
+      'Too many attempts. Wait a moment and try again.';
+
+  @override
+  String get authNetworkError =>
+      'Could not connect. Check your internet connection and try again.';
+
+  @override
+  String get authUnauthorizedDomain =>
+      'This domain is not authorized for sign-in. Add it to Firebase Authentication authorized domains.';
+
+  @override
+  String get authCaptchaFailed =>
+      'Security verification could not be completed. Try again and complete the reCAPTCHA challenge.';
+
+  @override
+  String get authPhoneOperationNotAllowed =>
+      'Phone sign-in is not allowed. Check that Morocco is allowed in the SMS region policy and that billing is linked to the project.';
+
+  @override
+  String get authUnexpectedError => 'Could not sign in right now. Try again.';
 }

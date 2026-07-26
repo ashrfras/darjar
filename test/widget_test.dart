@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:darjar/app/app.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_theme.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
@@ -141,6 +144,84 @@ void main() {
       expect(repository.getSettings().buildings.single.floorCount, 3);
       expect(repository.getSettings().managementOrganization, isNotEmpty);
       expect(repository.getSettings().bankAccount, isNotEmpty);
+    });
+  });
+
+  group('authentication foundation', () {
+    test('normalizes supported Moroccan mobile number formats', () {
+      expect(normalizeMoroccanPhoneNumber('06 00 00 00 01'), '+212600000001');
+      expect(normalizeMoroccanPhoneNumber('+212 600 000 001'), '+212600000001');
+      expect(isValidMoroccanMobileNumber('+212600000001'), isTrue);
+      expect(isValidMoroccanMobileNumber('+212500000001'), isFalse);
+    });
+
+    testWidgets('signed-out resident verifies a phone before residence setup', (
+      tester,
+    ) async {
+      final authRepository = _FakeAuthRepository(signedIn: false);
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        authRepository: authRepository,
+      );
+
+      await tester.tap(find.byKey(const Key('start-button')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('phone-auth-page')), findsOneWidget);
+      expect(
+        tester.getCenter(find.text('+212')).dx,
+        lessThan(
+          tester.getCenter(find.byKey(const Key('auth-phone-field'))).dx,
+        ),
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('auth-phone-field')),
+        '+212 600 000 001',
+      );
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(const Key('auth-phone-field')),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller
+            ?.text,
+        '2126000000',
+      );
+      await tester.enterText(
+        find.byKey(const Key('auth-phone-field')),
+        '0600000001',
+      );
+      final phoneField = tester.widget<TextField>(
+        find.descendant(
+          of: find.byKey(const Key('auth-phone-field')),
+          matching: find.byType(TextField),
+        ),
+      );
+      expect(phoneField.keyboardType, TextInputType.number);
+      await tester.tap(find.byKey(const Key('send-verification-code-button')));
+      await tester.pumpAndSettle();
+
+      expect(authRepository.requestedPhoneNumber, '+212600000001');
+      expect(
+        find.byKey(const Key('auth-verification-code-field')),
+        findsOneWidget,
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('auth-verification-code-field')),
+        '123456',
+      );
+      await tester.tap(
+        find.byKey(const Key('confirm-verification-code-button')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(authRepository.confirmedCode, '123456');
+      expect(find.byKey(const Key('residence-setup-page')), findsOneWidget);
     });
   });
 
@@ -943,13 +1024,27 @@ void main() {
   });
 }
 
-Future<void> _pumpApp(WidgetTester tester, {required Size size}) async {
+Future<void> _pumpApp(
+  WidgetTester tester, {
+  required Size size,
+  AuthRepository? authRepository,
+}) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  await tester.pumpWidget(const ProviderScope(child: DarJarApp()));
+  final repository = authRepository ?? _FakeAuthRepository();
+  if (repository is _FakeAuthRepository) {
+    addTearDown(repository.dispose);
+  }
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+      child: const DarJarApp(),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -981,4 +1076,46 @@ Future<void> _enterResidence(WidgetTester tester) async {
   await tester.ensureVisible(find.byKey(const Key('enter-residence-button')));
   await tester.tap(find.byKey(const Key('enter-residence-button')));
   await tester.pumpAndSettle();
+}
+
+class _FakeAuthRepository implements AuthRepository {
+  _FakeAuthRepository({bool signedIn = true})
+    : _currentUser = signedIn
+          ? const AuthUser(uid: 'test-user', phoneNumber: '+212600000001')
+          : null;
+
+  final StreamController<AuthUser?> _authStateController =
+      StreamController<AuthUser?>.broadcast(sync: true);
+  AuthUser? _currentUser;
+  String? requestedPhoneNumber;
+  String? confirmedCode;
+
+  @override
+  AuthUser? get currentUser => _currentUser;
+
+  @override
+  Stream<AuthUser?> authStateChanges() => _authStateController.stream;
+
+  @override
+  Future<void> sendVerificationCode(String phoneNumber) async {
+    requestedPhoneNumber = phoneNumber;
+  }
+
+  @override
+  Future<void> confirmVerificationCode(String code) async {
+    confirmedCode = code;
+    _currentUser = const AuthUser(
+      uid: 'test-user',
+      phoneNumber: '+212600000001',
+    );
+    _authStateController.add(_currentUser);
+  }
+
+  @override
+  Future<void> signOut() async {
+    _currentUser = null;
+    _authStateController.add(null);
+  }
+
+  Future<void> dispose() => _authStateController.close();
 }

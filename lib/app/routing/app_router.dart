@@ -1,3 +1,5 @@
+import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/auth/presentation/phone_auth_page.dart';
 import 'package:darjar/features/community/presentation/community_feed_page.dart';
 import 'package:darjar/features/community/presentation/create_post_page.dart';
 import 'package:darjar/features/community/presentation/community_post_detail_page.dart';
@@ -18,10 +20,12 @@ import 'package:darjar/features/residence/presentation/residence_home_page.dart'
 import 'package:darjar/features/residence/presentation/residence_setup_page.dart';
 import 'package:darjar/features/residence/presentation/residence_settings_page.dart';
 import 'package:darjar/features/shell/presentation/darjar_shell.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 abstract final class AppRoutes {
+  static const auth = '/auth/phone';
   static const onboarding = '/onboarding';
   static const residenceSetup = '/residence/setup';
   static const community = '/community';
@@ -45,10 +49,46 @@ abstract final class AppRoutes {
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
+  final authRefresh = _AuthRefreshListenable(authRepository.currentUser);
+  ref.listen(authStateProvider, (previous, next) {
+    next.whenData(authRefresh.update);
+  });
   final router = GoRouter(
     initialLocation: AppRoutes.onboarding,
+    refreshListenable: authRefresh,
+    redirect: (context, state) {
+      final location = state.matchedLocation;
+      final isAuthRoute = location == AppRoutes.auth;
+      final isPublicRoute =
+          location == '/' || location == AppRoutes.onboarding || isAuthRoute;
+      final user = authRefresh.user;
+
+      if (user == null && !isPublicRoute) {
+        return Uri(
+          path: AppRoutes.auth,
+          queryParameters: {'from': state.uri.toString()},
+        ).toString();
+      }
+
+      if (user != null && isAuthRoute) {
+        final destination = state.uri.queryParameters['from'];
+        if (destination != null &&
+            destination.startsWith('/') &&
+            !destination.startsWith(AppRoutes.auth)) {
+          return destination;
+        }
+        return AppRoutes.residenceSetup;
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(path: '/', redirect: (context, state) => AppRoutes.onboarding),
+      GoRoute(
+        path: AppRoutes.auth,
+        builder: (context, state) => const PhoneAuthPage(),
+      ),
       GoRoute(
         path: AppRoutes.onboarding,
         builder: (context, state) => const OnboardingPage(),
@@ -138,6 +178,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 
-  ref.onDispose(router.dispose);
+  ref.onDispose(() {
+    authRefresh.dispose();
+    router.dispose();
+  });
   return router;
 });
+
+class _AuthRefreshListenable extends ChangeNotifier {
+  _AuthRefreshListenable(this.user);
+
+  AuthUser? user;
+
+  void update(AuthUser? nextUser) {
+    user = nextUser;
+    notifyListeners();
+  }
+}

@@ -1537,6 +1537,126 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تحقّق من معلومات الإقامة وقيمة الاشتراك.'**
   String get checkResidenceSettingsFields;
+
+  /// No description provided for @authPhoneTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجّل الدخول برقم هاتفك'**
+  String get authPhoneTitle;
+
+  /// No description provided for @authPhoneDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'سنرسل إليك رمزاً قصيراً للتحقق من رقم الهاتف وحماية حسابك.'**
+  String get authPhoneDescription;
+
+  /// No description provided for @authPhoneHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'0600000001'**
+  String get authPhoneHint;
+
+  /// No description provided for @authSendCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرسال رمز التحقق'**
+  String get authSendCode;
+
+  /// No description provided for @authSendingCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ إرسال الرمز…'**
+  String get authSendingCode;
+
+  /// No description provided for @authCodeTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل رمز التحقق'**
+  String get authCodeTitle;
+
+  /// No description provided for @authCodeDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل الرمز المكوّن من 6 أرقام المرسل إلى {phoneNumber}.'**
+  String authCodeDescription(String phoneNumber);
+
+  /// No description provided for @authCodeHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'6 أرقام'**
+  String get authCodeHint;
+
+  /// No description provided for @authVerifying.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ التحقق…'**
+  String get authVerifying;
+
+  /// No description provided for @authChangePhone.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير رقم الهاتف'**
+  String get authChangePhone;
+
+  /// No description provided for @authPrivacyNotice.
+  ///
+  /// In ar, this message translates to:
+  /// **'يُستخدم رقم هاتفك لتسجيل الدخول وحماية حسابك وفق سياسة الخصوصية.'**
+  String get authPrivacyNotice;
+
+  /// No description provided for @authInvalidPhone.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل رقم هاتف مغربي صحيحاً.'**
+  String get authInvalidPhone;
+
+  /// No description provided for @authInvalidCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز التحقق غير صحيح. راجع الرمز وحاول مجدداً.'**
+  String get authInvalidCode;
+
+  /// No description provided for @authCodeExpired.
+  ///
+  /// In ar, this message translates to:
+  /// **'انتهت صلاحية الرمز. اطلب رمزاً جديداً.'**
+  String get authCodeExpired;
+
+  /// No description provided for @authTooManyRequests.
+  ///
+  /// In ar, this message translates to:
+  /// **'تمت محاولات كثيرة. انتظر قليلاً ثم حاول مجدداً.'**
+  String get authTooManyRequests;
+
+  /// No description provided for @authNetworkError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر الاتصال. تحقق من الإنترنت وحاول مجدداً.'**
+  String get authNetworkError;
+
+  /// No description provided for @authUnauthorizedDomain.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذا النطاق غير مسموح له بتسجيل الدخول. أضفه إلى النطاقات المعتمدة في Firebase Authentication.'**
+  String get authUnauthorizedDomain;
+
+  /// No description provided for @authCaptchaFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر إكمال التحقق الأمني. أعد المحاولة وأكمل اختبار reCAPTCHA.'**
+  String get authCaptchaFailed;
+
+  /// No description provided for @authPhoneOperationNotAllowed.
+  ///
+  /// In ar, this message translates to:
+  /// **'عملية تسجيل الدخول بالهاتف غير مسموحة. تحقّق من السماح للمغرب في سياسة مناطق SMS وربط المشروع بحساب فوترة.'**
+  String get authPhoneOperationNotAllowed;
+
+  /// No description provided for @authUnexpectedError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تسجيل الدخول الآن. حاول مجدداً.'**
+  String get authUnexpectedError;
 }
 
 class _AppLocalizationsDelegate

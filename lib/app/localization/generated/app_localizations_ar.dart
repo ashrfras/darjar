@@ -778,4 +778,72 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get checkResidenceSettingsFields =>
       'تحقّق من معلومات الإقامة وقيمة الاشتراك.';
+
+  @override
+  String get authPhoneTitle => 'سجّل الدخول برقم هاتفك';
+
+  @override
+  String get authPhoneDescription =>
+      'سنرسل إليك رمزاً قصيراً للتحقق من رقم الهاتف وحماية حسابك.';
+
+  @override
+  String get authPhoneHint => '0600000001';
+
+  @override
+  String get authSendCode => 'إرسال رمز التحقق';
+
+  @override
+  String get authSendingCode => 'جارٍ إرسال الرمز…';
+
+  @override
+  String get authCodeTitle => 'أدخل رمز التحقق';
+
+  @override
+  String authCodeDescription(String phoneNumber) {
+    return 'أدخل الرمز المكوّن من 6 أرقام المرسل إلى $phoneNumber.';
+  }
+
+  @override
+  String get authCodeHint => '6 أرقام';
+
+  @override
+  String get authVerifying => 'جارٍ التحقق…';
+
+  @override
+  String get authChangePhone => 'تغيير رقم الهاتف';
+
+  @override
+  String get authPrivacyNotice =>
+      'يُستخدم رقم هاتفك لتسجيل الدخول وحماية حسابك وفق سياسة الخصوصية.';
+
+  @override
+  String get authInvalidPhone => 'أدخل رقم هاتف مغربي صحيحاً.';
+
+  @override
+  String get authInvalidCode => 'رمز التحقق غير صحيح. راجع الرمز وحاول مجدداً.';
+
+  @override
+  String get authCodeExpired => 'انتهت صلاحية الرمز. اطلب رمزاً جديداً.';
+
+  @override
+  String get authTooManyRequests =>
+      'تمت محاولات كثيرة. انتظر قليلاً ثم حاول مجدداً.';
+
+  @override
+  String get authNetworkError => 'تعذر الاتصال. تحقق من الإنترنت وحاول مجدداً.';
+
+  @override
+  String get authUnauthorizedDomain =>
+      'هذا النطاق غير مسموح له بتسجيل الدخول. أضفه إلى النطاقات المعتمدة في Firebase Authentication.';
+
+  @override
+  String get authCaptchaFailed =>
+      'تعذر إكمال التحقق الأمني. أعد المحاولة وأكمل اختبار reCAPTCHA.';
+
+  @override
+  String get authPhoneOperationNotAllowed =>
+      'عملية تسجيل الدخول بالهاتف غير مسموحة. تحقّق من السماح للمغرب في سياسة مناطق SMS وربط المشروع بحساب فوترة.';
+
+  @override
+  String get authUnexpectedError => 'تعذر تسجيل الدخول الآن. حاول مجدداً.';
 }
