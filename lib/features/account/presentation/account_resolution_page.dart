@@ -57,7 +57,7 @@ class _AccountResolutionPageState extends ConsumerState<AccountResolutionPage> {
             onRetry: () => ref.invalidate(accountResolutionProvider),
           ),
           data: (data) {
-            if (data.invitations.isEmpty) {
+            if (data.profile != null || data.invitations.isEmpty) {
               return _ResolutionRedirect(
                 destination: data.profile == null
                     ? AppRoutes.residenceSetup
@@ -348,12 +348,6 @@ class _InvitationCard extends StatelessWidget {
             children: [
               if (invitation.residenceAddress.isNotEmpty)
                 Text(invitation.residenceAddress),
-              if (invitation.apartmentLabel.isNotEmpty)
-                Text(
-                  localizations.accountResolutionApartment(
-                    invitation.apartmentLabel,
-                  ),
-                ),
               Text(
                 localizations.accountResolutionRole(
                   _localizedRole(localizations, invitation.role),

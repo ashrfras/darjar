@@ -69,7 +69,7 @@ abstract interface class ResidenceSetupRepository {
 class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
   FirestoreResidenceSetupRepository(this._firestore);
 
-  static const _codeAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  static const _codeAlphabet = '0123456789';
 
   final FirebaseFirestore _firestore;
   final Random _random = Random.secure();
@@ -105,6 +105,9 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
       final memberReference = residenceReference
           .collection('members')
           .doc(user.uid);
+      final privateSettingsReference = residenceReference
+          .collection('settings')
+          .doc('private');
       try {
         await _firestore.runTransaction((transaction) async {
           final codeDocument = await transaction.get(codeReference);
@@ -117,19 +120,11 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
             'name': normalizedInput.name,
             'address': normalizedInput.address,
             'city': normalizedInput.city,
-            'joinCode': joinCode,
             'joinRequestsEnabled': true,
-            'createdBy': user.uid,
             'createdAt': FieldValue.serverTimestamp(),
           });
           transaction.set(codeReference, {
             'residenceId': residenceReference.id,
-            'name': normalizedInput.name,
-            'address': normalizedInput.address,
-            'city': normalizedInput.city,
-            'joinRequestsEnabled': true,
-            'createdBy': user.uid,
-            'createdAt': FieldValue.serverTimestamp(),
           });
           if (!userDocument.exists) {
             transaction.set(userReference, {
@@ -146,6 +141,17 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
             'status': 'active',
             'source': 'residence-creation',
             'joinedAt': FieldValue.serverTimestamp(),
+          });
+          transaction.set(privateSettingsReference, {
+            'createdBy': user.uid,
+            'joinCode': joinCode,
+            'managementOrganization': '',
+            'managementPhone': '',
+            'managementOfficeHours': '',
+            'bankName': '',
+            'bankAccount': '',
+            'defaultSubscriptionAmount': 0,
+            'updatedAt': FieldValue.serverTimestamp(),
           });
         });
         return CreatedResidence(
@@ -171,16 +177,27 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
       throw const ResidenceSetupFailure('invalid-code');
     }
     try {
-      final document = await _firestore
+      final codeDocument = await _firestore
           .collection('residenceCodes')
           .doc(normalizedCode)
           .get();
-      if (!document.exists) {
+      if (!codeDocument.exists) {
         return null;
       }
-      final data = document.data()!;
+      final residenceId = codeDocument.data()?['residenceId'] as String? ?? '';
+      if (residenceId.isEmpty) {
+        throw const ResidenceSetupFailure('invalid-code-data');
+      }
+      final residenceDocument = await _firestore
+          .collection('residences')
+          .doc(residenceId)
+          .get();
+      if (!residenceDocument.exists) {
+        return null;
+      }
+      final data = residenceDocument.data()!;
       return ResidenceCodeSummary(
-        residenceId: data['residenceId'] as String? ?? '',
+        residenceId: residenceId,
         code: normalizedCode,
         name: data['name'] as String? ?? '',
         address: data['address'] as String? ?? '',
@@ -242,11 +259,11 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
 }
 
 String normalizeResidenceCode(String input) {
-  return input.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  return input.replaceAll(RegExp(r'\D'), '');
 }
 
 bool isValidResidenceCode(String code) {
-  return RegExp(r'^[A-Z0-9]{6,12}$').hasMatch(code);
+  return RegExp(r'^\d{8}$').hasMatch(code);
 }
 
 String normalizeResidenceName(String input) {

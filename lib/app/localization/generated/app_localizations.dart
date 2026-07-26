@@ -419,7 +419,7 @@ abstract class AppLocalizations {
   /// No description provided for @invitationCodeHint.
   ///
   /// In ar, this message translates to:
-  /// **'أدخل الرمز الذي أرسله لك جارك'**
+  /// **'مثال: 48273165'**
   String get invitationCodeHint;
 
   /// No description provided for @createAndContinue.
@@ -551,7 +551,7 @@ abstract class AppLocalizations {
   /// No description provided for @residenceCodeInvalid.
   ///
   /// In ar, this message translates to:
-  /// **'أدخل رمز إقامة صحيحاً من 6 إلى 12 حرفاً أو رقماً.'**
+  /// **'أدخل رمز الإقامة المكوّن من 8 أرقام.'**
   String get residenceCodeInvalid;
 
   /// No description provided for @residenceCodeNotFound.
@@ -1777,12 +1777,6 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'علّم الإقامات التي تنتمي إليها. ستبقى الدعوات غير المحددة معلّقة لتراجعها لاحقاً.'**
   String get accountResolutionInvitationsDescription;
-
-  /// No description provided for @accountResolutionApartment.
-  ///
-  /// In ar, this message translates to:
-  /// **'الشقة: {apartment}'**
-  String accountResolutionApartment(String apartment);
 
   /// No description provided for @accountResolutionRole.
   ///

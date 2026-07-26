@@ -245,7 +245,6 @@ void main() {
               suggestedFirstName: 'أمينة',
               suggestedLastName: 'المريني',
               apartmentId: 'apartment-12',
-              apartmentLabel: '12',
               role: 'resident',
             ),
             ResidenceInvitation(
@@ -257,7 +256,6 @@ void main() {
               suggestedFirstName: 'أمينة',
               suggestedLastName: 'المريني',
               apartmentId: 'apartment-5',
-              apartmentLabel: '5',
               role: 'owner',
             ),
           ],
@@ -312,6 +310,46 @@ void main() {
       ]);
       expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
     });
+
+    testWidgets('existing user enters the app without residence setup', (
+      tester,
+    ) async {
+      final accountRepository = _FakeAccountOnboardingRepository(
+        resolution: const AccountResolution(
+          phoneNumber: '+212600000001',
+          profile: UserProfile(
+            firstName: 'أمينة',
+            lastName: 'المريني',
+            phoneNumber: '+212600000001',
+          ),
+          invitations: [
+            ResidenceInvitation(
+              path: 'residences/andalous/invitations/invitation-new',
+              id: 'invitation-new',
+              residenceId: 'andalous',
+              residenceName: 'الأندلس',
+              residenceAddress: 'أكدال، الرباط',
+              suggestedFirstName: 'أمينة',
+              suggestedLastName: 'المريني',
+              apartmentId: 'apartment-5',
+              role: 'resident',
+            ),
+          ],
+        ),
+      );
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        accountRepository: accountRepository,
+      );
+
+      await tester.tap(find.byKey(const Key('start-button')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+      expect(find.byKey(const Key('residence-setup-page')), findsNothing);
+      expect(find.byKey(const Key('account-resolution-page')), findsNothing);
+    });
   });
 
   group('residence setup foundation', () {
@@ -324,9 +362,10 @@ void main() {
     });
 
     test('normalizes residence codes before lookup', () {
-      expect(normalizeResidenceCode(' abcd-2345 '), 'ABCD2345');
-      expect(isValidResidenceCode('ABCD2345'), isTrue);
-      expect(isValidResidenceCode('ABC'), isFalse);
+      expect(normalizeResidenceCode('48 27-31 65'), '48273165');
+      expect(isValidResidenceCode('48273165'), isTrue);
+      expect(isValidResidenceCode('4827316A'), isFalse);
+      expect(isValidResidenceCode('1234'), isFalse);
     });
 
     testWidgets('resident finds a residence and sends a join request', (
@@ -335,7 +374,7 @@ void main() {
       final setupRepository = _FakeResidenceSetupRepository(
         residence: const ResidenceCodeSummary(
           residenceId: 'residence-yasmine',
-          code: 'YASM2345',
+          code: '48273165',
           name: 'إقامة الياسمين',
           address: 'حي المعاريف',
           city: 'casablanca',
@@ -354,7 +393,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('join-residence-code-field')),
-        'yasm-2345',
+        '48273165',
       );
       await tester.tap(find.byKey(const Key('search-residence-button')));
       await tester.pumpAndSettle();
@@ -366,7 +405,7 @@ void main() {
       await tester.tap(find.byKey(const Key('join-found-residence-button')));
       await tester.pumpAndSettle();
 
-      expect(setupRepository.requestedResidence?.code, 'YASM2345');
+      expect(setupRepository.requestedResidence?.code, '48273165');
       expect(find.text('تم إرسال طلب الانضمام'), findsOneWidget);
     });
   });
@@ -457,7 +496,7 @@ void main() {
     expect(find.byKey(const ValueKey('join-residence-form')), findsOneWidget);
     await tester.enterText(
       find.byKey(const Key('join-residence-code-field')),
-      'ABCD2345',
+      '48273165',
     );
     await tester.ensureVisible(
       find.byKey(const Key('search-residence-button')),
@@ -1330,7 +1369,7 @@ class _FakeResidenceSetupRepository implements ResidenceSetupRepository {
     createdInput = input;
     return const CreatedResidence(
       residenceId: 'created-residence',
-      joinCode: 'TEST2345',
+      joinCode: '48273165',
     );
   }
 

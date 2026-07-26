@@ -103,7 +103,7 @@ class _WelcomeContent extends StatelessWidget {
           icon: Icons.arrow_forward_rounded,
           iconAtEnd: true,
           expanded: true,
-          onPressed: () => context.go(AppRoutes.residenceSetup),
+          onPressed: () => context.go(AppRoutes.accountResolution),
         ),
       ],
     );

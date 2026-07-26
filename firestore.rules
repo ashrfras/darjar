@@ -22,6 +22,19 @@ service cloud.firestore {
       return /databases/$(database)/documents/residenceCodes/$(code);
     }
 
+    function memberPath(residenceId, memberId) {
+      return /databases/$(database)/documents/residences/$(residenceId)/members/$(memberId);
+    }
+
+    function privateSettingsPath(residenceId) {
+      return /databases/$(database)/documents/residences/$(residenceId)/settings/private;
+    }
+
+    function isResidenceMember(residenceId) {
+      return signedIn()
+        && exists(memberPath(residenceId, request.auth.uid));
+    }
+
     function isInvitationMembership(residenceId, memberId) {
       let invitation = get(
         invitationPath(
@@ -76,8 +89,8 @@ service cloud.firestore {
         && request.resource.data.status == 'active'
         && request.resource.data.source == 'residence-creation'
         && request.resource.data.joinedAt == request.time
-        && getAfter(residencePath(residenceId)).data.createdBy
-          == request.auth.uid;
+        && !exists(residencePath(residenceId))
+        && getAfter(residencePath(residenceId)).data.name is string;
     }
 
     match /users/{userId} {
@@ -116,19 +129,15 @@ service cloud.firestore {
     }
 
     match /residences/{residenceId} {
-      allow read: if signedIn()
-        && exists(
-          /databases/$(database)/documents/residences/$(residenceId)/members/$(request.auth.uid)
-        );
+      allow get: if signedIn();
+      allow list: if false;
 
       allow create: if verifiedPhone()
         && request.resource.data.keys().hasOnly([
           'name',
           'address',
           'city',
-          'joinCode',
           'joinRequestsEnabled',
-          'createdBy',
           'createdAt'
         ])
         && request.resource.data.name is string
@@ -137,10 +146,40 @@ service cloud.firestore {
         && request.resource.data.address.size() > 0
         && request.resource.data.city is string
         && request.resource.data.city.size() > 0
-        && request.resource.data.joinCode is string
         && request.resource.data.joinRequestsEnabled == true
-        && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.createdAt == request.time;
+
+      match /settings/private {
+        allow read: if isResidenceMember(residenceId);
+
+        allow create: if verifiedPhone()
+          && !exists(residencePath(residenceId))
+          && getAfter(
+            memberPath(residenceId, request.auth.uid)
+          ).data.role == 'owner'
+          && request.resource.data.keys().hasOnly([
+            'createdBy',
+            'joinCode',
+            'managementOrganization',
+            'managementPhone',
+            'managementOfficeHours',
+            'bankName',
+            'bankAccount',
+            'defaultSubscriptionAmount',
+            'updatedAt'
+          ])
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.joinCode is string
+          && request.resource.data.joinCode.matches('^[0-9]{8}$')
+          && request.resource.data.managementOrganization is string
+          && request.resource.data.managementPhone is string
+          && request.resource.data.managementOfficeHours is string
+          && request.resource.data.bankName is string
+          && request.resource.data.bankAccount is string
+          && request.resource.data.defaultSubscriptionAmount is int
+          && request.resource.data.defaultSubscriptionAmount >= 0
+          && request.resource.data.updatedAt == request.time;
+      }
 
       match /invitations/{invitationId} {
         allow update: if verifiedPhone()
@@ -184,37 +223,28 @@ service cloud.firestore {
             residenceCodePath(request.resource.data.residenceCode)
           ).data.residenceId == residenceId
           && get(
-            residenceCodePath(request.resource.data.residenceCode)
+            residencePath(residenceId)
           ).data.joinRequestsEnabled == true;
       }
     }
 
     match /residenceCodes/{code} {
-      allow read: if signedIn();
+      allow get: if signedIn();
+      allow list: if false;
 
       allow create: if verifiedPhone()
-        && request.resource.data.keys().hasOnly([
-          'residenceId',
-          'name',
-          'address',
-          'city',
-          'joinRequestsEnabled',
-          'createdBy',
-          'createdAt'
-        ])
+        && request.resource.data.keys().hasOnly(['residenceId'])
         && request.resource.data.residenceId is string
-        && request.resource.data.name is string
-        && request.resource.data.address is string
-        && request.resource.data.city is string
-        && request.resource.data.joinRequestsEnabled == true
-        && request.resource.data.createdBy == request.auth.uid
-        && request.resource.data.createdAt == request.time
+        && !exists(residencePath(request.resource.data.residenceId))
         && getAfter(
-          residencePath(request.resource.data.residenceId)
-        ).data.joinCode == code
+          memberPath(
+            request.resource.data.residenceId,
+            request.auth.uid
+          )
+        ).data.role == 'owner'
         && getAfter(
-          residencePath(request.resource.data.residenceId)
-        ).data.createdBy == request.auth.uid;
+          privateSettingsPath(request.resource.data.residenceId)
+        ).data.joinCode == code;
     }
 
     // A collection-group query can target every collection named

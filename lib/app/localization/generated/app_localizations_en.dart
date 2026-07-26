@@ -178,7 +178,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invitationCode => 'Invitation code';
 
   @override
-  String get invitationCodeHint => 'Enter the code a neighbor sent you';
+  String get invitationCodeHint => 'Example: 48273165';
 
   @override
   String get createAndContinue => 'Create and continue';
@@ -249,8 +249,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchingResidence => 'Searching…';
 
   @override
-  String get residenceCodeInvalid =>
-      'Enter a valid residence code containing 6 to 12 letters or numbers.';
+  String get residenceCodeInvalid => 'Enter the 8-digit residence code.';
 
   @override
   String get residenceCodeNotFound => 'No residence was found with this code';
@@ -930,11 +929,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get accountResolutionInvitationsDescription =>
       'Select the residences you belong to. Unselected invitations will remain pending for later.';
-
-  @override
-  String accountResolutionApartment(String apartment) {
-    return 'Apartment: $apartment';
-  }
 
   @override
   String accountResolutionRole(String role) {

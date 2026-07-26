@@ -26,7 +26,6 @@ class ResidenceInvitation {
     required this.suggestedFirstName,
     required this.suggestedLastName,
     required this.apartmentId,
-    required this.apartmentLabel,
     required this.role,
   });
 
@@ -38,7 +37,6 @@ class ResidenceInvitation {
   final String suggestedFirstName;
   final String suggestedLastName;
   final String apartmentId;
-  final String apartmentLabel;
   final String role;
 
   String get suggestedFullName =>
@@ -109,15 +107,28 @@ class FirestoreAccountOnboardingRepository
       final userDocument = results[0] as DocumentSnapshot<Map<String, dynamic>>;
       final invitationQuery = results[1] as QuerySnapshot<Map<String, dynamic>>;
 
+      final pendingInvitationDocuments = invitationQuery.docs
+          .where((document) => document.data()['status'] == 'pending')
+          .toList(growable: false);
+      final residenceDocuments = await Future.wait([
+        for (final invitation in pendingInvitationDocuments)
+          _residenceReference(invitation).get(),
+      ]);
       final invitations =
-          invitationQuery.docs
-              .where((document) => document.data()['status'] == 'pending')
-              .map(_invitationFromDocument)
-              .toList(growable: false)
-            ..sort(
-              (first, second) =>
-                  first.residenceName.compareTo(second.residenceName),
-            );
+          <ResidenceInvitation>[
+            for (
+              var index = 0;
+              index < pendingInvitationDocuments.length;
+              index++
+            )
+              _invitationFromDocument(
+                pendingInvitationDocuments[index],
+                residenceDocuments[index],
+              ),
+          ]..sort(
+            (first, second) =>
+                first.residenceName.compareTo(second.residenceName),
+          );
 
       return AccountResolution(
         phoneNumber: phoneNumber,
@@ -209,24 +220,34 @@ class FirestoreAccountOnboardingRepository
 
   ResidenceInvitation _invitationFromDocument(
     QueryDocumentSnapshot<Map<String, dynamic>> document,
+    DocumentSnapshot<Map<String, dynamic>> residenceDocument,
   ) {
-    final residenceReference = document.reference.parent.parent;
-    if (residenceReference == null) {
-      throw const AccountOnboardingFailure('invalid-invitation');
+    if (!residenceDocument.exists) {
+      throw const AccountOnboardingFailure('missing-residence');
     }
     final data = document.data();
+    final residenceData = residenceDocument.data()!;
     return ResidenceInvitation(
       path: document.reference.path,
       id: document.id,
-      residenceId: residenceReference.id,
-      residenceName: data['residenceName'] as String? ?? '',
-      residenceAddress: data['residenceAddress'] as String? ?? '',
+      residenceId: residenceDocument.id,
+      residenceName: residenceData['name'] as String? ?? '',
+      residenceAddress: residenceData['address'] as String? ?? '',
       suggestedFirstName: data['suggestedFirstName'] as String? ?? '',
       suggestedLastName: data['suggestedLastName'] as String? ?? '',
       apartmentId: data['apartmentId'] as String? ?? '',
-      apartmentLabel: data['apartmentLabel'] as String? ?? '',
       role: data['role'] as String? ?? 'resident',
     );
+  }
+
+  DocumentReference<Map<String, dynamic>> _residenceReference(
+    QueryDocumentSnapshot<Map<String, dynamic>> invitation,
+  ) {
+    final residenceReference = invitation.reference.parent.parent;
+    if (residenceReference == null) {
+      throw const AccountOnboardingFailure('invalid-invitation');
+    }
+    return residenceReference;
   }
 
   UserProfile _suggestedProfile(ResidenceInvitation invitation) {

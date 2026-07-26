@@ -178,7 +178,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get invitationCode => 'رمز الدعوة';
 
   @override
-  String get invitationCodeHint => 'أدخل الرمز الذي أرسله لك جارك';
+  String get invitationCodeHint => 'مثال: 48273165';
 
   @override
   String get createAndContinue => 'إنشاء الإقامة والمتابعة';
@@ -247,8 +247,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchingResidence => 'جارٍ البحث…';
 
   @override
-  String get residenceCodeInvalid =>
-      'أدخل رمز إقامة صحيحاً من 6 إلى 12 حرفاً أو رقماً.';
+  String get residenceCodeInvalid => 'أدخل رمز الإقامة المكوّن من 8 أرقام.';
 
   @override
   String get residenceCodeNotFound => 'لم نعثر على إقامة بهذا الرمز';
@@ -915,11 +914,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get accountResolutionInvitationsDescription =>
       'علّم الإقامات التي تنتمي إليها. ستبقى الدعوات غير المحددة معلّقة لتراجعها لاحقاً.';
-
-  @override
-  String accountResolutionApartment(String apartment) {
-    return 'الشقة: $apartment';
-  }
 
   @override
   String accountResolutionRole(String role) {
