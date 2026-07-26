@@ -563,6 +563,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
+  String get generalSettings => 'General settings';
+
+  @override
+  String get professionalSettings => 'Professional settings';
+
+  @override
+  String get professionalAccountDescription =>
+      'To manage multiple residences, please switch to a professional account.';
+
+  @override
+  String get switchToProfessionalAccount => 'Switch to a professional account';
+
+  @override
   String get replayOnboarding => 'Replay onboarding';
 
   @override
@@ -576,6 +589,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifications => 'Notifications';
+
+  @override
+  String get markAllNotificationsRead => 'Mark all as read';
+
+  @override
+  String get waterInterruptionNotificationTitle =>
+      'Scheduled water interruption';
+
+  @override
+  String get waterInterruptionNotificationBody =>
+      'Water will be off tomorrow from 6 to 10 AM for maintenance.';
+
+  @override
+  String get duesReminderNotificationTitle => 'Residence dues reminder';
+
+  @override
+  String get duesReminderNotificationBody =>
+      'Please review this month\'s dues status on the residence page.';
+
+  @override
+  String get maintenanceNotificationTitle => 'Elevator maintenance';
+
+  @override
+  String get maintenanceNotificationBody =>
+      'Elevator maintenance is complete and it is available for use.';
+
+  @override
+  String get notificationTimeMinutes => '15 min ago';
+
+  @override
+  String get notificationTimeHours => '2 hours ago';
+
+  @override
+  String get notificationTimeYesterday => 'Yesterday';
 
   @override
   String get communityNotifications => 'Community notifications';

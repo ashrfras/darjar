@@ -59,9 +59,10 @@ class ProfilePage extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppSpacing.xLarge),
                     _ProfileInfo(
-                      icon: Icons.email_outlined,
-                      label: localizations.email,
-                      value: profile.email,
+                      icon: Icons.phone_outlined,
+                      label: localizations.phoneNumber,
+                      value: profile.phone,
+                      valueTextDirection: TextDirection.ltr,
                     ),
                     const Divider(),
                     _ProfileInfo(
@@ -129,14 +130,6 @@ class ProfilePage extends ConsumerWidget {
                           localizations.apartmentsManagementDescription,
                       route: AppRoutes.manageApartments,
                     ),
-                    const Divider(),
-                    _ManagementLink(
-                      key: const Key('manage-projects-link'),
-                      icon: Icons.construction_outlined,
-                      title: localizations.projects,
-                      description: localizations.projectsManagementDescription,
-                      route: AppRoutes.manageProjects,
-                    ),
                   ],
                 ),
               ),
@@ -191,11 +184,13 @@ class _ProfileInfo extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.valueTextDirection,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final TextDirection? valueTextDirection;
 
   @override
   Widget build(BuildContext context) {
@@ -210,7 +205,11 @@ class _ProfileInfo extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label, style: Theme.of(context).textTheme.labelMedium),
-                Text(value, style: Theme.of(context).textTheme.bodyLarge),
+                Text(
+                  value,
+                  textDirection: valueTextDirection,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
               ],
             ),
           ),

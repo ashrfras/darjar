@@ -5,7 +5,7 @@ enum ProfilePermission { manageResidence }
 class ResidentProfile {
   const ResidentProfile({
     required this.name,
-    required this.email,
+    required this.phone,
     required this.residence,
     required this.unit,
     required this.role,
@@ -13,7 +13,7 @@ class ResidentProfile {
   });
 
   final String name;
-  final String email;
+  final String phone;
   final String residence;
   final String unit;
   final String role;
@@ -32,7 +32,7 @@ class MockProfileRepository implements ProfileRepository {
   ResidentProfile getProfile() {
     return const ResidentProfile(
       name: 'أحمد العلوي',
-      email: 'ahmed@example.com',
+      phone: '+212 6 12 34 56 78',
       residence: 'إقامة الياسمين',
       unit: 'العمارة B — الشقة 12',
       role: 'ساكن',

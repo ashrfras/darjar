@@ -188,7 +188,7 @@ void main() {
 
     final brand = find.byKey(const Key('compact-brand'));
     final residence = find.byKey(const Key('compact-residence'));
-    final notification = find.byKey(const Key('gallery-button'));
+    final notification = find.byKey(const Key('notifications-button'));
     final profile = find.byKey(const Key('profile-button'));
 
     expect(tester.getCenter(brand).dx, greaterThan(195));
@@ -200,6 +200,13 @@ void main() {
     final notificationButton = tester.widget<IconButton>(notification);
     expect(appBar.toolbarHeight, 58);
     expect(notificationButton.iconSize, 21);
+
+    await tester.tap(notification);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('notifications-sheet')), findsOneWidget);
+    expect(find.text('انقطاع مبرمج للماء'), findsOneWidget);
+    expect(find.text('تذكير بواجبات الإقامة'), findsOneWidget);
+    expect(find.text('صيانة المصعد'), findsOneWidget);
 
     final filter = find.byKey(const ValueKey('community-filter-all'));
     final appBarBottom = tester.getBottomLeft(find.byType(AppBar)).dy;
@@ -499,6 +506,9 @@ void main() {
     await tester.tap(find.byKey(const Key('profile-button')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('profile-page')), findsOneWidget);
+    expect(find.text('رقم الهاتف'), findsOneWidget);
+    expect(find.text('+212 6 12 34 56 78'), findsOneWidget);
+    expect(find.text('البريد الإلكتروني'), findsNothing);
     expect(
       tester.getSize(find.byKey(const Key('subpage-back-button'))).height,
       40,
@@ -524,9 +534,26 @@ void main() {
     expect(find.byKey(const Key('settings-page')), findsOneWidget);
     expect(find.byType(BackButtonIcon), findsOneWidget);
 
+    expect(find.text('الإعدادات العامة'), findsOneWidget);
+    expect(find.byKey(const Key('general-settings-section')), findsOneWidget);
     expect(find.text('اللغة'), findsNothing);
     expect(find.byType(SegmentedButton<String>), findsNothing);
     expect(find.text('الإشعارات'), findsOneWidget);
+    expect(find.text('الإعدادات الاحترافية'), findsOneWidget);
+    expect(
+      find.text(
+        'من أجل إدارة إقامات متعددة، يرجى التبديل إلى الحساب الاحترافي.',
+      ),
+      findsOneWidget,
+    );
+    final professionalButton = find.byKey(
+      const Key('switch-to-professional-button'),
+    );
+    expect(professionalButton, findsOneWidget);
+    await tester.ensureVisible(professionalButton);
+    await tester.tap(professionalButton);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('settings-page')), findsOneWidget);
   });
 
   testWidgets('residence management links are visible and navigate', (
@@ -552,7 +579,7 @@ void main() {
       find.text('إدارة الشقق، إدارة السكان، تعيين الصلاحيات'),
       findsOneWidget,
     );
-    expect(find.text('المشاريع الاستثنائية، مشاريع الصيانة'), findsOneWidget);
+    expect(find.byKey(const Key('manage-projects-link')), findsNothing);
     expect(
       find.text('هيكلة الإقامة، معلومات الإقامة، قيمة الاشتراك'),
       findsOneWidget,
@@ -561,18 +588,13 @@ void main() {
 
     final residenceLink = find.byKey(const Key('manage-residence-link'));
     final apartmentsLink = find.byKey(const Key('manage-apartments-link'));
-    final projectsLink = find.byKey(const Key('manage-projects-link'));
     expect(
       tester.getTopLeft(residenceLink).dy,
       lessThan(tester.getTopLeft(apartmentsLink).dy),
     );
-    expect(
-      tester.getTopLeft(apartmentsLink).dy,
-      lessThan(tester.getTopLeft(projectsLink).dy),
-    );
 
     final chevrons = find.byIcon(Icons.chevron_left_rounded);
-    expect(chevrons, findsNWidgets(5));
+    expect(chevrons, findsNWidgets(4));
     for (final icon in tester.widgetList<Icon>(chevrons)) {
       expect(icon.textDirection, TextDirection.ltr);
     }
@@ -580,7 +602,6 @@ void main() {
     for (final navigation in [
       (link: 'manage-residence-link', page: 'residence-settings-page'),
       (link: 'manage-apartments-link', page: 'apartments-management-page'),
-      (link: 'manage-projects-link', page: 'projects-management-page'),
     ]) {
       await tester.ensureVisible(find.byKey(Key(navigation.link)));
       await tester.tap(find.byKey(Key(navigation.link)));
@@ -728,7 +749,7 @@ void main() {
   );
 
   testWidgets('internal component gallery remains navigable', (tester) async {
-    await _pumpApp(tester, size: const Size(390, 844));
+    await _pumpApp(tester, size: const Size(1280, 844));
     await _enterResidence(tester);
 
     await tester.tap(find.byKey(const Key('gallery-button')));

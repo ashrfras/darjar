@@ -6,7 +6,6 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_typography.dart';
 import 'package:darjar/core/responsive/responsive_builder.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
-import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -70,7 +69,7 @@ class _CompactShell extends StatelessWidget {
         leading: const _CompactIdentity(),
         title: const SizedBox.shrink(),
         actions: const [
-          _GalleryAction(asNotification: true),
+          _NotificationsAction(compact: true),
           _ProfileAction(compact: true),
           SizedBox(width: 6),
         ],
@@ -110,7 +109,7 @@ class _MediumShell extends StatelessWidget {
       appBar: AppBar(
         title: const _Brand(compact: true),
         actions: const [
-          _GalleryAction(),
+          _NotificationsAction(),
           _ProfileAction(),
           SizedBox(width: AppSpacing.large),
         ],
@@ -343,29 +342,155 @@ class _Brand extends StatelessWidget {
   }
 }
 
-class _GalleryAction extends StatelessWidget {
-  const _GalleryAction({this.asNotification = false});
+class _NotificationsAction extends StatelessWidget {
+  const _NotificationsAction({this.compact = false});
 
-  final bool asNotification;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     return IconButton(
-      key: const Key('gallery-button'),
-      tooltip: localizations.componentGallery,
-      onPressed: () => context.go(AppRoutes.gallery),
-      iconSize: asNotification ? 21 : 24,
+      key: const Key('notifications-button'),
+      tooltip: localizations.notifications,
+      onPressed: () => _showNotifications(context),
+      iconSize: compact ? 21 : 24,
       padding: const EdgeInsets.all(8),
       constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-      icon: Badge(
-        isLabelVisible: asNotification,
+      icon: const Badge(
         smallSize: 7,
-        offset: asNotification ? const Offset(1, -1) : null,
+        offset: Offset(1, -1),
         backgroundColor: AppColors.warning,
-        child: Icon(
-          asNotification ? CupertinoIcons.bell : Icons.palette_outlined,
+        child: Icon(Icons.notifications_none_rounded),
+      ),
+    );
+  }
+
+  void _showNotifications(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      constraints: const BoxConstraints(maxWidth: 560),
+      builder: (context) => const _NotificationsSheet(),
+    );
+  }
+}
+
+class _NotificationsSheet extends StatelessWidget {
+  const _NotificationsSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final notifications = [
+      (
+        icon: Icons.water_drop_outlined,
+        color: AppColors.residence,
+        title: localizations.waterInterruptionNotificationTitle,
+        body: localizations.waterInterruptionNotificationBody,
+        time: localizations.notificationTimeMinutes,
+      ),
+      (
+        icon: Icons.receipt_long_outlined,
+        color: AppColors.primary,
+        title: localizations.duesReminderNotificationTitle,
+        body: localizations.duesReminderNotificationBody,
+        time: localizations.notificationTimeHours,
+      ),
+      (
+        icon: Icons.engineering_outlined,
+        color: AppColors.warning,
+        title: localizations.maintenanceNotificationTitle,
+        body: localizations.maintenanceNotificationBody,
+        time: localizations.notificationTimeYesterday,
+      ),
+    ];
+
+    return Material(
+      key: const Key('notifications-sheet'),
+      color: Theme.of(context).colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.xLarge,
+          AppSpacing.small,
+          AppSpacing.xLarge,
+          AppSpacing.xLarge,
         ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    localizations.notifications,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                TextButton(
+                  key: const Key('mark-notifications-read-button'),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(localizations.markAllNotificationsRead),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.small),
+            for (var index = 0; index < notifications.length; index++) ...[
+              _NotificationTile(
+                key: ValueKey('notification-$index'),
+                icon: notifications[index].icon,
+                color: notifications[index].color,
+                title: notifications[index].title,
+                body: notifications[index].body,
+                time: notifications[index].time,
+              ),
+              if (index < notifications.length - 1) const Divider(),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationTile extends StatelessWidget {
+  const _NotificationTile({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.body,
+    required this.time,
+    super.key,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String body;
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: CircleAvatar(
+        backgroundColor: color.withValues(alpha: 0.12),
+        foregroundColor: color,
+        child: Icon(icon),
+      ),
+      title: Text(title, style: Theme.of(context).textTheme.titleSmall),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: AppSpacing.xSmall),
+        child: Text(body),
+      ),
+      trailing: Text(
+        time,
+        style: Theme.of(
+          context,
+        ).textTheme.labelSmall?.copyWith(color: AppColors.inkMuted),
       ),
     );
   }

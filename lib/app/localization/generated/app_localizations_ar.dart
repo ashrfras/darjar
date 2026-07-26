@@ -555,6 +555,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings => 'الإعدادات';
 
   @override
+  String get generalSettings => 'الإعدادات العامة';
+
+  @override
+  String get professionalSettings => 'الإعدادات الاحترافية';
+
+  @override
+  String get professionalAccountDescription =>
+      'من أجل إدارة إقامات متعددة، يرجى التبديل إلى الحساب الاحترافي.';
+
+  @override
+  String get switchToProfessionalAccount => 'التبديل إلى الحساب الاحترافي';
+
+  @override
   String get replayOnboarding => 'إعادة عرض البداية';
 
   @override
@@ -568,6 +581,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notifications => 'الإشعارات';
+
+  @override
+  String get markAllNotificationsRead => 'تحديد الكل كمقروء';
+
+  @override
+  String get waterInterruptionNotificationTitle => 'انقطاع مبرمج للماء';
+
+  @override
+  String get waterInterruptionNotificationBody =>
+      'سيتم قطع الماء غداً من 6 إلى 10 صباحاً لأشغال الصيانة.';
+
+  @override
+  String get duesReminderNotificationTitle => 'تذكير بواجبات الإقامة';
+
+  @override
+  String get duesReminderNotificationBody =>
+      'يرجى مراجعة حالة واجبات هذا الشهر في صفحة الإقامة.';
+
+  @override
+  String get maintenanceNotificationTitle => 'صيانة المصعد';
+
+  @override
+  String get maintenanceNotificationBody =>
+      'اكتملت صيانة المصعد وأصبح متاحاً للاستعمال.';
+
+  @override
+  String get notificationTimeMinutes => 'منذ 15 د';
+
+  @override
+  String get notificationTimeHours => 'منذ ساعتين';
+
+  @override
+  String get notificationTimeYesterday => 'أمس';
 
   @override
   String get communityNotifications => 'إشعارات المجتمع';

@@ -1124,6 +1124,30 @@ abstract class AppLocalizations {
   /// **'الإعدادات'**
   String get settings;
 
+  /// No description provided for @generalSettings.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإعدادات العامة'**
+  String get generalSettings;
+
+  /// No description provided for @professionalSettings.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإعدادات الاحترافية'**
+  String get professionalSettings;
+
+  /// No description provided for @professionalAccountDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'من أجل إدارة إقامات متعددة، يرجى التبديل إلى الحساب الاحترافي.'**
+  String get professionalAccountDescription;
+
+  /// No description provided for @switchToProfessionalAccount.
+  ///
+  /// In ar, this message translates to:
+  /// **'التبديل إلى الحساب الاحترافي'**
+  String get switchToProfessionalAccount;
+
   /// No description provided for @replayOnboarding.
   ///
   /// In ar, this message translates to:
@@ -1153,6 +1177,66 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'الإشعارات'**
   String get notifications;
+
+  /// No description provided for @markAllNotificationsRead.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحديد الكل كمقروء'**
+  String get markAllNotificationsRead;
+
+  /// No description provided for @waterInterruptionNotificationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'انقطاع مبرمج للماء'**
+  String get waterInterruptionNotificationTitle;
+
+  /// No description provided for @waterInterruptionNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيتم قطع الماء غداً من 6 إلى 10 صباحاً لأشغال الصيانة.'**
+  String get waterInterruptionNotificationBody;
+
+  /// No description provided for @duesReminderNotificationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تذكير بواجبات الإقامة'**
+  String get duesReminderNotificationTitle;
+
+  /// No description provided for @duesReminderNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'يرجى مراجعة حالة واجبات هذا الشهر في صفحة الإقامة.'**
+  String get duesReminderNotificationBody;
+
+  /// No description provided for @maintenanceNotificationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'صيانة المصعد'**
+  String get maintenanceNotificationTitle;
+
+  /// No description provided for @maintenanceNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتملت صيانة المصعد وأصبح متاحاً للاستعمال.'**
+  String get maintenanceNotificationBody;
+
+  /// No description provided for @notificationTimeMinutes.
+  ///
+  /// In ar, this message translates to:
+  /// **'منذ 15 د'**
+  String get notificationTimeMinutes;
+
+  /// No description provided for @notificationTimeHours.
+  ///
+  /// In ar, this message translates to:
+  /// **'منذ ساعتين'**
+  String get notificationTimeHours;
+
+  /// No description provided for @notificationTimeYesterday.
+  ///
+  /// In ar, this message translates to:
+  /// **'أمس'**
+  String get notificationTimeYesterday;
 
   /// No description provided for @communityNotifications.
   ///
