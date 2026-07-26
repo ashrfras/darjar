@@ -2,6 +2,228 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function verifiedPhone() {
+      return signedIn() && request.auth.token.phone_number != null;
+    }
+
+    function invitationPath(residenceId, invitationId) {
+      return /databases/$(database)/documents/residences/$(residenceId)/invitations/$(invitationId);
+    }
+
+    function residencePath(residenceId) {
+      return /databases/$(database)/documents/residences/$(residenceId);
+    }
+
+    function residenceCodePath(code) {
+      return /databases/$(database)/documents/residenceCodes/$(code);
+    }
+
+    function isInvitationMembership(residenceId, memberId) {
+      let invitation = get(
+        invitationPath(
+          residenceId,
+          request.resource.data.sourceInvitationId
+        )
+      ).data;
+      let acceptedInvitation = getAfter(
+        invitationPath(
+          residenceId,
+          request.resource.data.sourceInvitationId
+        )
+      ).data;
+      return verifiedPhone()
+        && request.auth.uid == memberId
+        && request.resource.data.keys().hasOnly([
+          'apartmentId',
+          'role',
+          'status',
+          'sourceInvitationId',
+          'joinedAt'
+        ])
+        && request.resource.data.apartmentId is string
+        && request.resource.data.role in [
+          'resident',
+          'moderator',
+          'manager',
+          'owner'
+        ]
+        && request.resource.data.status == 'active'
+        && request.resource.data.sourceInvitationId is string
+        && request.resource.data.joinedAt == request.time
+        && acceptedInvitation.status == 'accepted'
+        && acceptedInvitation.acceptedBy == request.auth.uid
+        && invitation.phoneNumber == request.auth.token.phone_number
+        && request.resource.data.apartmentId == invitation.apartmentId
+        && request.resource.data.role == invitation.role;
+    }
+
+    function isResidenceCreatorMembership(residenceId, memberId) {
+      return verifiedPhone()
+        && request.auth.uid == memberId
+        && request.resource.data.keys().hasOnly([
+          'apartmentId',
+          'role',
+          'status',
+          'source',
+          'joinedAt'
+        ])
+        && request.resource.data.apartmentId == ''
+        && request.resource.data.role == 'owner'
+        && request.resource.data.status == 'active'
+        && request.resource.data.source == 'residence-creation'
+        && request.resource.data.joinedAt == request.time
+        && getAfter(residencePath(residenceId)).data.createdBy
+          == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+
+      allow create: if verifiedPhone()
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          'firstName',
+          'lastName',
+          'phoneNumber',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.firstName is string
+        && request.resource.data.firstName.size() > 0
+        && request.resource.data.lastName is string
+        && request.resource.data.lastName.size() > 0
+        && request.resource.data.phoneNumber == request.auth.token.phone_number
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if verifiedPhone()
+        && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'firstName',
+          'lastName',
+          'updatedAt'
+        ])
+        && request.resource.data.firstName is string
+        && request.resource.data.firstName.size() > 0
+        && request.resource.data.lastName is string
+        && request.resource.data.lastName.size() > 0
+        && request.resource.data.phoneNumber == request.auth.token.phone_number
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    match /residences/{residenceId} {
+      allow read: if signedIn()
+        && exists(
+          /databases/$(database)/documents/residences/$(residenceId)/members/$(request.auth.uid)
+        );
+
+      allow create: if verifiedPhone()
+        && request.resource.data.keys().hasOnly([
+          'name',
+          'address',
+          'city',
+          'joinCode',
+          'joinRequestsEnabled',
+          'createdBy',
+          'createdAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.address is string
+        && request.resource.data.address.size() > 0
+        && request.resource.data.city is string
+        && request.resource.data.city.size() > 0
+        && request.resource.data.joinCode is string
+        && request.resource.data.joinRequestsEnabled == true
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+
+      match /invitations/{invitationId} {
+        allow update: if verifiedPhone()
+          && resource.data.phoneNumber == request.auth.token.phone_number
+          && resource.data.status == 'pending'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status',
+            'acceptedBy',
+            'acceptedAt'
+          ])
+          && request.resource.data.status == 'accepted'
+          && request.resource.data.acceptedBy == request.auth.uid
+          && request.resource.data.acceptedAt == request.time;
+      }
+
+      match /members/{memberId} {
+        allow read: if signedIn() && request.auth.uid == memberId;
+        allow create: if isResidenceCreatorMembership(residenceId, memberId)
+          || isInvitationMembership(residenceId, memberId);
+      }
+
+      match /joinRequests/{userId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+
+        allow create: if verifiedPhone()
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly([
+            'userId',
+            'phoneNumber',
+            'residenceCode',
+            'status',
+            'createdAt'
+          ])
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.phoneNumber
+            == request.auth.token.phone_number
+          && request.resource.data.residenceCode is string
+          && request.resource.data.status == 'pending'
+          && request.resource.data.createdAt == request.time
+          && get(
+            residenceCodePath(request.resource.data.residenceCode)
+          ).data.residenceId == residenceId
+          && get(
+            residenceCodePath(request.resource.data.residenceCode)
+          ).data.joinRequestsEnabled == true;
+      }
+    }
+
+    match /residenceCodes/{code} {
+      allow read: if signedIn();
+
+      allow create: if verifiedPhone()
+        && request.resource.data.keys().hasOnly([
+          'residenceId',
+          'name',
+          'address',
+          'city',
+          'joinRequestsEnabled',
+          'createdBy',
+          'createdAt'
+        ])
+        && request.resource.data.residenceId is string
+        && request.resource.data.name is string
+        && request.resource.data.address is string
+        && request.resource.data.city is string
+        && request.resource.data.joinRequestsEnabled == true
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && getAfter(
+          residencePath(request.resource.data.residenceId)
+        ).data.joinCode == code
+        && getAfter(
+          residencePath(request.resource.data.residenceId)
+        ).data.createdBy == request.auth.uid;
+    }
+
+    // A collection-group query can target every collection named
+    // "invitations", so it needs this recursive rule in rules version 2.
+    match /{path=**}/invitations/{invitationId} {
+      allow read: if verifiedPhone()
+        && resource.data.phoneNumber == request.auth.token.phone_number;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

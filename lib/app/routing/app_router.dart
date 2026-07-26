@@ -1,3 +1,4 @@
+import 'package:darjar/features/account/presentation/account_resolution_page.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/auth/presentation/phone_auth_page.dart';
 import 'package:darjar/features/community/presentation/community_feed_page.dart';
@@ -26,6 +27,7 @@ import 'package:go_router/go_router.dart';
 
 abstract final class AppRoutes {
   static const auth = '/auth/phone';
+  static const accountResolution = '/auth/resolve';
   static const onboarding = '/onboarding';
   static const residenceSetup = '/residence/setup';
   static const community = '/community';
@@ -48,6 +50,11 @@ abstract final class AppRoutes {
   static String communityPost(String id) => '/community/post/$id';
 }
 
+final appInitialLocationProvider = Provider<String>((ref) {
+  final user = ref.watch(authRepositoryProvider).currentUser;
+  return user == null ? AppRoutes.onboarding : AppRoutes.accountResolution;
+});
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   final authRefresh = _AuthRefreshListenable(authRepository.currentUser);
@@ -55,11 +62,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     next.whenData(authRefresh.update);
   });
   final router = GoRouter(
-    initialLocation: AppRoutes.onboarding,
+    initialLocation: ref.watch(appInitialLocationProvider),
     refreshListenable: authRefresh,
     redirect: (context, state) {
       final location = state.matchedLocation;
       final isAuthRoute = location == AppRoutes.auth;
+      final isAccountResolutionRoute = location == AppRoutes.accountResolution;
       final isPublicRoute =
           location == '/' || location == AppRoutes.onboarding || isAuthRoute;
       final user = authRefresh.user;
@@ -72,13 +80,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (user != null && isAuthRoute) {
-        final destination = state.uri.queryParameters['from'];
-        if (destination != null &&
-            destination.startsWith('/') &&
-            !destination.startsWith(AppRoutes.auth)) {
-          return destination;
-        }
-        return AppRoutes.residenceSetup;
+        return AppRoutes.accountResolution;
+      }
+
+      if (user == null && isAccountResolutionRoute) {
+        return AppRoutes.auth;
       }
 
       return null;
@@ -88,6 +94,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.auth,
         builder: (context, state) => const PhoneAuthPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.accountResolution,
+        builder: (context, state) => const AccountResolutionPage(),
       ),
       GoRoute(
         path: AppRoutes.onboarding,

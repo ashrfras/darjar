@@ -197,8 +197,14 @@ abstract class AppLocalizations {
   /// No description provided for @residenceNameHint.
   ///
   /// In ar, this message translates to:
-  /// **'مثال: إقامة الياسمين'**
+  /// **'مثال: النخيل'**
   String get residenceNameHint;
+
+  /// No description provided for @residenceNameGuidance.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل اسم الإقامة مباشرة دون «إقامة» أو «Résidence».'**
+  String get residenceNameGuidance;
 
   /// No description provided for @chipsAndBadges.
   ///
@@ -299,7 +305,7 @@ abstract class AppLocalizations {
   /// No description provided for @joinMyResidenceDescription.
   ///
   /// In ar, this message translates to:
-  /// **'تحقّق من رقم هاتفك للعثور على إقامتك.'**
+  /// **'ابحث عن إقامتك باستعمال الرمز الذي حصلت عليه.'**
   String get joinMyResidenceDescription;
 
   /// No description provided for @createNewResidence.
@@ -523,6 +529,90 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'إذا كنت قد حصلت على رابط دعوة، فيرجى الضغط عليه للانضمام إلى الإقامة.'**
   String get phoneNotRegisteredDescription;
+
+  /// No description provided for @joinCodeDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل رمز الإقامة لعرض معلوماتها وإرسال طلب الانضمام.'**
+  String get joinCodeDescription;
+
+  /// No description provided for @searchResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'البحث عن الإقامة'**
+  String get searchResidence;
+
+  /// No description provided for @searchingResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ البحث…'**
+  String get searchingResidence;
+
+  /// No description provided for @residenceCodeInvalid.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل رمز إقامة صحيحاً من 6 إلى 12 حرفاً أو رقماً.'**
+  String get residenceCodeInvalid;
+
+  /// No description provided for @residenceCodeNotFound.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم نعثر على إقامة بهذا الرمز'**
+  String get residenceCodeNotFound;
+
+  /// No description provided for @residenceCodeNotFoundDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحقّق من الرمز مع الشخص الذي أرسله إليك ثم حاول مجدداً.'**
+  String get residenceCodeNotFoundDescription;
+
+  /// No description provided for @joinRequestsClosed.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلبات الانضمام متوقفة حالياً في هذه الإقامة.'**
+  String get joinRequestsClosed;
+
+  /// No description provided for @sendingJoinRequest.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ إرسال الطلب…'**
+  String get sendingJoinRequest;
+
+  /// No description provided for @joinRequestSent.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إرسال طلب الانضمام'**
+  String get joinRequestSent;
+
+  /// No description provided for @joinRequestSentDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيظهر لك محتوى الإقامة بعد قبول طلبك من طرف إدارتها.'**
+  String get joinRequestSentDescription;
+
+  /// No description provided for @creatingResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ إنشاء الإقامة…'**
+  String get creatingResidence;
+
+  /// No description provided for @setupFieldRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذا الحقل مطلوب.'**
+  String get setupFieldRequired;
+
+  /// No description provided for @setupCompleteRequiredFields.
+  ///
+  /// In ar, this message translates to:
+  /// **'أكمل جميع معلومات الإقامة والاسم والنسب.'**
+  String get setupCompleteRequiredFields;
+
+  /// No description provided for @setupUnexpectedError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر إكمال العملية الآن. حاول مجدداً.'**
+  String get setupUnexpectedError;
 
   /// No description provided for @communityFeedDescription.
   ///
@@ -1657,6 +1747,126 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تعذر تسجيل الدخول الآن. حاول مجدداً.'**
   String get authUnexpectedError;
+
+  /// No description provided for @accountResolutionTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد معلوماتك'**
+  String get accountResolutionTitle;
+
+  /// No description provided for @accountResolutionDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحقّق من معلوماتك، ثم اختر الإقامات التي تنتمي إليها.'**
+  String get accountResolutionDescription;
+
+  /// No description provided for @accountResolutionFullName.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاسم الكامل'**
+  String get accountResolutionFullName;
+
+  /// No description provided for @accountResolutionInvitationsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تمت دعوتك إلى هذه الإقامات'**
+  String get accountResolutionInvitationsTitle;
+
+  /// No description provided for @accountResolutionInvitationsDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'علّم الإقامات التي تنتمي إليها. ستبقى الدعوات غير المحددة معلّقة لتراجعها لاحقاً.'**
+  String get accountResolutionInvitationsDescription;
+
+  /// No description provided for @accountResolutionApartment.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشقة: {apartment}'**
+  String accountResolutionApartment(String apartment);
+
+  /// No description provided for @accountResolutionRole.
+  ///
+  /// In ar, this message translates to:
+  /// **'الصفة: {role}'**
+  String accountResolutionRole(String role);
+
+  /// No description provided for @accountRoleResident.
+  ///
+  /// In ar, this message translates to:
+  /// **'ساكن'**
+  String get accountRoleResident;
+
+  /// No description provided for @accountRoleModerator.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشرف'**
+  String get accountRoleModerator;
+
+  /// No description provided for @accountRoleManager.
+  ///
+  /// In ar, this message translates to:
+  /// **'مسير'**
+  String get accountRoleManager;
+
+  /// No description provided for @accountRoleOwner.
+  ///
+  /// In ar, this message translates to:
+  /// **'مالك'**
+  String get accountRoleOwner;
+
+  /// No description provided for @accountResolutionConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد والانضمام إلى الإقامات المحددة'**
+  String get accountResolutionConfirm;
+
+  /// No description provided for @accountResolutionAccepting.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تأكيد العضوية…'**
+  String get accountResolutionAccepting;
+
+  /// No description provided for @accountResolutionPendingNotice.
+  ///
+  /// In ar, this message translates to:
+  /// **'لن تُرفض الإقامات غير المحددة، وستبقى دعواتها معلّقة.'**
+  String get accountResolutionPendingNotice;
+
+  /// No description provided for @accountResolutionRetry.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة المحاولة'**
+  String get accountResolutionRetry;
+
+  /// No description provided for @accountResolutionPermissionDenied.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا تسمح قواعد قاعدة البيانات بقراءة هذه الدعوات أو قبولها. انشر قواعد Firestore الجديدة ثم حاول مجدداً.'**
+  String get accountResolutionPermissionDenied;
+
+  /// No description provided for @accountResolutionFailedPrecondition.
+  ///
+  /// In ar, this message translates to:
+  /// **'فهرس قاعدة البيانات المطلوب غير جاهز بعد. انتظر اكتمال بنائه ثم حاول مجدداً.'**
+  String get accountResolutionFailedPrecondition;
+
+  /// No description provided for @accountResolutionMissingProfile.
+  ///
+  /// In ar, this message translates to:
+  /// **'بيانات الاسم أو النسب في الدعوة غير مكتملة.'**
+  String get accountResolutionMissingProfile;
+
+  /// No description provided for @accountResolutionSignedOut.
+  ///
+  /// In ar, this message translates to:
+  /// **'انتهت جلسة تسجيل الدخول. سجّل الدخول مجدداً.'**
+  String get accountResolutionSignedOut;
+
+  /// No description provided for @accountResolutionUnexpectedError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تحميل الدعوات أو تأكيدها الآن. حاول مجدداً.'**
+  String get accountResolutionUnexpectedError;
 }
 
 class _AppLocalizationsDelegate

@@ -60,7 +60,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get residenceName => 'Residence name';
 
   @override
-  String get residenceNameHint => 'Example: Yasmeen Residence';
+  String get residenceNameHint => 'Example: Yasmeen';
+
+  @override
+  String get residenceNameGuidance =>
+      'Enter the name directly without “إقامة” or “Résidence”.';
 
   @override
   String get chipsAndBadges => 'Chips and badges';
@@ -115,7 +119,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get joinMyResidenceDescription =>
-      'Verify your phone number to find your residence.';
+      'Find your residence using the code you received.';
 
   @override
   String get createNewResidence => 'Create a new residence';
@@ -233,6 +237,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get phoneNotRegisteredDescription =>
       'If you received an invitation link, please tap it to join the residence.';
+
+  @override
+  String get joinCodeDescription =>
+      'Enter the residence code to view its information and send a join request.';
+
+  @override
+  String get searchResidence => 'Find residence';
+
+  @override
+  String get searchingResidence => 'Searching…';
+
+  @override
+  String get residenceCodeInvalid =>
+      'Enter a valid residence code containing 6 to 12 letters or numbers.';
+
+  @override
+  String get residenceCodeNotFound => 'No residence was found with this code';
+
+  @override
+  String get residenceCodeNotFoundDescription =>
+      'Check the code with the person who sent it to you, then try again.';
+
+  @override
+  String get joinRequestsClosed =>
+      'Join requests are currently disabled for this residence.';
+
+  @override
+  String get sendingJoinRequest => 'Sending request…';
+
+  @override
+  String get joinRequestSent => 'Join request sent';
+
+  @override
+  String get joinRequestSentDescription =>
+      'Residence content will become available after its management accepts your request.';
+
+  @override
+  String get creatingResidence => 'Creating residence…';
+
+  @override
+  String get setupFieldRequired => 'This field is required.';
+
+  @override
+  String get setupCompleteRequiredFields =>
+      'Complete all residence, first name, and last name fields.';
+
+  @override
+  String get setupUnexpectedError =>
+      'The operation could not be completed right now. Try again.';
 
   @override
   String get communityFeedDescription =>
@@ -859,4 +912,77 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authUnexpectedError => 'Could not sign in right now. Try again.';
+
+  @override
+  String get accountResolutionTitle => 'Confirm your information';
+
+  @override
+  String get accountResolutionDescription =>
+      'Check your information, then select the residences you belong to.';
+
+  @override
+  String get accountResolutionFullName => 'Full name';
+
+  @override
+  String get accountResolutionInvitationsTitle =>
+      'You have been invited to these residences';
+
+  @override
+  String get accountResolutionInvitationsDescription =>
+      'Select the residences you belong to. Unselected invitations will remain pending for later.';
+
+  @override
+  String accountResolutionApartment(String apartment) {
+    return 'Apartment: $apartment';
+  }
+
+  @override
+  String accountResolutionRole(String role) {
+    return 'Role: $role';
+  }
+
+  @override
+  String get accountRoleResident => 'Resident';
+
+  @override
+  String get accountRoleModerator => 'Moderator';
+
+  @override
+  String get accountRoleManager => 'Manager';
+
+  @override
+  String get accountRoleOwner => 'Owner';
+
+  @override
+  String get accountResolutionConfirm => 'Confirm and join selected residences';
+
+  @override
+  String get accountResolutionAccepting => 'Confirming memberships…';
+
+  @override
+  String get accountResolutionPendingNotice =>
+      'Unselected residences will not be declined; their invitations will remain pending.';
+
+  @override
+  String get accountResolutionRetry => 'Try again';
+
+  @override
+  String get accountResolutionPermissionDenied =>
+      'The database rules do not allow these invitations to be read or accepted. Deploy the new Firestore rules and try again.';
+
+  @override
+  String get accountResolutionFailedPrecondition =>
+      'The required database index is not ready yet. Wait for it to finish building, then try again.';
+
+  @override
+  String get accountResolutionMissingProfile =>
+      'The first or last name in the invitation is incomplete.';
+
+  @override
+  String get accountResolutionSignedOut =>
+      'Your sign-in session ended. Sign in again.';
+
+  @override
+  String get accountResolutionUnexpectedError =>
+      'Invitations could not be loaded or confirmed right now. Try again.';
 }

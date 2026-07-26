@@ -1,0 +1,260 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class UserProfile {
+  const UserProfile({
+    required this.firstName,
+    required this.lastName,
+    required this.phoneNumber,
+  });
+
+  final String firstName;
+  final String lastName;
+  final String phoneNumber;
+
+  String get fullName => '$firstName $lastName'.trim();
+}
+
+class ResidenceInvitation {
+  const ResidenceInvitation({
+    required this.path,
+    required this.id,
+    required this.residenceId,
+    required this.residenceName,
+    required this.residenceAddress,
+    required this.suggestedFirstName,
+    required this.suggestedLastName,
+    required this.apartmentId,
+    required this.apartmentLabel,
+    required this.role,
+  });
+
+  final String path;
+  final String id;
+  final String residenceId;
+  final String residenceName;
+  final String residenceAddress;
+  final String suggestedFirstName;
+  final String suggestedLastName;
+  final String apartmentId;
+  final String apartmentLabel;
+  final String role;
+
+  String get suggestedFullName =>
+      '$suggestedFirstName $suggestedLastName'.trim();
+}
+
+class AccountResolution {
+  const AccountResolution({
+    required this.phoneNumber,
+    required this.profile,
+    required this.invitations,
+  });
+
+  final String phoneNumber;
+  final UserProfile? profile;
+  final List<ResidenceInvitation> invitations;
+
+  UserProfile? get displayedProfile {
+    if (profile != null) {
+      return profile;
+    }
+    if (invitations.isEmpty) {
+      return null;
+    }
+    final invitation = invitations.first;
+    return UserProfile(
+      firstName: invitation.suggestedFirstName,
+      lastName: invitation.suggestedLastName,
+      phoneNumber: '',
+    );
+  }
+}
+
+class AccountOnboardingFailure implements Exception {
+  const AccountOnboardingFailure(this.code, [this.details]);
+
+  final String code;
+  final String? details;
+}
+
+abstract interface class AccountOnboardingRepository {
+  Future<AccountResolution> loadResolution(AuthUser user);
+
+  Future<void> acceptInvitations({
+    required AuthUser user,
+    required AccountResolution resolution,
+    required List<ResidenceInvitation> invitations,
+  });
+}
+
+class FirestoreAccountOnboardingRepository
+    implements AccountOnboardingRepository {
+  FirestoreAccountOnboardingRepository(this._firestore);
+
+  final FirebaseFirestore _firestore;
+
+  @override
+  Future<AccountResolution> loadResolution(AuthUser user) async {
+    final phoneNumber = _verifiedPhoneNumber(user);
+    try {
+      final results = await Future.wait([
+        _firestore.collection('users').doc(user.uid).get(),
+        _firestore
+            .collectionGroup('invitations')
+            .where('phoneNumber', isEqualTo: phoneNumber)
+            .get(),
+      ]);
+      final userDocument = results[0] as DocumentSnapshot<Map<String, dynamic>>;
+      final invitationQuery = results[1] as QuerySnapshot<Map<String, dynamic>>;
+
+      final invitations =
+          invitationQuery.docs
+              .where((document) => document.data()['status'] == 'pending')
+              .map(_invitationFromDocument)
+              .toList(growable: false)
+            ..sort(
+              (first, second) =>
+                  first.residenceName.compareTo(second.residenceName),
+            );
+
+      return AccountResolution(
+        phoneNumber: phoneNumber,
+        profile: userDocument.exists
+            ? _profileFromData(userDocument.data()!, phoneNumber)
+            : null,
+        invitations: invitations,
+      );
+    } on AccountOnboardingFailure {
+      rethrow;
+    } on FirebaseException catch (error) {
+      throw AccountOnboardingFailure(error.code, error.message);
+    } catch (error) {
+      throw AccountOnboardingFailure('unknown', error.toString());
+    }
+  }
+
+  @override
+  Future<void> acceptInvitations({
+    required AuthUser user,
+    required AccountResolution resolution,
+    required List<ResidenceInvitation> invitations,
+  }) async {
+    if (invitations.isEmpty) {
+      throw const AccountOnboardingFailure('no-invitations-selected');
+    }
+    final phoneNumber = _verifiedPhoneNumber(user);
+    final profile = resolution.profile ?? _suggestedProfile(invitations.first);
+    if (profile.firstName.isEmpty || profile.lastName.isEmpty) {
+      throw const AccountOnboardingFailure('missing-profile-data');
+    }
+
+    try {
+      final batch = _firestore.batch();
+      if (resolution.profile == null) {
+        batch.set(_firestore.collection('users').doc(user.uid), {
+          'firstName': profile.firstName,
+          'lastName': profile.lastName,
+          'phoneNumber': phoneNumber,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      for (final invitation in invitations) {
+        final invitationReference = _firestore.doc(invitation.path);
+        final membershipReference = _firestore
+            .collection('residences')
+            .doc(invitation.residenceId)
+            .collection('members')
+            .doc(user.uid);
+        batch.update(invitationReference, {
+          'status': 'accepted',
+          'acceptedBy': user.uid,
+          'acceptedAt': FieldValue.serverTimestamp(),
+        });
+        batch.set(membershipReference, {
+          'apartmentId': invitation.apartmentId,
+          'role': invitation.role,
+          'status': 'active',
+          'sourceInvitationId': invitation.id,
+          'joinedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
+    } on FirebaseException catch (error) {
+      throw AccountOnboardingFailure(error.code, error.message);
+    } catch (error) {
+      throw AccountOnboardingFailure('unknown', error.toString());
+    }
+  }
+
+  String _verifiedPhoneNumber(AuthUser user) {
+    final phoneNumber = user.phoneNumber;
+    if (phoneNumber == null || phoneNumber.isEmpty) {
+      throw const AccountOnboardingFailure('missing-phone-number');
+    }
+    return phoneNumber;
+  }
+
+  UserProfile _profileFromData(Map<String, dynamic> data, String phoneNumber) {
+    return UserProfile(
+      firstName: data['firstName'] as String? ?? '',
+      lastName: data['lastName'] as String? ?? '',
+      phoneNumber: phoneNumber,
+    );
+  }
+
+  ResidenceInvitation _invitationFromDocument(
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
+  ) {
+    final residenceReference = document.reference.parent.parent;
+    if (residenceReference == null) {
+      throw const AccountOnboardingFailure('invalid-invitation');
+    }
+    final data = document.data();
+    return ResidenceInvitation(
+      path: document.reference.path,
+      id: document.id,
+      residenceId: residenceReference.id,
+      residenceName: data['residenceName'] as String? ?? '',
+      residenceAddress: data['residenceAddress'] as String? ?? '',
+      suggestedFirstName: data['suggestedFirstName'] as String? ?? '',
+      suggestedLastName: data['suggestedLastName'] as String? ?? '',
+      apartmentId: data['apartmentId'] as String? ?? '',
+      apartmentLabel: data['apartmentLabel'] as String? ?? '',
+      role: data['role'] as String? ?? 'resident',
+    );
+  }
+
+  UserProfile _suggestedProfile(ResidenceInvitation invitation) {
+    return UserProfile(
+      firstName: invitation.suggestedFirstName.trim(),
+      lastName: invitation.suggestedLastName.trim(),
+      phoneNumber: '',
+    );
+  }
+}
+
+final firebaseFirestoreProvider = Provider<FirebaseFirestore>(
+  (ref) => FirebaseFirestore.instance,
+);
+
+final accountOnboardingRepositoryProvider =
+    Provider<AccountOnboardingRepository>(
+      (ref) => FirestoreAccountOnboardingRepository(
+        ref.watch(firebaseFirestoreProvider),
+      ),
+    );
+
+final accountResolutionProvider = FutureProvider.autoDispose<AccountResolution>(
+  (ref) {
+    final user = ref.watch(authRepositoryProvider).currentUser;
+    if (user == null) {
+      throw const AccountOnboardingFailure('signed-out');
+    }
+    return ref.watch(accountOnboardingRepositoryProvider).loadResolution(user);
+  },
+);

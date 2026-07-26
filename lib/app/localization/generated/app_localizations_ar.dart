@@ -60,7 +60,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get residenceName => 'اسم الإقامة';
 
   @override
-  String get residenceNameHint => 'مثال: إقامة الياسمين';
+  String get residenceNameHint => 'مثال: النخيل';
+
+  @override
+  String get residenceNameGuidance =>
+      'أدخل اسم الإقامة مباشرة دون «إقامة» أو «Résidence».';
 
   @override
   String get chipsAndBadges => 'الشرائح والشارات';
@@ -115,7 +119,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get joinMyResidenceDescription =>
-      'تحقّق من رقم هاتفك للعثور على إقامتك.';
+      'ابحث عن إقامتك باستعمال الرمز الذي حصلت عليه.';
 
   @override
   String get createNewResidence => 'إنشاء إقامة جديدة';
@@ -231,6 +235,54 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get phoneNotRegisteredDescription =>
       'إذا كنت قد حصلت على رابط دعوة، فيرجى الضغط عليه للانضمام إلى الإقامة.';
+
+  @override
+  String get joinCodeDescription =>
+      'أدخل رمز الإقامة لعرض معلوماتها وإرسال طلب الانضمام.';
+
+  @override
+  String get searchResidence => 'البحث عن الإقامة';
+
+  @override
+  String get searchingResidence => 'جارٍ البحث…';
+
+  @override
+  String get residenceCodeInvalid =>
+      'أدخل رمز إقامة صحيحاً من 6 إلى 12 حرفاً أو رقماً.';
+
+  @override
+  String get residenceCodeNotFound => 'لم نعثر على إقامة بهذا الرمز';
+
+  @override
+  String get residenceCodeNotFoundDescription =>
+      'تحقّق من الرمز مع الشخص الذي أرسله إليك ثم حاول مجدداً.';
+
+  @override
+  String get joinRequestsClosed =>
+      'طلبات الانضمام متوقفة حالياً في هذه الإقامة.';
+
+  @override
+  String get sendingJoinRequest => 'جارٍ إرسال الطلب…';
+
+  @override
+  String get joinRequestSent => 'تم إرسال طلب الانضمام';
+
+  @override
+  String get joinRequestSentDescription =>
+      'سيظهر لك محتوى الإقامة بعد قبول طلبك من طرف إدارتها.';
+
+  @override
+  String get creatingResidence => 'جارٍ إنشاء الإقامة…';
+
+  @override
+  String get setupFieldRequired => 'هذا الحقل مطلوب.';
+
+  @override
+  String get setupCompleteRequiredFields =>
+      'أكمل جميع معلومات الإقامة والاسم والنسب.';
+
+  @override
+  String get setupUnexpectedError => 'تعذر إكمال العملية الآن. حاول مجدداً.';
 
   @override
   String get communityFeedDescription => 'آخر أخبار وإعلانات إقامة الياسمين.';
@@ -846,4 +898,76 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authUnexpectedError => 'تعذر تسجيل الدخول الآن. حاول مجدداً.';
+
+  @override
+  String get accountResolutionTitle => 'تأكيد معلوماتك';
+
+  @override
+  String get accountResolutionDescription =>
+      'تحقّق من معلوماتك، ثم اختر الإقامات التي تنتمي إليها.';
+
+  @override
+  String get accountResolutionFullName => 'الاسم الكامل';
+
+  @override
+  String get accountResolutionInvitationsTitle => 'تمت دعوتك إلى هذه الإقامات';
+
+  @override
+  String get accountResolutionInvitationsDescription =>
+      'علّم الإقامات التي تنتمي إليها. ستبقى الدعوات غير المحددة معلّقة لتراجعها لاحقاً.';
+
+  @override
+  String accountResolutionApartment(String apartment) {
+    return 'الشقة: $apartment';
+  }
+
+  @override
+  String accountResolutionRole(String role) {
+    return 'الصفة: $role';
+  }
+
+  @override
+  String get accountRoleResident => 'ساكن';
+
+  @override
+  String get accountRoleModerator => 'مشرف';
+
+  @override
+  String get accountRoleManager => 'مسير';
+
+  @override
+  String get accountRoleOwner => 'مالك';
+
+  @override
+  String get accountResolutionConfirm => 'تأكيد والانضمام إلى الإقامات المحددة';
+
+  @override
+  String get accountResolutionAccepting => 'جارٍ تأكيد العضوية…';
+
+  @override
+  String get accountResolutionPendingNotice =>
+      'لن تُرفض الإقامات غير المحددة، وستبقى دعواتها معلّقة.';
+
+  @override
+  String get accountResolutionRetry => 'إعادة المحاولة';
+
+  @override
+  String get accountResolutionPermissionDenied =>
+      'لا تسمح قواعد قاعدة البيانات بقراءة هذه الدعوات أو قبولها. انشر قواعد Firestore الجديدة ثم حاول مجدداً.';
+
+  @override
+  String get accountResolutionFailedPrecondition =>
+      'فهرس قاعدة البيانات المطلوب غير جاهز بعد. انتظر اكتمال بنائه ثم حاول مجدداً.';
+
+  @override
+  String get accountResolutionMissingProfile =>
+      'بيانات الاسم أو النسب في الدعوة غير مكتملة.';
+
+  @override
+  String get accountResolutionSignedOut =>
+      'انتهت جلسة تسجيل الدخول. سجّل الدخول مجدداً.';
+
+  @override
+  String get accountResolutionUnexpectedError =>
+      'تعذر تحميل الدعوات أو تأكيدها الآن. حاول مجدداً.';
 }
