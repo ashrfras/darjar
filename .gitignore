@@ -33,6 +33,23 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Firebase local state and logs
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# Local environment files and private credentials
+.env
+.env.*
+!.env.example
+*service-account*.json
+*.p8
+*.p12
+*.jks
+*.keystore
+*.key
+
 # Symbolication related
 app.*.symbols
 

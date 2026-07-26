@@ -1,0 +1,37 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "raq-darjar",
+          "appId": "1:1080325854470:android:5ab86da40ecfb2101b3a87",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "raq-darjar",
+          "appId": "1:1080325854470:ios:4627f8256fe5e50c1b3a87",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "raq-darjar",
+          "configurations": {
+            "android": "1:1080325854470:android:5ab86da40ecfb2101b3a87",
+            "ios": "1:1080325854470:ios:4627f8256fe5e50c1b3a87",
+            "web": "1:1080325854470:web:4100773edeb607de1b3a87"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "europe-southwest1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}
