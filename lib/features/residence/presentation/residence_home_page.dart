@@ -6,6 +6,7 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
@@ -20,6 +21,7 @@ class ResidenceHomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboard = ref.watch(residenceDashboardProvider);
+    final residentDues = ref.watch(residentDuesProvider);
     final activeResidence = ref.watch(
       residenceContextProvider.select(
         (context) => context.value?.activeResidence,
@@ -94,7 +96,7 @@ class ResidenceHomePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.medium),
               ],
-              _DashboardGrid(data: dashboard),
+              _DashboardGrid(data: dashboard, residentDues: residentDues),
             ],
           ),
         ),
@@ -104,9 +106,10 @@ class ResidenceHomePage extends ConsumerWidget {
 }
 
 class _DashboardGrid extends StatelessWidget {
-  const _DashboardGrid({required this.data});
+  const _DashboardGrid({required this.data, required this.residentDues});
 
   final ResidenceDashboardData data;
+  final AsyncValue<ResidenceDuesOverview> residentDues;
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +124,10 @@ class _DashboardGrid extends StatelessWidget {
           spacing: AppSpacing.large,
           runSpacing: AppSpacing.medium,
           children: [
-            SizedBox(width: constraints.maxWidth, child: _AccountCard(data)),
+            SizedBox(
+              width: constraints.maxWidth,
+              child: _AccountCard(residentDues),
+            ),
             SizedBox(
               width: constraints.maxWidth,
               child: _ResidenceFinancesCard(data.finances),
@@ -247,13 +253,22 @@ class _SectionIcon extends StatelessWidget {
 }
 
 class _AccountCard extends StatelessWidget {
-  const _AccountCard(this.data);
+  const _AccountCard(this.duesState);
 
-  final ResidenceDashboardData data;
+  final AsyncValue<ResidenceDuesOverview> duesState;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final overview = duesState.value;
+    final due = overview?.dues.firstOrNull;
+    final payment = overview?.payments.firstOrNull;
+    final status = switch (due?.status) {
+      ResidenceDueStatus.unpaid => localizations.duesStatusUnpaid,
+      ResidenceDueStatus.partial => localizations.duesStatusPartial,
+      ResidenceDueStatus.paid => localizations.duesStatusPaid,
+      null => '—',
+    };
     return _DashboardCard(
       title: localizations.myAccount,
       icon: Icons.account_balance_wallet_outlined,
@@ -267,22 +282,35 @@ class _AccountCard extends StatelessWidget {
           final items = [
             _FinancialMetric(
               label: 'حالة الاشتراك',
-              value: 'مدفوع',
-              detail: 'شهر ${data.paidThrough}\nلا يوجد أي متأخرات',
-              status: true,
+              value: status,
+              detail: due == null
+                  ? localizations.duesNoRecords
+                  : '${localizations.duesRemaining}: '
+                        '${due.remainingAmount} ${localizations.currency}',
+              status: due?.status == ResidenceDueStatus.paid,
             ),
             _FinancialMetric(
               label: 'المبلغ الشهري',
-              value: '${data.monthlyDue}',
+              value: due == null ? '—' : '${due.amountDue}',
               suffix: 'درهم',
-              detail: 'السداد قبل 05 يونيو',
+              detail: due == null
+                  ? localizations.duesNoRecords
+                  : localizations.duesPeriod(
+                      _duesPeriodLabel(context, due.periodKey),
+                    ),
             ),
             _FinancialMetric(
               label: 'آخر عملية دفع',
-              value: '${data.lastPayment}',
+              value: payment == null ? '—' : '${payment.amount}',
               suffix: 'درهم',
-              detail: 'بتاريخ ${data.lastPaymentDate}',
-              receipt: true,
+              detail: payment == null
+                  ? localizations.duesNoPayments
+                  : localizations.duesRecordedOn(
+                      DateFormat.yMMMd(
+                        localizations.localeName,
+                      ).format(payment.paidAt),
+                    ),
+              receipt: payment != null,
             ),
           ];
           if (narrow) {
@@ -731,4 +759,11 @@ String _formatAmount(BuildContext context, int amount) {
 
 String _formatPercentage(double value) {
   return '${(value * 100).round()}%';
+}
+
+String _duesPeriodLabel(BuildContext context, String periodKey) {
+  final parts = periodKey.split('-');
+  return DateFormat.yMMMM(
+    AppLocalizations.of(context).localeName,
+  ).format(DateTime(int.parse(parts[0]), int.parse(parts[1])));
 }

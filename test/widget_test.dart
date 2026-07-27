@@ -15,6 +15,7 @@ import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:darjar/features/residence/data/residence_invitation_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
@@ -1049,6 +1050,195 @@ void main() {
     expect(find.text('تم حفظ معلومات الحساب.'), findsOneWidget);
   });
 
+  testWidgets(
+    'resident sees dues and manual payment history for their apartment',
+    (tester) async {
+      final duesRepository = _FakeResidenceDuesRepository()
+        ..overview = ResidenceDuesOverview.empty
+        ..residentStartDate = DateTime(
+          DateTime.now().year,
+          DateTime.now().month - 2,
+        );
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        residenceDuesRepository: duesRepository,
+        residenceContext: const ResidenceContext(
+          residences: [
+            UserResidence(
+              id: 'test-residence',
+              name: 'إقامة الاختبار',
+              address: 'شارع الاختبار',
+              city: '6141010',
+              role: 'resident',
+              apartmentId: 'apartment-01',
+            ),
+          ],
+          activeResidenceId: 'test-residence',
+          invitations: [],
+        ),
+      );
+      await _enterResidence(tester);
+      await tester.tap(find.text('الإقامة'));
+      await tester.pumpAndSettle();
+      expect(duesRepository.residentPeriodChecks, 1);
+      expect(duesRepository.overview.dues, hasLength(3));
+      await tester.tap(find.text('حالة الواجبات'));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('dues-page')), findsOneWidget);
+      expect(find.byKey(const Key('dues-total-expected')), findsOneWidget);
+      expect(
+        tester.getSize(find.byKey(const Key('dues-total-expected'))).width,
+        greaterThan(300),
+      );
+      expect(
+        find.text('عرض مبسط لحالة واجبات السكن المسجلة من الإدارة.'),
+        findsNothing,
+      );
+      expect(
+        find.byKey(
+          ValueKey(
+            'resident-due-${residenceDuesPeriodKey(DateTime.now())}_apartment-01',
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('غير مؤدى'), findsNWidgets(3));
+      expect(find.text('لا توجد اشتراكات مسجلة لهذه الشقة بعد.'), findsNothing);
+    },
+  );
+
+  testWidgets('management allocates arrears first and prepays future months', (
+    tester,
+  ) async {
+    final duesRepository = _FakeResidenceDuesRepository();
+    final now = DateTime.now();
+    final apartmentOnePeriods = [
+      residenceDuesPeriodKey(DateTime(now.year, now.month - 2)),
+      residenceDuesPeriodKey(DateTime(now.year, now.month - 1)),
+      residenceDuesPeriodKey(now),
+    ];
+    duesRepository.overview = ResidenceDuesOverview(
+      dues: [
+        for (final periodKey in apartmentOnePeriods)
+          ResidenceDue(
+            id: '${periodKey}_apartment-01',
+            apartmentId: 'apartment-01',
+            apartmentNumber: '01',
+            periodKey: periodKey,
+            amountDue: 150,
+            amountPaid: 0,
+            status: ResidenceDueStatus.unpaid,
+          ),
+        ...duesRepository.overview.dues.where(
+          (due) => due.apartmentId == 'apartment-02',
+        ),
+      ],
+      payments: duesRepository.overview.payments,
+    );
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceDuesRepository: duesRepository,
+    );
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const Key('manage-dues-link')));
+    await tester.tap(find.byKey(const Key('manage-dues-link')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('dues-management-page')), findsOneWidget);
+    expect(find.byKey(const Key('management-dues-expected')), findsOneWidget);
+    expect(find.byKey(const Key('management-dues-collected')), findsOneWidget);
+    expect(find.byKey(const Key('management-dues-remaining')), findsOneWidget);
+    expect(find.text('الأشهر غير المؤداة: 3'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('open-periods-apartment-01')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('period-details-sheet')), findsOneWidget);
+    expect(
+      find.byKey(
+        ValueKey('managed-due-${apartmentOnePeriods.first}_apartment-01'),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.byIcon(Icons.close_rounded).last);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('record-payment-button')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('record-payment-button')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('record-payment-sheet')), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byKey(const Key('payment-amount-field')), findsNothing);
+    await tester.tap(find.byKey(const Key('payment-apartment-field')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('الشقة رقم 01').last);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('payment-amount-field')), findsOneWidget);
+
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const Key('payment-amount-field')),
+        matching: find.byType(TextField),
+      ),
+      '500',
+    );
+    await tester.tap(find.byKey(const Key('save-payment-button')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'أدخل مبلغاً صحيحاً. يجب أن يساوي الجزء المدفوع مسبقاً قيمة شهر كامل أو عدة أشهر.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('record-payment-sheet')), findsOneWidget);
+
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const Key('payment-amount-field')),
+        matching: find.byType(TextField),
+      ),
+      '750',
+    );
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const Key('payment-note-field')),
+        matching: find.byType(TextField),
+      ),
+      'أداء نقدي',
+    );
+    await tester.tap(find.byKey(const Key('save-payment-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تم تسجيل الأداء بنجاح.'), findsOneWidget);
+    final apartmentOneDues = duesRepository.overview.dues
+        .where((due) => due.apartmentId == 'apartment-01')
+        .toList();
+    expect(apartmentOneDues, hasLength(5));
+    expect(
+      apartmentOneDues.every(
+        (due) => due.amountPaid == 150 && due.status == ResidenceDueStatus.paid,
+      ),
+      isTrue,
+    );
+    expect(
+      apartmentOneDues.map((due) => due.periodKey),
+      containsAll([
+        residenceDuesPeriodKey(DateTime(now.year, now.month + 1)),
+        residenceDuesPeriodKey(DateTime(now.year, now.month + 2)),
+      ]),
+    );
+    expect(
+      duesRepository.overview.payments.where(
+        (payment) => payment.apartmentId == 'apartment-01',
+      ),
+      hasLength(5),
+    );
+    expect(duesRepository.overview.payments.first.note, 'أداء نقدي');
+  });
+
   testWidgets('residence management is hidden from regular residents', (
     tester,
   ) async {
@@ -1149,7 +1339,7 @@ void main() {
     );
 
     final chevrons = find.byIcon(Icons.chevron_left_rounded);
-    expect(chevrons, findsNWidgets(2));
+    expect(chevrons, findsNWidgets(3));
     for (final icon in tester.widgetList<Icon>(chevrons)) {
       expect(icon.textDirection, TextDirection.ltr);
     }
@@ -1157,6 +1347,7 @@ void main() {
     for (final navigation in [
       (link: 'manage-residence-link', page: 'residence-settings-page'),
       (link: 'manage-apartments-link', page: 'apartments-management-page'),
+      (link: 'manage-dues-link', page: 'dues-management-page'),
     ]) {
       await tester.ensureVisible(find.byKey(Key(navigation.link)));
       await tester.tap(find.byKey(Key(navigation.link)));
@@ -1710,6 +1901,7 @@ Future<void> _pumpApp(
   ResidenceSetupRepository? residenceSetupRepository,
   ResidenceContextRepository? residenceContextRepository,
   ResidenceMembersRepository? residenceMembersRepository,
+  ResidenceDuesRepository? residenceDuesRepository,
   ResidenceInvitationRepository? residenceInvitationRepository,
   ResidenceSettingsRepository? residenceSettingsRepository,
   ProfileRepository? profileRepository,
@@ -1730,6 +1922,8 @@ Future<void> _pumpApp(
       residenceContextRepository ?? _FakeResidenceContextRepository();
   final membersRepository =
       residenceMembersRepository ?? _FakeResidenceMembersRepository();
+  final duesRepository =
+      residenceDuesRepository ?? _FakeResidenceDuesRepository();
   final invitationRepository =
       residenceInvitationRepository ?? _FakeResidenceInvitationRepository();
   final settingsRepository =
@@ -1752,6 +1946,7 @@ Future<void> _pumpApp(
         residenceSetupRepositoryProvider.overrideWithValue(setupRepository),
         residenceContextRepositoryProvider.overrideWithValue(contextRepository),
         residenceMembersRepositoryProvider.overrideWithValue(membersRepository),
+        residenceDuesRepositoryProvider.overrideWithValue(duesRepository),
         residenceInvitationRepositoryProvider.overrideWithValue(
           invitationRepository,
         ),
@@ -2309,6 +2504,226 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
       ],
     );
   }
+}
+
+class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
+  _FakeResidenceDuesRepository() {
+    final periodKey = residenceDuesPeriodKey(DateTime.now());
+    overview = ResidenceDuesOverview(
+      dues: [
+        ResidenceDue(
+          id: '${periodKey}_apartment-01',
+          apartmentId: 'apartment-01',
+          apartmentNumber: '01',
+          periodKey: periodKey,
+          amountDue: 150,
+          amountPaid: 0,
+          status: ResidenceDueStatus.unpaid,
+        ),
+        ResidenceDue(
+          id: '${periodKey}_apartment-02',
+          apartmentId: 'apartment-02',
+          apartmentNumber: '02',
+          periodKey: periodKey,
+          amountDue: 150,
+          amountPaid: 150,
+          status: ResidenceDueStatus.paid,
+        ),
+      ],
+      payments: [
+        ResidenceDuePayment(
+          id: 'payment-apartment-02',
+          dueId: '${periodKey}_apartment-02',
+          apartmentId: 'apartment-02',
+          apartmentNumber: '02',
+          amount: 150,
+          paidAt: DateTime.now(),
+          note: '',
+          recordedBy: 'test-user',
+        ),
+      ],
+    );
+  }
+
+  late ResidenceDuesOverview overview;
+  int residentPeriodChecks = 0;
+  DateTime residentStartDate = DateTime.now();
+
+  @override
+  Future<void> ensurePeriod({
+    required String residenceId,
+    required String periodKey,
+    required int defaultAmount,
+    required List<ResidenceApartment> apartments,
+  }) async {
+    final existingApartmentIds = {
+      for (final due in overview.dues)
+        if (due.periodKey == periodKey) due.apartmentId,
+    };
+    overview = ResidenceDuesOverview(
+      dues: [
+        ...overview.dues,
+        for (final apartment in apartments)
+          if (!existingApartmentIds.contains(apartment.id))
+            ResidenceDue(
+              id: '${periodKey}_${apartment.id}',
+              apartmentId: apartment.id,
+              apartmentNumber: apartment.number,
+              periodKey: periodKey,
+              amountDue: defaultAmount,
+              amountPaid: 0,
+              status: ResidenceDueStatus.unpaid,
+            ),
+      ],
+      payments: overview.payments,
+    );
+  }
+
+  @override
+  Future<void> ensureResidentPeriod({
+    required String residenceId,
+    required String apartmentId,
+    required String periodKey,
+  }) async {
+    residentPeriodChecks++;
+    final currentPeriod = _testPeriodDate(periodKey);
+    final missingDues = <ResidenceDue>[];
+    var period = DateTime(residentStartDate.year, residentStartDate.month);
+    while (!period.isAfter(currentPeriod)) {
+      final missingPeriod = residenceDuesPeriodKey(period);
+      if (!overview.dues.any(
+        (due) =>
+            due.apartmentId == apartmentId && due.periodKey == missingPeriod,
+      )) {
+        missingDues.add(
+          ResidenceDue(
+            id: '${missingPeriod}_$apartmentId',
+            apartmentId: apartmentId,
+            apartmentNumber: apartmentId == 'apartment-01' ? '01' : '02',
+            periodKey: missingPeriod,
+            amountDue: 150,
+            amountPaid: 0,
+            status: ResidenceDueStatus.unpaid,
+          ),
+        );
+      }
+      period = DateTime(period.year, period.month + 1);
+    }
+    overview = ResidenceDuesOverview(
+      dues: [...missingDues.reversed, ...overview.dues],
+      payments: overview.payments,
+    );
+  }
+
+  @override
+  Future<ResidenceDuesOverview> load({
+    required String residenceId,
+    String? apartmentId,
+  }) async {
+    if (apartmentId == null) return overview;
+    return ResidenceDuesOverview(
+      dues: overview.dues
+          .where((due) => due.apartmentId == apartmentId)
+          .toList(),
+      payments: overview.payments
+          .where((payment) => payment.apartmentId == apartmentId)
+          .toList(),
+    );
+  }
+
+  @override
+  Future<void> recordApartmentPayment({
+    required String residenceId,
+    required String apartmentId,
+    required String apartmentNumber,
+    required int amount,
+    required int defaultAmount,
+    required String currentPeriodKey,
+    required DateTime paidAt,
+    required String note,
+    required String recordedBy,
+  }) async {
+    final apartmentDues =
+        overview.dues.where((due) => due.apartmentId == apartmentId).toList()
+          ..sort(
+            (first, second) => first.periodKey.compareTo(second.periodKey),
+          );
+    final remaining = apartmentDues.fold(
+      0,
+      (total, due) => total + due.remainingAmount,
+    );
+    final advanceAmount = amount > remaining ? amount - remaining : 0;
+    if (advanceAmount > 0 &&
+        (defaultAmount == 0 || advanceAmount % defaultAmount != 0)) {
+      throw const ResidenceDuesFailure('invalid-advance-amount');
+    }
+    var lastPeriod = currentPeriodKey;
+    for (final due in apartmentDues) {
+      if (due.periodKey.compareTo(lastPeriod) > 0) lastPeriod = due.periodKey;
+    }
+    var futurePeriod = _testPeriodDate(lastPeriod);
+    final futureDues = <ResidenceDue>[];
+    for (
+      var index = 0;
+      index < (defaultAmount == 0 ? 0 : advanceAmount ~/ defaultAmount);
+      index++
+    ) {
+      futurePeriod = DateTime(futurePeriod.year, futurePeriod.month + 1);
+      final periodKey = residenceDuesPeriodKey(futurePeriod);
+      futureDues.add(
+        ResidenceDue(
+          id: '${periodKey}_$apartmentId',
+          apartmentId: apartmentId,
+          apartmentNumber: apartmentNumber,
+          periodKey: periodKey,
+          amountDue: defaultAmount,
+          amountPaid: 0,
+          status: ResidenceDueStatus.unpaid,
+        ),
+      );
+    }
+    var unallocated = amount;
+    final updatedById = <String, ResidenceDue>{};
+    final payments = <ResidenceDuePayment>[];
+    for (final due in [
+      ...apartmentDues.where((due) => due.remainingAmount > 0),
+      ...futureDues,
+    ]) {
+      if (unallocated == 0) break;
+      final allocated = unallocated < due.remainingAmount
+          ? unallocated
+          : due.remainingAmount;
+      updatedById[due.id] = due.copyWithPayment(allocated);
+      payments.add(
+        ResidenceDuePayment(
+          id: 'payment-${overview.payments.length + payments.length + 1}',
+          dueId: due.id,
+          apartmentId: apartmentId,
+          apartmentNumber: apartmentNumber,
+          amount: allocated,
+          paidAt: paidAt,
+          note: note,
+          recordedBy: recordedBy,
+        ),
+      );
+      unallocated -= allocated;
+    }
+    if (unallocated != 0) {
+      throw const ResidenceDuesFailure('invalid-payment-amount');
+    }
+    overview = ResidenceDuesOverview(
+      dues: [
+        for (final item in overview.dues) updatedById[item.id] ?? item,
+        for (final due in futureDues) updatedById[due.id]!,
+      ],
+      payments: [...payments.reversed, ...overview.payments],
+    );
+  }
+}
+
+DateTime _testPeriodDate(String periodKey) {
+  final parts = periodKey.split('-');
+  return DateTime(int.parse(parts[0]), int.parse(parts[1]));
 }
 
 class _FakeResidenceInvitationRepository

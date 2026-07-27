@@ -47,12 +47,14 @@ class ResidenceApartment {
     required this.number,
     required this.floorId,
     this.buildingId = '',
+    this.createdAt,
   });
 
   final String id;
   final String number;
   final String floorId;
   final String buildingId;
+  final DateTime? createdAt;
 }
 
 class ResidenceFloor {
@@ -253,6 +255,7 @@ class FirestoreResidenceMembersRepository
           number: document.data()['number']?.toString() ?? '',
           floorId: floor.id,
           buildingId: floor.reference.parent.parent?.id ?? '',
+          createdAt: (document.data()['createdAt'] as Timestamp?)?.toDate(),
         ),
     ]..sort((a, b) => a.number.compareTo(b.number));
     final data = floor.data();

@@ -1136,6 +1136,228 @@ abstract class AppLocalizations {
   /// **'دارجار لا يستلم الأموال. يتم الأداء خارج التطبيق وتحدّث الإدارة الحالة يدوياً.'**
   String get manualDuesNotice;
 
+  /// No description provided for @duesManagement.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة الاشتراكات'**
+  String get duesManagement;
+
+  /// No description provided for @duesManagementDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أنشئ واجبات الشهر تلقائياً لكل شقة وسجّل الأداءات اليدوية.'**
+  String get duesManagementDescription;
+
+  /// No description provided for @duesCurrentMonth.
+  ///
+  /// In ar, this message translates to:
+  /// **'اشتراكات الشهر الحالي'**
+  String get duesCurrentMonth;
+
+  /// No description provided for @duesGeneratedNotice.
+  ///
+  /// In ar, this message translates to:
+  /// **'تُنشأ الأشهر الناقصة تلقائياً حسب قيمة الاشتراك الحالية، وتُحفظ الأشهر المدفوعة مسبقاً بالقيمة نفسها.'**
+  String get duesGeneratedNotice;
+
+  /// No description provided for @duesApartmentsSummary.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملخص اشتراكات الشقق'**
+  String get duesApartmentsSummary;
+
+  /// No description provided for @duesOutstandingPeriods.
+  ///
+  /// In ar, this message translates to:
+  /// **'الأشهر غير المؤداة: {count}'**
+  String duesOutstandingPeriods(int count);
+
+  /// No description provided for @duesAllPeriodsPaid.
+  ///
+  /// In ar, this message translates to:
+  /// **'جميع الأشهر مؤداة'**
+  String get duesAllPeriodsPaid;
+
+  /// No description provided for @duesPeriodDetailsFor.
+  ///
+  /// In ar, this message translates to:
+  /// **'تفاصيل اشتراكات الشقة رقم {number}'**
+  String duesPeriodDetailsFor(String number);
+
+  /// No description provided for @duesSelectApartment.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر الشقة'**
+  String get duesSelectApartment;
+
+  /// No description provided for @duesSelectApartmentError.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر الشقة أولاً.'**
+  String get duesSelectApartmentError;
+
+  /// No description provided for @duesPaymentDistribution.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيُوزع المبلغ تلقائياً على أقدم الأشهر غير المؤداة أولاً.'**
+  String get duesPaymentDistribution;
+
+  /// No description provided for @duesAdvancePaymentHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'بعد أداء جميع المستحقات، يمكن دفع أشهر لاحقة كاملة بقيمة {amount} درهم للشهر.'**
+  String duesAdvancePaymentHint(String amount);
+
+  /// No description provided for @duesNoApartment.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم ربط حسابك بشقة بعد. تواصل مع إدارة الإقامة.'**
+  String get duesNoApartment;
+
+  /// No description provided for @duesNoRecords.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد اشتراكات مسجلة لهذه الشقة بعد.'**
+  String get duesNoRecords;
+
+  /// No description provided for @duesNoApartments.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف الشقق أولاً حتى يتم إنشاء اشتراكات الشهر.'**
+  String get duesNoApartments;
+
+  /// No description provided for @duesApartment.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشقة رقم {number}'**
+  String duesApartment(String number);
+
+  /// No description provided for @duesPeriod.
+  ///
+  /// In ar, this message translates to:
+  /// **'اشتراك {period}'**
+  String duesPeriod(String period);
+
+  /// No description provided for @duesExpected.
+  ///
+  /// In ar, this message translates to:
+  /// **'المبلغ المنتظر'**
+  String get duesExpected;
+
+  /// No description provided for @duesCollected.
+  ///
+  /// In ar, this message translates to:
+  /// **'المبلغ المحصل'**
+  String get duesCollected;
+
+  /// No description provided for @duesRemaining.
+  ///
+  /// In ar, this message translates to:
+  /// **'المبلغ المتبقي'**
+  String get duesRemaining;
+
+  /// No description provided for @duesAmountDue.
+  ///
+  /// In ar, this message translates to:
+  /// **'المبلغ المستحق'**
+  String get duesAmountDue;
+
+  /// No description provided for @duesAmountPaid.
+  ///
+  /// In ar, this message translates to:
+  /// **'المبلغ المؤدى'**
+  String get duesAmountPaid;
+
+  /// No description provided for @duesPaymentHistory.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجل الأداءات'**
+  String get duesPaymentHistory;
+
+  /// No description provided for @duesNoPayments.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم تسجيل أي أداء بعد.'**
+  String get duesNoPayments;
+
+  /// No description provided for @duesStatusUnpaid.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير مؤدى'**
+  String get duesStatusUnpaid;
+
+  /// No description provided for @duesStatusPartial.
+  ///
+  /// In ar, this message translates to:
+  /// **'مؤدى جزئياً'**
+  String get duesStatusPartial;
+
+  /// No description provided for @duesStatusPaid.
+  ///
+  /// In ar, this message translates to:
+  /// **'مؤدى'**
+  String get duesStatusPaid;
+
+  /// No description provided for @duesRecordPayment.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسجيل أداء'**
+  String get duesRecordPayment;
+
+  /// No description provided for @duesRecordPaymentFor.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسجيل أداء للشقة رقم {number}'**
+  String duesRecordPaymentFor(String number);
+
+  /// No description provided for @duesPaymentAmount.
+  ///
+  /// In ar, this message translates to:
+  /// **'المبلغ المؤدى'**
+  String get duesPaymentAmount;
+
+  /// No description provided for @duesPaymentDate.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاريخ الأداء'**
+  String get duesPaymentDate;
+
+  /// No description provided for @duesPaymentNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملاحظة اختيارية'**
+  String get duesPaymentNote;
+
+  /// No description provided for @duesSavePayment.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظ الأداء'**
+  String get duesSavePayment;
+
+  /// No description provided for @duesPaymentSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تسجيل الأداء بنجاح.'**
+  String get duesPaymentSaved;
+
+  /// No description provided for @duesInvalidPayment.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل مبلغاً صحيحاً. يجب أن يساوي الجزء المدفوع مسبقاً قيمة شهر كامل أو عدة أشهر.'**
+  String get duesInvalidPayment;
+
+  /// No description provided for @duesLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تحميل بيانات الاشتراكات. حاول مجدداً.'**
+  String get duesLoadError;
+
+  /// No description provided for @duesRecordedOn.
+  ///
+  /// In ar, this message translates to:
+  /// **'سُجّل بتاريخ {date}'**
+  String duesRecordedOn(String date);
+
   /// No description provided for @managementPageDescription.
   ///
   /// In ar, this message translates to:

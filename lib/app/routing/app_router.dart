@@ -10,6 +10,7 @@ import 'package:darjar/features/directory/presentation/directory_profile_page.da
 import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
 import 'package:darjar/features/profile/presentation/profile_page.dart';
 import 'package:darjar/features/profile/presentation/settings_page.dart';
+import 'package:darjar/features/residence/presentation/dues_management_page.dart';
 import 'package:darjar/features/residence/presentation/dues_page.dart';
 import 'package:darjar/features/residence/presentation/finance_transactions_page.dart';
 import 'package:darjar/features/residence/presentation/group_invitation_page.dart';
@@ -39,6 +40,7 @@ abstract final class AppRoutes {
   static const financeTransactions = '/residence/finances/transactions';
   static const management = '/residence/management';
   static const manageApartments = '/residence/admin/apartments';
+  static const manageDues = '/residence/admin/dues';
   static const groupInvitation = '/residence/admin/apartments/invitation';
   static const manageProjects = '/residence/admin/projects';
   static const manageResidence = '/residence/admin/details';
@@ -158,6 +160,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.manageApartments,
             builder: (context, state) => const ApartmentsResidentsPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.manageDues,
+            builder: (context, state) => const DuesManagementPage(),
           ),
           GoRoute(
             path: AppRoutes.groupInvitation,

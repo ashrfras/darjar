@@ -14,6 +14,14 @@ service cloud.firestore {
       return cityId is string && cityId.matches('^[0-9]{7,10}$');
     }
 
+    function currentPeriodKey() {
+      let month = request.time.month();
+      return string(request.time.year())
+        + '-'
+        + (month < 10 ? '0' : '')
+        + string(month);
+    }
+
     function invitationPath(residenceId, invitationId) {
       return /databases/$(database)/documents/residences/$(residenceId)/invitations/$(invitationId);
     }
@@ -51,6 +59,13 @@ service cloud.firestore {
           membership.role in ['president', 'owner']
           || membership.hasPresidentPermissions == true
         );
+    }
+
+    function isOwnResidenceApartment(residenceId, apartmentId) {
+      return isResidenceMember(residenceId)
+        && get(
+          memberPath(residenceId, request.auth.uid)
+        ).data.apartmentId == apartmentId;
     }
 
     function isPresident(residenceId) {
@@ -477,6 +492,131 @@ service cloud.firestore {
             && request.resource.data.updatedAt == request.time
           )
           || isJoinCodeMembership(residenceId, memberId);
+      }
+
+      match /dues/{dueId} {
+        allow read: if canManageResidence(residenceId)
+          || isOwnResidenceApartment(residenceId, resource.data.apartmentId);
+
+        allow create: if (
+            canManageResidence(residenceId)
+            || (
+              isOwnResidenceApartment(
+                residenceId,
+                request.resource.data.apartmentId
+              )
+              && request.resource.data.periodKey <= currentPeriodKey()
+              && request.resource.data.amountDue
+                == get(
+                  privateSettingsPath(residenceId)
+                ).data.defaultSubscriptionAmount
+              && request.resource.data.amountPaid == 0
+            )
+          )
+          && request.resource.data.keys().hasOnly([
+            'apartmentId',
+            'apartmentNumber',
+            'periodKey',
+            'amountDue',
+            'amountPaid',
+            'status',
+            'createdAt',
+            'updatedAt'
+          ])
+          && request.resource.data.apartmentId is string
+          && request.resource.data.apartmentId.size() > 0
+          && request.resource.data.apartmentNumber is string
+          && request.resource.data.apartmentNumber.size() > 0
+          && request.resource.data.periodKey is string
+          && request.resource.data.periodKey.matches(
+            '^[0-9]{4}-(0[1-9]|1[0-2])$'
+          )
+          && dueId == request.resource.data.periodKey
+            + '_'
+            + request.resource.data.apartmentId
+          && request.resource.data.amountDue is int
+          && request.resource.data.amountDue >= 0
+          && request.resource.data.amountPaid is int
+          && request.resource.data.amountPaid >= 0
+          && request.resource.data.amountPaid
+            <= request.resource.data.amountDue
+          && (
+            (
+              request.resource.data.amountPaid == 0
+              && request.resource.data.amountDue > 0
+              && request.resource.data.status == 'unpaid'
+            )
+            || (
+              request.resource.data.amountPaid > 0
+              && request.resource.data.amountPaid
+                < request.resource.data.amountDue
+              && request.resource.data.status == 'partial'
+            )
+            || (
+              request.resource.data.amountPaid
+                == request.resource.data.amountDue
+              && request.resource.data.status == 'paid'
+            )
+          )
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+
+        allow update: if canManageResidence(residenceId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'amountPaid',
+            'status',
+            'updatedAt'
+          ])
+          && request.resource.data.amountPaid is int
+          && request.resource.data.amountPaid >= resource.data.amountPaid
+          && request.resource.data.amountPaid <= resource.data.amountDue
+          && (
+            (
+              request.resource.data.amountPaid == 0
+              && request.resource.data.status == 'unpaid'
+            )
+            || (
+              request.resource.data.amountPaid > 0
+              && request.resource.data.amountPaid
+                < request.resource.data.amountDue
+              && request.resource.data.status == 'partial'
+            )
+            || (
+              request.resource.data.amountPaid
+                == request.resource.data.amountDue
+              && request.resource.data.status == 'paid'
+            )
+          )
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      match /duePayments/{paymentId} {
+        allow read: if canManageResidence(residenceId)
+          || isOwnResidenceApartment(residenceId, resource.data.apartmentId);
+
+        allow create: if canManageResidence(residenceId)
+          && request.resource.data.keys().hasOnly([
+            'dueId',
+            'apartmentId',
+            'apartmentNumber',
+            'amount',
+            'paidAt',
+            'note',
+            'recordedBy',
+            'createdAt'
+          ])
+          && request.resource.data.dueId is string
+          && request.resource.data.dueId.size() > 0
+          && request.resource.data.apartmentId is string
+          && request.resource.data.apartmentId.size() > 0
+          && request.resource.data.apartmentNumber is string
+          && request.resource.data.amount is int
+          && request.resource.data.amount > 0
+          && request.resource.data.paidAt is timestamp
+          && request.resource.data.paidAt <= request.time
+          && request.resource.data.note is string
+          && request.resource.data.recordedBy == request.auth.uid
+          && request.resource.data.createdAt == request.time;
       }
 
       match /buildings/{buildingId} {

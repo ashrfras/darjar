@@ -565,6 +565,137 @@ class AppLocalizationsAr extends AppLocalizations {
       'دارجار لا يستلم الأموال. يتم الأداء خارج التطبيق وتحدّث الإدارة الحالة يدوياً.';
 
   @override
+  String get duesManagement => 'إدارة الاشتراكات';
+
+  @override
+  String get duesManagementDescription =>
+      'أنشئ واجبات الشهر تلقائياً لكل شقة وسجّل الأداءات اليدوية.';
+
+  @override
+  String get duesCurrentMonth => 'اشتراكات الشهر الحالي';
+
+  @override
+  String get duesGeneratedNotice =>
+      'تُنشأ الأشهر الناقصة تلقائياً حسب قيمة الاشتراك الحالية، وتُحفظ الأشهر المدفوعة مسبقاً بالقيمة نفسها.';
+
+  @override
+  String get duesApartmentsSummary => 'ملخص اشتراكات الشقق';
+
+  @override
+  String duesOutstandingPeriods(int count) {
+    return 'الأشهر غير المؤداة: $count';
+  }
+
+  @override
+  String get duesAllPeriodsPaid => 'جميع الأشهر مؤداة';
+
+  @override
+  String duesPeriodDetailsFor(String number) {
+    return 'تفاصيل اشتراكات الشقة رقم $number';
+  }
+
+  @override
+  String get duesSelectApartment => 'اختر الشقة';
+
+  @override
+  String get duesSelectApartmentError => 'اختر الشقة أولاً.';
+
+  @override
+  String get duesPaymentDistribution =>
+      'سيُوزع المبلغ تلقائياً على أقدم الأشهر غير المؤداة أولاً.';
+
+  @override
+  String duesAdvancePaymentHint(String amount) {
+    return 'بعد أداء جميع المستحقات، يمكن دفع أشهر لاحقة كاملة بقيمة $amount درهم للشهر.';
+  }
+
+  @override
+  String get duesNoApartment =>
+      'لم يتم ربط حسابك بشقة بعد. تواصل مع إدارة الإقامة.';
+
+  @override
+  String get duesNoRecords => 'لا توجد اشتراكات مسجلة لهذه الشقة بعد.';
+
+  @override
+  String get duesNoApartments =>
+      'أضف الشقق أولاً حتى يتم إنشاء اشتراكات الشهر.';
+
+  @override
+  String duesApartment(String number) {
+    return 'الشقة رقم $number';
+  }
+
+  @override
+  String duesPeriod(String period) {
+    return 'اشتراك $period';
+  }
+
+  @override
+  String get duesExpected => 'المبلغ المنتظر';
+
+  @override
+  String get duesCollected => 'المبلغ المحصل';
+
+  @override
+  String get duesRemaining => 'المبلغ المتبقي';
+
+  @override
+  String get duesAmountDue => 'المبلغ المستحق';
+
+  @override
+  String get duesAmountPaid => 'المبلغ المؤدى';
+
+  @override
+  String get duesPaymentHistory => 'سجل الأداءات';
+
+  @override
+  String get duesNoPayments => 'لم يتم تسجيل أي أداء بعد.';
+
+  @override
+  String get duesStatusUnpaid => 'غير مؤدى';
+
+  @override
+  String get duesStatusPartial => 'مؤدى جزئياً';
+
+  @override
+  String get duesStatusPaid => 'مؤدى';
+
+  @override
+  String get duesRecordPayment => 'تسجيل أداء';
+
+  @override
+  String duesRecordPaymentFor(String number) {
+    return 'تسجيل أداء للشقة رقم $number';
+  }
+
+  @override
+  String get duesPaymentAmount => 'المبلغ المؤدى';
+
+  @override
+  String get duesPaymentDate => 'تاريخ الأداء';
+
+  @override
+  String get duesPaymentNote => 'ملاحظة اختيارية';
+
+  @override
+  String get duesSavePayment => 'حفظ الأداء';
+
+  @override
+  String get duesPaymentSaved => 'تم تسجيل الأداء بنجاح.';
+
+  @override
+  String get duesInvalidPayment =>
+      'أدخل مبلغاً صحيحاً. يجب أن يساوي الجزء المدفوع مسبقاً قيمة شهر كامل أو عدة أشهر.';
+
+  @override
+  String get duesLoadError => 'تعذر تحميل بيانات الاشتراكات. حاول مجدداً.';
+
+  @override
+  String duesRecordedOn(String date) {
+    return 'سُجّل بتاريخ $date';
+  }
+
+  @override
   String get managementPageDescription =>
       'معلومات إدارة الإقامة وطرق التواصل المتاحة.';
 

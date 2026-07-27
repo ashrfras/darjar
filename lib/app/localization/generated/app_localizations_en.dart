@@ -575,6 +575,138 @@ class AppLocalizationsEn extends AppLocalizations {
       'DarJar does not collect money. Payment happens outside the app and management updates the status manually.';
 
   @override
+  String get duesManagement => 'Dues management';
+
+  @override
+  String get duesManagementDescription =>
+      'Generate monthly apartment dues and record manual payments.';
+
+  @override
+  String get duesCurrentMonth => 'Current month dues';
+
+  @override
+  String get duesGeneratedNotice =>
+      'Missing months are generated automatically at the current subscription amount, and prepaid months keep that same amount.';
+
+  @override
+  String get duesApartmentsSummary => 'Apartment subscriptions summary';
+
+  @override
+  String duesOutstandingPeriods(int count) {
+    return 'Unpaid months: $count';
+  }
+
+  @override
+  String get duesAllPeriodsPaid => 'All months are paid';
+
+  @override
+  String duesPeriodDetailsFor(String number) {
+    return 'Subscription details for apartment $number';
+  }
+
+  @override
+  String get duesSelectApartment => 'Select apartment';
+
+  @override
+  String get duesSelectApartmentError => 'Select an apartment first.';
+
+  @override
+  String get duesPaymentDistribution =>
+      'The amount will be applied automatically to the oldest unpaid months first.';
+
+  @override
+  String duesAdvancePaymentHint(String amount) {
+    return 'After settling all dues, complete future months can be prepaid at $amount MAD per month.';
+  }
+
+  @override
+  String get duesNoApartment =>
+      'Your account is not linked to an apartment yet. Contact residence management.';
+
+  @override
+  String get duesNoRecords =>
+      'No dues have been recorded for this apartment yet.';
+
+  @override
+  String get duesNoApartments =>
+      'Add apartments first to generate monthly dues.';
+
+  @override
+  String duesApartment(String number) {
+    return 'Apartment $number';
+  }
+
+  @override
+  String duesPeriod(String period) {
+    return '$period dues';
+  }
+
+  @override
+  String get duesExpected => 'Expected amount';
+
+  @override
+  String get duesCollected => 'Collected amount';
+
+  @override
+  String get duesRemaining => 'Remaining amount';
+
+  @override
+  String get duesAmountDue => 'Amount due';
+
+  @override
+  String get duesAmountPaid => 'Amount paid';
+
+  @override
+  String get duesPaymentHistory => 'Payment history';
+
+  @override
+  String get duesNoPayments => 'No payment has been recorded yet.';
+
+  @override
+  String get duesStatusUnpaid => 'Unpaid';
+
+  @override
+  String get duesStatusPartial => 'Partially paid';
+
+  @override
+  String get duesStatusPaid => 'Paid';
+
+  @override
+  String get duesRecordPayment => 'Record payment';
+
+  @override
+  String duesRecordPaymentFor(String number) {
+    return 'Record payment for apartment $number';
+  }
+
+  @override
+  String get duesPaymentAmount => 'Amount paid';
+
+  @override
+  String get duesPaymentDate => 'Payment date';
+
+  @override
+  String get duesPaymentNote => 'Optional note';
+
+  @override
+  String get duesSavePayment => 'Save payment';
+
+  @override
+  String get duesPaymentSaved => 'Payment recorded successfully.';
+
+  @override
+  String get duesInvalidPayment =>
+      'Enter a valid amount. Any advance portion must equal one or more complete monthly subscriptions.';
+
+  @override
+  String get duesLoadError => 'Dues data could not be loaded. Try again.';
+
+  @override
+  String duesRecordedOn(String date) {
+    return 'Recorded on $date';
+  }
+
+  @override
   String get managementPageDescription =>
       'Residence management details and available contact methods.';
 
