@@ -43,7 +43,24 @@ service cloud.firestore {
       ).data;
       return signedIn()
         && membership.status == 'active'
-        && membership.role in ['manager', 'owner'];
+        && (
+          membership.role in ['president', 'owner']
+          || membership.hasPresidentPermissions == true
+        );
+    }
+
+    function isPresident(residenceId) {
+      let membership = get(
+        memberPath(residenceId, request.auth.uid)
+      ).data;
+      let residence = get(residencePath(residenceId)).data;
+      return signedIn()
+        && membership.status == 'active'
+        && membership.role in ['president', 'owner']
+        && (
+          residence.presidentId == request.auth.uid
+          || residence.presidentId == null
+        );
     }
 
     function isInvitationMembership(residenceId, memberId) {
@@ -68,6 +85,7 @@ service cloud.firestore {
           'phoneNumber',
           'apartmentId',
           'role',
+          'hasPresidentPermissions',
           'status',
           'sourceInvitationId',
           'joinedAt'
@@ -80,10 +98,10 @@ service cloud.firestore {
         && request.resource.data.apartmentId is string
         && request.resource.data.role in [
           'resident',
-          'moderator',
-          'manager',
-          'owner'
+          'deputy',
+          'treasurer'
         ]
+        && request.resource.data.hasPresidentPermissions == false
         && request.resource.data.status == 'active'
         && request.resource.data.sourceInvitationId is string
         && request.resource.data.joinedAt == request.time
@@ -104,6 +122,7 @@ service cloud.firestore {
           'phoneNumber',
           'apartmentId',
           'role',
+          'hasPresidentPermissions',
           'status',
           'source',
           'joinedAt'
@@ -114,7 +133,8 @@ service cloud.firestore {
         && request.resource.data.phoneNumber
           == request.auth.token.phone_number
         && request.resource.data.apartmentId == ''
-        && request.resource.data.role == 'owner'
+        && request.resource.data.role == 'president'
+        && request.resource.data.hasPresidentPermissions == false
         && request.resource.data.status == 'active'
         && request.resource.data.source == 'residence-creation'
         && request.resource.data.joinedAt == request.time
@@ -132,6 +152,7 @@ service cloud.firestore {
           'phoneNumber',
           'apartmentId',
           'role',
+          'hasPresidentPermissions',
           'status',
           'source',
           'residenceCode',
@@ -144,6 +165,7 @@ service cloud.firestore {
           == request.auth.token.phone_number
         && request.resource.data.apartmentId == ''
         && request.resource.data.role == 'resident'
+        && request.resource.data.hasPresidentPermissions == false
         && request.resource.data.status == 'active'
         && request.resource.data.source == 'join-code'
         && request.resource.data.residenceCode is string
@@ -214,6 +236,7 @@ service cloud.firestore {
           'name',
           'address',
           'city',
+          'presidentId',
           'joinRequestsEnabled',
           'createdAt'
         ])
@@ -223,27 +246,46 @@ service cloud.firestore {
         && request.resource.data.address.size() > 0
         && request.resource.data.city is string
         && request.resource.data.city.size() > 0
+        && request.resource.data.presidentId == request.auth.uid
         && request.resource.data.joinRequestsEnabled == true
         && request.resource.data.createdAt == request.time;
 
-      allow update: if canManageResidence(residenceId)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'name',
-          'address',
-          'establishmentYear',
-          'hasImage',
-          'joinRequestsEnabled',
-          'updatedAt'
-        ])
-        && request.resource.data.name is string
-        && request.resource.data.name.size() > 0
-        && request.resource.data.address is string
-        && request.resource.data.address.size() > 0
-        && request.resource.data.establishmentYear is int
-        && request.resource.data.establishmentYear >= 1800
-        && request.resource.data.hasImage is bool
-        && request.resource.data.joinRequestsEnabled is bool
-        && request.resource.data.updatedAt == request.time;
+      allow update: if (
+          canManageResidence(residenceId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'name',
+            'address',
+            'establishmentYear',
+            'hasImage',
+            'joinRequestsEnabled',
+            'updatedAt'
+          ])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.address is string
+          && request.resource.data.address.size() > 0
+          && request.resource.data.establishmentYear is int
+          && request.resource.data.establishmentYear >= 1800
+          && request.resource.data.hasImage is bool
+          && request.resource.data.joinRequestsEnabled is bool
+          && request.resource.data.updatedAt == request.time
+        )
+        || (
+          isPresident(residenceId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'presidentId',
+            'updatedAt'
+          ])
+          && request.resource.data.presidentId is string
+          && request.resource.data.presidentId != request.auth.uid
+          && getAfter(
+            memberPath(residenceId, request.resource.data.presidentId)
+          ).data.role == 'president'
+          && getAfter(
+            memberPath(residenceId, request.auth.uid)
+          ).data.role == 'resident'
+          && request.resource.data.updatedAt == request.time
+        );
 
       match /settings/private {
         allow read: if isResidenceMember(residenceId);
@@ -252,7 +294,7 @@ service cloud.firestore {
           && !exists(residencePath(residenceId))
           && getAfter(
             memberPath(residenceId, request.auth.uid)
-          ).data.role == 'owner'
+          ).data.role == 'president'
           && request.resource.data.keys().hasOnly([
             'createdBy',
             'joinCode',
@@ -293,6 +335,8 @@ service cloud.firestore {
       }
 
       match /invitations/{invitationId} {
+        allow read: if canManageResidence(residenceId);
+
         allow create: if canManageResidence(residenceId)
           && request.resource.data.keys().hasOnly([
             'suggestedFirstName',
@@ -300,6 +344,7 @@ service cloud.firestore {
             'phoneNumber',
             'apartmentId',
             'role',
+            'hasPresidentPermissions',
             'status',
             'createdAt'
           ])
@@ -308,8 +353,13 @@ service cloud.firestore {
           && request.resource.data.suggestedLastName is string
           && request.resource.data.suggestedLastName.size() > 0
           && request.resource.data.phoneNumber is string
+          && request.resource.data.phoneNumber.matches(
+            '^[+][1-9][0-9]{7,14}$'
+          )
+          && invitationId == request.resource.data.phoneNumber
           && request.resource.data.apartmentId is string
           && request.resource.data.role == 'resident'
+          && request.resource.data.hasPresidentPermissions == false
           && request.resource.data.status == 'pending'
           && request.resource.data.createdAt == request.time;
 
@@ -341,6 +391,63 @@ service cloud.firestore {
             ])
             && request.resource.data.apartmentId is string
             && request.resource.data.status in ['active', 'removed']
+            && (
+              request.resource.data.status != 'removed'
+              || !(resource.data.role in ['president', 'owner'])
+            )
+            && request.resource.data.updatedAt == request.time
+          )
+          || (
+            canManageResidence(residenceId)
+            && !(resource.data.role in ['president', 'owner'])
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'role',
+              'updatedAt'
+            ])
+            && request.resource.data.role in [
+              'deputy',
+              'treasurer',
+              'resident'
+            ]
+            && request.resource.data.updatedAt == request.time
+          )
+          || (
+            isPresident(residenceId)
+            && memberId != request.auth.uid
+            && !(resource.data.role in ['president', 'owner'])
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'hasPresidentPermissions',
+              'updatedAt'
+            ])
+            && request.resource.data.hasPresidentPermissions is bool
+            && request.resource.data.updatedAt == request.time
+          )
+          || (
+            isPresident(residenceId)
+            && memberId != request.auth.uid
+            && !(resource.data.role in ['president', 'owner'])
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'role',
+              'hasPresidentPermissions',
+              'updatedAt'
+            ])
+            && request.resource.data.role == 'president'
+            && request.resource.data.hasPresidentPermissions == false
+            && getAfter(residencePath(residenceId)).data.presidentId == memberId
+            && request.resource.data.updatedAt == request.time
+          )
+          || (
+            memberId == request.auth.uid
+            && isPresident(residenceId)
+            && resource.data.role in ['president', 'owner']
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'role',
+              'hasPresidentPermissions',
+              'updatedAt'
+            ])
+            && request.resource.data.role == 'resident'
+            && request.resource.data.hasPresidentPermissions == false
+            && getAfter(residencePath(residenceId)).data.presidentId != memberId
             && request.resource.data.updatedAt == request.time
           )
           || isJoinCodeMembership(residenceId, memberId);
@@ -354,7 +461,7 @@ service cloud.firestore {
             && !exists(residencePath(residenceId))
             && getAfter(
               memberPath(residenceId, request.auth.uid)
-            ).data.role == 'owner'
+            ).data.role == 'president'
           );
         allow update, delete: if canManageResidence(residenceId);
 
@@ -366,7 +473,7 @@ service cloud.firestore {
               && !exists(residencePath(residenceId))
               && getAfter(
                 memberPath(residenceId, request.auth.uid)
-              ).data.role == 'owner'
+              ).data.role == 'president'
             );
           allow update, delete: if canManageResidence(residenceId);
 
@@ -399,7 +506,7 @@ service cloud.firestore {
             request.resource.data.residenceId,
             request.auth.uid
           )
-        ).data.role == 'owner'
+        ).data.role == 'president'
         && getAfter(
           privateSettingsPath(request.resource.data.residenceId)
         ).data.joinCode == code;

@@ -2,10 +2,12 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,9 +31,21 @@ class _ApartmentsResidentsPageState
   String? _selectedBuildingId;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.invalidate(residenceMembersProvider);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final membersState = ref.watch(residenceMembersProvider);
     final data = membersState.value ?? ResidenceMembersData.empty;
+    final currentUserId = ref.watch(authRepositoryProvider).currentUser?.uid;
+    final currentMember = data.members
+        .where((member) => member.id == currentUserId)
+        .firstOrNull;
     final copy = _Copy.of(context);
     final compact = MediaQuery.sizeOf(context).width < 600;
     final occupiedApartments = data.members
@@ -125,6 +139,11 @@ class _ApartmentsResidentsPageState
                           onGroupInvitation: () =>
                               context.push(AppRoutes.groupInvitation),
                           onAssign: _showApartmentDialog,
+                          currentMember: currentMember,
+                          onChangeRole: (member) =>
+                              _showRoleDialog(member, currentMember),
+                          onTogglePresidentPermissions: (member) =>
+                              _togglePresidentPermissions(member),
                           onRemove: _showRemoveDialog,
                         ),
                 ),
@@ -207,12 +226,19 @@ class _ApartmentsResidentsPageState
       builder: (context) => _AddResidentSheet(data: data, copy: copy),
     );
     if (!mounted || result == null) return;
-    final duplicate = data.members.any(
-      (member) =>
-          member.phone.replaceAll(' ', '') == result.phone.replaceAll(' ', ''),
+    final normalizedPhone = normalizePhoneNumber(result.phone);
+    final registeredMember = data.members.any(
+      (member) => normalizePhoneNumber(member.phone) == normalizedPhone,
     );
-    if (duplicate) {
+    if (registeredMember) {
       _showSavedMessage(copy.phoneAlreadyRegistered);
+      return;
+    }
+    final pendingInvitation = data.pendingInvitations.any(
+      (invitation) => normalizePhoneNumber(invitation.phone) == normalizedPhone,
+    );
+    if (pendingInvitation) {
+      _showSavedMessage(copy.invitationAlreadyPending);
       return;
     }
     try {
@@ -225,8 +251,13 @@ class _ApartmentsResidentsPageState
             apartmentId: result.apartmentId,
           );
       if (mounted) _showSavedMessage(copy.invitationCreated);
-    } on ResidenceMembersFailure {
-      if (mounted) _showSavedMessage(copy.saveFailed);
+    } on ResidenceMembersFailure catch (error) {
+      if (!mounted) return;
+      _showSavedMessage(
+        error.code == 'invitation-already-exists'
+            ? copy.invitationAlreadyPending
+            : copy.saveFailed,
+      );
     }
   }
 
@@ -330,6 +361,104 @@ class _ApartmentsResidentsPageState
     try {
       await ref.read(residenceMembersProvider.notifier).removeMember(member.id);
       if (mounted) _showSavedMessage(copy.residentRemoved);
+    } on ResidenceMembersFailure {
+      if (mounted) _showSavedMessage(copy.saveFailed);
+    }
+  }
+
+  Future<void> _showRoleDialog(
+    ResidenceMember member,
+    ResidenceMember? currentMember,
+  ) async {
+    if (currentMember == null || !currentMember.canManageResidence) return;
+    final copy = _Copy.of(context);
+    final canTransferPresidency =
+        currentMember.role == ResidenceMemberRole.president &&
+        member.id != currentMember.id;
+    final roles = [
+      if (canTransferPresidency) ResidenceMemberRole.president,
+      ResidenceMemberRole.deputy,
+      ResidenceMemberRole.treasurer,
+      ResidenceMemberRole.resident,
+    ];
+    final role = await showDialog<ResidenceMemberRole>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        key: const Key('change-resident-role-dialog'),
+        title: Text(copy.changeRoleFor(member.name)),
+        children: [
+          for (final role in roles)
+            ListTile(
+              key: ValueKey('select-role-${role.name}'),
+              leading: const Icon(Icons.badge_outlined),
+              title: Text(copy.role(role)),
+              trailing: member.role == role
+                  ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                  : null,
+              onTap: () => Navigator.pop(context, role),
+            ),
+        ],
+      ),
+    );
+    if (!mounted || role == null || role == member.role) return;
+    if (role == ResidenceMemberRole.president) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          key: const Key('transfer-presidency-dialog'),
+          icon: const Icon(Icons.verified_user_outlined),
+          title: Text(copy.transferPresidency),
+          content: Text(copy.transferPresidencyConfirmation(member.name)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(copy.cancel),
+            ),
+            FilledButton(
+              key: const Key('confirm-transfer-presidency-button'),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(copy.confirmTransfer),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || confirmed != true) return;
+      try {
+        await ref
+            .read(residenceMembersProvider.notifier)
+            .transferPresidency(
+              currentPresidentId: currentMember.id,
+              newPresidentId: member.id,
+            );
+        if (mounted) _showSavedMessage(copy.presidencyTransferred);
+      } on ResidenceMembersFailure {
+        if (mounted) _showSavedMessage(copy.saveFailed);
+      }
+      return;
+    }
+    try {
+      await ref
+          .read(residenceMembersProvider.notifier)
+          .changeRole(member.id, role);
+      if (mounted) _showSavedMessage(copy.roleUpdated);
+    } on ResidenceMembersFailure {
+      if (mounted) _showSavedMessage(copy.saveFailed);
+    }
+  }
+
+  Future<void> _togglePresidentPermissions(ResidenceMember member) async {
+    final copy = _Copy.of(context);
+    try {
+      await ref
+          .read(residenceMembersProvider.notifier)
+          .setPresidentPermissions(member.id, !member.hasPresidentPermissions);
+      if (mounted) {
+        _showSavedMessage(
+          member.hasPresidentPermissions
+              ? copy.presidentPermissionsRemoved
+              : copy.presidentPermissionsGranted,
+        );
+      }
     } on ResidenceMembersFailure {
       if (mounted) _showSavedMessage(copy.saveFailed);
     }
@@ -1087,6 +1216,9 @@ class _ResidentsView extends StatelessWidget {
     required this.onAddResident,
     required this.onGroupInvitation,
     required this.onAssign,
+    required this.currentMember,
+    required this.onChangeRole,
+    required this.onTogglePresidentPermissions,
     required this.onRemove,
     super.key,
   });
@@ -1098,6 +1230,9 @@ class _ResidentsView extends StatelessWidget {
   final VoidCallback onAddResident;
   final VoidCallback onGroupInvitation;
   final ValueChanged<ResidenceMember> onAssign;
+  final ResidenceMember? currentMember;
+  final ValueChanged<ResidenceMember> onChangeRole;
+  final ValueChanged<ResidenceMember> onTogglePresidentPermissions;
   final ValueChanged<ResidenceMember> onRemove;
 
   @override
@@ -1108,6 +1243,13 @@ class _ResidentsView extends StatelessWidget {
           return normalized.isEmpty ||
               member.name.toLowerCase().contains(normalized) ||
               member.phone.contains(normalized);
+        })
+        .toList(growable: false);
+    final pendingInvitations = data.pendingInvitations
+        .where((invitation) {
+          return normalized.isEmpty ||
+              invitation.name.toLowerCase().contains(normalized) ||
+              invitation.phone.contains(normalized);
         })
         .toList(growable: false);
 
@@ -1149,11 +1291,11 @@ class _ResidentsView extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.medium),
         Text(
-          copy.linkedResidents(residents.length),
+          copy.listedPeople(residents.length + pendingInvitations.length),
           style: Theme.of(context).textTheme.labelMedium,
         ),
         const SizedBox(height: AppSpacing.small),
-        if (residents.isEmpty)
+        if (residents.isEmpty && pendingInvitations.isEmpty)
           DarJarCard(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xLarge),
@@ -1177,10 +1319,32 @@ class _ResidentsView extends StatelessWidget {
               apartmentLabel: _apartmentLabel(data, member.apartmentId),
               copy: copy,
               onAssign: () => onAssign(member),
+              canChangeRole:
+                  currentMember?.canManageResidence == true &&
+                  member.role != ResidenceMemberRole.president,
+              canTogglePresidentPermissions:
+                  currentMember?.role == ResidenceMemberRole.president &&
+                  member.role != ResidenceMemberRole.president &&
+                  member.id != currentMember?.id,
+              canRemove:
+                  currentMember?.canManageResidence == true &&
+                  member.role != ResidenceMemberRole.president &&
+                  member.id != currentMember?.id,
+              onChangeRole: () => onChangeRole(member),
+              onTogglePresidentPermissions: () =>
+                  onTogglePresidentPermissions(member),
               onRemove: () => onRemove(member),
             ),
             const SizedBox(height: AppSpacing.small),
           ],
+        for (final invitation in pendingInvitations) ...[
+          _PendingInvitationCard(
+            invitation: invitation,
+            apartmentLabel: _apartmentLabel(data, invitation.apartmentId),
+            copy: copy,
+          ),
+          const SizedBox(height: AppSpacing.small),
+        ],
       ],
     );
   }
@@ -1203,12 +1367,100 @@ class _ResidentsView extends StatelessWidget {
   }
 }
 
+class _PendingInvitationCard extends StatelessWidget {
+  const _PendingInvitationCard({
+    required this.invitation,
+    required this.apartmentLabel,
+    required this.copy,
+  });
+
+  final ResidencePendingInvitation invitation;
+  final String? apartmentLabel;
+  final _Copy copy;
+
+  @override
+  Widget build(BuildContext context) {
+    return DarJarCard(
+      key: ValueKey('pending-invitation-${invitation.id}'),
+      padding: const EdgeInsets.all(AppSpacing.medium),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _InitialAvatar(name: invitation.name, radius: 23),
+          const SizedBox(width: AppSpacing.medium),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: AppSpacing.small,
+                  runSpacing: AppSpacing.xSmall,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      invitation.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    DarJarBadge(
+                      label: copy.pendingInvitation,
+                      tone: DarJarBadgeTone.warning,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xSmall),
+                Text(
+                  invitation.phone,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textDirection: TextDirection.ltr,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: AppSpacing.small),
+                Row(
+                  children: [
+                    Icon(
+                      apartmentLabel == null
+                          ? Icons.link_off_rounded
+                          : Icons.door_front_door_outlined,
+                      size: 17,
+                      color: apartmentLabel == null
+                          ? AppColors.warning
+                          : AppColors.primary,
+                    ),
+                    const SizedBox(width: AppSpacing.xSmall),
+                    Flexible(
+                      child: Text(
+                        apartmentLabel ?? copy.notAssigned,
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: apartmentLabel == null
+                                  ? AppColors.warning
+                                  : AppColors.inkMuted,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ResidentCard extends StatelessWidget {
   const _ResidentCard({
     required this.member,
     required this.apartmentLabel,
     required this.copy,
     required this.onAssign,
+    required this.canChangeRole,
+    required this.canTogglePresidentPermissions,
+    required this.canRemove,
+    required this.onChangeRole,
+    required this.onTogglePresidentPermissions,
     required this.onRemove,
   });
 
@@ -1216,6 +1468,11 @@ class _ResidentCard extends StatelessWidget {
   final String? apartmentLabel;
   final _Copy copy;
   final VoidCallback onAssign;
+  final bool canChangeRole;
+  final bool canTogglePresidentPermissions;
+  final bool canRemove;
+  final VoidCallback onChangeRole;
+  final VoidCallback onTogglePresidentPermissions;
   final VoidCallback onRemove;
 
   @override
@@ -1232,21 +1489,26 @@ class _ResidentCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  spacing: AppSpacing.small,
+                  runSpacing: AppSpacing.xSmall,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Flexible(
-                      child: Text(
-                        member.name,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+                    Text(
+                      member.name,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    const SizedBox(width: AppSpacing.small),
                     DarJarBadge(
                       label: copy.role(member.role),
                       tone: member.role == ResidenceMemberRole.resident
                           ? DarJarBadgeTone.neutral
                           : DarJarBadgeTone.info,
                     ),
+                    if (member.hasPresidentPermissions)
+                      DarJarBadge(
+                        label: copy.presidentPermissions,
+                        tone: DarJarBadgeTone.success,
+                      ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xSmall),
@@ -1289,10 +1551,20 @@ class _ResidentCard extends StatelessWidget {
           _DarJarActionsButton(
             key: ValueKey('resident-actions-${member.id}'),
             copy: copy,
+            member: member,
+            canChangeRole: canChangeRole,
+            canTogglePresidentPermissions: canTogglePresidentPermissions,
+            canRemove: canRemove,
             onSelected: (action) {
               switch (action) {
                 case _ResidentAction.assign:
                   onAssign();
+                  break;
+                case _ResidentAction.role:
+                  onChangeRole();
+                  break;
+                case _ResidentAction.presidentPermissions:
+                  onTogglePresidentPermissions();
                   break;
                 case _ResidentAction.remove:
                   onRemove();
@@ -1306,16 +1578,24 @@ class _ResidentCard extends StatelessWidget {
   }
 }
 
-enum _ResidentAction { assign, remove }
+enum _ResidentAction { assign, role, presidentPermissions, remove }
 
 class _DarJarActionsButton extends StatelessWidget {
   const _DarJarActionsButton({
     required this.copy,
+    required this.member,
+    required this.canChangeRole,
+    required this.canTogglePresidentPermissions,
+    required this.canRemove,
     required this.onSelected,
     super.key,
   });
 
   final _Copy copy;
+  final ResidenceMember member;
+  final bool canChangeRole;
+  final bool canTogglePresidentPermissions;
+  final bool canRemove;
   final ValueChanged<_ResidentAction> onSelected;
 
   @override
@@ -1379,7 +1659,13 @@ class _DarJarActionsButton extends StatelessWidget {
               left: left,
               top: top,
               width: menuWidth,
-              child: _DarJarActionsMenu(copy: copy),
+              child: _DarJarActionsMenu(
+                copy: copy,
+                member: member,
+                canChangeRole: canChangeRole,
+                canTogglePresidentPermissions: canTogglePresidentPermissions,
+                canRemove: canRemove,
+              ),
             ),
           ],
         );
@@ -1389,9 +1675,19 @@ class _DarJarActionsButton extends StatelessWidget {
 }
 
 class _DarJarActionsMenu extends StatelessWidget {
-  const _DarJarActionsMenu({required this.copy});
+  const _DarJarActionsMenu({
+    required this.copy,
+    required this.member,
+    required this.canChangeRole,
+    required this.canTogglePresidentPermissions,
+    required this.canRemove,
+  });
 
   final _Copy copy;
+  final ResidenceMember member;
+  final bool canChangeRole;
+  final bool canTogglePresidentPermissions;
+  final bool canRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -1419,12 +1715,30 @@ class _DarJarActionsMenu extends StatelessWidget {
                 label: copy.assignApartment,
                 onTap: () => Navigator.pop(context, _ResidentAction.assign),
               ),
-              _DarJarMenuItem(
-                icon: Icons.person_remove_outlined,
-                label: copy.removeFromResidence,
-                danger: true,
-                onTap: () => Navigator.pop(context, _ResidentAction.remove),
-              ),
+              if (canChangeRole)
+                _DarJarMenuItem(
+                  icon: Icons.badge_outlined,
+                  label: copy.changeRole,
+                  onTap: () => Navigator.pop(context, _ResidentAction.role),
+                ),
+              if (canTogglePresidentPermissions)
+                _DarJarMenuItem(
+                  icon: Icons.admin_panel_settings_outlined,
+                  label: member.hasPresidentPermissions
+                      ? copy.removePresidentPermissions
+                      : copy.grantPresidentPermissions,
+                  onTap: () => Navigator.pop(
+                    context,
+                    _ResidentAction.presidentPermissions,
+                  ),
+                ),
+              if (canRemove)
+                _DarJarMenuItem(
+                  icon: Icons.person_remove_outlined,
+                  label: copy.removeFromResidence,
+                  danger: true,
+                  onTap: () => Navigator.pop(context, _ResidentAction.remove),
+                ),
             ],
           ),
         ),
@@ -1551,15 +1865,19 @@ class _Copy {
       arabic ? 'اختر شقة للساكن.' : 'Choose the resident’s apartment.';
   String get invitationCreated =>
       arabic ? 'تم إنشاء دعوة الساكن.' : 'Resident invitation created.';
+  String get invitationAlreadyPending => arabic
+      ? 'توجد دعوة معلّقة لهذا الرقم بالفعل.'
+      : 'A pending invitation already exists for this number.';
+  String get pendingInvitation =>
+      arabic ? 'الدعوة معلّقة' : 'Invitation pending';
   String get phoneAlreadyRegistered => arabic
       ? 'رقم الهاتف مسجل لساكن آخر.'
       : 'This phone number is already registered.';
   String get chooseFloor => arabic ? 'اختر الطابق' : 'Choose a floor';
   String get apartmentNumberLabel => arabic ? 'رقم الشقة' : 'Apartment number';
   String get apartmentNumberHint => arabic ? 'مثال: 24' : 'Example: 24';
-  String get apartmentNumberRequired => arabic
-      ? 'أدخل رقم الشقة أو اسمها.'
-      : 'Enter an apartment number or name.';
+  String get apartmentNumberRequired =>
+      arabic ? 'أدخل رقم الشقة.' : 'Enter an apartment number.';
   String get add => arabic ? 'إضافة' : 'Add';
   String get delete => arabic ? 'حذف' : 'Delete';
   String get deleteApartment => arabic ? 'حذف الشقة' : 'Delete apartment';
@@ -1584,6 +1902,13 @@ class _Copy {
   String get manage => arabic ? 'إدارة الساكن' : 'Manage resident';
   String get closeMenu => arabic ? 'إغلاق القائمة' : 'Close menu';
   String get assignApartment => arabic ? 'تعيين الشقة' : 'Assign apartment';
+  String get changeRole => arabic ? 'تغيير الدور' : 'Change role';
+  String get presidentPermissions =>
+      arabic ? 'صلاحيات الرئيس' : 'President permissions';
+  String get grantPresidentPermissions =>
+      arabic ? 'منح صلاحيات الرئيس' : 'Grant president permissions';
+  String get removePresidentPermissions =>
+      arabic ? 'سحب صلاحيات الرئيس' : 'Remove president permissions';
   String get removeFromResidence =>
       arabic ? 'إزالة من الإقامة' : 'Remove from residence';
   String get removeResident => arabic ? 'إزالة الساكن؟' : 'Remove resident?';
@@ -1599,6 +1924,17 @@ class _Copy {
       : 'Could not save the change to Firestore.';
   String get residentRemoved =>
       arabic ? 'تمت إزالة الساكن من الإقامة.' : 'Resident removed.';
+  String get roleUpdated =>
+      arabic ? 'تم تحديث دور الساكن.' : 'Resident role updated.';
+  String get presidentPermissionsGranted =>
+      arabic ? 'تم منح صلاحيات الرئيس.' : 'President permissions granted.';
+  String get presidentPermissionsRemoved =>
+      arabic ? 'تم سحب صلاحيات الرئيس.' : 'President permissions removed.';
+  String get transferPresidency =>
+      arabic ? 'نقل صفة الرئيس' : 'Transfer presidency';
+  String get confirmTransfer => arabic ? 'تأكيد النقل' : 'Confirm transfer';
+  String get presidencyTransferred =>
+      arabic ? 'تم نقل صفة الرئيس.' : 'Presidency transferred.';
   String get groupInvitation => arabic ? 'الدعوة الجماعية' : 'Group invitation';
 
   String buildingName(ResidenceBuilding building) =>
@@ -1611,11 +1947,16 @@ class _Copy {
       arabic ? '$count شقق' : '$count apartments';
   String residentCount(int count) =>
       arabic ? '$count سكان' : '$count residents';
-  String linkedResidents(int count) => arabic
-      ? '$count من السكان مرتبطون بهذه الإقامة'
-      : '$count residents linked to this residence';
+  String listedPeople(int count) => arabic
+      ? '$count أشخاص في قائمة السكان'
+      : '$count people in the residents list';
   String assignApartmentTo(String name) =>
       arabic ? 'تعيين شقة لـ $name' : 'Assign an apartment to $name';
+  String changeRoleFor(String name) =>
+      arabic ? 'تغيير دور $name' : 'Change $name’s role';
+  String transferPresidencyConfirmation(String name) => arabic
+      ? 'سيتم نزع صفة الرئيس منك وإسنادها إلى $name. هل تريد المتابعة؟'
+      : 'Your president role will be removed and assigned to $name. Continue?';
   String deleteApartmentTitle(String number) =>
       arabic ? 'حذف الشقة $number؟' : 'Delete apartment $number?';
   String deleteApartmentConfirmation(int residentCount) {
@@ -1634,9 +1975,9 @@ class _Copy {
       : '$name will be removed from the residence and unassigned from their apartment. Their personal account will not be affected.';
 
   String role(ResidenceMemberRole role) => switch (role) {
+    ResidenceMemberRole.president => arabic ? 'رئيس' : 'President',
+    ResidenceMemberRole.deputy => arabic ? 'نائب' : 'Deputy',
+    ResidenceMemberRole.treasurer => arabic ? 'أمين' : 'Treasurer',
     ResidenceMemberRole.resident => arabic ? 'ساكن' : 'Resident',
-    ResidenceMemberRole.moderator => arabic ? 'مشرف' : 'Moderator',
-    ResidenceMemberRole.manager => arabic ? 'مسير' : 'Manager',
-    ResidenceMemberRole.owner => arabic ? 'مالك' : 'Owner',
   };
 }

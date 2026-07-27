@@ -11,6 +11,7 @@ class UserResidence {
     required this.city,
     required this.role,
     required this.apartmentId,
+    this.hasPresidentPermissions = false,
   });
 
   final String id;
@@ -19,6 +20,10 @@ class UserResidence {
   final String city;
   final String role;
   final String apartmentId;
+  final bool hasPresidentPermissions;
+
+  bool get canManageResidence =>
+      role == 'president' || role == 'owner' || hasPresidentPermissions;
 }
 
 class ResidenceContext {
@@ -226,6 +231,8 @@ class FirestoreResidenceContextRepository
       city: residenceData['city'] as String? ?? '',
       role: membershipData['role'] as String? ?? 'resident',
       apartmentId: membershipData['apartmentId'] as String? ?? '',
+      hasPresidentPermissions:
+          membershipData['hasPresidentPermissions'] as bool? ?? false,
     );
   }
 }

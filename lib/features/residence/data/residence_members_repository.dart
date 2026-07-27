@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum ResidenceMemberRole { resident, moderator, manager, owner }
+enum ResidenceMemberRole { president, deputy, treasurer, resident }
 
 class ResidenceMember {
   const ResidenceMember({
@@ -11,6 +12,7 @@ class ResidenceMember {
     required this.name,
     required this.phone,
     required this.role,
+    this.hasPresidentPermissions = false,
     this.apartmentId,
   });
 
@@ -18,7 +20,25 @@ class ResidenceMember {
   final String name;
   final String phone;
   final ResidenceMemberRole role;
+  final bool hasPresidentPermissions;
   final String? apartmentId;
+
+  bool get canManageResidence =>
+      role == ResidenceMemberRole.president || hasPresidentPermissions;
+}
+
+class ResidencePendingInvitation {
+  const ResidencePendingInvitation({
+    required this.id,
+    required this.name,
+    required this.phone,
+    required this.apartmentId,
+  });
+
+  final String id;
+  final String name;
+  final String phone;
+  final String apartmentId;
 }
 
 class ResidenceApartment {
@@ -74,12 +94,17 @@ class ResidenceBuilding {
 }
 
 class ResidenceMembersData {
-  const ResidenceMembersData({required this.buildings, required this.members});
+  const ResidenceMembersData({
+    required this.buildings,
+    required this.members,
+    this.pendingInvitations = const [],
+  });
 
   static const empty = ResidenceMembersData(buildings: [], members: []);
 
   final List<ResidenceBuilding> buildings;
   final List<ResidenceMember> members;
+  final List<ResidencePendingInvitation> pendingInvitations;
 
   List<ResidenceApartment> get apartments => [
     for (final building in buildings)
@@ -127,6 +152,24 @@ abstract interface class ResidenceMembersRepository {
     required String residenceId,
     required String memberId,
   });
+
+  Future<void> changeRole({
+    required String residenceId,
+    required String memberId,
+    required ResidenceMemberRole role,
+  });
+
+  Future<void> setPresidentPermissions({
+    required String residenceId,
+    required String memberId,
+    required bool enabled,
+  });
+
+  Future<void> transferPresidency({
+    required String residenceId,
+    required String currentPresidentId,
+    required String newPresidentId,
+  });
 }
 
 class FirestoreResidenceMembersRepository
@@ -145,9 +188,14 @@ class FirestoreResidenceMembersRepository
             .collection('members')
             .where('status', isEqualTo: 'active')
             .get(),
+        residence
+            .collection('invitations')
+            .where('status', isEqualTo: 'pending')
+            .get(),
       ]);
       final buildingDocuments = results[0];
       final memberDocuments = results[1];
+      final invitationDocuments = results[2];
 
       final buildings = await Future.wait([
         for (final building in buildingDocuments.docs) _loadBuilding(building),
@@ -158,8 +206,16 @@ class FirestoreResidenceMembersRepository
         for (final document in memberDocuments.docs)
           _memberFromDocument(document),
       ]..sort((a, b) => a.name.compareTo(b.name));
+      final pendingInvitations = [
+        for (final document in invitationDocuments.docs)
+          _pendingInvitationFromDocument(document),
+      ]..sort((a, b) => a.name.compareTo(b.name));
 
-      return ResidenceMembersData(buildings: buildings, members: members);
+      return ResidenceMembersData(
+        buildings: buildings,
+        members: members,
+        pendingInvitations: pendingInvitations,
+      );
     } on FirebaseException catch (error) {
       throw ResidenceMembersFailure(error.code, error.message);
     } catch (error) {
@@ -222,11 +278,33 @@ class FirestoreResidenceMembersRepository
           ? document.id
           : '$firstName $lastName'.trim(),
       phone: data['phoneNumber'] as String? ?? '',
-      role: ResidenceMemberRole.values.firstWhere(
-        (role) => role.name == data['role'],
-        orElse: () => ResidenceMemberRole.resident,
-      ),
+      role: _roleFromValue(data['role'] as String?),
+      hasPresidentPermissions:
+          data['hasPresidentPermissions'] as bool? ?? false,
       apartmentId: apartmentId.isEmpty ? null : apartmentId,
+    );
+  }
+
+  ResidenceMemberRole _roleFromValue(String? value) {
+    return switch (value) {
+      'president' || 'owner' => ResidenceMemberRole.president,
+      'deputy' || 'manager' => ResidenceMemberRole.deputy,
+      'treasurer' || 'moderator' => ResidenceMemberRole.treasurer,
+      _ => ResidenceMemberRole.resident,
+    };
+  }
+
+  ResidencePendingInvitation _pendingInvitationFromDocument(
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
+  ) {
+    final data = document.data();
+    final firstName = data['suggestedFirstName'] as String? ?? '';
+    final lastName = data['suggestedLastName'] as String? ?? '';
+    return ResidencePendingInvitation(
+      id: document.id,
+      name: '$firstName $lastName'.trim(),
+      phone: data['phoneNumber'] as String? ?? '',
+      apartmentId: data['apartmentId'] as String? ?? '',
     );
   }
 
@@ -238,20 +316,41 @@ class FirestoreResidenceMembersRepository
     required String phoneNumber,
     required String apartmentId,
   }) async {
+    final normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
+    if (normalizedPhoneNumber.isEmpty) {
+      throw const ResidenceMembersFailure('invalid-phone-number');
+    }
+    final invitations = _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('invitations');
     try {
-      await _firestore
-          .collection('residences')
-          .doc(residenceId)
-          .collection('invitations')
-          .add({
-            'suggestedFirstName': firstName.trim(),
-            'suggestedLastName': lastName.trim(),
-            'phoneNumber': phoneNumber.replaceAll(RegExp(r'\s'), ''),
-            'apartmentId': apartmentId,
-            'role': ResidenceMemberRole.resident.name,
-            'status': 'pending',
-            'createdAt': FieldValue.serverTimestamp(),
-          });
+      final legacyInvitation = await invitations
+          .where('phoneNumber', isEqualTo: normalizedPhoneNumber)
+          .limit(1)
+          .get();
+      if (legacyInvitation.docs.isNotEmpty) {
+        throw const ResidenceMembersFailure('invitation-already-exists');
+      }
+      final invitation = invitations.doc(normalizedPhoneNumber);
+      await _firestore.runTransaction((transaction) async {
+        final existingInvitation = await transaction.get(invitation);
+        if (existingInvitation.exists) {
+          throw const ResidenceMembersFailure('invitation-already-exists');
+        }
+        transaction.set(invitation, {
+          'suggestedFirstName': firstName.trim(),
+          'suggestedLastName': lastName.trim(),
+          'phoneNumber': normalizedPhoneNumber,
+          'apartmentId': apartmentId,
+          'role': ResidenceMemberRole.resident.name,
+          'hasPresidentPermissions': false,
+          'status': 'pending',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      });
+    } on ResidenceMembersFailure {
+      rethrow;
     } on FirebaseException catch (error) {
       throw ResidenceMembersFailure(error.code, error.message);
     }
@@ -331,6 +430,82 @@ class FirestoreResidenceMembersRepository
     });
   }
 
+  @override
+  Future<void> changeRole({
+    required String residenceId,
+    required String memberId,
+    required ResidenceMemberRole role,
+  }) async {
+    if (role == ResidenceMemberRole.president) {
+      throw const ResidenceMembersFailure('presidency-transfer-required');
+    }
+    await _members(residenceId).doc(memberId).update({
+      'role': role.name,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  @override
+  Future<void> setPresidentPermissions({
+    required String residenceId,
+    required String memberId,
+    required bool enabled,
+  }) async {
+    await _members(residenceId).doc(memberId).update({
+      'hasPresidentPermissions': enabled,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  @override
+  Future<void> transferPresidency({
+    required String residenceId,
+    required String currentPresidentId,
+    required String newPresidentId,
+  }) async {
+    final residence = _firestore.collection('residences').doc(residenceId);
+    final currentPresident = _members(residenceId).doc(currentPresidentId);
+    final newPresident = _members(residenceId).doc(newPresidentId);
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final residenceDocument = await transaction.get(residence);
+        final currentDocument = await transaction.get(currentPresident);
+        final newDocument = await transaction.get(newPresident);
+        final storedPresidentId =
+            residenceDocument.data()?['presidentId'] as String?;
+        final currentRole = currentDocument.data()?['role'] as String?;
+        if (!currentDocument.exists ||
+            !newDocument.exists ||
+            newDocument.data()?['status'] != 'active' ||
+            (storedPresidentId != null &&
+                storedPresidentId != currentPresidentId) ||
+            (storedPresidentId == null &&
+                currentRole != 'president' &&
+                currentRole != 'owner')) {
+          throw const ResidenceMembersFailure('invalid-presidency-transfer');
+        }
+        transaction.update(residence, {
+          'presidentId': newPresidentId,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        transaction.update(currentPresident, {
+          'role': ResidenceMemberRole.resident.name,
+          'hasPresidentPermissions': false,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        transaction.update(newPresident, {
+          'role': ResidenceMemberRole.president.name,
+          'hasPresidentPermissions': false,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      });
+    } on ResidenceMembersFailure {
+      rethrow;
+    } on FirebaseException catch (error) {
+      throw ResidenceMembersFailure(error.code, error.message);
+    }
+  }
+
   CollectionReference<Map<String, dynamic>> _members(String residenceId) {
     return _firestore
         .collection('residences')
@@ -377,6 +552,7 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
           phoneNumber: phoneNumber,
           apartmentId: apartmentId,
         );
+    ref.invalidateSelf();
   }
 
   Future<void> assignApartment(String memberId, String? apartmentId) async {
@@ -420,6 +596,43 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
     await ref
         .read(residenceMembersRepositoryProvider)
         .removeMember(residenceId: _requiredResidenceId(), memberId: memberId);
+    ref.invalidateSelf();
+  }
+
+  Future<void> changeRole(String memberId, ResidenceMemberRole role) async {
+    await ref
+        .read(residenceMembersRepositoryProvider)
+        .changeRole(
+          residenceId: _requiredResidenceId(),
+          memberId: memberId,
+          role: role,
+        );
+    ref.invalidateSelf();
+  }
+
+  Future<void> setPresidentPermissions(String memberId, bool enabled) async {
+    await ref
+        .read(residenceMembersRepositoryProvider)
+        .setPresidentPermissions(
+          residenceId: _requiredResidenceId(),
+          memberId: memberId,
+          enabled: enabled,
+        );
+    ref.invalidateSelf();
+  }
+
+  Future<void> transferPresidency({
+    required String currentPresidentId,
+    required String newPresidentId,
+  }) async {
+    await ref
+        .read(residenceMembersRepositoryProvider)
+        .transferPresidency(
+          residenceId: _requiredResidenceId(),
+          currentPresidentId: currentPresidentId,
+          newPresidentId: newPresidentId,
+        );
+    ref.invalidate(residenceContextProvider);
     ref.invalidateSelf();
   }
 

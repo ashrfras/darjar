@@ -6,6 +6,7 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_theme.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
+import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
@@ -184,6 +185,11 @@ void main() {
   });
 
   group('authentication foundation', () {
+    test('normalizes equivalent international phone formats', () {
+      expect(normalizePhoneNumber('+212 6 12-34-56-78'), '+212612345678');
+      expect(normalizePhoneNumber('00212 6 12 34 56 78'), '+212612345678');
+    });
+
     test('normalizes supported Moroccan mobile number formats', () {
       expect(normalizeMoroccanPhoneNumber('06 00 00 00 01'), '+212600000001');
       expect(normalizeMoroccanPhoneNumber('+212 600 000 001'), '+212600000001');
@@ -997,6 +1003,69 @@ void main() {
     expect(find.byKey(const Key('settings-page')), findsOneWidget);
   });
 
+  testWidgets('residence management is hidden from regular residents', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceContext: const ResidenceContext(
+        residences: [
+          UserResidence(
+            id: 'test-residence',
+            name: 'إقامة الاختبار',
+            address: 'شارع الاختبار',
+            city: 'casablanca',
+            role: 'resident',
+            apartmentId: '',
+          ),
+        ],
+        activeResidenceId: 'test-residence',
+        invitations: [],
+      ),
+    );
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('residence-management-section')), findsNothing);
+    expect(find.byKey(const Key('manage-residence-link')), findsNothing);
+  });
+
+  testWidgets(
+    'residence management is visible with delegated president permissions',
+    (tester) async {
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        residenceContext: const ResidenceContext(
+          residences: [
+            UserResidence(
+              id: 'test-residence',
+              name: 'إقامة الاختبار',
+              address: 'شارع الاختبار',
+              city: 'casablanca',
+              role: 'resident',
+              apartmentId: '',
+              hasPresidentPermissions: true,
+            ),
+          ],
+          activeResidenceId: 'test-residence',
+          invitations: [],
+        ),
+      );
+      await _enterResidence(tester);
+      await tester.tap(find.byKey(const Key('profile-button')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('residence-management-section')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('manage-residence-link')), findsOneWidget);
+    },
+  );
+
   testWidgets('residence management links are visible and navigate', (
     tester,
   ) async {
@@ -1348,9 +1417,75 @@ void main() {
 
     await tester.tap(actions);
     await tester.pumpAndSettle();
-    expect(find.text('تغيير الدور'), findsNothing);
-    await tester.tapAt(const Offset(10, 10));
+    await tester.tap(find.text('تغيير الدور'));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('select-role-deputy')));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('resident-member-karim')),
+        matching: find.text('نائب'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(actions);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('منح صلاحيات الرئيس'));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('resident-member-karim')),
+        matching: find.text('صلاحيات الرئيس'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(actions);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تغيير الدور'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('select-role-president')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('transfer-presidency-dialog')), findsOneWidget);
+    expect(find.textContaining('سيتم نزع صفة الرئيس منك'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const Key('confirm-transfer-presidency-button')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('resident-member-karim')),
+        matching: find.text('رئيس'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('residents data reloads when entering management again', (
+    tester,
+  ) async {
+    final membersRepository = _FakeResidenceMembersRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceMembersRepository: membersRepository,
+    );
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('manage-apartments-link')));
+    await tester.tap(find.byKey(const Key('manage-apartments-link')));
+    await tester.pumpAndSettle();
+    final firstLoadCount = membersRepository.loadCount;
+
+    await tester.tap(find.byKey(const Key('subpage-back-button')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('manage-apartments-link')));
+    await tester.tap(find.byKey(const Key('manage-apartments-link')));
+    await tester.pumpAndSettle();
+
+    expect(membersRepository.loadCount, greaterThan(firstLoadCount));
   });
 
   testWidgets('residents use international phones and group invitations', (
@@ -1424,6 +1559,12 @@ void main() {
     expect(membersRepository.createdInvitations, hasLength(1));
     expect(membersRepository.createdInvitations.single.firstName, 'مريم');
     expect(find.text('تم إنشاء دعوة الساكن.'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('pending-invitation-+212698765432')),
+      findsOneWidget,
+    );
+    expect(find.text('الدعوة معلّقة'), findsOneWidget);
+    expect(find.text('+212698765432'), findsOneWidget);
 
     await tester.ensureVisible(groupInvitationButton);
     await tester.pumpAndSettle();
@@ -1775,10 +1916,10 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
     ],
     members: [
       ResidenceMember(
-        id: 'member-youssef',
+        id: 'test-user',
         name: 'يوسف العلوي',
         phone: '+212 6 12 34 56 78',
-        role: ResidenceMemberRole.owner,
+        role: ResidenceMemberRole.president,
         apartmentId: 'apartment-12',
       ),
       ResidenceMember(
@@ -1792,9 +1933,13 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
 
   ResidenceMembersData data = initialData;
   final List<_CreatedInvitation> createdInvitations = [];
+  int loadCount = 0;
 
   @override
-  Future<ResidenceMembersData> load(String residenceId) async => data;
+  Future<ResidenceMembersData> load(String residenceId) async {
+    loadCount += 1;
+    return data;
+  }
 
   @override
   Future<void> createInvitation({
@@ -1812,6 +1957,20 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
         apartmentId: apartmentId,
       ),
     );
+    final normalizedPhone = normalizePhoneNumber(phoneNumber);
+    data = ResidenceMembersData(
+      buildings: data.buildings,
+      members: data.members,
+      pendingInvitations: [
+        ...data.pendingInvitations,
+        ResidencePendingInvitation(
+          id: normalizedPhone,
+          name: '$firstName $lastName'.trim(),
+          phone: normalizedPhone,
+          apartmentId: apartmentId,
+        ),
+      ],
+    );
   }
 
   @override
@@ -1822,6 +1981,7 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
   }) async {
     data = ResidenceMembersData(
       buildings: data.buildings,
+      pendingInvitations: data.pendingInvitations,
       members: [
         for (final member in data.members)
           ResidenceMember(
@@ -1829,6 +1989,7 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
             name: member.name,
             phone: member.phone,
             role: member.role,
+            hasPresidentPermissions: member.hasPresidentPermissions,
             apartmentId: member.id == memberId
                 ? apartmentId
                 : member.apartmentId,
@@ -1872,6 +2033,7 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
           ),
       ],
       members: data.members,
+      pendingInvitations: data.pendingInvitations,
     );
   }
 
@@ -1901,6 +2063,7 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
           ),
       ],
       members: data.members,
+      pendingInvitations: data.pendingInvitations,
     );
   }
 
@@ -1911,7 +2074,86 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
   }) async {
     data = ResidenceMembersData(
       buildings: data.buildings,
+      pendingInvitations: data.pendingInvitations,
       members: data.members.where((member) => member.id != memberId).toList(),
+    );
+  }
+
+  @override
+  Future<void> changeRole({
+    required String residenceId,
+    required String memberId,
+    required ResidenceMemberRole role,
+  }) async {
+    data = ResidenceMembersData(
+      buildings: data.buildings,
+      pendingInvitations: data.pendingInvitations,
+      members: [
+        for (final member in data.members)
+          ResidenceMember(
+            id: member.id,
+            name: member.name,
+            phone: member.phone,
+            role: member.id == memberId ? role : member.role,
+            hasPresidentPermissions: member.hasPresidentPermissions,
+            apartmentId: member.apartmentId,
+          ),
+      ],
+    );
+  }
+
+  @override
+  Future<void> setPresidentPermissions({
+    required String residenceId,
+    required String memberId,
+    required bool enabled,
+  }) async {
+    data = ResidenceMembersData(
+      buildings: data.buildings,
+      pendingInvitations: data.pendingInvitations,
+      members: [
+        for (final member in data.members)
+          ResidenceMember(
+            id: member.id,
+            name: member.name,
+            phone: member.phone,
+            role: member.role,
+            hasPresidentPermissions: member.id == memberId
+                ? enabled
+                : member.hasPresidentPermissions,
+            apartmentId: member.apartmentId,
+          ),
+      ],
+    );
+  }
+
+  @override
+  Future<void> transferPresidency({
+    required String residenceId,
+    required String currentPresidentId,
+    required String newPresidentId,
+  }) async {
+    data = ResidenceMembersData(
+      buildings: data.buildings,
+      pendingInvitations: data.pendingInvitations,
+      members: [
+        for (final member in data.members)
+          ResidenceMember(
+            id: member.id,
+            name: member.name,
+            phone: member.phone,
+            role: member.id == currentPresidentId
+                ? ResidenceMemberRole.resident
+                : member.id == newPresidentId
+                ? ResidenceMemberRole.president
+                : member.role,
+            hasPresidentPermissions:
+                member.id == currentPresidentId || member.id == newPresidentId
+                ? false
+                : member.hasPresidentPermissions,
+            apartmentId: member.apartmentId,
+          ),
+      ],
     );
   }
 }

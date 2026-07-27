@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -214,6 +215,7 @@ class FirestoreAccountOnboardingRepository
           'phoneNumber': phoneNumber,
           'apartmentId': invitation.apartmentId,
           'role': invitation.role,
+          'hasPresidentPermissions': false,
           'status': 'active',
           'sourceInvitationId': invitation.id,
           'joinedAt': FieldValue.serverTimestamp(),
@@ -233,7 +235,7 @@ class FirestoreAccountOnboardingRepository
     if (phoneNumber == null || phoneNumber.isEmpty) {
       throw const AccountOnboardingFailure('missing-phone-number');
     }
-    return phoneNumber;
+    return normalizePhoneNumber(phoneNumber);
   }
 
   UserProfile _profileFromData(Map<String, dynamic> data, String phoneNumber) {

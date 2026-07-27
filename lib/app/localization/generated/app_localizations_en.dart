@@ -978,13 +978,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountRoleResident => 'Resident';
 
   @override
-  String get accountRoleModerator => 'Moderator';
+  String get accountRoleModerator => 'Treasurer';
 
   @override
-  String get accountRoleManager => 'Manager';
+  String get accountRoleManager => 'Deputy';
 
   @override
-  String get accountRoleOwner => 'Owner';
+  String get accountRoleOwner => 'President';
 
   @override
   String get accountResolutionConfirm => 'Confirm and join selected residences';

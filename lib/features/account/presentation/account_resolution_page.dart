@@ -365,9 +365,9 @@ class _InvitationCard extends StatelessWidget {
 
   String _localizedRole(AppLocalizations localizations, String role) {
     return switch (role) {
-      'owner' => localizations.accountRoleOwner,
-      'manager' => localizations.accountRoleManager,
-      'moderator' => localizations.accountRoleModerator,
+      'president' || 'owner' => localizations.accountRoleOwner,
+      'deputy' || 'manager' => localizations.accountRoleManager,
+      'treasurer' || 'moderator' => localizations.accountRoleModerator,
       _ => localizations.accountRoleResident,
     };
   }

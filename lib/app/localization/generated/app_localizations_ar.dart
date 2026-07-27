@@ -962,13 +962,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountRoleResident => 'ساكن';
 
   @override
-  String get accountRoleModerator => 'مشرف';
+  String get accountRoleModerator => 'أمين';
 
   @override
-  String get accountRoleManager => 'مسير';
+  String get accountRoleManager => 'نائب';
 
   @override
-  String get accountRoleOwner => 'مالك';
+  String get accountRoleOwner => 'رئيس';
 
   @override
   String get accountResolutionConfirm => 'تأكيد والانضمام إلى الإقامات المحددة';

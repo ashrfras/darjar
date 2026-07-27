@@ -6,6 +6,7 @@ import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +18,17 @@ class ProfilePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final profile = ref.watch(residentProfileProvider);
+    final activeResidence = ref
+        .watch(residenceContextProvider)
+        .value
+        ?.activeResidence;
+    final canManageResidence = activeResidence?.canManageResidence ?? false;
+    final roleLabel = switch (activeResidence?.role) {
+      'president' || 'owner' => 'رئيس',
+      'deputy' || 'manager' => 'نائب',
+      'treasurer' || 'moderator' => 'أمين',
+      _ => 'ساكن',
+    };
 
     return SingleChildScrollView(
       key: const Key('profile-page'),
@@ -53,10 +65,7 @@ class ProfilePage extends ConsumerWidget {
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: AppSpacing.small),
-                    DarJarBadge(
-                      label: profile.role,
-                      tone: DarJarBadgeTone.info,
-                    ),
+                    DarJarBadge(label: roleLabel, tone: DarJarBadgeTone.info),
                     const SizedBox(height: AppSpacing.xLarge),
                     _ProfileInfo(
                       icon: Icons.phone_outlined,
@@ -101,38 +110,39 @@ class ProfilePage extends ConsumerWidget {
                   ],
                 ),
               ),
-              // TODO: Restore `profile.canManageResidence` once permission
-              // assignment is connected to the authenticated user.
-              const SizedBox(height: AppSpacing.large),
-              Text(
-                localizations.residenceAdministration,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: AppSpacing.medium),
-              DarJarCard(
-                key: const Key('residence-management-section'),
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    _ManagementLink(
-                      key: const Key('manage-residence-link'),
-                      icon: Icons.domain_outlined,
-                      title: localizations.residenceSettings,
-                      description: localizations.residenceManagementDescription,
-                      route: AppRoutes.manageResidence,
-                    ),
-                    const Divider(),
-                    _ManagementLink(
-                      key: const Key('manage-apartments-link'),
-                      icon: Icons.apartment_outlined,
-                      title: localizations.apartments,
-                      description:
-                          localizations.apartmentsManagementDescription,
-                      route: AppRoutes.manageApartments,
-                    ),
-                  ],
+              if (canManageResidence) ...[
+                const SizedBox(height: AppSpacing.large),
+                Text(
+                  localizations.residenceAdministration,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-              ),
+                const SizedBox(height: AppSpacing.medium),
+                DarJarCard(
+                  key: const Key('residence-management-section'),
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      _ManagementLink(
+                        key: const Key('manage-residence-link'),
+                        icon: Icons.domain_outlined,
+                        title: localizations.residenceSettings,
+                        description:
+                            localizations.residenceManagementDescription,
+                        route: AppRoutes.manageResidence,
+                      ),
+                      const Divider(),
+                      _ManagementLink(
+                        key: const Key('manage-apartments-link'),
+                        icon: Icons.apartment_outlined,
+                        title: localizations.apartments,
+                        description:
+                            localizations.apartmentsManagementDescription,
+                        route: AppRoutes.manageApartments,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),

@@ -1859,19 +1859,19 @@ abstract class AppLocalizations {
   /// No description provided for @accountRoleModerator.
   ///
   /// In ar, this message translates to:
-  /// **'مشرف'**
+  /// **'أمين'**
   String get accountRoleModerator;
 
   /// No description provided for @accountRoleManager.
   ///
   /// In ar, this message translates to:
-  /// **'مسير'**
+  /// **'نائب'**
   String get accountRoleManager;
 
   /// No description provided for @accountRoleOwner.
   ///
   /// In ar, this message translates to:
-  /// **'مالك'**
+  /// **'رئيس'**
   String get accountRoleOwner;
 
   /// No description provided for @accountResolutionConfirm.
