@@ -12,6 +12,7 @@ import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
@@ -517,11 +518,140 @@ void main() {
     await _enterResidence(tester);
     expect(find.byKey(const Key('medium-shell')), findsOneWidget);
     expect(find.byType(NavigationRail), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('residence-selector')),
+        matching: find.byIcon(Icons.keyboard_arrow_down_rounded),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('residence-selector')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('residence-switcher-sheet')), findsOneWidget);
+    expect(find.byType(PopupMenuItem<String>), findsNothing);
+    expect(find.text('إقامة الاختبار'), findsWidgets);
+    await tester.tap(find.text('إقامة الاختبار').last);
+    await tester.pumpAndSettle();
 
     tester.view.physicalSize = const Size(1280, 900);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('expanded-shell')), findsOneWidget);
-    expect(find.text('إقامة الياسمين'), findsWidgets);
+    expect(find.text('إقامة الاختبار'), findsWidgets);
+  });
+
+  testWidgets(
+    'resident switches real residences and accepts a new invitation',
+    (tester) async {
+      const invitation = ResidenceInvitation(
+        path: 'residences/nakheel/invitations/invitation-3',
+        id: 'invitation-3',
+        residenceId: 'nakheel',
+        residenceName: 'إقامة النخيل',
+        residenceAddress: 'حي الرياض، الرباط',
+        suggestedFirstName: 'أمينة',
+        suggestedLastName: 'المريني',
+        apartmentId: 'apartment-8',
+        role: 'resident',
+      );
+      const residenceContext = ResidenceContext(
+        residences: [
+          UserResidence(
+            id: 'yasmine',
+            name: 'إقامة الياسمين الحقيقية',
+            address: 'المعاريف، الدار البيضاء',
+            city: 'casablanca',
+            role: 'resident',
+            apartmentId: 'apartment-12',
+          ),
+          UserResidence(
+            id: 'andalous',
+            name: 'إقامة الأندلس',
+            address: 'أكدال، الرباط',
+            city: 'rabat',
+            role: 'owner',
+            apartmentId: 'apartment-5',
+          ),
+        ],
+        activeResidenceId: 'yasmine',
+        invitations: [invitation],
+      );
+      final contextRepository = _FakeResidenceContextRepository();
+      final accountRepository = _FakeAccountOnboardingRepository(
+        resolution: const AccountResolution(
+          phoneNumber: '+212600000001',
+          profile: UserProfile(
+            firstName: 'أمينة',
+            lastName: 'المريني',
+            phoneNumber: '+212600000001',
+            activeResidenceId: 'yasmine',
+          ),
+          invitations: [invitation],
+        ),
+      );
+      await _pumpApp(
+        tester,
+        size: const Size(1280, 900),
+        accountRepository: accountRepository,
+        residenceContextRepository: contextRepository,
+        residenceContext: residenceContext,
+      );
+      await tester.tap(find.byKey(const Key('start-button')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('expanded-shell')), findsOneWidget);
+
+      expect(find.text('إقامة الياسمين الحقيقية'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('residence-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('إقامة الأندلس'));
+      await tester.pumpAndSettle();
+      expect(contextRepository.selectedResidenceId, 'andalous');
+
+      await tester.tap(find.byKey(const Key('notifications-button')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('in-app-invitation-invitation-3')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const ValueKey('accept-in-app-invitation-invitation-3')),
+      );
+      await tester.pumpAndSettle();
+      expect(accountRepository.acceptedInvitations, [invitation]);
+    },
+  );
+
+  testWidgets('residence loading exposes the Firestore error details', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      accountRepository: _FakeAccountOnboardingRepository(
+        resolution: const AccountResolution(
+          phoneNumber: '+212600000001',
+          profile: UserProfile(
+            firstName: 'أمينة',
+            lastName: 'المريني',
+            phoneNumber: '+212600000001',
+          ),
+          invitations: [],
+        ),
+      ),
+      residenceContextError: const ResidenceContextFailure(
+        'failed-precondition',
+        'The query requires a collection group index.',
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('start-button')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('residence-context-error-details')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('failed-precondition'), findsOneWidget);
+    expect(find.textContaining('collection group index'), findsOneWidget);
   });
 
   testWidgets('resident can create a community post', (tester) async {
@@ -1207,6 +1337,9 @@ Future<void> _pumpApp(
   AuthRepository? authRepository,
   AccountOnboardingRepository? accountRepository,
   ResidenceSetupRepository? residenceSetupRepository,
+  ResidenceContextRepository? residenceContextRepository,
+  ResidenceContext? residenceContext,
+  Object? residenceContextError,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -1218,6 +1351,9 @@ Future<void> _pumpApp(
       accountRepository ?? _FakeAccountOnboardingRepository();
   final setupRepository =
       residenceSetupRepository ?? _FakeResidenceSetupRepository();
+  final contextRepository =
+      residenceContextRepository ?? _FakeResidenceContextRepository();
+  final contextData = residenceContext ?? _defaultResidenceContext;
   if (repository is _FakeAuthRepository) {
     addTearDown(repository.dispose);
   }
@@ -1231,12 +1367,34 @@ Future<void> _pumpApp(
           onboardingRepository,
         ),
         residenceSetupRepositoryProvider.overrideWithValue(setupRepository),
+        residenceContextRepositoryProvider.overrideWithValue(contextRepository),
+        residenceContextProvider.overrideWith((ref) async {
+          if (residenceContextError != null) {
+            throw residenceContextError;
+          }
+          return contextData;
+        }),
       ],
       child: const DarJarApp(),
     ),
   );
   await tester.pumpAndSettle();
 }
+
+const _defaultResidenceContext = ResidenceContext(
+  residences: [
+    UserResidence(
+      id: 'test-residence',
+      name: 'إقامة الاختبار',
+      address: 'شارع الاختبار',
+      city: 'casablanca',
+      role: 'owner',
+      apartmentId: '',
+    ),
+  ],
+  activeResidenceId: 'test-residence',
+  invitations: [],
+);
 
 Future<void> _enterResidence(WidgetTester tester) async {
   await tester.ensureVisible(find.byKey(const Key('start-button')));
@@ -1387,5 +1545,21 @@ class _FakeResidenceSetupRepository implements ResidenceSetupRepository {
     required ResidenceCodeSummary residence,
   }) async {
     requestedResidence = residence;
+  }
+}
+
+class _FakeResidenceContextRepository implements ResidenceContextRepository {
+  String? selectedResidenceId;
+
+  @override
+  Future<ResidenceContext> load(AuthUser user) async =>
+      _defaultResidenceContext;
+
+  @override
+  Future<void> setActiveResidence({
+    required AuthUser user,
+    required String residenceId,
+  }) async {
+    selectedResidenceId = residenceId;
   }
 }

@@ -7,6 +7,7 @@ import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -378,6 +379,7 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
             ),
           );
       if (mounted) {
+        ref.invalidate(residenceContextProvider);
         context.go(AppRoutes.community);
       }
     } on ResidenceSetupFailure catch (error) {
@@ -595,7 +597,11 @@ class _ResidenceSearchResult extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.medium),
           Text(
-            requestSent ? localizations.joinRequestSent : residence.name,
+            requestSent
+                ? localizations.joinRequestSent
+                : localizations.residenceDisplayName(
+                    normalizeResidenceName(residence.name),
+                  ),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge,
           ),

@@ -7,11 +7,13 @@ class UserProfile {
     required this.firstName,
     required this.lastName,
     required this.phoneNumber,
+    this.activeResidenceId,
   });
 
   final String firstName;
   final String lastName;
   final String phoneNumber;
+  final String? activeResidenceId;
 
   String get fullName => '$firstName $lastName'.trim();
 }
@@ -48,11 +50,13 @@ class AccountResolution {
     required this.phoneNumber,
     required this.profile,
     required this.invitations,
+    this.acceptedResidenceIds = const [],
   });
 
   final String phoneNumber;
   final UserProfile? profile;
   final List<ResidenceInvitation> invitations;
+  final List<String> acceptedResidenceIds;
 
   UserProfile? get displayedProfile {
     if (profile != null) {
@@ -110,6 +114,15 @@ class FirestoreAccountOnboardingRepository
       final pendingInvitationDocuments = invitationQuery.docs
           .where((document) => document.data()['status'] == 'pending')
           .toList(growable: false);
+      final acceptedResidenceIds = invitationQuery.docs
+          .where(
+            (document) =>
+                document.data()['status'] == 'accepted' &&
+                document.data()['acceptedBy'] == user.uid,
+          )
+          .map((document) => _residenceReference(document).id)
+          .toSet()
+          .toList(growable: false);
       final residenceDocuments = await Future.wait([
         for (final invitation in pendingInvitationDocuments)
           _residenceReference(invitation).get(),
@@ -136,6 +149,7 @@ class FirestoreAccountOnboardingRepository
             ? _profileFromData(userDocument.data()!, phoneNumber)
             : null,
         invitations: invitations,
+        acceptedResidenceIds: acceptedResidenceIds,
       );
     } on AccountOnboardingFailure {
       rethrow;
@@ -168,7 +182,15 @@ class FirestoreAccountOnboardingRepository
           'firstName': profile.firstName,
           'lastName': profile.lastName,
           'phoneNumber': phoneNumber,
+          'activeResidenceId': invitations.first.residenceId,
           'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      if (resolution.profile != null &&
+          resolution.profile!.activeResidenceId == null) {
+        batch.update(_firestore.collection('users').doc(user.uid), {
+          'activeResidenceId': invitations.first.residenceId,
           'updatedAt': FieldValue.serverTimestamp(),
         });
       }
@@ -186,6 +208,7 @@ class FirestoreAccountOnboardingRepository
           'acceptedAt': FieldValue.serverTimestamp(),
         });
         batch.set(membershipReference, {
+          'userId': user.uid,
           'apartmentId': invitation.apartmentId,
           'role': invitation.role,
           'status': 'active',
@@ -215,6 +238,7 @@ class FirestoreAccountOnboardingRepository
       firstName: data['firstName'] as String? ?? '',
       lastName: data['lastName'] as String? ?? '',
       phoneNumber: phoneNumber,
+      activeResidenceId: data['activeResidenceId'] as String?,
     );
   }
 

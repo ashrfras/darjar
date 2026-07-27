@@ -32,7 +32,9 @@ service cloud.firestore {
 
     function isResidenceMember(residenceId) {
       return signedIn()
-        && exists(memberPath(residenceId, request.auth.uid));
+        && get(
+          memberPath(residenceId, request.auth.uid)
+        ).data.status == 'active';
     }
 
     function isInvitationMembership(residenceId, memberId) {
@@ -51,12 +53,14 @@ service cloud.firestore {
       return verifiedPhone()
         && request.auth.uid == memberId
         && request.resource.data.keys().hasOnly([
+          'userId',
           'apartmentId',
           'role',
           'status',
           'sourceInvitationId',
           'joinedAt'
         ])
+        && request.resource.data.userId == memberId
         && request.resource.data.apartmentId is string
         && request.resource.data.role in [
           'resident',
@@ -78,12 +82,14 @@ service cloud.firestore {
       return verifiedPhone()
         && request.auth.uid == memberId
         && request.resource.data.keys().hasOnly([
+          'userId',
           'apartmentId',
           'role',
           'status',
           'source',
           'joinedAt'
         ])
+        && request.resource.data.userId == memberId
         && request.resource.data.apartmentId == ''
         && request.resource.data.role == 'owner'
         && request.resource.data.status == 'active'
@@ -102,6 +108,7 @@ service cloud.firestore {
           'firstName',
           'lastName',
           'phoneNumber',
+          'activeResidenceId',
           'createdAt',
           'updatedAt'
         ])
@@ -110,6 +117,10 @@ service cloud.firestore {
         && request.resource.data.lastName is string
         && request.resource.data.lastName.size() > 0
         && request.resource.data.phoneNumber == request.auth.token.phone_number
+        && request.resource.data.activeResidenceId is string
+        && getAfter(
+          memberPath(request.resource.data.activeResidenceId, userId)
+        ).data.status == 'active'
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
 
@@ -118,6 +129,7 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'firstName',
           'lastName',
+          'activeResidenceId',
           'updatedAt'
         ])
         && request.resource.data.firstName is string
@@ -125,6 +137,16 @@ service cloud.firestore {
         && request.resource.data.lastName is string
         && request.resource.data.lastName.size() > 0
         && request.resource.data.phoneNumber == request.auth.token.phone_number
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['activeResidenceId'])
+          || (
+            request.resource.data.activeResidenceId is string
+            && getAfter(
+              memberPath(request.resource.data.activeResidenceId, userId)
+            ).data.status == 'active'
+          )
+        )
         && request.resource.data.updatedAt == request.time;
     }
 
@@ -245,6 +267,16 @@ service cloud.firestore {
         && getAfter(
           privateSettingsPath(request.resource.data.residenceId)
         ).data.joinCode == code;
+    }
+
+    match /{path=**}/members/{memberId} {
+      allow read: if signedIn()
+        && resource.data.userId == request.auth.uid;
+    }
+
+    match /{path=**}/settings/{settingsId} {
+      allow read: if signedIn()
+        && resource.data.createdBy == request.auth.uid;
     }
 
     // A collection-group query can target every collection named

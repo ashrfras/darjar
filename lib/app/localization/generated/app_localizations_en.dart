@@ -24,6 +24,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get demoResidence => 'Yasmeen Residence';
 
   @override
+  String get selectResidence => 'Select residence';
+
+  @override
+  String get residenceSwitcherDescription =>
+      'Choose the residence you want to browse and manage now.';
+
+  @override
+  String get currentResidence => 'Current';
+
+  @override
+  String get acceptInvitation => 'Join';
+
+  @override
+  String get residenceInvitations => 'New residence invitations';
+
+  @override
+  String get residenceContextLoadError =>
+      'The account residences could not be loaded.';
+
+  @override
+  String residenceDisplayName(String name) {
+    return '$name Residence';
+  }
+
+  @override
   String get communityDescription =>
       'News, announcements, and discussions for residence neighbors.';
 

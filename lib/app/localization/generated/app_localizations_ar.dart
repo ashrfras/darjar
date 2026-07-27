@@ -24,6 +24,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get demoResidence => 'إقامة الياسمين';
 
   @override
+  String get selectResidence => 'اختيار الإقامة';
+
+  @override
+  String get residenceSwitcherDescription =>
+      'اختر الإقامة التي تريد تصفحها وإدارتها الآن.';
+
+  @override
+  String get currentResidence => 'الحالية';
+
+  @override
+  String get acceptInvitation => 'انضمام';
+
+  @override
+  String get residenceInvitations => 'دعوات الإقامة الجديدة';
+
+  @override
+  String get residenceContextLoadError => 'تعذر تحميل إقامات الحساب.';
+
+  @override
+  String residenceDisplayName(String name) {
+    return 'إقامة $name';
+  }
+
+  @override
   String get communityDescription =>
       'مساحة أخبار الجيران والإعلانات والنقاشات داخل الإقامة.';
 

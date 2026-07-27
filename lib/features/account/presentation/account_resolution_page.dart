@@ -7,6 +7,7 @@ import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -338,7 +339,9 @@ class _InvitationCard extends StatelessWidget {
         controlAffinity: ListTileControlAffinity.leading,
         contentPadding: const EdgeInsets.all(AppSpacing.medium),
         title: Text(
-          invitation.residenceName,
+          localizations.residenceDisplayName(
+            normalizeResidenceName(invitation.residenceName),
+          ),
           style: Theme.of(context).textTheme.titleMedium,
         ),
         subtitle: Padding(

@@ -131,11 +131,18 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
               'firstName': normalizedInput.firstName,
               'lastName': normalizedInput.lastName,
               'phoneNumber': phoneNumber,
+              'activeResidenceId': residenceReference.id,
               'createdAt': FieldValue.serverTimestamp(),
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+          } else {
+            transaction.update(userReference, {
+              'activeResidenceId': residenceReference.id,
               'updatedAt': FieldValue.serverTimestamp(),
             });
           }
           transaction.set(memberReference, {
+            'userId': user.uid,
             'apartmentId': '',
             'role': 'owner',
             'status': 'active',

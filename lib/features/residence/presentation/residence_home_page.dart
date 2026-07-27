@@ -5,7 +5,9 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
+import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +19,11 @@ class ResidenceHomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboard = ref.watch(residenceDashboardProvider);
+    final activeResidence = ref.watch(
+      residenceContextProvider.select(
+        (context) => context.value?.activeResidence,
+      ),
+    );
     final compact = MediaQuery.sizeOf(context).width < 600;
 
     return SingleChildScrollView(
@@ -36,12 +43,52 @@ class ResidenceHomePage extends ConsumerWidget {
             children: [
               if (!compact) ...[
                 DarJarPageHeader(
-                  title: AppLocalizations.of(context).residence,
-                  description: AppLocalizations.of(
-                    context,
-                  ).residencePageDescription,
+                  title: activeResidence == null
+                      ? AppLocalizations.of(context).residence
+                      : AppLocalizations.of(context).residenceDisplayName(
+                          normalizeResidenceName(activeResidence.name),
+                        ),
+                  description: activeResidence == null
+                      ? AppLocalizations.of(context).residencePageDescription
+                      : [
+                          activeResidence.address,
+                          activeResidence.city,
+                        ].where((value) => value.isNotEmpty).join(' • '),
                 ),
                 const SizedBox(height: AppSpacing.xLarge),
+              ],
+              if (compact && activeResidence != null) ...[
+                DarJarCard(
+                  child: Row(
+                    children: [
+                      const CircleAvatar(
+                        backgroundColor: AppColors.primarySoft,
+                        foregroundColor: AppColors.primary,
+                        child: Icon(Icons.apartment_rounded),
+                      ),
+                      const SizedBox(width: AppSpacing.medium),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppLocalizations.of(context).residenceDisplayName(
+                                normalizeResidenceName(activeResidence.name),
+                              ),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            if (activeResidence.address.isNotEmpty)
+                              Text(
+                                activeResidence.address,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.medium),
               ],
               _DashboardGrid(data: dashboard),
             ],

@@ -128,6 +128,48 @@ abstract class AppLocalizations {
   /// **'إقامة الياسمين'**
   String get demoResidence;
 
+  /// No description provided for @selectResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار الإقامة'**
+  String get selectResidence;
+
+  /// No description provided for @residenceSwitcherDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر الإقامة التي تريد تصفحها وإدارتها الآن.'**
+  String get residenceSwitcherDescription;
+
+  /// No description provided for @currentResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'الحالية'**
+  String get currentResidence;
+
+  /// No description provided for @acceptInvitation.
+  ///
+  /// In ar, this message translates to:
+  /// **'انضمام'**
+  String get acceptInvitation;
+
+  /// No description provided for @residenceInvitations.
+  ///
+  /// In ar, this message translates to:
+  /// **'دعوات الإقامة الجديدة'**
+  String get residenceInvitations;
+
+  /// No description provided for @residenceContextLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تحميل إقامات الحساب.'**
+  String get residenceContextLoadError;
+
+  /// No description provided for @residenceDisplayName.
+  ///
+  /// In ar, this message translates to:
+  /// **'إقامة {name}'**
+  String residenceDisplayName(String name);
+
   /// No description provided for @communityDescription.
   ///
   /// In ar, this message translates to:
