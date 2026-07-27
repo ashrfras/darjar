@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/features/account/data/account_onboarding_repository.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum ResidenceMemberRole { president, deputy, treasurer, resident }
+enum ResidenceMemberRole { resident, moderator, manager, owner }
 
 class ResidenceMember {
   const ResidenceMember({
@@ -16,20 +19,6 @@ class ResidenceMember {
   final String phone;
   final ResidenceMemberRole role;
   final String? apartmentId;
-
-  ResidenceMember copyWith({
-    ResidenceMemberRole? role,
-    String? apartmentId,
-    bool clearApartment = false,
-  }) {
-    return ResidenceMember(
-      id: id,
-      name: name,
-      phone: phone,
-      role: role ?? this.role,
-      apartmentId: clearApartment ? null : apartmentId ?? this.apartmentId,
-    );
-  }
 }
 
 class ResidenceApartment {
@@ -37,11 +26,13 @@ class ResidenceApartment {
     required this.id,
     required this.number,
     required this.floorId,
+    this.buildingId = '',
   });
 
   final String id;
   final String number;
   final String floorId;
+  final String buildingId;
 }
 
 class ResidenceFloor {
@@ -50,21 +41,22 @@ class ResidenceFloor {
     required this.nameAr,
     required this.nameEn,
     required this.apartments,
+    this.order,
   });
 
   final String id;
   final String nameAr;
   final String nameEn;
   final List<ResidenceApartment> apartments;
+  final int? order;
+}
 
-  ResidenceFloor copyWith({List<ResidenceApartment>? apartments}) {
-    return ResidenceFloor(
-      id: id,
-      nameAr: nameAr,
-      nameEn: nameEn,
-      apartments: apartments ?? this.apartments,
-    );
-  }
+int compareResidenceFloorsByOrder(ResidenceFloor first, ResidenceFloor second) {
+  const missingOrder = 0x7fffffff;
+  final orderComparison = (first.order ?? missingOrder).compareTo(
+    second.order ?? missingOrder,
+  );
+  return orderComparison != 0 ? orderComparison : first.id.compareTo(second.id);
 }
 
 class ResidenceBuilding {
@@ -79,32 +71,15 @@ class ResidenceBuilding {
   final String nameAr;
   final String nameEn;
   final List<ResidenceFloor> floors;
-
-  ResidenceBuilding copyWith({List<ResidenceFloor>? floors}) {
-    return ResidenceBuilding(
-      id: id,
-      nameAr: nameAr,
-      nameEn: nameEn,
-      floors: floors ?? this.floors,
-    );
-  }
 }
 
 class ResidenceMembersData {
   const ResidenceMembersData({required this.buildings, required this.members});
 
+  static const empty = ResidenceMembersData(buildings: [], members: []);
+
   final List<ResidenceBuilding> buildings;
   final List<ResidenceMember> members;
-
-  ResidenceMembersData copyWith({
-    List<ResidenceBuilding>? buildings,
-    List<ResidenceMember>? members,
-  }) {
-    return ResidenceMembersData(
-      buildings: buildings ?? this.buildings,
-      members: members ?? this.members,
-    );
-  }
 
   List<ResidenceApartment> get apartments => [
     for (final building in buildings)
@@ -112,258 +87,352 @@ class ResidenceMembersData {
   ];
 }
 
-abstract interface class ResidenceMembersRepository {
-  ResidenceMembersData getData();
+class ResidenceMembersFailure implements Exception {
+  const ResidenceMembersFailure(this.code, [this.details]);
+
+  final String code;
+  final String? details;
 }
 
-class MockResidenceMembersRepository implements ResidenceMembersRepository {
-  const MockResidenceMembersRepository();
+abstract interface class ResidenceMembersRepository {
+  Future<ResidenceMembersData> load(String residenceId);
+
+  Future<void> createInvitation({
+    required String residenceId,
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
+    required String apartmentId,
+  });
+
+  Future<void> assignApartment({
+    required String residenceId,
+    required String memberId,
+    required String? apartmentId,
+  });
+
+  Future<void> addApartment({
+    required String residenceId,
+    required String buildingId,
+    required String floorId,
+    required String number,
+  });
+
+  Future<void> deleteApartment({
+    required String residenceId,
+    required ResidenceApartment apartment,
+  });
+
+  Future<void> removeMember({
+    required String residenceId,
+    required String memberId,
+  });
+}
+
+class FirestoreResidenceMembersRepository
+    implements ResidenceMembersRepository {
+  FirestoreResidenceMembersRepository(this._firestore);
+
+  final FirebaseFirestore _firestore;
 
   @override
-  ResidenceMembersData getData() {
-    return const ResidenceMembersData(
-      buildings: [
-        ResidenceBuilding(
-          id: 'main-building',
-          nameAr: 'العمارة الرئيسية',
-          nameEn: 'Main building',
-          floors: [
-            ResidenceFloor(
-              id: 'ground-floor',
-              nameAr: 'الطابق الأرضي',
-              nameEn: 'Ground floor',
-              apartments: [
-                ResidenceApartment(
-                  id: 'apartment-01',
-                  number: '01',
-                  floorId: 'ground-floor',
-                ),
-                ResidenceApartment(
-                  id: 'apartment-02',
-                  number: '02',
-                  floorId: 'ground-floor',
-                ),
-              ],
-            ),
-            ResidenceFloor(
-              id: 'first-floor',
-              nameAr: 'الطابق الأول',
-              nameEn: 'First floor',
-              apartments: [
-                ResidenceApartment(
-                  id: 'apartment-11',
-                  number: '11',
-                  floorId: 'first-floor',
-                ),
-                ResidenceApartment(
-                  id: 'apartment-12',
-                  number: '12',
-                  floorId: 'first-floor',
-                ),
-                ResidenceApartment(
-                  id: 'apartment-13',
-                  number: '13',
-                  floorId: 'first-floor',
-                ),
-              ],
-            ),
-            ResidenceFloor(
-              id: 'second-floor',
-              nameAr: 'الطابق الثاني',
-              nameEn: 'Second floor',
-              apartments: [
-                ResidenceApartment(
-                  id: 'apartment-21',
-                  number: '21',
-                  floorId: 'second-floor',
-                ),
-                ResidenceApartment(
-                  id: 'apartment-22',
-                  number: '22',
-                  floorId: 'second-floor',
-                ),
-                ResidenceApartment(
-                  id: 'apartment-23',
-                  number: '23',
-                  floorId: 'second-floor',
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-      members: [
-        ResidenceMember(
-          id: 'member-youssef',
-          name: 'يوسف العلوي',
-          phone: '+212 6 12 34 56 78',
-          role: ResidenceMemberRole.president,
-          apartmentId: 'apartment-12',
-        ),
-        ResidenceMember(
-          id: 'member-salma',
-          name: 'سلمى بنعمر',
-          phone: '+212 6 23 45 67 89',
-          role: ResidenceMemberRole.deputy,
-          apartmentId: 'apartment-12',
-        ),
-        ResidenceMember(
-          id: 'member-hamza',
-          name: 'حمزة الإدريسي',
-          phone: '+212 6 34 56 78 90',
-          role: ResidenceMemberRole.treasurer,
-          apartmentId: 'apartment-21',
-        ),
-        ResidenceMember(
-          id: 'member-amina',
-          name: 'أمينة المريني',
-          phone: '+212 6 45 67 89 01',
-          role: ResidenceMemberRole.resident,
-          apartmentId: 'apartment-01',
-        ),
-        ResidenceMember(
-          id: 'member-karim',
-          name: 'كريم التازي',
-          phone: '+212 6 56 78 90 12',
-          role: ResidenceMemberRole.resident,
-        ),
-      ],
+  Future<ResidenceMembersData> load(String residenceId) async {
+    try {
+      final residence = _firestore.collection('residences').doc(residenceId);
+      final results = await Future.wait([
+        residence.collection('buildings').get(),
+        residence
+            .collection('members')
+            .where('status', isEqualTo: 'active')
+            .get(),
+      ]);
+      final buildingDocuments = results[0];
+      final memberDocuments = results[1];
+
+      final buildings = await Future.wait([
+        for (final building in buildingDocuments.docs) _loadBuilding(building),
+      ]);
+      buildings.sort((a, b) => a.nameAr.compareTo(b.nameAr));
+
+      final members = [
+        for (final document in memberDocuments.docs)
+          _memberFromDocument(document),
+      ]..sort((a, b) => a.name.compareTo(b.name));
+
+      return ResidenceMembersData(buildings: buildings, members: members);
+    } on FirebaseException catch (error) {
+      throw ResidenceMembersFailure(error.code, error.message);
+    } catch (error) {
+      throw ResidenceMembersFailure('unknown', error.toString());
+    }
+  }
+
+  Future<ResidenceBuilding> _loadBuilding(
+    QueryDocumentSnapshot<Map<String, dynamic>> building,
+  ) async {
+    final floorDocuments = await building.reference.collection('floors').get();
+    final floors = await Future.wait([
+      for (final floor in floorDocuments.docs) _loadFloor(floor),
+    ]);
+    floors.sort(compareResidenceFloorsByOrder);
+    final data = building.data();
+    return ResidenceBuilding(
+      id: building.id,
+      nameAr: data['nameAr'] as String? ?? data['name'] as String? ?? '',
+      nameEn: data['nameEn'] as String? ?? data['name'] as String? ?? '',
+      floors: floors,
     );
+  }
+
+  Future<ResidenceFloor> _loadFloor(
+    QueryDocumentSnapshot<Map<String, dynamic>> floor,
+  ) async {
+    final apartmentDocuments = await floor.reference
+        .collection('apartments')
+        .get();
+    final apartments = [
+      for (final document in apartmentDocuments.docs)
+        ResidenceApartment(
+          id: document.id,
+          number: document.data()['number']?.toString() ?? '',
+          floorId: floor.id,
+          buildingId: floor.reference.parent.parent?.id ?? '',
+        ),
+    ]..sort((a, b) => a.number.compareTo(b.number));
+    final data = floor.data();
+    return ResidenceFloor(
+      id: floor.id,
+      nameAr: data['nameAr'] as String? ?? data['name'] as String? ?? '',
+      nameEn: data['nameEn'] as String? ?? data['name'] as String? ?? '',
+      apartments: apartments,
+      order: data['order'] as int?,
+    );
+  }
+
+  ResidenceMember _memberFromDocument(
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
+  ) {
+    final data = document.data();
+    final firstName = data['firstName'] as String? ?? '';
+    final lastName = data['lastName'] as String? ?? '';
+    final apartmentId = data['apartmentId'] as String? ?? '';
+    return ResidenceMember(
+      id: document.id,
+      name: '$firstName $lastName'.trim().isEmpty
+          ? document.id
+          : '$firstName $lastName'.trim(),
+      phone: data['phoneNumber'] as String? ?? '',
+      role: ResidenceMemberRole.values.firstWhere(
+        (role) => role.name == data['role'],
+        orElse: () => ResidenceMemberRole.resident,
+      ),
+      apartmentId: apartmentId.isEmpty ? null : apartmentId,
+    );
+  }
+
+  @override
+  Future<void> createInvitation({
+    required String residenceId,
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
+    required String apartmentId,
+  }) async {
+    try {
+      await _firestore
+          .collection('residences')
+          .doc(residenceId)
+          .collection('invitations')
+          .add({
+            'suggestedFirstName': firstName.trim(),
+            'suggestedLastName': lastName.trim(),
+            'phoneNumber': phoneNumber.replaceAll(RegExp(r'\s'), ''),
+            'apartmentId': apartmentId,
+            'role': ResidenceMemberRole.resident.name,
+            'status': 'pending',
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+    } on FirebaseException catch (error) {
+      throw ResidenceMembersFailure(error.code, error.message);
+    }
+  }
+
+  @override
+  Future<void> assignApartment({
+    required String residenceId,
+    required String memberId,
+    required String? apartmentId,
+  }) async {
+    await _members(residenceId).doc(memberId).update({
+      'apartmentId': apartmentId ?? '',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  @override
+  Future<void> addApartment({
+    required String residenceId,
+    required String buildingId,
+    required String floorId,
+    required String number,
+  }) async {
+    await _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('buildings')
+        .doc(buildingId)
+        .collection('floors')
+        .doc(floorId)
+        .collection('apartments')
+        .add({
+          'number': int.parse(number.trim()),
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+  }
+
+  @override
+  Future<void> deleteApartment({
+    required String residenceId,
+    required ResidenceApartment apartment,
+  }) async {
+    final residence = _firestore.collection('residences').doc(residenceId);
+    final assignedMembers = await residence
+        .collection('members')
+        .where('apartmentId', isEqualTo: apartment.id)
+        .get();
+    final batch = _firestore.batch();
+    batch.delete(
+      residence
+          .collection('buildings')
+          .doc(apartment.buildingId)
+          .collection('floors')
+          .doc(apartment.floorId)
+          .collection('apartments')
+          .doc(apartment.id),
+    );
+    for (final member in assignedMembers.docs) {
+      batch.update(member.reference, {
+        'apartmentId': '',
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    await batch.commit();
+  }
+
+  @override
+  Future<void> removeMember({
+    required String residenceId,
+    required String memberId,
+  }) async {
+    await _members(residenceId).doc(memberId).update({
+      'status': 'removed',
+      'apartmentId': '',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  CollectionReference<Map<String, dynamic>> _members(String residenceId) {
+    return _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('members');
   }
 }
 
 final residenceMembersRepositoryProvider = Provider<ResidenceMembersRepository>(
-  (ref) => const MockResidenceMembersRepository(),
+  (ref) =>
+      FirestoreResidenceMembersRepository(ref.watch(firebaseFirestoreProvider)),
 );
 
-class ResidenceMembersController extends Notifier<ResidenceMembersData> {
+class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
+  String? _residenceId;
+
   @override
-  ResidenceMembersData build() {
-    return ref.read(residenceMembersRepositoryProvider).getData();
-  }
-
-  void assignApartment(String memberId, String? apartmentId) {
-    state = state.copyWith(
-      members: [
-        for (final member in state.members)
-          if (member.id == memberId)
-            member.copyWith(
-              apartmentId: apartmentId,
-              clearApartment: apartmentId == null,
-            )
-          else
-            member,
-      ],
+  Future<ResidenceMembersData> build() async {
+    _residenceId = await ref.watch(
+      residenceContextProvider.selectAsync(
+        (context) => context.activeResidenceId,
+      ),
     );
+    final residenceId = _residenceId;
+    if (residenceId == null) {
+      return ResidenceMembersData.empty;
+    }
+    return ref.read(residenceMembersRepositoryProvider).load(residenceId);
   }
 
-  void changeRole(String memberId, ResidenceMemberRole role) {
-    state = state.copyWith(
-      members: [
-        for (final member in state.members)
-          if (member.id == memberId) member.copyWith(role: role) else member,
-      ],
-    );
-  }
-
-  void removeMember(String memberId) {
-    state = state.copyWith(
-      members: state.members
-          .where((member) => member.id != memberId)
-          .toList(growable: false),
-    );
-  }
-
-  void addResident({
+  Future<void> createInvitation({
     required String firstName,
     required String lastName,
-    required String phone,
+    required String phoneNumber,
     required String apartmentId,
-  }) {
-    final normalizedPhone = phone.trim();
-    final phoneIdentity = normalizedPhone.replaceAll(RegExp(r'\s'), '');
-    if (state.members.any(
-      (member) => member.phone.replaceAll(RegExp(r'\s'), '') == phoneIdentity,
-    )) {
-      return;
-    }
-    final idSuffix = normalizedPhone.replaceAll(RegExp(r'\D'), '');
-    state = state.copyWith(
-      members: [
-        ...state.members,
-        ResidenceMember(
-          id: 'member-$idSuffix',
-          name: '${firstName.trim()} ${lastName.trim()}',
-          phone: normalizedPhone,
-          role: ResidenceMemberRole.resident,
+  }) async {
+    final residenceId = _requiredResidenceId();
+    await ref
+        .read(residenceMembersRepositoryProvider)
+        .createInvitation(
+          residenceId: residenceId,
+          firstName: firstName,
+          lastName: lastName,
+          phoneNumber: phoneNumber,
           apartmentId: apartmentId,
-        ),
-      ],
-    );
+        );
   }
 
-  void addApartment({
+  Future<void> assignApartment(String memberId, String? apartmentId) async {
+    await ref
+        .read(residenceMembersRepositoryProvider)
+        .assignApartment(
+          residenceId: _requiredResidenceId(),
+          memberId: memberId,
+          apartmentId: apartmentId,
+        );
+    ref.invalidateSelf();
+  }
+
+  Future<void> addApartment({
     required String buildingId,
     required String floorId,
     required String number,
-  }) {
-    final normalizedNumber = number.trim();
-    final id = 'apartment-$floorId-${normalizedNumber.toLowerCase()}';
-    state = state.copyWith(
-      buildings: [
-        for (final building in state.buildings)
-          if (building.id == buildingId)
-            building.copyWith(
-              floors: [
-                for (final floor in building.floors)
-                  if (floor.id == floorId)
-                    floor.copyWith(
-                      apartments: [
-                        ...floor.apartments,
-                        ResidenceApartment(
-                          id: id,
-                          number: normalizedNumber,
-                          floorId: floorId,
-                        ),
-                      ],
-                    )
-                  else
-                    floor,
-              ],
-            )
-          else
-            building,
-      ],
-    );
+  }) async {
+    await ref
+        .read(residenceMembersRepositoryProvider)
+        .addApartment(
+          residenceId: _requiredResidenceId(),
+          buildingId: buildingId,
+          floorId: floorId,
+          number: number,
+        );
+    ref.invalidateSelf();
   }
 
-  void deleteApartment(String apartmentId) {
-    state = state.copyWith(
-      buildings: [
-        for (final building in state.buildings)
-          building.copyWith(
-            floors: [
-              for (final floor in building.floors)
-                floor.copyWith(
-                  apartments: floor.apartments
-                      .where((apartment) => apartment.id != apartmentId)
-                      .toList(growable: false),
-                ),
-            ],
-          ),
-      ],
-      members: [
-        for (final member in state.members)
-          if (member.apartmentId == apartmentId)
-            member.copyWith(clearApartment: true)
-          else
-            member,
-      ],
-    );
+  Future<void> deleteApartment(ResidenceApartment apartment) async {
+    await ref
+        .read(residenceMembersRepositoryProvider)
+        .deleteApartment(
+          residenceId: _requiredResidenceId(),
+          apartment: apartment,
+        );
+    ref.invalidateSelf();
+  }
+
+  Future<void> removeMember(String memberId) async {
+    await ref
+        .read(residenceMembersRepositoryProvider)
+        .removeMember(residenceId: _requiredResidenceId(), memberId: memberId);
+    ref.invalidateSelf();
+  }
+
+  String _requiredResidenceId() {
+    final residenceId = _residenceId;
+    if (residenceId == null) {
+      throw const ResidenceMembersFailure('missing-active-residence');
+    }
+    return residenceId;
   }
 }
 
 final residenceMembersProvider =
-    NotifierProvider<ResidenceMembersController, ResidenceMembersData>(
+    AsyncNotifierProvider<ResidenceMembersController, ResidenceMembersData>(
       ResidenceMembersController.new,
     );

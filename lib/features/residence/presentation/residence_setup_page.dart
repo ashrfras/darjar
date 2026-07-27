@@ -6,6 +6,7 @@ import 'package:darjar/app/theme/app_typography.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
+import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
@@ -407,6 +408,8 @@ class _JoinResidenceForm extends ConsumerStatefulWidget {
 
 class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
   final _codeController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   ResidenceCodeSummary? _residence;
   bool _isSearching = false;
   bool _isJoining = false;
@@ -416,6 +419,8 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
   @override
   void dispose() {
     _codeController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     super.dispose();
   }
 
@@ -435,6 +440,22 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              DarJarTextField(
+                key: const Key('join-first-name-field'),
+                controller: _firstNameController,
+                label: localizations.firstName,
+                prefixIcon: Icons.person_outline_rounded,
+                textInputAction: TextInputAction.next,
+              ),
+              const SizedBox(height: AppSpacing.medium),
+              DarJarTextField(
+                key: const Key('join-last-name-field'),
+                controller: _lastNameController,
+                label: localizations.lastName,
+                prefixIcon: Icons.person_outline_rounded,
+                textInputAction: TextInputAction.next,
+              ),
+              const SizedBox(height: AppSpacing.medium),
               DarJarTextField(
                 key: const Key('join-residence-code-field'),
                 controller: _codeController,
@@ -535,6 +556,11 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
       setState(() => _errorCode = 'signed-out');
       return;
     }
+    if (_firstNameController.text.trim().isEmpty ||
+        _lastNameController.text.trim().isEmpty) {
+      setState(() => _errorCode = 'invalid-data');
+      return;
+    }
     setState(() {
       _isJoining = true;
       _errorCode = null;
@@ -542,9 +568,16 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
     try {
       await ref
           .read(residenceSetupRepositoryProvider)
-          .requestToJoin(user: user, residence: residence);
+          .requestToJoin(
+            user: user,
+            residence: residence,
+            firstName: _firstNameController.text,
+            lastName: _lastNameController.text,
+          );
       if (mounted) {
-        setState(() => _requestSent = true);
+        ref.invalidate(residenceContextProvider);
+        ref.invalidate(accountResolutionProvider);
+        context.go(AppRoutes.community);
       }
     } on ResidenceSetupFailure catch (error) {
       if (mounted) {

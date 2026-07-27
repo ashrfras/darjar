@@ -14,7 +14,20 @@ class ManagementPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
-    final settings = ref.watch(residenceSettingsProvider);
+    final settingsState = ref.watch(residenceSettingsProvider);
+    if (settingsState.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final settings = settingsState.value;
+    if (settings == null) {
+      return Center(
+        child: IconButton(
+          tooltip: localizations.accountResolutionRetry,
+          onPressed: () => ref.invalidate(residenceSettingsProvider),
+          icon: const Icon(Icons.refresh_rounded),
+        ),
+      );
+    }
 
     return SingleChildScrollView(
       key: const Key('management-page'),
@@ -45,12 +58,6 @@ class ManagementPage extends ConsumerWidget {
                       icon: Icons.phone_outlined,
                       label: localizations.phone,
                       value: settings.managementPhone,
-                    ),
-                    const Divider(),
-                    _InfoRow(
-                      icon: Icons.schedule_outlined,
-                      label: localizations.officeHours,
-                      value: settings.managementOfficeHours,
                     ),
                   ],
                 ),

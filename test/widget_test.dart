@@ -13,6 +13,7 @@ import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_invitation_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
@@ -109,7 +110,7 @@ void main() {
     });
 
     test('residence member assignments reference configured apartments', () {
-      final data = const MockResidenceMembersRepository().getData();
+      final data = _FakeResidenceMembersRepository.initialData;
       final apartmentIds = data.apartments
           .map((apartment) => apartment.id)
           .toSet();
@@ -129,25 +130,56 @@ void main() {
       );
     });
 
-    test('residence settings mock persists management changes', () {
-      final repository = MockResidenceSettingsRepository();
-      final original = repository.getSettings();
+    test('residence floors are ordered by their Firestore order field', () {
+      final floors = [
+        const ResidenceFloor(
+          id: 'third',
+          nameAr: 'الثالث',
+          nameEn: 'Third',
+          apartments: [],
+          order: 3,
+        ),
+        const ResidenceFloor(
+          id: 'ground',
+          nameAr: 'الأرضي',
+          nameEn: 'Ground',
+          apartments: [],
+          order: 0,
+        ),
+        const ResidenceFloor(
+          id: 'without-order',
+          nameAr: 'قديم',
+          nameEn: 'Legacy',
+          apartments: [],
+        ),
+      ]..sort(compareResidenceFloorsByOrder);
 
-      repository.saveSettings(
+      expect(floors.map((floor) => floor.id), [
+        'ground',
+        'third',
+        'without-order',
+      ]);
+    });
+
+    test('residence settings repository persists management changes', () async {
+      final repository = _FakeResidenceSettingsRepository();
+      final original = await repository.load('test-residence');
+
+      await repository.save(
         original.copyWith(
           defaultSubscriptionAmount: 450,
           joinRequestsEnabled: false,
         ),
       );
 
-      expect(repository.getSettings().defaultSubscriptionAmount, 450);
-      expect(repository.getSettings().joinRequestsEnabled, isFalse);
-      expect(original.residenceId, matches(RegExp(r'^\d+$')));
-      expect(repository.getSettings().residenceId, original.residenceId);
-      expect(repository.getSettings().invitationUrl, original.invitationUrl);
-      expect(repository.getSettings().buildings.single.floorCount, 3);
-      expect(repository.getSettings().managementOrganization, isNotEmpty);
-      expect(repository.getSettings().bankAccount, isNotEmpty);
+      final updated = await repository.load('test-residence');
+      expect(updated.defaultSubscriptionAmount, 450);
+      expect(updated.joinRequestsEnabled, isFalse);
+      expect(updated.residenceId, original.residenceId);
+      expect(updated.invitationUrl, original.invitationUrl);
+      expect(updated.buildings.single.floorCount, 3);
+      expect(updated.managementOrganization, isNotEmpty);
+      expect(updated.bankAccount, isNotEmpty);
     });
   });
 
@@ -369,7 +401,7 @@ void main() {
       expect(isValidResidenceCode('1234'), isFalse);
     });
 
-    testWidgets('resident finds a residence and sends a join request', (
+    testWidgets('resident finds a residence and joins immediately', (
       tester,
     ) async {
       final setupRepository = _FakeResidenceSetupRepository(
@@ -393,6 +425,14 @@ void main() {
       await tester.tap(find.byKey(const Key('join-my-residence-option')));
       await tester.pumpAndSettle();
       await tester.enterText(
+        find.byKey(const Key('join-first-name-field')),
+        'أمين',
+      );
+      await tester.enterText(
+        find.byKey(const Key('join-last-name-field')),
+        'المريني',
+      );
+      await tester.enterText(
         find.byKey(const Key('join-residence-code-field')),
         '48273165',
       );
@@ -407,7 +447,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(setupRepository.requestedResidence?.code, '48273165');
-      expect(find.text('تم إرسال طلب الانضمام'), findsOneWidget);
+      expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
     });
   });
 
@@ -467,6 +507,19 @@ void main() {
     final notificationButton = tester.widget<IconButton>(notification);
     expect(appBar.toolbarHeight, 58);
     expect(notificationButton.iconSize, 21);
+    final brandImage = tester.widget<Image>(brand);
+    expect(
+      (brandImage.image as AssetImage).assetName,
+      'assets/images/branding/darjar-logo.png',
+    );
+    expect(brandImage.fit, BoxFit.contain);
+    expect(
+      find.descendant(
+        of: brand,
+        matching: find.byIcon(Icons.apartment_rounded),
+      ),
+      findsNothing,
+    );
 
     await tester.tap(notification);
     await tester.pumpAndSettle();
@@ -963,10 +1016,7 @@ void main() {
       greaterThan(tester.getTopLeft(find.byKey(const Key('settings-link'))).dy),
     );
     expect(find.text('إدارة الإقامة'), findsOneWidget);
-    expect(
-      find.text('إدارة الشقق، إدارة السكان، تعيين الصلاحيات'),
-      findsOneWidget,
-    );
+    expect(find.text('إدارة الشقق وتوزيع السكان داخل الإقامة'), findsOneWidget);
     expect(find.byKey(const Key('manage-projects-link')), findsNothing);
     expect(
       find.text('هيكلة الإقامة، معلومات الإقامة، قيمة الاشتراك'),
@@ -1027,7 +1077,7 @@ void main() {
       expect(tester.widget<TextField>(residenceIdField).readOnly, isTrue);
       expect(
         tester.widget<TextField>(residenceIdField).controller?.text,
-        matches(RegExp(r'^\d+$')),
+        '48273165',
       );
       expect(
         find.byKey(const Key('residence-structure-section')),
@@ -1052,7 +1102,6 @@ void main() {
       for (final fieldKey in [
         'management-organization-field',
         'management-phone-field',
-        'management-office-hours-field',
         'management-bank-name-field',
         'management-bank-account-field',
       ]) {
@@ -1067,10 +1116,22 @@ void main() {
         find.byKey(const Key('save-residence-settings-button')).hitTestable(),
         findsOneWidget,
       );
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.descendant(
+                of: find.byKey(const Key('save-residence-settings-button')),
+                matching: find.byType(FilledButton),
+              ),
+            )
+            .onPressed,
+        isNull,
+      );
       await tester.enterText(
         find.byKey(const Key('establishment-year-field')),
         '20ab25',
       );
+      await tester.pump();
       expect(
         tester
             .widget<TextField>(
@@ -1083,11 +1144,23 @@ void main() {
             ?.text,
         '2025',
       );
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.descendant(
+                of: find.byKey(const Key('save-residence-settings-button')),
+                matching: find.byType(FilledButton),
+              ),
+            )
+            .onPressed,
+        isNotNull,
+      );
 
       await tester.ensureVisible(find.byKey(const Key('add-building-button')));
       await tester.tap(find.byKey(const Key('add-building-button')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('building-editor-dialog')), findsOneWidget);
+      expect(find.text('مثال: جناح أ'), findsOneWidget);
       await tester.enterText(
         find.byKey(const Key('building-name-field')),
         'المبنى B',
@@ -1136,6 +1209,44 @@ void main() {
     },
   );
 
+  testWidgets('residence settings warn before leaving with unsaved changes', (
+    tester,
+  ) async {
+    final settingsRepository = _FakeResidenceSettingsRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceSettingsRepository: settingsRepository,
+    );
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('manage-residence-link')));
+    await tester.tap(find.byKey(const Key('manage-residence-link')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const Key('residence-name-field')),
+      'إقامة معدلة',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('subpage-back-button')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('unsaved-residence-settings-dialog')),
+      findsOneWidget,
+    );
+    expect(find.text('لم يتم حفظ التعديلات'), findsOneWidget);
+    expect(find.byKey(const Key('save-before-leaving-button')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('save-before-leaving-button')));
+    await tester.pumpAndSettle();
+
+    expect(settingsRepository.settings.name, 'إقامة معدلة');
+    expect(find.byKey(const Key('profile-page')), findsOneWidget);
+  });
+
   testWidgets('internal component gallery remains navigable', (tester) async {
     await _pumpApp(tester, size: const Size(1280, 844));
     await _enterResidence(tester);
@@ -1147,7 +1258,7 @@ void main() {
     expect(find.byType(BackButtonIcon), findsOneWidget);
   });
 
-  testWidgets('apartments and residents support daily assignments and roles', (
+  testWidgets('apartments and residents support daily assignments', (
     tester,
   ) async {
     await _pumpApp(tester, size: const Size(390, 844));
@@ -1169,8 +1280,19 @@ void main() {
 
     await tester.tap(find.byKey(const Key('add-apartment-button')));
     await tester.pumpAndSettle();
+    expect(find.text('رقم الشقة'), findsOneWidget);
+    expect(find.text('رقم أو اسم الشقة'), findsNothing);
     await tester.enterText(
       find.byKey(const Key('new-apartment-number-field')),
+      '03A',
+    );
+    expect(
+      tester
+          .widget<TextField>(
+            find.byKey(const Key('new-apartment-number-field')),
+          )
+          .controller
+          ?.text,
       '03',
     );
     tester.testTextInput.hide();
@@ -1181,12 +1303,12 @@ void main() {
     await tester.tap(find.byKey(const Key('confirm-add-apartment-button')));
     await tester.pumpAndSettle();
     final addedApartment = find.byKey(
-      const ValueKey('apartment-apartment-ground-floor-03'),
+      const ValueKey('apartment-apartment-ground-floor-3'),
     );
     expect(addedApartment, findsOneWidget);
 
     final deleteAddedApartment = find.byKey(
-      const ValueKey('delete-apartment-apartment-ground-floor-03'),
+      const ValueKey('delete-apartment-apartment-ground-floor-3'),
     );
     await tester.ensureVisible(deleteAddedApartment);
     await tester.pumpAndSettle();
@@ -1226,24 +1348,20 @@ void main() {
 
     await tester.tap(actions);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('تغيير الدور'));
+    expect(find.text('تغيير الدور'), findsNothing);
+    await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('نائب').last);
-    await tester.pumpAndSettle();
-
-    expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('resident-member-karim')),
-        matching: find.text('نائب'),
-      ),
-      findsOneWidget,
-    );
   });
 
   testWidgets('residents use international phones and group invitations', (
     tester,
   ) async {
-    await _pumpApp(tester, size: const Size(390, 844));
+    final membersRepository = _FakeResidenceMembersRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceMembersRepository: membersRepository,
+    );
     await _enterResidence(tester);
     await tester.tap(find.byKey(const Key('profile-button')));
     await tester.pumpAndSettle();
@@ -1303,8 +1421,9 @@ void main() {
     await tester.tap(find.byKey(const Key('confirm-add-resident-button')));
     await tester.pumpAndSettle();
 
-    expect(find.text('مريم المنصوري'), findsOneWidget);
-    expect(find.text('+212 6 98 76 54 32'), findsOneWidget);
+    expect(membersRepository.createdInvitations, hasLength(1));
+    expect(membersRepository.createdInvitations.single.firstName, 'مريم');
+    expect(find.text('تم إنشاء دعوة الساكن.'), findsOneWidget);
 
     await tester.ensureVisible(groupInvitationButton);
     await tester.pumpAndSettle();
@@ -1338,6 +1457,9 @@ Future<void> _pumpApp(
   AccountOnboardingRepository? accountRepository,
   ResidenceSetupRepository? residenceSetupRepository,
   ResidenceContextRepository? residenceContextRepository,
+  ResidenceMembersRepository? residenceMembersRepository,
+  ResidenceInvitationRepository? residenceInvitationRepository,
+  ResidenceSettingsRepository? residenceSettingsRepository,
   ResidenceContext? residenceContext,
   Object? residenceContextError,
 }) async {
@@ -1353,6 +1475,12 @@ Future<void> _pumpApp(
       residenceSetupRepository ?? _FakeResidenceSetupRepository();
   final contextRepository =
       residenceContextRepository ?? _FakeResidenceContextRepository();
+  final membersRepository =
+      residenceMembersRepository ?? _FakeResidenceMembersRepository();
+  final invitationRepository =
+      residenceInvitationRepository ?? _FakeResidenceInvitationRepository();
+  final settingsRepository =
+      residenceSettingsRepository ?? _FakeResidenceSettingsRepository();
   final contextData = residenceContext ?? _defaultResidenceContext;
   if (repository is _FakeAuthRepository) {
     addTearDown(repository.dispose);
@@ -1368,6 +1496,13 @@ Future<void> _pumpApp(
         ),
         residenceSetupRepositoryProvider.overrideWithValue(setupRepository),
         residenceContextRepositoryProvider.overrideWithValue(contextRepository),
+        residenceMembersRepositoryProvider.overrideWithValue(membersRepository),
+        residenceInvitationRepositoryProvider.overrideWithValue(
+          invitationRepository,
+        ),
+        residenceSettingsRepositoryProvider.overrideWithValue(
+          settingsRepository,
+        ),
         residenceContextProvider.overrideWith((ref) async {
           if (residenceContextError != null) {
             throw residenceContextError;
@@ -1543,8 +1678,295 @@ class _FakeResidenceSetupRepository implements ResidenceSetupRepository {
   Future<void> requestToJoin({
     required AuthUser user,
     required ResidenceCodeSummary residence,
+    required String firstName,
+    required String lastName,
   }) async {
     requestedResidence = residence;
+  }
+}
+
+class _CreatedInvitation {
+  const _CreatedInvitation({
+    required this.firstName,
+    required this.lastName,
+    required this.phoneNumber,
+    required this.apartmentId,
+  });
+
+  final String firstName;
+  final String lastName;
+  final String phoneNumber;
+  final String apartmentId;
+}
+
+class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
+  static const initialData = ResidenceMembersData(
+    buildings: [
+      ResidenceBuilding(
+        id: 'main-building',
+        nameAr: 'العمارة الرئيسية',
+        nameEn: 'Main building',
+        floors: [
+          ResidenceFloor(
+            id: 'ground-floor',
+            nameAr: 'الطابق الأرضي',
+            nameEn: 'Ground floor',
+            apartments: [
+              ResidenceApartment(
+                id: 'apartment-01',
+                number: '01',
+                floorId: 'ground-floor',
+                buildingId: 'main-building',
+              ),
+              ResidenceApartment(
+                id: 'apartment-02',
+                number: '02',
+                floorId: 'ground-floor',
+                buildingId: 'main-building',
+              ),
+            ],
+          ),
+          ResidenceFloor(
+            id: 'first-floor',
+            nameAr: 'الطابق الأول',
+            nameEn: 'First floor',
+            apartments: [
+              ResidenceApartment(
+                id: 'apartment-11',
+                number: '11',
+                floorId: 'first-floor',
+                buildingId: 'main-building',
+              ),
+              ResidenceApartment(
+                id: 'apartment-12',
+                number: '12',
+                floorId: 'first-floor',
+                buildingId: 'main-building',
+              ),
+            ],
+          ),
+          ResidenceFloor(
+            id: 'second-floor',
+            nameAr: 'الطابق الثاني',
+            nameEn: 'Second floor',
+            apartments: [
+              ResidenceApartment(
+                id: 'apartment-21',
+                number: '21',
+                floorId: 'second-floor',
+                buildingId: 'main-building',
+              ),
+              ResidenceApartment(
+                id: 'apartment-22',
+                number: '22',
+                floorId: 'second-floor',
+                buildingId: 'main-building',
+              ),
+              ResidenceApartment(
+                id: 'apartment-23',
+                number: '23',
+                floorId: 'second-floor',
+                buildingId: 'main-building',
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+    members: [
+      ResidenceMember(
+        id: 'member-youssef',
+        name: 'يوسف العلوي',
+        phone: '+212 6 12 34 56 78',
+        role: ResidenceMemberRole.owner,
+        apartmentId: 'apartment-12',
+      ),
+      ResidenceMember(
+        id: 'member-karim',
+        name: 'كريم التازي',
+        phone: '+212 6 56 78 90 12',
+        role: ResidenceMemberRole.resident,
+      ),
+    ],
+  );
+
+  ResidenceMembersData data = initialData;
+  final List<_CreatedInvitation> createdInvitations = [];
+
+  @override
+  Future<ResidenceMembersData> load(String residenceId) async => data;
+
+  @override
+  Future<void> createInvitation({
+    required String residenceId,
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
+    required String apartmentId,
+  }) async {
+    createdInvitations.add(
+      _CreatedInvitation(
+        firstName: firstName,
+        lastName: lastName,
+        phoneNumber: phoneNumber,
+        apartmentId: apartmentId,
+      ),
+    );
+  }
+
+  @override
+  Future<void> assignApartment({
+    required String residenceId,
+    required String memberId,
+    required String? apartmentId,
+  }) async {
+    data = ResidenceMembersData(
+      buildings: data.buildings,
+      members: [
+        for (final member in data.members)
+          ResidenceMember(
+            id: member.id,
+            name: member.name,
+            phone: member.phone,
+            role: member.role,
+            apartmentId: member.id == memberId
+                ? apartmentId
+                : member.apartmentId,
+          ),
+      ],
+    );
+  }
+
+  @override
+  Future<void> addApartment({
+    required String residenceId,
+    required String buildingId,
+    required String floorId,
+    required String number,
+  }) async {
+    data = ResidenceMembersData(
+      buildings: [
+        for (final building in data.buildings)
+          ResidenceBuilding(
+            id: building.id,
+            nameAr: building.nameAr,
+            nameEn: building.nameEn,
+            floors: [
+              for (final floor in building.floors)
+                ResidenceFloor(
+                  id: floor.id,
+                  nameAr: floor.nameAr,
+                  nameEn: floor.nameEn,
+                  apartments: [
+                    ...floor.apartments,
+                    if (building.id == buildingId && floor.id == floorId)
+                      ResidenceApartment(
+                        id: 'apartment-$floorId-$number',
+                        number: number,
+                        floorId: floorId,
+                        buildingId: buildingId,
+                      ),
+                  ],
+                ),
+            ],
+          ),
+      ],
+      members: data.members,
+    );
+  }
+
+  @override
+  Future<void> deleteApartment({
+    required String residenceId,
+    required ResidenceApartment apartment,
+  }) async {
+    data = ResidenceMembersData(
+      buildings: [
+        for (final building in data.buildings)
+          ResidenceBuilding(
+            id: building.id,
+            nameAr: building.nameAr,
+            nameEn: building.nameEn,
+            floors: [
+              for (final floor in building.floors)
+                ResidenceFloor(
+                  id: floor.id,
+                  nameAr: floor.nameAr,
+                  nameEn: floor.nameEn,
+                  apartments: floor.apartments
+                      .where((item) => item.id != apartment.id)
+                      .toList(),
+                ),
+            ],
+          ),
+      ],
+      members: data.members,
+    );
+  }
+
+  @override
+  Future<void> removeMember({
+    required String residenceId,
+    required String memberId,
+  }) async {
+    data = ResidenceMembersData(
+      buildings: data.buildings,
+      members: data.members.where((member) => member.id != memberId).toList(),
+    );
+  }
+}
+
+class _FakeResidenceInvitationRepository
+    implements ResidenceInvitationRepository {
+  ResidenceGroupInvitation invitation = const ResidenceGroupInvitation(
+    residenceId: 'test-residence',
+    joinCode: '48273165',
+    joinRequestsEnabled: true,
+  );
+
+  @override
+  Future<ResidenceGroupInvitation> load(String residenceId) async => invitation;
+
+  @override
+  Future<void> setJoiningEnabled(String residenceId, bool enabled) async {
+    invitation = ResidenceGroupInvitation(
+      residenceId: residenceId,
+      joinCode: invitation.joinCode,
+      joinRequestsEnabled: enabled,
+    );
+  }
+}
+
+class _FakeResidenceSettingsRepository implements ResidenceSettingsRepository {
+  ResidenceSettings settings = const ResidenceSettings(
+    residenceId: '10284736',
+    joinCode: '48273165',
+    name: 'إقامة الاختبار',
+    address: 'شارع الاختبار',
+    establishmentYear: 2018,
+    defaultSubscriptionAmount: 300,
+    invitationUrl: 'https://darjar.app/join/48273165',
+    joinRequestsEnabled: true,
+    hasImage: false,
+    buildings: [
+      ResidenceBuildingConfiguration(
+        id: 'main-building',
+        name: 'المبنى الرئيسي',
+        floorCount: 3,
+      ),
+    ],
+    managementOrganization: 'شركة إدارة الإقامة',
+    managementPhone: '+212 5 22 00 00 00',
+    bankName: 'البنك المغربي',
+    bankAccount: '007 810 0000000000000000 00',
+  );
+
+  @override
+  Future<ResidenceSettings> load(String residenceId) async => settings;
+
+  @override
+  Future<void> save(ResidenceSettings settings) async {
+    this.settings = settings;
   }
 }
 

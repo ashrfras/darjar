@@ -7,38 +7,70 @@ import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
+import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-class ResidenceSettingsPage extends ConsumerStatefulWidget {
+class ResidenceSettingsPage extends ConsumerWidget {
   const ResidenceSettingsPage({super.key});
 
   @override
-  ConsumerState<ResidenceSettingsPage> createState() =>
-      _ResidenceSettingsPageState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(residenceSettingsProvider);
+    return settings.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Center(
+        child: DarJarButton(
+          label: AppLocalizations.of(context).accountResolutionRetry,
+          icon: Icons.refresh_rounded,
+          onPressed: () => ref.invalidate(residenceSettingsProvider),
+        ),
+      ),
+      data: (data) => _ResidenceSettingsForm(
+        key: ValueKey(data.residenceId),
+        settings: data,
+      ),
+    );
+  }
 }
 
-class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
-  late final TextEditingController _residenceIdController;
+class _ResidenceSettingsForm extends ConsumerStatefulWidget {
+  const _ResidenceSettingsForm({required this.settings, super.key});
+
+  final ResidenceSettings settings;
+
+  @override
+  ConsumerState<_ResidenceSettingsForm> createState() =>
+      _ResidenceSettingsFormState();
+}
+
+class _ResidenceSettingsFormState
+    extends ConsumerState<_ResidenceSettingsForm> {
+  late final TextEditingController _joinCodeController;
   late final TextEditingController _nameController;
   late final TextEditingController _addressController;
   late final TextEditingController _yearController;
   late final TextEditingController _amountController;
   late final TextEditingController _managementOrganizationController;
   late final TextEditingController _managementPhoneController;
-  late final TextEditingController _managementOfficeHoursController;
   late final TextEditingController _bankNameController;
   late final TextEditingController _bankAccountController;
+  late ResidenceSettings _savedSettings;
   late bool _hasImage;
   late List<ResidenceBuildingConfiguration> _buildings;
+  bool _isDirty = false;
+  bool _isSaving = false;
+  bool _allowPop = false;
 
   @override
   void initState() {
     super.initState();
-    final settings = ref.read(residenceSettingsProvider);
-    _residenceIdController = TextEditingController(text: settings.residenceId);
+    final settings = widget.settings;
+    _savedSettings = settings;
+    _joinCodeController = TextEditingController(text: settings.joinCode);
     _nameController = TextEditingController(text: settings.name);
     _addressController = TextEditingController(text: settings.address);
     _yearController = TextEditingController(
@@ -53,25 +85,24 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
     _managementPhoneController = TextEditingController(
       text: settings.managementPhone,
     );
-    _managementOfficeHoursController = TextEditingController(
-      text: settings.managementOfficeHours,
-    );
     _bankNameController = TextEditingController(text: settings.bankName);
     _bankAccountController = TextEditingController(text: settings.bankAccount);
     _hasImage = settings.hasImage;
     _buildings = List.of(settings.buildings);
+    for (final controller in _editableControllers) {
+      controller.addListener(_updateDirty);
+    }
   }
 
   @override
   void dispose() {
-    _residenceIdController.dispose();
+    _joinCodeController.dispose();
     _nameController.dispose();
     _addressController.dispose();
     _yearController.dispose();
     _amountController.dispose();
     _managementOrganizationController.dispose();
     _managementPhoneController.dispose();
-    _managementOfficeHoursController.dispose();
     _bankNameController.dispose();
     _bankAccountController.dispose();
     super.dispose();
@@ -82,148 +113,156 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
     final localizations = AppLocalizations.of(context);
     final compact = MediaQuery.sizeOf(context).width < 600;
 
-    return Stack(
-      key: const Key('residence-settings-page'),
-      children: [
-        SingleChildScrollView(
-          key: const Key('residence-settings-scroll-view'),
-          padding: EdgeInsets.fromLTRB(
-            compact ? 12 : AppSpacing.xLarge,
-            compact ? AppSpacing.small : AppSpacing.xLarge,
-            compact ? 12 : AppSpacing.xLarge,
-            112,
-          ),
-          child: Align(
-            alignment: AlignmentDirectional.topCenter,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 980),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  DarJarSubpageHeader(
-                    title: localizations.residenceSettings,
-                    description: compact
-                        ? null
-                        : localizations.residenceSettingsPageDescription,
-                    fallbackLocation: AppRoutes.profile,
-                  ),
-                  const SizedBox(height: AppSpacing.large),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      if (constraints.maxWidth < 760) {
+    return PopScope<Object?>(
+      canPop: !_isDirty || _allowPop,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _confirmLeaving();
+      },
+      child: Stack(
+        key: const Key('residence-settings-page'),
+        children: [
+          SingleChildScrollView(
+            key: const Key('residence-settings-scroll-view'),
+            padding: EdgeInsets.fromLTRB(
+              compact ? 12 : AppSpacing.xLarge,
+              compact ? AppSpacing.small : AppSpacing.xLarge,
+              compact ? 12 : AppSpacing.xLarge,
+              112,
+            ),
+            child: Align(
+              alignment: AlignmentDirectional.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 980),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DarJarSubpageHeader(
+                      title: localizations.residenceSettings,
+                      description: compact
+                          ? null
+                          : localizations.residenceSettingsPageDescription,
+                      fallbackLocation: AppRoutes.profile,
+                      onBack: _requestBack,
+                    ),
+                    const SizedBox(height: AppSpacing.large),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth < 760) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _ResidenceInformationSection(
+                                residenceIdController: _joinCodeController,
+                                nameController: _nameController,
+                                addressController: _addressController,
+                                yearController: _yearController,
+                                hasImage: _hasImage,
+                                onToggleImage: _toggleImage,
+                              ),
+                              const SizedBox(height: AppSpacing.large),
+                              _ManagementInformationSection(
+                                organizationController:
+                                    _managementOrganizationController,
+                                phoneController: _managementPhoneController,
+                                bankNameController: _bankNameController,
+                                bankAccountController: _bankAccountController,
+                              ),
+                              const SizedBox(height: AppSpacing.large),
+                              _ResidenceStructureSection(
+                                buildings: _buildings,
+                                onAddBuilding: () => _showBuildingDialog(),
+                                onEditBuilding: (building) =>
+                                    _showBuildingDialog(building: building),
+                                onDeleteBuilding: _deleteBuilding,
+                              ),
+                              const SizedBox(height: AppSpacing.large),
+                              _SubscriptionSection(
+                                amountController: _amountController,
+                              ),
+                            ],
+                          );
+                        }
+
                         return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _ResidenceInformationSection(
-                              residenceIdController: _residenceIdController,
-                              nameController: _nameController,
-                              addressController: _addressController,
-                              yearController: _yearController,
-                              hasImage: _hasImage,
-                              onToggleImage: _toggleImage,
-                            ),
-                            const SizedBox(height: AppSpacing.large),
-                            _ManagementInformationSection(
-                              organizationController:
-                                  _managementOrganizationController,
-                              phoneController: _managementPhoneController,
-                              officeHoursController:
-                                  _managementOfficeHoursController,
-                              bankNameController: _bankNameController,
-                              bankAccountController: _bankAccountController,
-                            ),
-                            const SizedBox(height: AppSpacing.large),
-                            _ResidenceStructureSection(
-                              buildings: _buildings,
-                              onAddBuilding: () => _showBuildingDialog(),
-                              onEditBuilding: (building) =>
-                                  _showBuildingDialog(building: building),
-                              onDeleteBuilding: _deleteBuilding,
-                            ),
-                            const SizedBox(height: AppSpacing.large),
-                            _SubscriptionSection(
-                              amountController: _amountController,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    children: [
+                                      _ResidenceInformationSection(
+                                        residenceIdController:
+                                            _joinCodeController,
+                                        nameController: _nameController,
+                                        addressController: _addressController,
+                                        yearController: _yearController,
+                                        hasImage: _hasImage,
+                                        onToggleImage: _toggleImage,
+                                      ),
+                                      const SizedBox(height: AppSpacing.large),
+                                      _ManagementInformationSection(
+                                        organizationController:
+                                            _managementOrganizationController,
+                                        phoneController:
+                                            _managementPhoneController,
+                                        bankNameController: _bankNameController,
+                                        bankAccountController:
+                                            _bankAccountController,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.large),
+                                Expanded(
+                                  child: Column(
+                                    children: [
+                                      _ResidenceStructureSection(
+                                        buildings: _buildings,
+                                        onAddBuilding: () =>
+                                            _showBuildingDialog(),
+                                        onEditBuilding: (building) =>
+                                            _showBuildingDialog(
+                                              building: building,
+                                            ),
+                                        onDeleteBuilding: _deleteBuilding,
+                                      ),
+                                      const SizedBox(height: AppSpacing.large),
+                                      _SubscriptionSection(
+                                        amountController: _amountController,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         );
-                      }
-
-                      return Column(
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    _ResidenceInformationSection(
-                                      residenceIdController:
-                                          _residenceIdController,
-                                      nameController: _nameController,
-                                      addressController: _addressController,
-                                      yearController: _yearController,
-                                      hasImage: _hasImage,
-                                      onToggleImage: _toggleImage,
-                                    ),
-                                    const SizedBox(height: AppSpacing.large),
-                                    _ManagementInformationSection(
-                                      organizationController:
-                                          _managementOrganizationController,
-                                      phoneController:
-                                          _managementPhoneController,
-                                      officeHoursController:
-                                          _managementOfficeHoursController,
-                                      bankNameController: _bankNameController,
-                                      bankAccountController:
-                                          _bankAccountController,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.large),
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    _ResidenceStructureSection(
-                                      buildings: _buildings,
-                                      onAddBuilding: () =>
-                                          _showBuildingDialog(),
-                                      onEditBuilding: (building) =>
-                                          _showBuildingDialog(
-                                            building: building,
-                                          ),
-                                      onDeleteBuilding: _deleteBuilding,
-                                    ),
-                                    const SizedBox(height: AppSpacing.large),
-                                    _SubscriptionSection(
-                                      amountController: _amountController,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        PositionedDirectional(
-          start: 0,
-          end: 0,
-          bottom: 0,
-          child: _StickySaveBar(onSave: _save),
-        ),
-      ],
+          PositionedDirectional(
+            start: 0,
+            end: 0,
+            bottom: 0,
+            child: _StickySaveBar(
+              onSave: _isDirty && !_isSaving ? () => _save() : null,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   void _toggleImage() {
-    setState(() => _hasImage = !_hasImage);
+    setState(() {
+      _hasImage = !_hasImage;
+      _isDirty = _hasChanges;
+    });
   }
 
   Future<void> _showBuildingDialog({
@@ -254,6 +293,7 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
               item,
         ];
       }
+      _isDirty = _hasChanges;
     });
   }
 
@@ -288,49 +328,165 @@ class _ResidenceSettingsPageState extends ConsumerState<ResidenceSettingsPage> {
       _buildings = _buildings
           .where((item) => item.id != building.id)
           .toList(growable: false);
+      _isDirty = _hasChanges;
     });
   }
 
-  void _save() {
+  Future<bool> _save() async {
     final localizations = AppLocalizations.of(context);
     final amount = int.tryParse(_amountController.text.trim());
     final establishmentYear = int.tryParse(_yearController.text.trim());
     if (_nameController.text.trim().isEmpty ||
         _addressController.text.trim().isEmpty ||
-        _managementOrganizationController.text.trim().isEmpty ||
-        _managementPhoneController.text.trim().isEmpty ||
-        _managementOfficeHoursController.text.trim().isEmpty ||
-        _bankNameController.text.trim().isEmpty ||
-        _bankAccountController.text.trim().isEmpty ||
+        _buildings.isEmpty ||
         establishmentYear == null ||
         establishmentYear < 1800 ||
         establishmentYear > DateTime.now().year ||
         amount == null ||
         amount < 0) {
       _showMessage(localizations.checkResidenceSettingsFields);
-      return;
+      return false;
     }
 
-    final current = ref.read(residenceSettingsProvider);
-    ref
-        .read(residenceSettingsProvider.notifier)
-        .save(
-          current.copyWith(
-            name: _nameController.text.trim(),
-            address: _addressController.text.trim(),
-            establishmentYear: establishmentYear,
-            defaultSubscriptionAmount: amount,
-            hasImage: _hasImage,
-            buildings: _buildings,
-            managementOrganization: _managementOrganizationController.text
-                .trim(),
-            managementPhone: _managementPhoneController.text.trim(),
-            managementOfficeHours: _managementOfficeHoursController.text.trim(),
-            bankName: _bankNameController.text.trim(),
-            bankAccount: _bankAccountController.text.trim(),
-          ),
+    final updatedSettings = _savedSettings.copyWith(
+      name: _nameController.text.trim(),
+      address: _addressController.text.trim(),
+      establishmentYear: establishmentYear,
+      defaultSubscriptionAmount: amount,
+      hasImage: _hasImage,
+      buildings: _buildings,
+      managementOrganization: _managementOrganizationController.text.trim(),
+      managementPhone: _managementPhoneController.text.trim(),
+      bankName: _bankNameController.text.trim(),
+      bankAccount: _bankAccountController.text.trim(),
+    );
+    setState(() => _isSaving = true);
+    try {
+      await ref.read(residenceSettingsProvider.notifier).save(updatedSettings);
+      ref.invalidate(residenceMembersProvider);
+      if (mounted) {
+        setState(() {
+          _savedSettings = updatedSettings;
+          _isDirty = false;
+          _isSaving = false;
+        });
+        _showMessage(localizations.residenceSettingsSaved);
+      }
+      return true;
+    } on ResidenceSettingsFailure catch (error) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        _showMessage(
+          error.code == 'structure-not-empty'
+              ? localizations.structureContainsApartments
+              : localizations.setupUnexpectedError,
         );
-    _showMessage(localizations.residenceSettingsSaved);
+      }
+      return false;
+    }
+  }
+
+  List<TextEditingController> get _editableControllers => [
+    _nameController,
+    _addressController,
+    _yearController,
+    _amountController,
+    _managementOrganizationController,
+    _managementPhoneController,
+    _bankNameController,
+    _bankAccountController,
+  ];
+
+  void _updateDirty() {
+    final dirty = _hasChanges;
+    if (dirty != _isDirty && mounted) {
+      setState(() => _isDirty = dirty);
+    }
+  }
+
+  bool get _hasChanges {
+    return _nameController.text.trim() != _savedSettings.name ||
+        _addressController.text.trim() != _savedSettings.address ||
+        _yearController.text.trim() !=
+            _savedSettings.establishmentYear.toString() ||
+        _amountController.text.trim() !=
+            _savedSettings.defaultSubscriptionAmount.toString() ||
+        _managementOrganizationController.text.trim() !=
+            _savedSettings.managementOrganization ||
+        _managementPhoneController.text.trim() !=
+            _savedSettings.managementPhone ||
+        _bankNameController.text.trim() != _savedSettings.bankName ||
+        _bankAccountController.text.trim() != _savedSettings.bankAccount ||
+        _hasImage != _savedSettings.hasImage ||
+        !_sameBuildings(_buildings, _savedSettings.buildings);
+  }
+
+  bool _sameBuildings(
+    List<ResidenceBuildingConfiguration> first,
+    List<ResidenceBuildingConfiguration> second,
+  ) {
+    if (first.length != second.length) return false;
+    for (var index = 0; index < first.length; index++) {
+      if (first[index].id != second[index].id ||
+          first[index].name != second[index].name ||
+          first[index].floorCount != second[index].floorCount) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future<void> _confirmLeaving() async {
+    if (!_isDirty || _isSaving) return;
+    final localizations = AppLocalizations.of(context);
+    final action = await showDialog<_UnsavedChangesAction>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const Key('unsaved-residence-settings-dialog'),
+        title: Text(localizations.unsavedChangesTitle),
+        content: Text(localizations.unsavedChangesDescription),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(localizations.cancel),
+          ),
+          TextButton(
+            key: const Key('discard-residence-settings-button'),
+            onPressed: () =>
+                Navigator.pop(context, _UnsavedChangesAction.discard),
+            child: Text(localizations.discardChanges),
+          ),
+          FilledButton(
+            key: const Key('save-before-leaving-button'),
+            onPressed: () => Navigator.pop(context, _UnsavedChangesAction.save),
+            child: Text(localizations.saveChanges),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || action == null) return;
+    if (action == _UnsavedChangesAction.save && !await _save()) return;
+    _leaveSettings();
+  }
+
+  void _requestBack() {
+    if (_isDirty) {
+      _confirmLeaving();
+    } else {
+      _leaveSettings();
+    }
+  }
+
+  void _leaveSettings() {
+    setState(() => _allowPop = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go(AppRoutes.profile);
+      }
+    });
   }
 
   void _showMessage(String message) {
@@ -348,6 +504,8 @@ class _BuildingEditorDialog extends StatefulWidget {
   @override
   State<_BuildingEditorDialog> createState() => _BuildingEditorDialogState();
 }
+
+enum _UnsavedChangesAction { discard, save }
 
 class _BuildingEditorDialogState extends State<_BuildingEditorDialog> {
   late final TextEditingController _nameController = TextEditingController(
@@ -562,14 +720,12 @@ class _ManagementInformationSection extends StatelessWidget {
   const _ManagementInformationSection({
     required this.organizationController,
     required this.phoneController,
-    required this.officeHoursController,
     required this.bankNameController,
     required this.bankAccountController,
   });
 
   final TextEditingController organizationController;
   final TextEditingController phoneController;
-  final TextEditingController officeHoursController;
   final TextEditingController bankNameController;
   final TextEditingController bankAccountController;
 
@@ -597,13 +753,6 @@ class _ManagementInformationSection extends StatelessWidget {
             label: localizations.phone,
             prefixIcon: Icons.phone_outlined,
             keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: AppSpacing.large),
-          DarJarTextField(
-            key: const Key('management-office-hours-field'),
-            controller: officeHoursController,
-            label: localizations.officeHours,
-            prefixIcon: Icons.schedule_outlined,
           ),
           const SizedBox(height: AppSpacing.large),
           DarJarTextField(
@@ -783,7 +932,7 @@ class _SubscriptionSection extends StatelessWidget {
 class _StickySaveBar extends StatelessWidget {
   const _StickySaveBar({required this.onSave});
 
-  final VoidCallback onSave;
+  final VoidCallback? onSave;
 
   @override
   Widget build(BuildContext context) {

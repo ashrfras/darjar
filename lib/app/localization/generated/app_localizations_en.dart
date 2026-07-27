@@ -265,7 +265,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get joinCodeDescription =>
-      'Enter the residence code to view its information and send a join request.';
+      'Enter the residence code to view its information and join immediately.';
 
   @override
   String get searchResidence => 'Find residence';
@@ -288,14 +288,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Join requests are currently disabled for this residence.';
 
   @override
-  String get sendingJoinRequest => 'Sending request…';
+  String get sendingJoinRequest => 'Joining…';
 
   @override
-  String get joinRequestSent => 'Join request sent';
+  String get joinRequestSent => 'You joined the residence';
 
   @override
   String get joinRequestSentDescription =>
-      'Residence content will become available after its management accepts your request.';
+      'Your membership is active and you can now access the residence.';
 
   @override
   String get creatingResidence => 'Creating residence…';
@@ -617,7 +617,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get apartmentsManagementDescription =>
-      'Manage apartments, manage residents, assign permissions';
+      'Manage apartments and resident assignments';
 
   @override
   String get projects => 'Projects';
@@ -763,7 +763,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buildingName => 'Building name';
 
   @override
-  String get buildingNameHint => 'Example: Building A';
+  String get buildingNameHint => 'Example: Wing A';
 
   @override
   String get floorCount => 'Number of floors';
@@ -789,6 +789,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get checkBuildingFields =>
       'Enter a building name and a valid number of floors.';
+
+  @override
+  String get structureContainsApartments =>
+      'A building or floor containing apartments cannot be removed. Delete its apartments first.';
 
   @override
   String confirmDeleteBuilding(String name) {
@@ -862,6 +866,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get residenceSettingsSaved => 'Residence settings saved.';
+
+  @override
+  String get unsavedChangesTitle => 'Changes not saved';
+
+  @override
+  String get unsavedChangesDescription =>
+      'Your changes have not been saved. Would you like to save them before leaving?';
+
+  @override
+  String get discardChanges => 'Leave without saving';
 
   @override
   String get checkResidenceSettingsFields =>

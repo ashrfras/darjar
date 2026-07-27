@@ -5,7 +5,7 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
-import 'package:darjar/features/residence/data/residence_settings_repository.dart';
+import 'package:darjar/features/residence/data/residence_invitation_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,9 +20,23 @@ class GroupInvitationPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(residenceSettingsProvider);
+    final invitationState = ref.watch(residenceInvitationProvider);
     final copy = _InvitationCopy.of(context);
     final compact = MediaQuery.sizeOf(context).width < 600;
+
+    if (invitationState.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (invitationState.hasError) {
+      return Center(
+        child: DarJarButton(
+          label: copy.retry,
+          icon: Icons.refresh_rounded,
+          onPressed: () => ref.invalidate(residenceInvitationProvider),
+        ),
+      );
+    }
+    final invitation = invitationState.requireValue;
 
     return SingleChildScrollView(
       key: const Key('group-invitation-page'),
@@ -52,17 +66,16 @@ class GroupInvitationPage extends ConsumerWidget {
                   builder: (context, constraints) {
                     final narrow = constraints.maxWidth < 620;
                     final qrCode = _InvitationQr(
-                      url: settings.invitationUrl,
+                      url: invitation.url,
                       compact: narrow,
                       caption: copy.scanToJoin,
                     );
                     final details = _InvitationDetails(
-                      url: settings.invitationUrl,
+                      url: invitation.url,
                       copy: copy,
-                      onCopy: () => _copyLink(context, settings.invitationUrl),
-                      onShare: () =>
-                          _shareLink(context, settings.invitationUrl, copy),
-                      onPrintQr: () => _printQr(settings.invitationUrl, copy),
+                      onCopy: () => _copyLink(context, invitation.url),
+                      onShare: () => _shareLink(context, invitation.url, copy),
+                      onPrintQr: () => _printQr(invitation.url, copy),
                     );
 
                     return Column(
@@ -88,14 +101,14 @@ class GroupInvitationPage extends ConsumerWidget {
                           contentPadding: EdgeInsets.zero,
                           title: Text(copy.allowJoiningViaLink),
                           subtitle: Text(
-                            settings.joinRequestsEnabled
+                            invitation.joinRequestsEnabled
                                 ? copy.joiningEnabled
                                 : copy.joiningDisabled,
                           ),
-                          value: settings.joinRequestsEnabled,
+                          value: invitation.joinRequestsEnabled,
                           onChanged: ref
-                              .read(residenceSettingsProvider.notifier)
-                              .setJoinRequestsEnabled,
+                              .read(residenceInvitationProvider.notifier)
+                              .setJoiningEnabled,
                         ),
                       ],
                     );
@@ -308,6 +321,7 @@ class _InvitationCopy {
   final bool arabic;
 
   String get title => arabic ? 'الدعوة الجماعية' : 'Group invitation';
+  String get retry => arabic ? 'إعادة المحاولة' : 'Retry';
   String get description => arabic
       ? 'شارك رابط الدعوة الدائم مع سكان الإقامة وتحكّم في استقبال طلبات الانضمام.'
       : 'Share the permanent invitation link and control join requests.';

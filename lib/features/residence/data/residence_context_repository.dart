@@ -125,7 +125,9 @@ class FirestoreResidenceContextRepository
           residences.any((residence) => residence.id == storedActiveId)
           ? storedActiveId
           : residences.firstOrNull?.id;
-      if (activeId != null && activeId != storedActiveId) {
+      if (activeId != null &&
+          activeId != storedActiveId &&
+          userDocument.exists) {
         await _persistActiveResidence(user.uid, activeId);
       }
 

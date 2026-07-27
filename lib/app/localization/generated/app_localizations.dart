@@ -575,7 +575,7 @@ abstract class AppLocalizations {
   /// No description provided for @joinCodeDescription.
   ///
   /// In ar, this message translates to:
-  /// **'أدخل رمز الإقامة لعرض معلوماتها وإرسال طلب الانضمام.'**
+  /// **'أدخل رمز الإقامة لعرض معلوماتها والانضمام إليها مباشرة.'**
   String get joinCodeDescription;
 
   /// No description provided for @searchResidence.
@@ -617,19 +617,19 @@ abstract class AppLocalizations {
   /// No description provided for @sendingJoinRequest.
   ///
   /// In ar, this message translates to:
-  /// **'جارٍ إرسال الطلب…'**
+  /// **'جارٍ الانضمام…'**
   String get sendingJoinRequest;
 
   /// No description provided for @joinRequestSent.
   ///
   /// In ar, this message translates to:
-  /// **'تم إرسال طلب الانضمام'**
+  /// **'تم الانضمام إلى الإقامة'**
   String get joinRequestSent;
 
   /// No description provided for @joinRequestSentDescription.
   ///
   /// In ar, this message translates to:
-  /// **'سيظهر لك محتوى الإقامة بعد قبول طلبك من طرف إدارتها.'**
+  /// **'أصبحت عضويتك فعّالة ويمكنك الآن الدخول إلى محتوى الإقامة.'**
   String get joinRequestSentDescription;
 
   /// No description provided for @creatingResidence.
@@ -1217,7 +1217,7 @@ abstract class AppLocalizations {
   /// No description provided for @apartmentsManagementDescription.
   ///
   /// In ar, this message translates to:
-  /// **'إدارة الشقق، إدارة السكان، تعيين الصلاحيات'**
+  /// **'إدارة الشقق وتوزيع السكان داخل الإقامة'**
   String get apartmentsManagementDescription;
 
   /// No description provided for @projects.
@@ -1487,7 +1487,7 @@ abstract class AppLocalizations {
   /// No description provided for @buildingNameHint.
   ///
   /// In ar, this message translates to:
-  /// **'مثال: المبنى A'**
+  /// **'مثال: جناح أ'**
   String get buildingNameHint;
 
   /// No description provided for @floorCount.
@@ -1531,6 +1531,12 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'أدخل اسم المبنى وعدد طوابق صحيحاً.'**
   String get checkBuildingFields;
+
+  /// No description provided for @structureContainsApartments.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يمكن حذف مبنى أو طابق يحتوي على شقق. احذف الشقق أولاً.'**
+  String get structureContainsApartments;
 
   /// No description provided for @confirmDeleteBuilding.
   ///
@@ -1663,6 +1669,24 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تم حفظ إعدادات الإقامة.'**
   String get residenceSettingsSaved;
+
+  /// No description provided for @unsavedChangesTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم حفظ التعديلات'**
+  String get unsavedChangesTitle;
+
+  /// No description provided for @unsavedChangesDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم حفظ التعديلات التي أجريتها. هل تريد حفظها قبل العودة؟'**
+  String get unsavedChangesDescription;
+
+  /// No description provided for @discardChanges.
+  ///
+  /// In ar, this message translates to:
+  /// **'العودة دون حفظ'**
+  String get discardChanges;
 
   /// No description provided for @checkResidenceSettingsFields.
   ///

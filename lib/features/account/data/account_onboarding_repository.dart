@@ -209,6 +209,9 @@ class FirestoreAccountOnboardingRepository
         });
         batch.set(membershipReference, {
           'userId': user.uid,
+          'firstName': profile.firstName,
+          'lastName': profile.lastName,
+          'phoneNumber': phoneNumber,
           'apartmentId': invitation.apartmentId,
           'role': invitation.role,
           'status': 'active',

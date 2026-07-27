@@ -379,23 +379,15 @@ class _Brand extends StatelessWidget {
     return Row(
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [
-        Container(
+        Image.asset(
+          'assets/images/branding/darjar-logo.png',
           key: compact ? const Key('compact-brand') : null,
           width: compact ? 34 : 42,
           height: compact ? 34 : 42,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-              colors: [Color(0xFF16988D), Color(0xFF0A5F59)],
-            ),
-            borderRadius: BorderRadius.circular(AppRadius.medium),
-          ),
-          child: Icon(
-            Icons.apartment_rounded,
-            color: Colors.white,
-            size: compact ? 19 : 24,
-          ),
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+          isAntiAlias: true,
+          semanticLabel: 'DarJar',
         ),
         SizedBox(width: compact ? AppSpacing.small : AppSpacing.medium),
         Column(

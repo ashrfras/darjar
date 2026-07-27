@@ -262,7 +262,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get joinCodeDescription =>
-      'أدخل رمز الإقامة لعرض معلوماتها وإرسال طلب الانضمام.';
+      'أدخل رمز الإقامة لعرض معلوماتها والانضمام إليها مباشرة.';
 
   @override
   String get searchResidence => 'البحث عن الإقامة';
@@ -285,14 +285,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'طلبات الانضمام متوقفة حالياً في هذه الإقامة.';
 
   @override
-  String get sendingJoinRequest => 'جارٍ إرسال الطلب…';
+  String get sendingJoinRequest => 'جارٍ الانضمام…';
 
   @override
-  String get joinRequestSent => 'تم إرسال طلب الانضمام';
+  String get joinRequestSent => 'تم الانضمام إلى الإقامة';
 
   @override
   String get joinRequestSentDescription =>
-      'سيظهر لك محتوى الإقامة بعد قبول طلبك من طرف إدارتها.';
+      'أصبحت عضويتك فعّالة ويمكنك الآن الدخول إلى محتوى الإقامة.';
 
   @override
   String get creatingResidence => 'جارٍ إنشاء الإقامة…';
@@ -607,7 +607,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get apartmentsManagementDescription =>
-      'إدارة الشقق، إدارة السكان، تعيين الصلاحيات';
+      'إدارة الشقق وتوزيع السكان داخل الإقامة';
 
   @override
   String get projects => 'المشاريع';
@@ -751,7 +751,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buildingName => 'اسم المبنى';
 
   @override
-  String get buildingNameHint => 'مثال: المبنى A';
+  String get buildingNameHint => 'مثال: جناح أ';
 
   @override
   String get floorCount => 'عدد الطوابق';
@@ -776,6 +776,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get checkBuildingFields => 'أدخل اسم المبنى وعدد طوابق صحيحاً.';
+
+  @override
+  String get structureContainsApartments =>
+      'لا يمكن حذف مبنى أو طابق يحتوي على شقق. احذف الشقق أولاً.';
 
   @override
   String confirmDeleteBuilding(String name) {
@@ -849,6 +853,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get residenceSettingsSaved => 'تم حفظ إعدادات الإقامة.';
+
+  @override
+  String get unsavedChangesTitle => 'لم يتم حفظ التعديلات';
+
+  @override
+  String get unsavedChangesDescription =>
+      'لم يتم حفظ التعديلات التي أجريتها. هل تريد حفظها قبل العودة؟';
+
+  @override
+  String get discardChanges => 'العودة دون حفظ';
 
   @override
   String get checkResidenceSettingsFields =>

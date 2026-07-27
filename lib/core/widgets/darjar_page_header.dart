@@ -63,6 +63,7 @@ class DarJarSubpageHeader extends StatelessWidget {
     required this.fallbackLocation,
     this.description,
     this.action,
+    this.onBack,
     super.key,
   });
 
@@ -70,6 +71,7 @@ class DarJarSubpageHeader extends StatelessWidget {
   final String fallbackLocation;
   final String? description;
   final Widget? action;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +79,7 @@ class DarJarSubpageHeader extends StatelessWidget {
       return _TitleOnlySubpageHeader(
         title: title!,
         fallbackLocation: fallbackLocation,
+        onBack: onBack,
       );
     }
 
@@ -97,13 +100,15 @@ class DarJarSubpageHeader extends StatelessWidget {
             height: backOnly ? 40 : 44,
           ),
           iconSize: backOnly ? 22 : 24,
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(fallbackLocation);
-            }
-          },
+          onPressed:
+              onBack ??
+              () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(fallbackLocation);
+                }
+              },
           icon: const BackButtonIcon(),
         ),
         if (title != null) ...[
@@ -131,10 +136,12 @@ class _TitleOnlySubpageHeader extends StatelessWidget {
   const _TitleOnlySubpageHeader({
     required this.title,
     required this.fallbackLocation,
+    this.onBack,
   });
 
   final String title;
   final String fallbackLocation;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -152,13 +159,15 @@ class _TitleOnlySubpageHeader extends StatelessWidget {
             visualDensity: VisualDensity.compact,
             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
             iconSize: 22,
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go(fallbackLocation);
-              }
-            },
+            onPressed:
+                onBack ??
+                () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go(fallbackLocation);
+                  }
+                },
             icon: const BackButtonIcon(),
           ),
           const SizedBox(width: AppSpacing.small),

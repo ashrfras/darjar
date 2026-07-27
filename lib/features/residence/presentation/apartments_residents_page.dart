@@ -30,7 +30,8 @@ class _ApartmentsResidentsPageState
 
   @override
   Widget build(BuildContext context) {
-    final data = ref.watch(residenceMembersProvider);
+    final membersState = ref.watch(residenceMembersProvider);
+    final data = membersState.value ?? ResidenceMembersData.empty;
     final copy = _Copy.of(context);
     final compact = MediaQuery.sizeOf(context).width < 600;
     final occupiedApartments = data.members
@@ -60,64 +61,74 @@ class _ApartmentsResidentsPageState
                 fallbackLocation: AppRoutes.profile,
               ),
               const SizedBox(height: AppSpacing.large),
-              _SummaryStrip(
-                apartmentCount: data.apartments.length,
-                occupiedCount: occupiedApartments,
-                residentCount: data.members.length,
-                copy: copy,
-              ),
-              const SizedBox(height: AppSpacing.large),
-              SegmentedButton<_ManagementView>(
-                key: const Key('apartments-residents-tabs'),
-                showSelectedIcon: false,
-                segments: [
-                  ButtonSegment(
-                    value: _ManagementView.apartments,
-                    label: Text(copy.apartments),
-                    icon: const Icon(Icons.apartment_outlined),
-                  ),
-                  ButtonSegment(
-                    value: _ManagementView.residents,
-                    label: Text(copy.residents),
-                    icon: const Icon(Icons.people_outline_rounded),
-                  ),
-                ],
-                selected: {_view},
-                onSelectionChanged: (selection) {
-                  setState(() => _view = selection.first);
-                },
-              ),
-              const SizedBox(height: AppSpacing.large),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                child: _view == _ManagementView.apartments
-                    ? _ApartmentsView(
-                        key: const Key('apartments-view'),
-                        data: data,
-                        copy: copy,
-                        selectedBuildingId: _selectedBuildingId,
-                        onBuildingSelected: (id) {
-                          setState(() => _selectedBuildingId = id);
-                        },
-                        onAddApartment: _showAddApartmentSheet,
-                        onDeleteApartment: _showDeleteApartmentDialog,
-                      )
-                    : _ResidentsView(
-                        key: const Key('residents-view'),
-                        data: data,
-                        copy: copy,
-                        query: _query,
-                        onQueryChanged: (value) {
-                          setState(() => _query = value);
-                        },
-                        onAddResident: _showAddResidentSheet,
-                        onGroupInvitation: () =>
-                            context.push(AppRoutes.groupInvitation),
-                        onAssign: _showApartmentDialog,
-                        onChangeRole: _showRoleDialog,
-                        onRemove: _showRemoveDialog,
-                      ),
-              ),
+              if (membersState.isLoading)
+                const LinearProgressIndicator()
+              else if (membersState.hasError)
+                _LoadError(
+                  message: copy.loadingFailed,
+                  onRetry: () => ref.invalidate(residenceMembersProvider),
+                ),
+              if (membersState.isLoading || membersState.hasError)
+                const SizedBox(height: AppSpacing.large),
+              if (membersState.hasValue) ...[
+                _SummaryStrip(
+                  apartmentCount: data.apartments.length,
+                  occupiedCount: occupiedApartments,
+                  residentCount: data.members.length,
+                  copy: copy,
+                ),
+                const SizedBox(height: AppSpacing.large),
+                SegmentedButton<_ManagementView>(
+                  key: const Key('apartments-residents-tabs'),
+                  showSelectedIcon: false,
+                  segments: [
+                    ButtonSegment(
+                      value: _ManagementView.apartments,
+                      label: Text(copy.apartments),
+                      icon: const Icon(Icons.apartment_outlined),
+                    ),
+                    ButtonSegment(
+                      value: _ManagementView.residents,
+                      label: Text(copy.residents),
+                      icon: const Icon(Icons.people_outline_rounded),
+                    ),
+                  ],
+                  selected: {_view},
+                  onSelectionChanged: (selection) {
+                    setState(() => _view = selection.first);
+                  },
+                ),
+                const SizedBox(height: AppSpacing.large),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  child: _view == _ManagementView.apartments
+                      ? _ApartmentsView(
+                          key: const Key('apartments-view'),
+                          data: data,
+                          copy: copy,
+                          selectedBuildingId: _selectedBuildingId,
+                          onBuildingSelected: (id) {
+                            setState(() => _selectedBuildingId = id);
+                          },
+                          onAddApartment: _showAddApartmentSheet,
+                          onDeleteApartment: _showDeleteApartmentDialog,
+                        )
+                      : _ResidentsView(
+                          key: const Key('residents-view'),
+                          data: data,
+                          copy: copy,
+                          query: _query,
+                          onQueryChanged: (value) {
+                            setState(() => _query = value);
+                          },
+                          onAddResident: _showAddResidentSheet,
+                          onGroupInvitation: () =>
+                              context.push(AppRoutes.groupInvitation),
+                          onAssign: _showApartmentDialog,
+                          onRemove: _showRemoveDialog,
+                        ),
+                ),
+              ],
             ],
           ),
         ),
@@ -126,7 +137,7 @@ class _ApartmentsResidentsPageState
   }
 
   Future<void> _showApartmentDialog(ResidenceMember member) async {
-    final data = ref.read(residenceMembersProvider);
+    final data = ref.read(residenceMembersProvider).requireValue;
     final copy = _Copy.of(context);
     final selection = await showDialog<String?>(
       context: context,
@@ -169,14 +180,21 @@ class _ApartmentsResidentsPageState
       ),
     );
     if (!mounted || selection == null) return;
-    ref
-        .read(residenceMembersProvider.notifier)
-        .assignApartment(member.id, selection == '__none__' ? null : selection);
-    _showSavedMessage(copy.assignmentUpdated);
+    try {
+      await ref
+          .read(residenceMembersProvider.notifier)
+          .assignApartment(
+            member.id,
+            selection == '__none__' ? null : selection,
+          );
+      if (mounted) _showSavedMessage(copy.assignmentUpdated);
+    } on ResidenceMembersFailure {
+      if (mounted) _showSavedMessage(copy.saveFailed);
+    }
   }
 
   Future<void> _showAddResidentSheet() async {
-    final data = ref.read(residenceMembersProvider);
+    final data = ref.read(residenceMembersProvider).requireValue;
     final copy = _Copy.of(context);
     final result = await showModalBottomSheet<_NewResident>(
       context: context,
@@ -197,15 +215,19 @@ class _ApartmentsResidentsPageState
       _showSavedMessage(copy.phoneAlreadyRegistered);
       return;
     }
-    ref
-        .read(residenceMembersProvider.notifier)
-        .addResident(
-          firstName: result.firstName,
-          lastName: result.lastName,
-          phone: result.phone,
-          apartmentId: result.apartmentId,
-        );
-    _showSavedMessage(copy.residentAdded);
+    try {
+      await ref
+          .read(residenceMembersProvider.notifier)
+          .createInvitation(
+            firstName: result.firstName,
+            lastName: result.lastName,
+            phoneNumber: result.phone,
+            apartmentId: result.apartmentId,
+          );
+      if (mounted) _showSavedMessage(copy.invitationCreated);
+    } on ResidenceMembersFailure {
+      if (mounted) _showSavedMessage(copy.saveFailed);
+    }
   }
 
   Future<void> _showAddApartmentSheet(ResidenceBuilding building) async {
@@ -233,19 +255,23 @@ class _ApartmentsResidentsPageState
       _showSavedMessage(copy.apartmentAlreadyExists);
       return;
     }
-    ref
-        .read(residenceMembersProvider.notifier)
-        .addApartment(
-          buildingId: building.id,
-          floorId: result.floorId,
-          number: result.number,
-        );
-    _showSavedMessage(copy.apartmentAdded);
+    try {
+      await ref
+          .read(residenceMembersProvider.notifier)
+          .addApartment(
+            buildingId: building.id,
+            floorId: result.floorId,
+            number: result.number,
+          );
+      if (mounted) _showSavedMessage(copy.apartmentAdded);
+    } on ResidenceMembersFailure {
+      if (mounted) _showSavedMessage(copy.saveFailed);
+    }
   }
 
   Future<void> _showDeleteApartmentDialog(ResidenceApartment apartment) async {
     final copy = _Copy.of(context);
-    final data = ref.read(residenceMembersProvider);
+    final data = ref.read(residenceMembersProvider).requireValue;
     final residents = data.members
         .where((member) => member.apartmentId == apartment.id)
         .length;
@@ -269,32 +295,14 @@ class _ApartmentsResidentsPageState
       ),
     );
     if (!mounted || delete != true) return;
-    ref.read(residenceMembersProvider.notifier).deleteApartment(apartment.id);
-    _showSavedMessage(copy.apartmentDeleted);
-  }
-
-  Future<void> _showRoleDialog(ResidenceMember member) async {
-    final copy = _Copy.of(context);
-    final role = await showDialog<ResidenceMemberRole>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: Text(copy.changeRoleFor(member.name)),
-        children: [
-          for (final role in ResidenceMemberRole.values)
-            ListTile(
-              leading: const Icon(Icons.badge_outlined),
-              title: Text(copy.role(role)),
-              trailing: member.role == role
-                  ? const Icon(Icons.check_rounded, color: AppColors.primary)
-                  : null,
-              onTap: () => Navigator.pop(context, role),
-            ),
-        ],
-      ),
-    );
-    if (!mounted || role == null) return;
-    ref.read(residenceMembersProvider.notifier).changeRole(member.id, role);
-    _showSavedMessage(copy.roleUpdated);
+    try {
+      await ref
+          .read(residenceMembersProvider.notifier)
+          .deleteApartment(apartment);
+      if (mounted) _showSavedMessage(copy.apartmentDeleted);
+    } on ResidenceMembersFailure {
+      if (mounted) _showSavedMessage(copy.saveFailed);
+    }
   }
 
   Future<void> _showRemoveDialog(ResidenceMember member) async {
@@ -319,8 +327,12 @@ class _ApartmentsResidentsPageState
       ),
     );
     if (!mounted || remove != true) return;
-    ref.read(residenceMembersProvider.notifier).removeMember(member.id);
-    _showSavedMessage(copy.residentRemoved);
+    try {
+      await ref.read(residenceMembersProvider.notifier).removeMember(member.id);
+      if (mounted) _showSavedMessage(copy.residentRemoved);
+    } on ResidenceMembersFailure {
+      if (mounted) _showSavedMessage(copy.saveFailed);
+    }
   }
 
   void _showSavedMessage(String message) {
@@ -672,6 +684,8 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
             key: const Key('new-apartment-number-field'),
             controller: _numberController,
             autofocus: true,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             textInputAction: TextInputAction.done,
             decoration: InputDecoration(
               labelText: widget.copy.apartmentNumberLabel,
@@ -696,11 +710,15 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
 
   void _submit() {
     final number = _numberController.text.trim();
-    if (number.isEmpty) {
+    final numericNumber = int.tryParse(number);
+    if (numericNumber == null) {
       setState(() => _showNumberError = true);
       return;
     }
-    Navigator.pop(context, _NewApartment(floorId: _floorId, number: number));
+    Navigator.pop(
+      context,
+      _NewApartment(floorId: _floorId, number: numericNumber.toString()),
+    );
   }
 }
 
@@ -733,6 +751,33 @@ class _SummaryStrip extends StatelessWidget {
           const SizedBox(height: 42, child: VerticalDivider()),
           Expanded(
             child: _Metric(value: '$residentCount', label: copy.residents),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LoadError extends StatelessWidget {
+  const _LoadError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return DarJarCard(
+      child: Row(
+        children: [
+          const Icon(Icons.cloud_off_outlined, color: AppColors.danger),
+          const SizedBox(width: AppSpacing.medium),
+          Expanded(child: Text(message)),
+          IconButton(
+            tooltip: MaterialLocalizations.of(
+              context,
+            ).refreshIndicatorSemanticLabel,
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh_rounded),
           ),
         ],
       ),
@@ -782,6 +827,14 @@ class _ApartmentsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (data.buildings.isEmpty) {
+      return DarJarCard(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xLarge),
+          child: Text(copy.noResidenceStructure, textAlign: TextAlign.center),
+        ),
+      );
+    }
     final hasMultipleBuildings = data.buildings.length > 1;
     final selectedBuilding = data.buildings.firstWhere(
       (building) => building.id == selectedBuildingId,
@@ -1034,7 +1087,6 @@ class _ResidentsView extends StatelessWidget {
     required this.onAddResident,
     required this.onGroupInvitation,
     required this.onAssign,
-    required this.onChangeRole,
     required this.onRemove,
     super.key,
   });
@@ -1046,7 +1098,6 @@ class _ResidentsView extends StatelessWidget {
   final VoidCallback onAddResident;
   final VoidCallback onGroupInvitation;
   final ValueChanged<ResidenceMember> onAssign;
-  final ValueChanged<ResidenceMember> onChangeRole;
   final ValueChanged<ResidenceMember> onRemove;
 
   @override
@@ -1126,7 +1177,6 @@ class _ResidentsView extends StatelessWidget {
               apartmentLabel: _apartmentLabel(data, member.apartmentId),
               copy: copy,
               onAssign: () => onAssign(member),
-              onChangeRole: () => onChangeRole(member),
               onRemove: () => onRemove(member),
             ),
             const SizedBox(height: AppSpacing.small),
@@ -1159,7 +1209,6 @@ class _ResidentCard extends StatelessWidget {
     required this.apartmentLabel,
     required this.copy,
     required this.onAssign,
-    required this.onChangeRole,
     required this.onRemove,
   });
 
@@ -1167,7 +1216,6 @@ class _ResidentCard extends StatelessWidget {
   final String? apartmentLabel;
   final _Copy copy;
   final VoidCallback onAssign;
-  final VoidCallback onChangeRole;
   final VoidCallback onRemove;
 
   @override
@@ -1246,9 +1294,6 @@ class _ResidentCard extends StatelessWidget {
                 case _ResidentAction.assign:
                   onAssign();
                   break;
-                case _ResidentAction.role:
-                  onChangeRole();
-                  break;
                 case _ResidentAction.remove:
                   onRemove();
                   break;
@@ -1261,7 +1306,7 @@ class _ResidentCard extends StatelessWidget {
   }
 }
 
-enum _ResidentAction { assign, role, remove }
+enum _ResidentAction { assign, remove }
 
 class _DarJarActionsButton extends StatelessWidget {
   const _DarJarActionsButton({
@@ -1375,11 +1420,6 @@ class _DarJarActionsMenu extends StatelessWidget {
                 onTap: () => Navigator.pop(context, _ResidentAction.assign),
               ),
               _DarJarMenuItem(
-                icon: Icons.admin_panel_settings_outlined,
-                label: copy.changeRole,
-                onTap: () => Navigator.pop(context, _ResidentAction.role),
-              ),
-              _DarJarMenuItem(
                 icon: Icons.person_remove_outlined,
                 label: copy.removeFromResidence,
                 danger: true,
@@ -1481,8 +1521,8 @@ class _Copy {
 
   String get pageTitle => arabic ? 'الشقق والسكان' : 'Apartments & residents';
   String get pageDescription => arabic
-      ? 'إدارة توزيع السكان وأدوارهم داخل الإقامة.'
-      : 'Manage resident assignments and roles within the residence.';
+      ? 'إدارة الشقق وتوزيع السكان داخل الإقامة.'
+      : 'Manage apartments and resident assignments.';
   String get apartments => arabic ? 'الشقق' : 'Apartments';
   String get residents => arabic ? 'السكان' : 'Residents';
   String get occupied => arabic ? 'مأهولة' : 'Occupied';
@@ -1492,6 +1532,9 @@ class _Copy {
   String get apartmentsSectionDescription => arabic
       ? 'أضف الشقق وأدر توزيع السكان عليها.'
       : 'Add apartments and manage resident assignments.';
+  String get noResidenceStructure => arabic
+      ? 'لم تُضف مبانٍ أو طوابق لهذه الإقامة بعد.'
+      : 'No buildings or floors have been added yet.';
   String get addApartment => arabic ? 'إضافة شقة' : 'Add apartment';
   String get addResident => arabic ? 'إضافة ساكن' : 'Add resident';
   String get firstName => arabic ? 'الاسم' : 'First name';
@@ -1506,13 +1549,13 @@ class _Copy {
       arabic ? 'أدخل رقم هاتف صحيحاً.' : 'Enter a valid phone number.';
   String get apartmentRequired =>
       arabic ? 'اختر شقة للساكن.' : 'Choose the resident’s apartment.';
-  String get residentAdded => arabic ? 'تمت إضافة الساكن.' : 'Resident added.';
+  String get invitationCreated =>
+      arabic ? 'تم إنشاء دعوة الساكن.' : 'Resident invitation created.';
   String get phoneAlreadyRegistered => arabic
       ? 'رقم الهاتف مسجل لساكن آخر.'
       : 'This phone number is already registered.';
   String get chooseFloor => arabic ? 'اختر الطابق' : 'Choose a floor';
-  String get apartmentNumberLabel =>
-      arabic ? 'رقم أو اسم الشقة' : 'Apartment number or name';
+  String get apartmentNumberLabel => arabic ? 'رقم الشقة' : 'Apartment number';
   String get apartmentNumberHint => arabic ? 'مثال: 24' : 'Example: 24';
   String get apartmentNumberRequired => arabic
       ? 'أدخل رقم الشقة أو اسمها.'
@@ -1541,7 +1584,6 @@ class _Copy {
   String get manage => arabic ? 'إدارة الساكن' : 'Manage resident';
   String get closeMenu => arabic ? 'إغلاق القائمة' : 'Close menu';
   String get assignApartment => arabic ? 'تعيين الشقة' : 'Assign apartment';
-  String get changeRole => arabic ? 'تغيير الدور' : 'Change role';
   String get removeFromResidence =>
       arabic ? 'إزالة من الإقامة' : 'Remove from residence';
   String get removeResident => arabic ? 'إزالة الساكن؟' : 'Remove resident?';
@@ -1549,8 +1591,12 @@ class _Copy {
   String get remove => arabic ? 'إزالة' : 'Remove';
   String get assignmentUpdated =>
       arabic ? 'تم تحديث تعيين الشقة.' : 'Apartment assignment updated.';
-  String get roleUpdated =>
-      arabic ? 'تم تحديث دور الساكن.' : 'Resident role updated.';
+  String get loadingFailed => arabic
+      ? 'تعذر تحميل بيانات الإقامة. حاول مجددًا.'
+      : 'Could not load residence data. Try again.';
+  String get saveFailed => arabic
+      ? 'تعذر حفظ التغيير في Firestore.'
+      : 'Could not save the change to Firestore.';
   String get residentRemoved =>
       arabic ? 'تمت إزالة الساكن من الإقامة.' : 'Resident removed.';
   String get groupInvitation => arabic ? 'الدعوة الجماعية' : 'Group invitation';
@@ -1570,8 +1616,6 @@ class _Copy {
       : '$count residents linked to this residence';
   String assignApartmentTo(String name) =>
       arabic ? 'تعيين شقة لـ $name' : 'Assign an apartment to $name';
-  String changeRoleFor(String name) =>
-      arabic ? 'تغيير دور $name' : 'Change $name’s role';
   String deleteApartmentTitle(String number) =>
       arabic ? 'حذف الشقة $number؟' : 'Delete apartment $number?';
   String deleteApartmentConfirmation(int residentCount) {
@@ -1590,9 +1634,9 @@ class _Copy {
       : '$name will be removed from the residence and unassigned from their apartment. Their personal account will not be affected.';
 
   String role(ResidenceMemberRole role) => switch (role) {
-    ResidenceMemberRole.president => arabic ? 'رئيس' : 'President',
-    ResidenceMemberRole.deputy => arabic ? 'نائب' : 'Deputy',
-    ResidenceMemberRole.treasurer => arabic ? 'أمين' : 'Treasurer',
     ResidenceMemberRole.resident => arabic ? 'ساكن' : 'Resident',
+    ResidenceMemberRole.moderator => arabic ? 'مشرف' : 'Moderator',
+    ResidenceMemberRole.manager => arabic ? 'مسير' : 'Manager',
+    ResidenceMemberRole.owner => arabic ? 'مالك' : 'Owner',
   };
 }

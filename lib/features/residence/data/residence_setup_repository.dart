@@ -63,6 +63,8 @@ abstract interface class ResidenceSetupRepository {
   Future<void> requestToJoin({
     required AuthUser user,
     required ResidenceCodeSummary residence,
+    required String firstName,
+    required String lastName,
   });
 }
 
@@ -108,6 +110,12 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
       final privateSettingsReference = residenceReference
           .collection('settings')
           .doc('private');
+      final defaultBuildingReference = residenceReference
+          .collection('buildings')
+          .doc('main');
+      final defaultFloorReference = defaultBuildingReference
+          .collection('floors')
+          .doc('ground');
       try {
         await _firestore.runTransaction((transaction) async {
           final codeDocument = await transaction.get(codeReference);
@@ -143,6 +151,9 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
           }
           transaction.set(memberReference, {
             'userId': user.uid,
+            'firstName': normalizedInput.firstName,
+            'lastName': normalizedInput.lastName,
+            'phoneNumber': phoneNumber,
             'apartmentId': '',
             'role': 'owner',
             'status': 'active',
@@ -154,11 +165,21 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
             'joinCode': joinCode,
             'managementOrganization': '',
             'managementPhone': '',
-            'managementOfficeHours': '',
             'bankName': '',
             'bankAccount': '',
             'defaultSubscriptionAmount': 0,
             'updatedAt': FieldValue.serverTimestamp(),
+          });
+          transaction.set(defaultBuildingReference, {
+            'nameAr': 'المبنى الرئيسي',
+            'nameEn': 'Main building',
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+          transaction.set(defaultFloorReference, {
+            'nameAr': 'الطابق الأرضي',
+            'nameEn': 'Ground floor',
+            'order': 0,
+            'createdAt': FieldValue.serverTimestamp(),
           });
         });
         return CreatedResidence(
@@ -222,27 +243,60 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
   Future<void> requestToJoin({
     required AuthUser user,
     required ResidenceCodeSummary residence,
+    required String firstName,
+    required String lastName,
   }) async {
     final phoneNumber = _verifiedPhone(user);
+    final normalizedFirstName = firstName.trim();
+    final normalizedLastName = lastName.trim();
+    if (normalizedFirstName.isEmpty || normalizedLastName.isEmpty) {
+      throw const ResidenceSetupFailure('invalid-data');
+    }
     if (!residence.joinRequestsEnabled) {
       throw const ResidenceSetupFailure('join-requests-disabled');
     }
     try {
-      final requestReference = _firestore
+      final residenceReference = _firestore
           .collection('residences')
-          .doc(residence.residenceId)
-          .collection('joinRequests')
+          .doc(residence.residenceId);
+      final memberReference = residenceReference
+          .collection('members')
           .doc(user.uid);
-      final existingRequest = await requestReference.get();
-      if (existingRequest.exists) {
-        return;
-      }
-      await requestReference.set({
-        'userId': user.uid,
-        'phoneNumber': phoneNumber,
-        'residenceCode': residence.code,
-        'status': 'pending',
-        'createdAt': FieldValue.serverTimestamp(),
+      final userReference = _firestore.collection('users').doc(user.uid);
+      await _firestore.runTransaction((transaction) async {
+        final memberDocument = await transaction.get(memberReference);
+        if (memberDocument.data()?['status'] == 'active') {
+          return;
+        }
+        final userDocument = await transaction.get(userReference);
+        final profile = userDocument.data();
+        transaction.set(memberReference, {
+          'userId': user.uid,
+          'firstName': profile?['firstName'] as String? ?? normalizedFirstName,
+          'lastName': profile?['lastName'] as String? ?? normalizedLastName,
+          'phoneNumber': phoneNumber,
+          'apartmentId': '',
+          'role': 'resident',
+          'status': 'active',
+          'source': 'join-code',
+          'residenceCode': residence.code,
+          'joinedAt': FieldValue.serverTimestamp(),
+        });
+        if (userDocument.exists) {
+          transaction.update(userReference, {
+            'activeResidenceId': residence.residenceId,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        } else {
+          transaction.set(userReference, {
+            'firstName': normalizedFirstName,
+            'lastName': normalizedLastName,
+            'phoneNumber': phoneNumber,
+            'activeResidenceId': residence.residenceId,
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
       });
     } on FirebaseException catch (error) {
       throw ResidenceSetupFailure(error.code);
