@@ -12,6 +12,7 @@ import 'package:darjar/features/account/data/account_onboarding_repository.dart'
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
+import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_invitation_repository.dart';
@@ -944,18 +945,39 @@ void main() {
     }
   });
 
-  testWidgets('profile settings expose Arabic notification preferences', (
+  testWidgets('profile exposes real editable account and residence data', (
     tester,
   ) async {
-    await _pumpApp(tester, size: const Size(390, 844));
+    final profileRepository = _FakeProfileRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      profileRepository: profileRepository,
+    );
     await _enterResidence(tester);
 
     await tester.tap(find.byKey(const Key('profile-button')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('profile-page')), findsOneWidget);
-    expect(find.text('رقم الهاتف'), findsOneWidget);
     expect(find.text('+212 6 12 34 56 78'), findsOneWidget);
+    expect(find.text('أمين المريني'), findsOneWidget);
+    expect(find.text('الإقامات'), findsOneWidget);
+    expect(find.text('إقامة الاختبار'), findsWidgets);
+    expect(find.text('الشقة رقم 12'), findsOneWidget);
+    expect(find.text('الحالية'), findsOneWidget);
+    expect(find.text('الإدارة'), findsOneWidget);
     expect(find.text('البريد الإلكتروني'), findsNothing);
+    expect(find.text('الإعدادات'), findsNothing);
+    expect(find.text('إعادة عرض البداية'), findsNothing);
+    expect(find.byKey(const Key('profile-phone-number')), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+    expect(
+      tester.getCenter(find.byKey(const Key('profile-full-name'))).dx,
+      closeTo(
+        tester.getCenter(find.byKey(const Key('profile-information-card'))).dx,
+        1,
+      ),
+    );
     expect(
       tester.getSize(find.byKey(const Key('subpage-back-button'))).height,
       40,
@@ -975,32 +997,30 @@ void main() {
       AppSpacing.small,
     );
 
-    await tester.ensureVisible(find.byKey(const Key('settings-link')));
-    await tester.tap(find.byKey(const Key('settings-link')));
+    await tester.tap(find.byKey(const Key('edit-profile-name-button')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('settings-page')), findsOneWidget);
-    expect(find.byType(BackButtonIcon), findsOneWidget);
+    expect(find.byKey(const Key('edit-profile-name-sheet')), findsOneWidget);
+    expect(find.text('تعديل الاسم والنسب'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+    final editSheet = tester.widget<DecoratedBox>(
+      find.byKey(const Key('edit-profile-name-sheet')),
+    );
+    expect((editSheet.decoration as BoxDecoration).color, AppColors.surface);
 
-    expect(find.text('الإعدادات العامة'), findsOneWidget);
-    expect(find.byKey(const Key('general-settings-section')), findsOneWidget);
-    expect(find.text('اللغة'), findsNothing);
-    expect(find.byType(SegmentedButton<String>), findsNothing);
-    expect(find.text('الإشعارات'), findsOneWidget);
-    expect(find.text('الإعدادات الاحترافية'), findsOneWidget);
-    expect(
-      find.text(
-        'من أجل إدارة إقامات متعددة، يرجى التبديل إلى الحساب الاحترافي.',
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const Key('profile-first-name-field')),
+        matching: find.byType(TextField),
       ),
-      findsOneWidget,
+      'يوسف',
     );
-    final professionalButton = find.byKey(
-      const Key('switch-to-professional-button'),
-    );
-    expect(professionalButton, findsOneWidget);
-    await tester.ensureVisible(professionalButton);
-    await tester.tap(professionalButton);
+    await tester.ensureVisible(find.byKey(const Key('save-profile-button')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('save-profile-button')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('settings-page')), findsOneWidget);
+    expect(profileRepository.profile.firstName, 'يوسف');
+    expect(find.text('يوسف المريني'), findsOneWidget);
+    expect(find.text('تم حفظ معلومات الحساب.'), findsOneWidget);
   });
 
   testWidgets('residence management is hidden from regular residents', (
@@ -1082,9 +1102,11 @@ void main() {
       tester
           .getTopLeft(find.byKey(const Key('residence-management-section')))
           .dy,
-      greaterThan(tester.getTopLeft(find.byKey(const Key('settings-link'))).dy),
+      greaterThan(
+        tester.getTopLeft(find.byKey(const Key('profile-residences-card'))).dy,
+      ),
     );
-    expect(find.text('إدارة الإقامة'), findsOneWidget);
+    expect(find.text('الإدارة'), findsOneWidget);
     expect(find.text('إدارة الشقق وتوزيع السكان داخل الإقامة'), findsOneWidget);
     expect(find.byKey(const Key('manage-projects-link')), findsNothing);
     expect(
@@ -1101,7 +1123,7 @@ void main() {
     );
 
     final chevrons = find.byIcon(Icons.chevron_left_rounded);
-    expect(chevrons, findsNWidgets(4));
+    expect(chevrons, findsNWidgets(2));
     for (final icon in tester.widgetList<Icon>(chevrons)) {
       expect(icon.textDirection, TextDirection.ltr);
     }
@@ -1601,6 +1623,7 @@ Future<void> _pumpApp(
   ResidenceMembersRepository? residenceMembersRepository,
   ResidenceInvitationRepository? residenceInvitationRepository,
   ResidenceSettingsRepository? residenceSettingsRepository,
+  ProfileRepository? profileRepository,
   ResidenceContext? residenceContext,
   Object? residenceContextError,
 }) async {
@@ -1622,6 +1645,8 @@ Future<void> _pumpApp(
       residenceInvitationRepository ?? _FakeResidenceInvitationRepository();
   final settingsRepository =
       residenceSettingsRepository ?? _FakeResidenceSettingsRepository();
+  final currentProfileRepository =
+      profileRepository ?? _FakeProfileRepository();
   final contextData = residenceContext ?? _defaultResidenceContext;
   if (repository is _FakeAuthRepository) {
     addTearDown(repository.dispose);
@@ -1644,6 +1669,7 @@ Future<void> _pumpApp(
         residenceSettingsRepositoryProvider.overrideWithValue(
           settingsRepository,
         ),
+        profileRepositoryProvider.overrideWithValue(currentProfileRepository),
         residenceContextProvider.overrideWith((ref) async {
           if (residenceContextError != null) {
             throw residenceContextError;
@@ -1785,6 +1811,44 @@ class _FakeAccountOnboardingRepository implements AccountOnboardingRepository {
     required List<ResidenceInvitation> invitations,
   }) async {
     acceptedInvitations = invitations;
+  }
+}
+
+class _FakeProfileRepository implements ProfileRepository {
+  ResidentProfile profile = const ResidentProfile(
+    firstName: 'أمين',
+    lastName: 'المريني',
+    phoneNumber: '+212 6 12 34 56 78',
+    residences: [
+      ProfileResidence(
+        id: 'test-residence',
+        name: 'إقامة الاختبار',
+        apartmentNumber: '12',
+      ),
+    ],
+  );
+
+  @override
+  Future<ResidentProfile> load({
+    required AuthUser user,
+    required ResidenceContext residenceContext,
+  }) async {
+    return profile;
+  }
+
+  @override
+  Future<void> updateNames({
+    required AuthUser user,
+    required List<String> residenceIds,
+    required String firstName,
+    required String lastName,
+  }) async {
+    profile = ResidentProfile(
+      firstName: firstName,
+      lastName: lastName,
+      phoneNumber: profile.phoneNumber,
+      residences: profile.residences,
+    );
   }
 }
 

@@ -607,7 +607,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile => 'Profile';
 
   @override
-  String get residenceAdministration => 'Residence management';
+  String get profileResidences => 'Residences';
+
+  @override
+  String get profileNoResidences => 'No residences are linked to this account.';
+
+  @override
+  String profileApartmentNumber(String number) {
+    return 'Apartment $number';
+  }
+
+  @override
+  String get profileApartmentNotAssigned => 'Apartment not assigned yet';
+
+  @override
+  String get profileNameRequired => 'Enter your first and last name.';
+
+  @override
+  String get profileSaved => 'Account information saved.';
+
+  @override
+  String get profileSaving => 'Saving…';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get editProfileName => 'Edit name';
+
+  @override
+  String get editProfileNameDescription =>
+      'Update the name shown to neighbors in your residences.';
+
+  @override
+  String get profileRolePresident => 'President';
+
+  @override
+  String get profileRoleDeputy => 'Deputy';
+
+  @override
+  String get profileRoleTreasurer => 'Treasurer';
+
+  @override
+  String get profileRoleResident => 'Resident';
+
+  @override
+  String get residenceAdministration => 'Management';
 
   @override
   String get residenceSettings => 'Residence settings';

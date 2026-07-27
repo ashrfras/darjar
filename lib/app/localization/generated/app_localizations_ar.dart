@@ -597,7 +597,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profile => 'حسابي';
 
   @override
-  String get residenceAdministration => 'إدارة الإقامة';
+  String get profileResidences => 'الإقامات';
+
+  @override
+  String get profileNoResidences => 'لا توجد إقامات مرتبطة بهذا الحساب.';
+
+  @override
+  String profileApartmentNumber(String number) {
+    return 'الشقة رقم $number';
+  }
+
+  @override
+  String get profileApartmentNotAssigned => 'لم تُحدّد الشقة بعد';
+
+  @override
+  String get profileNameRequired => 'أدخل الاسم والنسب.';
+
+  @override
+  String get profileSaved => 'تم حفظ معلومات الحساب.';
+
+  @override
+  String get profileSaving => 'جارٍ الحفظ…';
+
+  @override
+  String get edit => 'تعديل';
+
+  @override
+  String get editProfileName => 'تعديل الاسم والنسب';
+
+  @override
+  String get editProfileNameDescription =>
+      'حدّث الاسم الذي يظهر لجيرانك في الإقامات.';
+
+  @override
+  String get profileRolePresident => 'رئيس';
+
+  @override
+  String get profileRoleDeputy => 'نائب';
+
+  @override
+  String get profileRoleTreasurer => 'أمين';
+
+  @override
+  String get profileRoleResident => 'ساكن';
+
+  @override
+  String get residenceAdministration => 'الإدارة';
 
   @override
   String get residenceSettings => 'إعدادات الإقامة';

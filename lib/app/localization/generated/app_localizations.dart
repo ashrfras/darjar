@@ -1196,10 +1196,94 @@ abstract class AppLocalizations {
   /// **'حسابي'**
   String get profile;
 
+  /// No description provided for @profileResidences.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإقامات'**
+  String get profileResidences;
+
+  /// No description provided for @profileNoResidences.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد إقامات مرتبطة بهذا الحساب.'**
+  String get profileNoResidences;
+
+  /// No description provided for @profileApartmentNumber.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشقة رقم {number}'**
+  String profileApartmentNumber(String number);
+
+  /// No description provided for @profileApartmentNotAssigned.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم تُحدّد الشقة بعد'**
+  String get profileApartmentNotAssigned;
+
+  /// No description provided for @profileNameRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل الاسم والنسب.'**
+  String get profileNameRequired;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حفظ معلومات الحساب.'**
+  String get profileSaved;
+
+  /// No description provided for @profileSaving.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ الحفظ…'**
+  String get profileSaving;
+
+  /// No description provided for @edit.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل'**
+  String get edit;
+
+  /// No description provided for @editProfileName.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل الاسم والنسب'**
+  String get editProfileName;
+
+  /// No description provided for @editProfileNameDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدّث الاسم الذي يظهر لجيرانك في الإقامات.'**
+  String get editProfileNameDescription;
+
+  /// No description provided for @profileRolePresident.
+  ///
+  /// In ar, this message translates to:
+  /// **'رئيس'**
+  String get profileRolePresident;
+
+  /// No description provided for @profileRoleDeputy.
+  ///
+  /// In ar, this message translates to:
+  /// **'نائب'**
+  String get profileRoleDeputy;
+
+  /// No description provided for @profileRoleTreasurer.
+  ///
+  /// In ar, this message translates to:
+  /// **'أمين'**
+  String get profileRoleTreasurer;
+
+  /// No description provided for @profileRoleResident.
+  ///
+  /// In ar, this message translates to:
+  /// **'ساكن'**
+  String get profileRoleResident;
+
   /// No description provided for @residenceAdministration.
   ///
   /// In ar, this message translates to:
-  /// **'إدارة الإقامة'**
+  /// **'الإدارة'**
   String get residenceAdministration;
 
   /// No description provided for @residenceSettings.

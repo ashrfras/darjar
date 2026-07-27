@@ -450,6 +450,20 @@ service cloud.firestore {
             && getAfter(residencePath(residenceId)).data.presidentId != memberId
             && request.resource.data.updatedAt == request.time
           )
+          || (
+            memberId == request.auth.uid
+            && isResidenceMember(residenceId)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'firstName',
+              'lastName',
+              'updatedAt'
+            ])
+            && request.resource.data.firstName is string
+            && request.resource.data.firstName.size() > 0
+            && request.resource.data.lastName is string
+            && request.resource.data.lastName.size() > 0
+            && request.resource.data.updatedAt == request.time
+          )
           || isJoinCodeMembership(residenceId, memberId);
       }
 
