@@ -19,6 +19,7 @@ import 'package:darjar/features/residence/data/residence_invitation_repository.d
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
+import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,6 +53,26 @@ void main() {
   });
 
   group('mock repositories', () {
+    test('Moroccan city catalog is comprehensive and uses stable IDs', () {
+      expect(moroccanCities, hasLength(391));
+      expect(
+        moroccanCities.map((city) => city.id).toSet(),
+        hasLength(moroccanCities.length),
+      );
+      expect(
+        moroccanCities,
+        contains(
+          const MoroccanCity(
+            id: '6141010',
+            nameAr: 'الدار البيضاء',
+            nameLatin: 'Casablanca',
+          ),
+        ),
+      );
+      expect(moroccanCities.any((city) => city.nameAr == 'الداخلة'), isTrue);
+      expect(moroccanCities.any((city) => city.nameAr == 'الحسيمة'), isTrue);
+    });
+
     test('create community posts and recommendations', () {
       final community = MockCommunityRepository();
       final directory = MockDirectoryRepository();
@@ -166,6 +187,9 @@ void main() {
     test('residence settings repository persists management changes', () async {
       final repository = _FakeResidenceSettingsRepository();
       final original = await repository.load('test-residence');
+      expect(original.city, '6141010');
+      expect(original.defaultSubscriptionAmount, 150);
+      expect(FirestoreResidenceSetupRepository.defaultSubscriptionAmount, 150);
 
       await repository.save(
         original.copyWith(
@@ -417,7 +441,7 @@ void main() {
           code: '48273165',
           name: 'إقامة الياسمين',
           address: 'حي المعاريف',
-          city: 'casablanca',
+          city: '6141010',
           joinRequestsEnabled: true,
         ),
       );
@@ -590,6 +614,8 @@ void main() {
     expect(find.byKey(const Key('residence-switcher-sheet')), findsOneWidget);
     expect(find.byType(PopupMenuItem<String>), findsNothing);
     expect(find.text('إقامة الاختبار'), findsWidgets);
+    expect(find.textContaining('الدار البيضاء'), findsOneWidget);
+    expect(find.textContaining('casablanca'), findsNothing);
     await tester.tap(find.text('إقامة الاختبار').last);
     await tester.pumpAndSettle();
 
@@ -619,7 +645,7 @@ void main() {
             id: 'yasmine',
             name: 'إقامة الياسمين الحقيقية',
             address: 'المعاريف، الدار البيضاء',
-            city: 'casablanca',
+            city: '6141010',
             role: 'resident',
             apartmentId: 'apartment-12',
           ),
@@ -627,7 +653,7 @@ void main() {
             id: 'andalous',
             name: 'إقامة الأندلس',
             address: 'أكدال، الرباط',
-            city: 'rabat',
+            city: '4421010',
             role: 'owner',
             apartmentId: 'apartment-5',
           ),
@@ -1035,7 +1061,7 @@ void main() {
             id: 'test-residence',
             name: 'إقامة الاختبار',
             address: 'شارع الاختبار',
-            city: 'casablanca',
+            city: '6141010',
             role: 'resident',
             apartmentId: '',
           ),
@@ -1064,7 +1090,7 @@ void main() {
               id: 'test-residence',
               name: 'إقامة الاختبار',
               address: 'شارع الاختبار',
-              city: 'casablanca',
+              city: '6141010',
               role: 'resident',
               apartmentId: '',
               hasPresidentPermissions: true,
@@ -1145,7 +1171,14 @@ void main() {
   testWidgets(
     'residence settings manage details, structure, and subscription',
     (tester) async {
-      await _pumpApp(tester, size: const Size(390, 844));
+      final authRepository = _FakeAuthRepository();
+      final settingsRepository = _FakeResidenceSettingsRepository();
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        authRepository: authRepository,
+        residenceSettingsRepository: settingsRepository,
+      );
       await _enterResidence(tester);
       await tester.tap(find.byKey(const Key('profile-button')));
       await tester.pumpAndSettle();
@@ -1170,6 +1203,11 @@ void main() {
         tester.widget<TextField>(residenceIdField).controller?.text,
         '48273165',
       );
+      expect(
+        find.byKey(const Key('settings-residence-city-field')),
+        findsOneWidget,
+      );
+      expect(find.text('الدار البيضاء'), findsOneWidget);
       expect(
         find.byKey(const Key('residence-structure-section')),
         findsOneWidget,
@@ -1199,8 +1237,44 @@ void main() {
         expect(find.byKey(Key(fieldKey)), findsOneWidget);
       }
       expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(const Key('management-organization-field')),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller
+            ?.text,
+        'أمين المريني',
+      );
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(const Key('management-phone-field')),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller
+            ?.text,
+        '+212600000001',
+      );
+      expect(
         find.byKey(const Key('residence-subscription-section')),
         findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(const Key('default-subscription-amount-field')),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller
+            ?.text,
+        '150',
       );
       expect(find.byKey(const Key('sticky-save-bar')), findsOneWidget);
       expect(
@@ -1292,11 +1366,26 @@ void main() {
       expect(find.byKey(const Key('residence-joining-section')), findsNothing);
       expect(find.byKey(const Key('permanent-invitation-link')), findsNothing);
 
+      await tester.enterText(
+        find.byKey(const Key('management-organization-field')),
+        'شركة الإدارة الجديدة',
+      );
+      await tester.enterText(
+        find.byKey(const Key('management-phone-field')),
+        '+212 5 22 11 22 33',
+      );
       await tester.tap(
         find.byKey(const Key('save-residence-settings-button')).hitTestable(),
       );
       await tester.pumpAndSettle();
       expect(find.text('تم حفظ إعدادات الإقامة.'), findsOneWidget);
+      expect(
+        settingsRepository.settings.managementOrganization,
+        'شركة الإدارة الجديدة',
+      );
+      expect(settingsRepository.settings.managementPhone, '+212 5 22 11 22 33');
+      expect(settingsRepository.settings.defaultSubscriptionAmount, 150);
+      expect(authRepository.currentUser?.phoneNumber, '+212600000001');
     },
   );
 
@@ -1689,7 +1778,7 @@ const _defaultResidenceContext = ResidenceContext(
       id: 'test-residence',
       name: 'إقامة الاختبار',
       address: 'شارع الاختبار',
-      city: 'casablanca',
+      city: '6141010',
       role: 'owner',
       apartmentId: '',
     ),
@@ -2249,8 +2338,9 @@ class _FakeResidenceSettingsRepository implements ResidenceSettingsRepository {
     joinCode: '48273165',
     name: 'إقامة الاختبار',
     address: 'شارع الاختبار',
+    city: '6141010',
     establishmentYear: 2018,
-    defaultSubscriptionAmount: 300,
+    defaultSubscriptionAmount: 150,
     invitationUrl: 'https://darjar.app/join/48273165',
     joinRequestsEnabled: true,
     hasImage: false,
@@ -2261,8 +2351,8 @@ class _FakeResidenceSettingsRepository implements ResidenceSettingsRepository {
         floorCount: 3,
       ),
     ],
-    managementOrganization: 'شركة إدارة الإقامة',
-    managementPhone: '+212 5 22 00 00 00',
+    managementOrganization: 'أمين المريني',
+    managementPhone: '+212600000001',
     bankName: 'البنك المغربي',
     bankAccount: '007 810 0000000000000000 00',
   );

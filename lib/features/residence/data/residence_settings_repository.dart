@@ -29,6 +29,7 @@ class ResidenceSettings {
     required this.joinCode,
     required this.name,
     required this.address,
+    required this.city,
     required this.establishmentYear,
     required this.defaultSubscriptionAmount,
     required this.invitationUrl,
@@ -45,6 +46,7 @@ class ResidenceSettings {
   final String joinCode;
   final String name;
   final String address;
+  final String city;
   final int establishmentYear;
   final int defaultSubscriptionAmount;
   final String invitationUrl;
@@ -59,6 +61,7 @@ class ResidenceSettings {
   ResidenceSettings copyWith({
     String? name,
     String? address,
+    String? city,
     int? establishmentYear,
     int? defaultSubscriptionAmount,
     bool? joinRequestsEnabled,
@@ -74,6 +77,7 @@ class ResidenceSettings {
       joinCode: joinCode,
       name: name ?? this.name,
       address: address ?? this.address,
+      city: city ?? this.city,
       establishmentYear: establishmentYear ?? this.establishmentYear,
       defaultSubscriptionAmount:
           defaultSubscriptionAmount ?? this.defaultSubscriptionAmount,
@@ -127,33 +131,34 @@ class FirestoreResidenceSettingsRepository
       if (!residenceDocument.exists) {
         throw const ResidenceSettingsFailure('residence-not-found');
       }
+      if (!privateDocument.exists) {
+        throw const ResidenceSettingsFailure('settings-not-found');
+      }
       final buildings = await Future.wait([
         for (final building in buildingDocuments.docs)
           _buildingConfiguration(building),
       ]);
       buildings.sort((a, b) => a.name.compareTo(b.name));
       final residenceData = residenceDocument.data()!;
-      final privateData = privateDocument.data() ?? const <String, dynamic>{};
-      final joinCode = privateData['joinCode'] as String? ?? '';
+      final privateData = privateDocument.data()!;
+      final joinCode = privateData['joinCode'] as String;
       return ResidenceSettings(
         residenceId: residenceId,
         joinCode: joinCode,
-        name: residenceData['name'] as String? ?? '',
-        address: residenceData['address'] as String? ?? '',
-        establishmentYear:
-            residenceData['establishmentYear'] as int? ?? DateTime.now().year,
+        name: residenceData['name'] as String,
+        address: residenceData['address'] as String,
+        city: residenceData['city'] as String,
+        establishmentYear: residenceData['establishmentYear'] as int,
         defaultSubscriptionAmount:
-            privateData['defaultSubscriptionAmount'] as int? ?? 0,
+            privateData['defaultSubscriptionAmount'] as int,
         invitationUrl: 'https://darjar.app/join/$joinCode',
-        joinRequestsEnabled:
-            residenceData['joinRequestsEnabled'] as bool? ?? false,
-        hasImage: residenceData['hasImage'] as bool? ?? false,
+        joinRequestsEnabled: residenceData['joinRequestsEnabled'] as bool,
+        hasImage: residenceData['hasImage'] as bool,
         buildings: buildings,
-        managementOrganization:
-            privateData['managementOrganization'] as String? ?? '',
-        managementPhone: privateData['managementPhone'] as String? ?? '',
-        bankName: privateData['bankName'] as String? ?? '',
-        bankAccount: privateData['bankAccount'] as String? ?? '',
+        managementOrganization: privateData['managementOrganization'] as String,
+        managementPhone: privateData['managementPhone'] as String,
+        bankName: privateData['bankName'] as String,
+        bankAccount: privateData['bankAccount'] as String,
       );
     } on ResidenceSettingsFailure {
       rethrow;
@@ -203,6 +208,7 @@ class FirestoreResidenceSettingsRepository
       batch.update(residence, {
         'name': settings.name,
         'address': settings.address,
+        'city': settings.city,
         'establishmentYear': settings.establishmentYear,
         'hasImage': settings.hasImage,
         'joinRequestsEnabled': settings.joinRequestsEnabled,

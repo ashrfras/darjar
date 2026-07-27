@@ -9,6 +9,7 @@ import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
+import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,6 +60,7 @@ class _ResidenceSettingsFormState
   late final TextEditingController _bankNameController;
   late final TextEditingController _bankAccountController;
   late ResidenceSettings _savedSettings;
+  late String _selectedCity;
   late bool _hasImage;
   late List<ResidenceBuildingConfiguration> _buildings;
   bool _isDirty = false;
@@ -87,6 +89,7 @@ class _ResidenceSettingsFormState
     );
     _bankNameController = TextEditingController(text: settings.bankName);
     _bankAccountController = TextEditingController(text: settings.bankAccount);
+    _selectedCity = settings.city;
     _hasImage = settings.hasImage;
     _buildings = List.of(settings.buildings);
     for (final controller in _editableControllers) {
@@ -155,6 +158,8 @@ class _ResidenceSettingsFormState
                                 residenceIdController: _joinCodeController,
                                 nameController: _nameController,
                                 addressController: _addressController,
+                                selectedCity: _selectedCity,
+                                onCityChanged: _setCity,
                                 yearController: _yearController,
                                 hasImage: _hasImage,
                                 onToggleImage: _toggleImage,
@@ -196,6 +201,8 @@ class _ResidenceSettingsFormState
                                             _joinCodeController,
                                         nameController: _nameController,
                                         addressController: _addressController,
+                                        selectedCity: _selectedCity,
+                                        onCityChanged: _setCity,
                                         yearController: _yearController,
                                         hasImage: _hasImage,
                                         onToggleImage: _toggleImage,
@@ -261,6 +268,14 @@ class _ResidenceSettingsFormState
   void _toggleImage() {
     setState(() {
       _hasImage = !_hasImage;
+      _isDirty = _hasChanges;
+    });
+  }
+
+  void _setCity(String? city) {
+    if (city == null || city == _selectedCity) return;
+    setState(() {
+      _selectedCity = city;
       _isDirty = _hasChanges;
     });
   }
@@ -338,6 +353,7 @@ class _ResidenceSettingsFormState
     final establishmentYear = int.tryParse(_yearController.text.trim());
     if (_nameController.text.trim().isEmpty ||
         _addressController.text.trim().isEmpty ||
+        _selectedCity.isEmpty ||
         _buildings.isEmpty ||
         establishmentYear == null ||
         establishmentYear < 1800 ||
@@ -351,6 +367,7 @@ class _ResidenceSettingsFormState
     final updatedSettings = _savedSettings.copyWith(
       name: _nameController.text.trim(),
       address: _addressController.text.trim(),
+      city: _selectedCity,
       establishmentYear: establishmentYear,
       defaultSubscriptionAmount: amount,
       hasImage: _hasImage,
@@ -407,6 +424,7 @@ class _ResidenceSettingsFormState
   bool get _hasChanges {
     return _nameController.text.trim() != _savedSettings.name ||
         _addressController.text.trim() != _savedSettings.address ||
+        _selectedCity != _savedSettings.city ||
         _yearController.text.trim() !=
             _savedSettings.establishmentYear.toString() ||
         _amountController.text.trim() !=
@@ -598,6 +616,8 @@ class _ResidenceInformationSection extends StatelessWidget {
     required this.residenceIdController,
     required this.nameController,
     required this.addressController,
+    required this.selectedCity,
+    required this.onCityChanged,
     required this.yearController,
     required this.hasImage,
     required this.onToggleImage,
@@ -606,6 +626,8 @@ class _ResidenceInformationSection extends StatelessWidget {
   final TextEditingController residenceIdController;
   final TextEditingController nameController;
   final TextEditingController addressController;
+  final String selectedCity;
+  final ValueChanged<String?> onCityChanged;
   final TextEditingController yearController;
   final bool hasImage;
   final VoidCallback onToggleImage;
@@ -613,6 +635,7 @@ class _ResidenceInformationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final cities = localizedMoroccanCities(localizations);
     return _SettingsSection(
       key: const Key('residence-information-section'),
       icon: Icons.domain_outlined,
@@ -697,6 +720,28 @@ class _ResidenceInformationSection extends StatelessWidget {
             controller: addressController,
             label: localizations.address,
             prefixIcon: Icons.location_on_outlined,
+          ),
+          const SizedBox(height: AppSpacing.large),
+          DropdownButtonFormField<String>(
+            key: const Key('settings-residence-city-field'),
+            initialValue: selectedCity,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: localizations.city,
+              prefixIcon: const Icon(Icons.location_city_outlined),
+            ),
+            items: [
+              for (final city in cities)
+                DropdownMenuItem(
+                  value: city.id,
+                  child: Text(
+                    city.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
+            onChanged: onCityChanged,
           ),
           const SizedBox(height: AppSpacing.large),
           DarJarTextField(

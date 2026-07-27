@@ -8,6 +8,7 @@ import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
+import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,7 +53,10 @@ class ResidenceHomePage extends ConsumerWidget {
                       ? AppLocalizations.of(context).residencePageDescription
                       : [
                           activeResidence.address,
-                          activeResidence.city,
+                          localizedMoroccanCityName(
+                            AppLocalizations.of(context),
+                            activeResidence.city,
+                          ),
                         ].where((value) => value.isNotEmpty).join(' • '),
                 ),
                 const SizedBox(height: AppSpacing.xLarge),

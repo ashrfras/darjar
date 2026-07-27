@@ -11,6 +11,7 @@ import 'package:darjar/features/account/data/account_onboarding_repository.dart'
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
+import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -951,7 +952,7 @@ class _ResidenceSwitcherOption extends StatelessWidget {
     final localizations = AppLocalizations.of(context);
     final address = [
       residence.address,
-      residence.city,
+      localizedMoroccanCityName(localizations, residence.city),
     ].where((value) => value.isNotEmpty).join(' • ');
     return DarJarCard(
       key: ValueKey('residence-switcher-option-${residence.id}'),

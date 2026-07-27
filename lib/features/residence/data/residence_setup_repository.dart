@@ -72,6 +72,7 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
   FirestoreResidenceSetupRepository(this._firestore);
 
   static const _codeAlphabet = '0123456789';
+  static const defaultSubscriptionAmount = 150;
 
   final FirebaseFirestore _firestore;
   final Random _random = Random.secure();
@@ -128,6 +129,8 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
             'name': normalizedInput.name,
             'address': normalizedInput.address,
             'city': normalizedInput.city,
+            'establishmentYear': DateTime.now().year,
+            'hasImage': false,
             'presidentId': user.uid,
             'joinRequestsEnabled': true,
             'createdAt': FieldValue.serverTimestamp(),
@@ -165,11 +168,12 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
           transaction.set(privateSettingsReference, {
             'createdBy': user.uid,
             'joinCode': joinCode,
-            'managementOrganization': '',
-            'managementPhone': '',
+            'managementOrganization':
+                '${normalizedInput.firstName} ${normalizedInput.lastName}',
+            'managementPhone': phoneNumber,
             'bankName': '',
             'bankAccount': '',
-            'defaultSubscriptionAmount': 0,
+            'defaultSubscriptionAmount': defaultSubscriptionAmount,
             'updatedAt': FieldValue.serverTimestamp(),
           });
           transaction.set(defaultBuildingReference, {

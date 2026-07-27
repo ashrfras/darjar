@@ -10,6 +10,7 @@ import 'package:darjar/features/account/data/account_onboarding_repository.dart'
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
+import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -223,14 +224,7 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final cities = <(String, String)>[
-      ('casablanca', localizations.cityCasablanca),
-      ('rabat', localizations.cityRabat),
-      ('marrakesh', localizations.cityMarrakesh),
-      ('tangier', localizations.cityTangier),
-      ('agadir', localizations.cityAgadir),
-      ('fes', localizations.cityFes),
-    ];
+    final cities = localizedMoroccanCities(localizations);
     return Form(
       key: _formKey,
       child: Column(
@@ -273,6 +267,7 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
                 DropdownButtonFormField<String>(
                   key: const Key('residence-city-field'),
                   initialValue: _selectedCity,
+                  isExpanded: true,
                   decoration: InputDecoration(
                     labelText: localizations.city,
                     prefixIcon: const Icon(Icons.location_city_outlined),
@@ -280,7 +275,14 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
                   hint: Text(localizations.citySelectHint),
                   items: [
                     for (final city in cities)
-                      DropdownMenuItem(value: city.$1, child: Text(city.$2)),
+                      DropdownMenuItem(
+                        value: city.id,
+                        child: Text(
+                          city.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                   ],
                   onChanged: _isSubmitting
                       ? null
@@ -667,15 +669,7 @@ class _ResidenceSearchResult extends StatelessWidget {
   }
 
   String _cityName(AppLocalizations localizations) {
-    return switch (residence.city) {
-      'casablanca' => localizations.cityCasablanca,
-      'rabat' => localizations.cityRabat,
-      'marrakesh' => localizations.cityMarrakesh,
-      'tangier' => localizations.cityTangier,
-      'agadir' => localizations.cityAgadir,
-      'fes' => localizations.cityFes,
-      _ => residence.city,
-    };
+    return localizedMoroccanCityName(localizations, residence.city);
   }
 }
 

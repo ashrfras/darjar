@@ -10,6 +10,10 @@ service cloud.firestore {
       return signedIn() && request.auth.token.phone_number != null;
     }
 
+    function validMoroccanCity(cityId) {
+      return cityId is string && cityId.matches('^[0-9]{7,10}$');
+    }
+
     function invitationPath(residenceId, invitationId) {
       return /databases/$(database)/documents/residences/$(residenceId)/invitations/$(invitationId);
     }
@@ -236,6 +240,8 @@ service cloud.firestore {
           'name',
           'address',
           'city',
+          'establishmentYear',
+          'hasImage',
           'presidentId',
           'joinRequestsEnabled',
           'createdAt'
@@ -244,8 +250,10 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && request.resource.data.address is string
         && request.resource.data.address.size() > 0
-        && request.resource.data.city is string
-        && request.resource.data.city.size() > 0
+        && validMoroccanCity(request.resource.data.city)
+        && request.resource.data.establishmentYear is int
+        && request.resource.data.establishmentYear >= 1800
+        && request.resource.data.hasImage == false
         && request.resource.data.presidentId == request.auth.uid
         && request.resource.data.joinRequestsEnabled == true
         && request.resource.data.createdAt == request.time;
@@ -255,6 +263,7 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'name',
             'address',
+            'city',
             'establishmentYear',
             'hasImage',
             'joinRequestsEnabled',
@@ -264,6 +273,7 @@ service cloud.firestore {
           && request.resource.data.name.size() > 0
           && request.resource.data.address is string
           && request.resource.data.address.size() > 0
+          && validMoroccanCity(request.resource.data.city)
           && request.resource.data.establishmentYear is int
           && request.resource.data.establishmentYear >= 1800
           && request.resource.data.hasImage is bool
@@ -309,11 +319,13 @@ service cloud.firestore {
           && request.resource.data.joinCode is string
           && request.resource.data.joinCode.matches('^[0-9]{8}$')
           && request.resource.data.managementOrganization is string
-          && request.resource.data.managementPhone is string
+          && request.resource.data.managementOrganization.size() > 0
+          && request.resource.data.managementPhone
+            == request.auth.token.phone_number
           && request.resource.data.bankName is string
           && request.resource.data.bankAccount is string
           && request.resource.data.defaultSubscriptionAmount is int
-          && request.resource.data.defaultSubscriptionAmount >= 0
+          && request.resource.data.defaultSubscriptionAmount == 150
           && request.resource.data.updatedAt == request.time;
 
         allow update: if canManageResidence(residenceId)
