@@ -711,6 +711,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Residence management details and available contact methods.';
 
   @override
+  String get residenceBuildingCount => 'Buildings';
+
+  @override
+  String get residenceApartmentCount => 'Apartments';
+
+  @override
+  String get residenceConstructionYear => 'Construction year';
+
+  @override
   String get managementCompany => 'Management organization';
 
   @override

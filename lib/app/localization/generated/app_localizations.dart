@@ -1364,6 +1364,24 @@ abstract class AppLocalizations {
   /// **'معلومات إدارة الإقامة وطرق التواصل المتاحة.'**
   String get managementPageDescription;
 
+  /// No description provided for @residenceBuildingCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'عدد العمارات'**
+  String get residenceBuildingCount;
+
+  /// No description provided for @residenceApartmentCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'عدد الشقق'**
+  String get residenceApartmentCount;
+
+  /// No description provided for @residenceConstructionYear.
+  ///
+  /// In ar, this message translates to:
+  /// **'سنة البناء'**
+  String get residenceConstructionYear;
+
   /// No description provided for @managementCompany.
   ///
   /// In ar, this message translates to:

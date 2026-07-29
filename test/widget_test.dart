@@ -130,7 +130,6 @@ void main() {
       expect(dashboard.finances.recentExpenses, isNotEmpty);
       expect(dashboard.notifications, isNotEmpty);
       expect(dashboard.documents, isNotEmpty);
-      expect(dashboard.unitCount, greaterThan(0));
     });
 
     test('residence member assignments reference configured apartments', () {
@@ -891,6 +890,35 @@ void main() {
     await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('residence-home-page')), findsOneWidget);
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const Key('compact-residence-address-and-city')),
+          )
+          .data,
+      'شارع الاختبار • الدار البيضاء',
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('residence-building-count')),
+        matching: find.text('1'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('residence-apartment-count')),
+        matching: find.text('7'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('residence-construction-year')),
+        matching: find.text('2018'),
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('حالة الواجبات'));
     await tester.pumpAndSettle();
@@ -951,6 +979,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('management-page')), findsOneWidget);
     expect(find.byType(BackButtonIcon), findsOneWidget);
+    expect(find.byKey(const Key('title-only-subpage-header')), findsOneWidget);
   });
 
   testWidgets('residence dashboard exposes its five resident modules', (

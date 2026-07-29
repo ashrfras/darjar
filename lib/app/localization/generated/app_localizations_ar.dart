@@ -700,6 +700,15 @@ class AppLocalizationsAr extends AppLocalizations {
       'معلومات إدارة الإقامة وطرق التواصل المتاحة.';
 
   @override
+  String get residenceBuildingCount => 'عدد العمارات';
+
+  @override
+  String get residenceApartmentCount => 'عدد الشقق';
+
+  @override
+  String get residenceConstructionYear => 'سنة البناء';
+
+  @override
   String get managementCompany => 'جهة الإدارة';
 
   @override

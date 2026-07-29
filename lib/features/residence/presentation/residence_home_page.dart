@@ -7,7 +7,9 @@ import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
+import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
+import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +24,8 @@ class ResidenceHomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboard = ref.watch(residenceDashboardProvider);
     final residentDues = ref.watch(residentDuesProvider);
+    final residenceMembers = ref.watch(residenceMembersProvider);
+    final residenceSettings = ref.watch(residenceSettingsProvider);
     final activeResidence = ref.watch(
       residenceContextProvider.select(
         (context) => context.value?.activeResidence,
@@ -83,9 +87,21 @@ class ResidenceHomePage extends ConsumerWidget {
                               ),
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
-                            if (activeResidence.address.isNotEmpty)
+                            if (activeResidence.address.isNotEmpty ||
+                                activeResidence.city.isNotEmpty)
                               Text(
-                                activeResidence.address,
+                                [
+                                      activeResidence.address,
+                                      localizedMoroccanCityName(
+                                        AppLocalizations.of(context),
+                                        activeResidence.city,
+                                      ),
+                                    ]
+                                    .where((value) => value.isNotEmpty)
+                                    .join(' • '),
+                                key: const Key(
+                                  'compact-residence-address-and-city',
+                                ),
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                           ],
@@ -96,7 +112,12 @@ class ResidenceHomePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.medium),
               ],
-              _DashboardGrid(data: dashboard, residentDues: residentDues),
+              _DashboardGrid(
+                data: dashboard,
+                residentDues: residentDues,
+                residenceMembers: residenceMembers,
+                residenceSettings: residenceSettings,
+              ),
             ],
           ),
         ),
@@ -106,10 +127,17 @@ class ResidenceHomePage extends ConsumerWidget {
 }
 
 class _DashboardGrid extends StatelessWidget {
-  const _DashboardGrid({required this.data, required this.residentDues});
+  const _DashboardGrid({
+    required this.data,
+    required this.residentDues,
+    required this.residenceMembers,
+    required this.residenceSettings,
+  });
 
   final ResidenceDashboardData data;
   final AsyncValue<ResidenceDuesOverview> residentDues;
+  final AsyncValue<ResidenceMembersData> residenceMembers;
+  final AsyncValue<ResidenceSettings> residenceSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +167,10 @@ class _DashboardGrid extends StatelessWidget {
             ),
             SizedBox(
               width: constraints.maxWidth,
-              child: _ResidenceInfoCard(data),
+              child: _ResidenceInfoCard(
+                members: residenceMembers.value,
+                settings: residenceSettings.value,
+              ),
             ),
           ],
         );
@@ -683,9 +714,10 @@ class _NotificationsCard extends StatelessWidget {
 }
 
 class _ResidenceInfoCard extends StatelessWidget {
-  const _ResidenceInfoCard(this.data);
+  const _ResidenceInfoCard({required this.members, required this.settings});
 
-  final ResidenceDashboardData data;
+  final ResidenceMembersData? members;
+  final ResidenceSettings? settings;
 
   @override
   Widget build(BuildContext context) {
@@ -701,22 +733,27 @@ class _ResidenceInfoCard extends StatelessWidget {
           children: [
             Expanded(
               child: _InfoMetric(
-                label: 'عدد العمارات',
-                value: '${data.buildingCount}',
+                key: const Key('residence-building-count'),
+                label: AppLocalizations.of(context).residenceBuildingCount,
+                value: settings == null ? '—' : '${settings!.buildings.length}',
               ),
             ),
             const VerticalDivider(),
             Expanded(
               child: _InfoMetric(
-                label: 'عدد الشقق',
-                value: '${data.unitCount}',
+                key: const Key('residence-apartment-count'),
+                label: AppLocalizations.of(context).residenceApartmentCount,
+                value: members == null ? '—' : '${members!.apartments.length}',
               ),
             ),
             const VerticalDivider(),
             Expanded(
               child: _InfoMetric(
-                label: 'سنة البناء',
-                value: '${data.constructionYear}',
+                key: const Key('residence-construction-year'),
+                label: AppLocalizations.of(context).residenceConstructionYear,
+                value: settings == null
+                    ? '—'
+                    : '${settings!.establishmentYear}',
               ),
             ),
           ],
@@ -727,7 +764,7 @@ class _ResidenceInfoCard extends StatelessWidget {
 }
 
 class _InfoMetric extends StatelessWidget {
-  const _InfoMetric({required this.label, required this.value});
+  const _InfoMetric({required this.label, required this.value, super.key});
 
   final String label;
   final String value;

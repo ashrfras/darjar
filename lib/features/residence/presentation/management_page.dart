@@ -15,6 +15,7 @@ class ManagementPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final settingsState = ref.watch(residenceSettingsProvider);
+    final compact = MediaQuery.sizeOf(context).width < 600;
     if (settingsState.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -31,7 +32,12 @@ class ManagementPage extends ConsumerWidget {
 
     return SingleChildScrollView(
       key: const Key('management-page'),
-      padding: const EdgeInsets.all(AppSpacing.xLarge),
+      padding: EdgeInsets.fromLTRB(
+        compact ? 12 : AppSpacing.xLarge,
+        compact ? AppSpacing.small : AppSpacing.xLarge,
+        compact ? 12 : AppSpacing.xLarge,
+        compact ? 28 : AppSpacing.xxxLarge,
+      ),
       child: Align(
         alignment: AlignmentDirectional.topCenter,
         child: ConstrainedBox(
@@ -42,9 +48,11 @@ class ManagementPage extends ConsumerWidget {
               DarJarSubpageHeader(
                 title: localizations.managementInformation,
                 fallbackLocation: AppRoutes.residence,
-                description: localizations.managementPageDescription,
+                description: compact
+                    ? null
+                    : localizations.managementPageDescription,
               ),
-              const SizedBox(height: AppSpacing.xLarge),
+              const SizedBox(height: AppSpacing.large),
               DarJarCard(
                 child: Column(
                   children: [

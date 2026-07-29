@@ -122,9 +122,6 @@ class ResidenceDashboardData {
     required this.finances,
     required this.notifications,
     required this.documents,
-    required this.buildingCount,
-    required this.unitCount,
-    required this.constructionYear,
   });
 
   final int monthlyDue;
@@ -134,9 +131,6 @@ class ResidenceDashboardData {
   final ResidenceFinances finances;
   final List<AdministrativeNotification> notifications;
   final List<ResidenceDocument> documents;
-  final int buildingCount;
-  final int unitCount;
-  final int constructionYear;
 }
 
 class AdministrativeNotification {
@@ -384,9 +378,6 @@ class MockResidenceRepository implements ResidenceRepository {
         ResidenceDocument(title: 'محضر اجتماع 2025-04', size: '1.8 MB'),
         ResidenceDocument(title: 'الميزانية السنوية 2025', size: '3.1 MB'),
       ],
-      buildingCount: 6,
-      unitCount: 96,
-      constructionYear: 2018,
     );
   }
 }
