@@ -6,7 +6,7 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
-import 'package:darjar/features/residence/data/residence_repository.dart';
+import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,7 +18,7 @@ class ResidenceFinancesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
-    final finances = ref.watch(residenceFinancesProvider);
+    final financesState = ref.watch(residenceFinancesProvider);
     final compact = MediaQuery.sizeOf(context).width < 600;
 
     return SingleChildScrollView(
@@ -39,38 +39,70 @@ class ResidenceFinancesPage extends ConsumerWidget {
               DarJarSubpageHeader(
                 title: localizations.residenceFinances,
                 fallbackLocation: AppRoutes.residence,
-                description: localizations.residenceFinancesDescription,
+                description: compact
+                    ? null
+                    : localizations.residenceFinancesDescription,
               ),
-              const SizedBox(height: AppSpacing.xLarge),
-              _Summary(finances: finances),
               const SizedBox(height: AppSpacing.large),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  if (constraints.maxWidth < 760) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _BreakdownCard(finances: finances),
-                        const SizedBox(height: AppSpacing.large),
-                        _RecentExpensesCard(finances: finances),
-                      ],
-                    );
-                  }
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              financesState.when(
+                loading: () => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(AppSpacing.xxxLarge),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+                error: (error, stackTrace) => DarJarCard(
+                  child: Column(
                     children: [
-                      Expanded(
-                        flex: 4,
-                        child: _BreakdownCard(finances: finances),
+                      Text(
+                        localizations.financeLoadError,
+                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(width: AppSpacing.large),
-                      Expanded(
-                        flex: 6,
-                        child: _RecentExpensesCard(finances: finances),
+                      const SizedBox(height: AppSpacing.medium),
+                      IconButton(
+                        key: const Key('retry-residence-finances'),
+                        onPressed: () =>
+                            ref.invalidate(residenceFinancesProvider),
+                        icon: const Icon(Icons.refresh_rounded),
                       ),
                     ],
-                  );
-                },
+                  ),
+                ),
+                data: (finances) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _Summary(finances: finances),
+                    const SizedBox(height: AppSpacing.large),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth < 760) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _BreakdownCard(finances: finances),
+                              const SizedBox(height: AppSpacing.large),
+                              _RecentExpensesCard(finances: finances),
+                            ],
+                          );
+                        }
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 4,
+                              child: _BreakdownCard(finances: finances),
+                            ),
+                            const SizedBox(width: AppSpacing.large),
+                            Expanded(
+                              flex: 6,
+                              child: _RecentExpensesCard(finances: finances),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -248,15 +280,18 @@ class _BreakdownCard extends StatelessWidget {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: AppSpacing.xLarge),
-          for (var index = 0; index < finances.breakdown.length; index++) ...[
-            _BreakdownRow(
-              item: finances.breakdown[index],
-              totalExpenses: finances.totalExpenses,
-              color: _categoryColor(finances.breakdown[index].category),
-            ),
-            if (index != finances.breakdown.length - 1)
-              const SizedBox(height: AppSpacing.large),
-          ],
+          if (finances.breakdown.isEmpty)
+            Text(localizations.noExpensesRecorded, textAlign: TextAlign.center)
+          else
+            for (var index = 0; index < finances.breakdown.length; index++) ...[
+              _BreakdownRow(
+                item: finances.breakdown[index],
+                totalExpenses: finances.totalExpenses,
+                color: _categoryColor(finances.breakdown[index].category),
+              ),
+              if (index != finances.breakdown.length - 1)
+                const SizedBox(height: AppSpacing.large),
+            ],
         ],
       ),
     );
@@ -329,15 +364,21 @@ class _RecentExpensesCard extends StatelessWidget {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: AppSpacing.medium),
-          for (
-            var index = 0;
-            index < finances.recentExpenses.length;
-            index++
-          ) ...[
-            _ExpenseRow(expense: finances.recentExpenses[index]),
-            if (index != finances.recentExpenses.length - 1)
-              const Divider(height: AppSpacing.xLarge),
-          ],
+          if (finances.recentExpenses.isEmpty)
+            Text(
+              AppLocalizations.of(context).noExpensesRecorded,
+              textAlign: TextAlign.center,
+            )
+          else
+            for (
+              var index = 0;
+              index < finances.recentExpenses.length;
+              index++
+            ) ...[
+              _ExpenseRow(expense: finances.recentExpenses[index]),
+              if (index != finances.recentExpenses.length - 1)
+                const Divider(height: AppSpacing.xLarge),
+            ],
           const SizedBox(height: AppSpacing.medium),
           DarJarButton(
             key: const Key('view-all-transactions-button'),
@@ -355,13 +396,14 @@ class _RecentExpensesCard extends StatelessWidget {
 class _ExpenseRow extends StatelessWidget {
   const _ExpenseRow({required this.expense});
 
-  final ResidenceExpense expense;
+  final ResidenceTransaction expense;
 
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).languageCode;
     final localizations = AppLocalizations.of(context);
-    final color = _categoryColor(expense.category);
+    final category = expense.expenseCategory ?? ResidenceExpenseCategory.custom;
+    final color = _categoryColor(category);
     return Padding(
       key: ValueKey('residence-expense-${expense.id}'),
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.small),
@@ -375,11 +417,7 @@ class _ExpenseRow extends StatelessWidget {
               color: color.withValues(alpha: .1),
               borderRadius: BorderRadius.circular(AppRadius.small),
             ),
-            child: Icon(
-              _categoryIcon(expense.category),
-              color: color,
-              size: 21,
-            ),
+            child: Icon(_categoryIcon(category), color: color, size: 21),
           ),
           const SizedBox(width: AppSpacing.medium),
           Expanded(
@@ -391,9 +429,9 @@ class _ExpenseRow extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        locale == 'ar'
-                            ? expense.descriptionAr
-                            : expense.descriptionEn,
+                        category == ResidenceExpenseCategory.custom
+                            ? expense.name
+                            : _categoryLabel(context, category),
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                     ),
@@ -413,7 +451,7 @@ class _ExpenseRow extends StatelessWidget {
                   children: [
                     _Meta(
                       icon: Icons.sell_outlined,
-                      label: _categoryLabel(context, expense.category),
+                      label: _categoryLabel(context, category),
                     ),
                     _Meta(
                       icon: Icons.calendar_today_outlined,
@@ -422,7 +460,7 @@ class _ExpenseRow extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.small),
-                if (expense.supportingDocument case final document?)
+                if (expense.supportingDocument.isNotEmpty)
                   Row(
                     children: [
                       const Icon(
@@ -433,7 +471,7 @@ class _ExpenseRow extends StatelessWidget {
                       const SizedBox(width: AppSpacing.xSmall),
                       Expanded(
                         child: Text(
-                          '${localizations.supportingDocument}: $document',
+                          '${localizations.supportingDocument}: ${expense.supportingDocument}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.labelMedium
@@ -490,6 +528,7 @@ String _categoryLabel(BuildContext context, ResidenceExpenseCategory category) {
       localizations.expenseCategoryUtilities,
     ResidenceExpenseCategory.cleaning => localizations.expenseCategoryCleaning,
     ResidenceExpenseCategory.security => localizations.expenseCategorySecurity,
+    ResidenceExpenseCategory.custom => localizations.expenseCategoryCustom,
   };
 }
 
@@ -499,6 +538,7 @@ IconData _categoryIcon(ResidenceExpenseCategory category) {
     ResidenceExpenseCategory.utilities => Icons.bolt_outlined,
     ResidenceExpenseCategory.cleaning => Icons.cleaning_services_outlined,
     ResidenceExpenseCategory.security => Icons.shield_outlined,
+    ResidenceExpenseCategory.custom => Icons.category_outlined,
   };
 }
 
@@ -508,5 +548,6 @@ Color _categoryColor(ResidenceExpenseCategory category) {
     ResidenceExpenseCategory.utilities => const Color(0xFF367DDB),
     ResidenceExpenseCategory.cleaning => AppColors.residence,
     ResidenceExpenseCategory.security => AppColors.warning,
+    ResidenceExpenseCategory.custom => AppColors.inkMuted,
   };
 }

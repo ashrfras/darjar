@@ -495,8 +495,7 @@ service cloud.firestore {
       }
 
       match /dues/{dueId} {
-        allow read: if canManageResidence(residenceId)
-          || isOwnResidenceApartment(residenceId, resource.data.apartmentId);
+        allow read: if isResidenceMember(residenceId);
 
         allow create: if (
             canManageResidence(residenceId)
@@ -591,22 +590,25 @@ service cloud.firestore {
       }
 
       match /duePayments/{paymentId} {
-        allow read: if canManageResidence(residenceId)
-          || isOwnResidenceApartment(residenceId, resource.data.apartmentId);
+        allow read: if isResidenceMember(residenceId);
 
         allow create: if canManageResidence(residenceId)
           && request.resource.data.keys().hasOnly([
             'dueId',
+            'paymentGroupId',
             'apartmentId',
             'apartmentNumber',
             'amount',
             'paidAt',
             'note',
+            'supportingDocument',
             'recordedBy',
             'createdAt'
           ])
           && request.resource.data.dueId is string
           && request.resource.data.dueId.size() > 0
+          && request.resource.data.paymentGroupId is string
+          && request.resource.data.paymentGroupId.size() > 0
           && request.resource.data.apartmentId is string
           && request.resource.data.apartmentId.size() > 0
           && request.resource.data.apartmentNumber is string
@@ -615,8 +617,95 @@ service cloud.firestore {
           && request.resource.data.paidAt is timestamp
           && request.resource.data.paidAt <= request.time
           && request.resource.data.note is string
+          && request.resource.data.supportingDocument is string
           && request.resource.data.recordedBy == request.auth.uid
           && request.resource.data.createdAt == request.time;
+      }
+
+      match /financeTransactions/{transactionId} {
+        allow read: if isResidenceMember(residenceId);
+
+        allow create: if canManageResidence(residenceId)
+          && request.resource.data.keys().hasOnly([
+            'type',
+            'amount',
+            'date',
+            'name',
+            'expenseCategory',
+            'note',
+            'supportingDocument',
+            'recordedBy',
+            'createdAt',
+            'updatedAt'
+          ])
+          && request.resource.data.type in ['income', 'expense']
+          && request.resource.data.amount is int
+          && request.resource.data.amount > 0
+          && request.resource.data.date is timestamp
+          && request.resource.data.date <= request.time
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && (
+            (
+              request.resource.data.type == 'income'
+              && request.resource.data.expenseCategory == null
+            )
+            || (
+              request.resource.data.type == 'expense'
+              && request.resource.data.expenseCategory in [
+                'maintenance',
+                'utilities',
+                'cleaning',
+                'security',
+                'custom'
+              ]
+            )
+          )
+          && request.resource.data.note is string
+          && request.resource.data.supportingDocument is string
+          && request.resource.data.recordedBy == request.auth.uid
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+
+        allow update: if canManageResidence(residenceId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'type',
+            'amount',
+            'date',
+            'name',
+            'expenseCategory',
+            'note',
+            'supportingDocument',
+            'updatedAt'
+          ])
+          && request.resource.data.type in ['income', 'expense']
+          && request.resource.data.amount is int
+          && request.resource.data.amount > 0
+          && request.resource.data.date is timestamp
+          && request.resource.data.date <= request.time
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && (
+            (
+              request.resource.data.type == 'income'
+              && request.resource.data.expenseCategory == null
+            )
+            || (
+              request.resource.data.type == 'expense'
+              && request.resource.data.expenseCategory in [
+                'maintenance',
+                'utilities',
+                'cleaning',
+                'security',
+                'custom'
+              ]
+            )
+          )
+          && request.resource.data.note is string
+          && request.resource.data.supportingDocument is string
+          && request.resource.data.updatedAt == request.time;
+
+        allow delete: if canManageResidence(residenceId);
       }
 
       match /buildings/{buildingId} {
@@ -679,7 +768,9 @@ service cloud.firestore {
     }
 
     match /{path=**}/members/{memberId} {
-      allow read: if signedIn()
+      allow get: if signedIn()
+        && memberId == request.auth.uid;
+      allow list: if signedIn()
         && resource.data.userId == request.auth.uid;
     }
 

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -55,6 +56,9 @@ class ResidenceDuePayment {
     required this.paidAt,
     required this.note,
     required this.recordedBy,
+    this.paymentGroupId = '',
+    this.supportingDocument = '',
+    this.createdAt,
   });
 
   final String id;
@@ -65,6 +69,21 @@ class ResidenceDuePayment {
   final DateTime paidAt;
   final String note;
   final String recordedBy;
+  final String paymentGroupId;
+  final String supportingDocument;
+  final DateTime? createdAt;
+}
+
+class ResidenceDuePaymentGroup {
+  const ResidenceDuePaymentGroup({required this.id, required this.payments});
+
+  final String id;
+  final List<ResidenceDuePayment> payments;
+
+  int get totalAmount =>
+      payments.fold(0, (total, payment) => total + payment.amount);
+
+  DateTime get paidAt => payments.first.paidAt;
 }
 
 class ResidenceDuesOverview {
@@ -89,6 +108,49 @@ class ResidenceDuesOverview {
     return duesForPeriod(
       periodKey,
     ).fold(0, (total, due) => total + due.amountPaid);
+  }
+
+  int debitThroughPeriod(String periodKey) {
+    return dues
+        .where((due) => due.periodKey.compareTo(periodKey) <= 0)
+        .fold(0, (total, due) => total + due.remainingAmount);
+  }
+
+  List<ResidenceDue> prepaidDuesAfterPeriod(String periodKey) {
+    return dues
+        .where(
+          (due) => due.periodKey.compareTo(periodKey) > 0 && due.amountPaid > 0,
+        )
+        .toList();
+  }
+
+  int creditAfterPeriod(String periodKey) {
+    return prepaidDuesAfterPeriod(
+      periodKey,
+    ).fold(0, (total, due) => total + due.amountPaid);
+  }
+
+  List<ResidenceDuePaymentGroup> get paymentGroups {
+    final grouped = <String, List<ResidenceDuePayment>>{};
+    for (final payment in payments) {
+      final groupId = payment.paymentGroupId.isNotEmpty
+          ? payment.paymentGroupId
+          : payment.createdAt == null
+          ? payment.id
+          : [
+              'legacy',
+              payment.createdAt!.microsecondsSinceEpoch,
+              payment.apartmentId,
+              payment.recordedBy,
+              payment.note,
+            ].join('|');
+      grouped.putIfAbsent(groupId, () => []).add(payment);
+    }
+    final groups = [
+      for (final entry in grouped.entries)
+        ResidenceDuePaymentGroup(id: entry.key, payments: entry.value),
+    ]..sort((first, second) => second.paidAt.compareTo(first.paidAt));
+    return groups;
   }
 }
 
@@ -128,6 +190,7 @@ abstract interface class ResidenceDuesRepository {
     required DateTime paidAt,
     required String note,
     required String recordedBy,
+    String supportingDocument = '',
   });
 }
 
@@ -271,6 +334,7 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
     required DateTime paidAt,
     required String note,
     required String recordedBy,
+    String supportingDocument = '',
   }) async {
     if (amount <= 0 || defaultAmount < 0) {
       throw const ResidenceDuesFailure('invalid-payment-amount');
@@ -340,6 +404,7 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
         throw const ResidenceDuesFailure('invalid-payment-amount');
       }
       final futureDueIds = {for (final due in futureDues) due.id};
+      final paymentGroupId = residence.collection('duePayments').doc().id;
       await _firestore.runTransaction((transaction) async {
         final storedDues = <String, ResidenceDue>{};
         for (final allocation in allocations) {
@@ -356,7 +421,8 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
           }
           storedDues[due.id] = _dueFromDocument(document);
         }
-        for (final allocation in allocations) {
+        for (var index = 0; index < allocations.length; index++) {
+          final allocation = allocations[index];
           final due = allocation.$1;
           final allocated = allocation.$2;
           final storedDue = storedDues[due.id] ?? due;
@@ -383,16 +449,23 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
               'updatedAt': FieldValue.serverTimestamp(),
             });
           }
-          transaction.set(residence.collection('duePayments').doc(), {
-            'dueId': due.id,
-            'apartmentId': due.apartmentId,
-            'apartmentNumber': due.apartmentNumber,
-            'amount': allocated,
-            'paidAt': Timestamp.fromDate(paidAt),
-            'note': note.trim(),
-            'recordedBy': recordedBy,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
+          transaction.set(
+            residence
+                .collection('duePayments')
+                .doc('$paymentGroupId-${index + 1}'),
+            {
+              'dueId': due.id,
+              'paymentGroupId': paymentGroupId,
+              'apartmentId': due.apartmentId,
+              'apartmentNumber': due.apartmentNumber,
+              'amount': allocated,
+              'paidAt': Timestamp.fromDate(paidAt),
+              'note': note.trim(),
+              'supportingDocument': supportingDocument.trim(),
+              'recordedBy': recordedBy,
+              'createdAt': FieldValue.serverTimestamp(),
+            },
+          );
         }
       });
     } on ResidenceDuesFailure {
@@ -430,6 +503,9 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
       paidAt: (data['paidAt'] as Timestamp).toDate(),
       note: data['note'] as String,
       recordedBy: data['recordedBy'] as String,
+      paymentGroupId: data['paymentGroupId'] as String? ?? '',
+      supportingDocument: data['supportingDocument'] as String? ?? '',
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -586,6 +662,7 @@ class ResidenceDuesManagementController
     required int amount,
     required DateTime paidAt,
     required String note,
+    required String supportingDocument,
   }) async {
     final residenceId = _residenceId;
     final defaultAmount = _defaultAmount;
@@ -605,8 +682,10 @@ class ResidenceDuesManagementController
           paidAt: paidAt,
           note: note,
           recordedBy: user.uid,
+          supportingDocument: supportingDocument,
         );
     ref.invalidate(residentDuesProvider);
+    ref.invalidate(residenceFinancesProvider);
     ref.invalidateSelf();
   }
 }

@@ -5,7 +5,7 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
-import 'package:darjar/features/residence/data/residence_repository.dart';
+import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -25,12 +25,7 @@ class _FinanceTransactionsPageState
   @override
   void initState() {
     super.initState();
-    final transactions = ref.read(residenceFinancesProvider).transactions;
-    final latestDate = transactions.isEmpty
-        ? DateTime.now()
-        : transactions
-              .map((transaction) => transaction.date)
-              .reduce((latest, date) => date.isAfter(latest) ? date : latest);
+    final latestDate = DateTime.now();
     _period = DateTimeRange(
       start: DateTime(latestDate.year),
       end: DateTime(latestDate.year, 12, 31),
@@ -41,10 +36,9 @@ class _FinanceTransactionsPageState
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final compact = MediaQuery.sizeOf(context).width < 600;
+    final financesState = ref.watch(residenceFinancesProvider);
     final transactions =
-        ref
-            .watch(residenceFinancesProvider)
-            .transactions
+        (financesState.value?.transactions ?? const <ResidenceTransaction>[])
             .where(_isInSelectedPeriod)
             .toList()
           ..sort((a, b) => b.date.compareTo(a.date));
@@ -70,55 +64,83 @@ class _FinanceTransactionsPageState
               DarJarSubpageHeader(
                 title: localizations.financeTransactions,
                 fallbackLocation: AppRoutes.residenceFinances,
-                description: localizations.financeTransactionsDescription,
+                description: compact
+                    ? null
+                    : localizations.financeTransactionsDescription,
               ),
-              const SizedBox(height: AppSpacing.xLarge),
-              DarJarCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      localizations.selectPeriod,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.small),
-                    OutlinedButton.icon(
-                      key: const Key('finance-period-picker'),
-                      onPressed: _selectPeriod,
-                      icon: const Icon(Icons.date_range_outlined),
-                      label: Text(_periodLabel(context)),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.medium),
-              _PeriodSummary(income: income, expenses: expenses),
               const SizedBox(height: AppSpacing.large),
-              DarJarCard(
-                child: transactions.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.xLarge,
-                        ),
-                        child: Text(
-                          localizations.noTransactionsInPeriod,
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                    : Column(
-                        children: [
-                          for (
-                            var index = 0;
-                            index < transactions.length;
-                            index++
-                          ) ...[
-                            _TransactionRow(transaction: transactions[index]),
-                            if (index != transactions.length - 1)
-                              const Divider(height: AppSpacing.xLarge),
-                          ],
-                        ],
+              if (financesState.isLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(AppSpacing.xxxLarge),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else if (financesState.hasError)
+                DarJarCard(
+                  child: Column(
+                    children: [
+                      Text(
+                        localizations.financeLoadError,
+                        textAlign: TextAlign.center,
                       ),
-              ),
+                      const SizedBox(height: AppSpacing.medium),
+                      IconButton(
+                        onPressed: () =>
+                            ref.invalidate(residenceFinancesProvider),
+                        icon: const Icon(Icons.refresh_rounded),
+                      ),
+                    ],
+                  ),
+                )
+              else ...[
+                DarJarCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        localizations.selectPeriod,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: AppSpacing.small),
+                      OutlinedButton.icon(
+                        key: const Key('finance-period-picker'),
+                        onPressed: _selectPeriod,
+                        icon: const Icon(Icons.date_range_outlined),
+                        label: Text(_periodLabel(context)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.medium),
+                _PeriodSummary(income: income, expenses: expenses),
+                const SizedBox(height: AppSpacing.large),
+                DarJarCard(
+                  child: transactions.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.xLarge,
+                          ),
+                          child: Text(
+                            localizations.noTransactionsInPeriod,
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            for (
+                              var index = 0;
+                              index < transactions.length;
+                              index++
+                            ) ...[
+                              _TransactionRow(transaction: transactions[index]),
+                              if (index != transactions.length - 1)
+                                const Divider(height: AppSpacing.xLarge),
+                            ],
+                          ],
+                        ),
+                ),
+              ],
             ],
           ),
         ),
@@ -235,7 +257,6 @@ class _TransactionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final locale = Localizations.localeOf(context).languageCode;
     final isIncome = transaction.type == ResidenceTransactionType.income;
     final color = isIncome ? AppColors.residence : AppColors.warning;
     final typeLabel = isIncome ? localizations.income : localizations.expense;
@@ -267,9 +288,14 @@ class _TransactionRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  locale == 'ar'
-                      ? transaction.descriptionAr
-                      : transaction.descriptionEn,
+                  transaction.source == ResidenceTransactionSource.dues
+                      ? _duesIncomeLabel(context, transaction)
+                      : transaction.type == ResidenceTransactionType.expense &&
+                            transaction.expenseCategory != null &&
+                            transaction.expenseCategory !=
+                                ResidenceExpenseCategory.custom
+                      ? _categoryLabel(context, transaction.expenseCategory!)
+                      : transaction.name,
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
                 const SizedBox(height: AppSpacing.xSmall),
@@ -280,7 +306,9 @@ class _TransactionRow extends StatelessWidget {
                     _Meta(icon: Icons.swap_vert_rounded, label: typeLabel),
                     _Meta(
                       icon: Icons.calendar_today_outlined,
-                      label: DateFormat.yMMMd(locale).format(transaction.date),
+                      label: DateFormat.yMMMd(
+                        localizations.localeName,
+                      ).format(transaction.date),
                     ),
                     if (transaction.expenseCategory case final category?)
                       _Meta(
@@ -289,7 +317,7 @@ class _TransactionRow extends StatelessWidget {
                       ),
                   ],
                 ),
-                if (transaction.supportingDocument case final document?) ...[
+                if (transaction.supportingDocument.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.small),
                   Row(
                     children: [
@@ -301,7 +329,7 @@ class _TransactionRow extends StatelessWidget {
                       const SizedBox(width: AppSpacing.xSmall),
                       Expanded(
                         child: Text(
-                          '${localizations.supportingDocument}: $document',
+                          '${localizations.supportingDocument}: ${transaction.supportingDocument}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.labelMedium
@@ -381,6 +409,7 @@ String _categoryLabel(BuildContext context, ResidenceExpenseCategory category) {
       localizations.expenseCategoryUtilities,
     ResidenceExpenseCategory.cleaning => localizations.expenseCategoryCleaning,
     ResidenceExpenseCategory.security => localizations.expenseCategorySecurity,
+    ResidenceExpenseCategory.custom => localizations.expenseCategoryCustom,
   };
 }
 
@@ -390,6 +419,33 @@ IconData _categoryIcon(ResidenceExpenseCategory? category) {
     ResidenceExpenseCategory.utilities => Icons.bolt_outlined,
     ResidenceExpenseCategory.cleaning => Icons.cleaning_services_outlined,
     ResidenceExpenseCategory.security => Icons.shield_outlined,
+    ResidenceExpenseCategory.custom => Icons.category_outlined,
     null => Icons.north_east_rounded,
   };
+}
+
+String _duesIncomeLabel(
+  BuildContext context,
+  ResidenceTransaction transaction,
+) {
+  final localizations = AppLocalizations.of(context);
+  final start = _displayPeriodKey(transaction.periodKey);
+  final end = _displayPeriodKey(transaction.periodEndKey);
+  if (end.isNotEmpty && end != start) {
+    return localizations.duesIncomeForApartmentRange(
+      transaction.apartmentNumber,
+      start,
+      end,
+    );
+  }
+  return localizations.duesIncomeForApartment(
+    transaction.apartmentNumber,
+    start,
+  );
+}
+
+String _displayPeriodKey(String periodKey) {
+  final parts = periodKey.split('-');
+  if (parts.length != 2) return periodKey;
+  return '${parts[1]}-${parts[0]}';
 }

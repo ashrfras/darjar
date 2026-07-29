@@ -75,14 +75,26 @@ class DuesPage extends ConsumerWidget {
   }
 }
 
-class _ResidentDuesContent extends StatelessWidget {
+class _ResidentDuesContent extends StatefulWidget {
   const _ResidentDuesContent({required this.overview});
 
   final ResidenceDuesOverview overview;
 
   @override
+  State<_ResidentDuesContent> createState() => _ResidentDuesContentState();
+}
+
+class _ResidentDuesContentState extends State<_ResidentDuesContent> {
+  static const _duesPageSize = 12;
+  static const _paymentsPageSize = 10;
+
+  var _visibleDues = _duesPageSize;
+  var _visiblePayments = _paymentsPageSize;
+
+  @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final overview = widget.overview;
     if (overview.dues.isEmpty) {
       return _EmptyState(
         key: const Key('dues-no-records'),
@@ -90,34 +102,42 @@ class _ResidentDuesContent extends StatelessWidget {
         message: localizations.duesNoRecords,
       );
     }
-    final totalDue = overview.dues.fold(
-      0,
-      (total, due) => total + due.amountDue,
-    );
-    final totalPaid = overview.dues.fold(
-      0,
-      (total, due) => total + due.amountPaid,
-    );
+    final currentPeriodKey = residenceDuesPeriodKey(DateTime.now());
+    final prepaidDues = overview.prepaidDuesAfterPeriod(currentPeriodKey);
+    final orderedDues = [...overview.dues]
+      ..sort((first, second) => second.periodKey.compareTo(first.periodKey));
+    final visibleDues = orderedDues.take(_visibleDues).toList();
+    final paymentGroups = overview.paymentGroups;
+    final visiblePaymentGroups = paymentGroups.take(_visiblePayments).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _Totals(
-          expected: totalDue,
-          collected: totalPaid,
-          remaining: totalDue - totalPaid,
+          debit: overview.debitThroughPeriod(currentPeriodKey),
+          credit: overview.creditAfterPeriod(currentPeriodKey),
+          prepaidMonths: prepaidDues.length,
         ),
         const SizedBox(height: AppSpacing.large),
-        for (final due in overview.dues) ...[
+        for (final due in visibleDues) ...[
           _ResidentDueCard(due: due),
           const SizedBox(height: AppSpacing.medium),
         ],
+        if (visibleDues.length < orderedDues.length)
+          Center(
+            child: TextButton.icon(
+              key: const Key('show-more-dues'),
+              onPressed: () => setState(() => _visibleDues += _duesPageSize),
+              icon: const Icon(Icons.expand_more_rounded),
+              label: Text(localizations.showMore),
+            ),
+          ),
         const SizedBox(height: AppSpacing.medium),
         Text(
           localizations.duesPaymentHistory,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: AppSpacing.medium),
-        if (overview.payments.isEmpty)
+        if (paymentGroups.isEmpty)
           _EmptyState(
             icon: Icons.history_rounded,
             message: localizations.duesNoPayments,
@@ -128,13 +148,23 @@ class _ResidentDuesContent extends StatelessWidget {
               children: [
                 for (
                   var index = 0;
-                  index < overview.payments.length;
+                  index < visiblePaymentGroups.length;
                   index++
                 ) ...[
-                  _PaymentRow(payment: overview.payments[index]),
-                  if (index != overview.payments.length - 1) const Divider(),
+                  _PaymentRow(paymentGroup: visiblePaymentGroups[index]),
+                  if (index != visiblePaymentGroups.length - 1) const Divider(),
                 ],
               ],
+            ),
+          ),
+        if (visiblePaymentGroups.length < paymentGroups.length)
+          Center(
+            child: TextButton.icon(
+              key: const Key('show-more-due-payments'),
+              onPressed: () =>
+                  setState(() => _visiblePayments += _paymentsPageSize),
+              icon: const Icon(Icons.expand_more_rounded),
+              label: Text(localizations.showMore),
             ),
           ),
       ],
@@ -199,14 +229,14 @@ class _ResidentDueCard extends StatelessWidget {
 
 class _Totals extends StatelessWidget {
   const _Totals({
-    required this.expected,
-    required this.collected,
-    required this.remaining,
+    required this.debit,
+    required this.credit,
+    required this.prepaidMonths,
   });
 
-  final int expected;
-  final int collected;
-  final int remaining;
+  final int debit;
+  final int credit;
+  final int prepaidMonths;
 
   @override
   Widget build(BuildContext context) {
@@ -215,22 +245,24 @@ class _Totals extends StatelessWidget {
       builder: (context, constraints) {
         final items = [
           _TotalCard(
-            key: const Key('dues-total-expected'),
-            label: localizations.duesExpected,
-            amount: expected,
-            color: AppColors.primary,
+            key: const Key('dues-total-debit'),
+            label: localizations.duesDebitBalance,
+            amount: debit,
+            suffix: localizations.currency,
+            color: AppColors.warning,
           ),
           _TotalCard(
-            key: const Key('dues-total-collected'),
-            label: localizations.duesCollected,
-            amount: collected,
+            key: const Key('dues-total-credit'),
+            label: localizations.duesCreditBalance,
+            amount: credit,
+            suffix: localizations.currency,
             color: AppColors.residence,
           ),
           _TotalCard(
-            key: const Key('dues-total-remaining'),
-            label: localizations.duesRemaining,
-            amount: remaining,
-            color: AppColors.warning,
+            key: const Key('dues-prepaid-months'),
+            label: localizations.duesPrepaidMonths,
+            amount: prepaidMonths,
+            color: AppColors.primary,
           ),
         ];
         if (constraints.maxWidth < 620) {
@@ -264,16 +296,17 @@ class _TotalCard extends StatelessWidget {
     required this.label,
     required this.amount,
     required this.color,
+    this.suffix,
     super.key,
   });
 
   final String label;
   final int amount;
   final Color color;
+  final String? suffix;
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
     return DarJarCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,7 +314,9 @@ class _TotalCard extends StatelessWidget {
           Text(label, style: Theme.of(context).textTheme.labelMedium),
           const SizedBox(height: AppSpacing.xSmall),
           Text(
-            '${_amount(context, amount)} ${localizations.currency}',
+            suffix == null
+                ? _amount(context, amount)
+                : '${_amount(context, amount)} $suffix',
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(color: color),
@@ -315,15 +350,16 @@ class _AmountLabel extends StatelessWidget {
 }
 
 class _PaymentRow extends StatelessWidget {
-  const _PaymentRow({required this.payment});
+  const _PaymentRow({required this.paymentGroup});
 
-  final ResidenceDuePayment payment;
+  final ResidenceDuePaymentGroup paymentGroup;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final payment = paymentGroup.payments.first;
     return Padding(
-      key: ValueKey('resident-payment-${payment.id}'),
+      key: ValueKey('resident-payment-${paymentGroup.id}'),
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
       child: Row(
         children: [
@@ -338,7 +374,8 @@ class _PaymentRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${_amount(context, payment.amount)} ${localizations.currency}',
+                  '${_amount(context, paymentGroup.totalAmount)} '
+                  '${localizations.currency}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(

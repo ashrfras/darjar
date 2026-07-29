@@ -535,6 +535,115 @@ class AppLocalizationsAr extends AppLocalizations {
   String get expenseCategorySecurity => 'الحراسة';
 
   @override
+  String get expenseCategoryCustom => 'مصروف مخصص';
+
+  @override
+  String get financeManagement => 'إدارة مالية الإقامة';
+
+  @override
+  String get financeManagementDescription =>
+      'سجّل المداخيل الأخرى والمصاريف، وراجع مداخيل الاشتراكات المضافة تلقائياً.';
+
+  @override
+  String get manageFinanceDescription =>
+      'تسجيل مداخيل الإقامة ومصاريفها وتتبع رصيدها.';
+
+  @override
+  String get addFinancialTransaction => 'إضافة عملية';
+
+  @override
+  String get addIncome => 'إضافة مدخول آخر';
+
+  @override
+  String get addExpense => 'إضافة مصروف';
+
+  @override
+  String get transactionType => 'نوع العملية';
+
+  @override
+  String get transactionName => 'اسم العملية';
+
+  @override
+  String get transactionAmount => 'المبلغ';
+
+  @override
+  String get transactionDate => 'تاريخ العملية';
+
+  @override
+  String get transactionNote => 'ملاحظة اختيارية';
+
+  @override
+  String get supportingDocumentName => 'اسم الوثيقة المثبتة (اختياري)';
+
+  @override
+  String get expenseCategory => 'نوع المصروف';
+
+  @override
+  String get saveTransaction => 'حفظ العملية';
+
+  @override
+  String get financeTransactionSaved => 'تم تسجيل العملية المالية.';
+
+  @override
+  String get financeTransactionUpdated => 'تم تحديث العملية المالية.';
+
+  @override
+  String get financeTransactionDeleted => 'تم حذف العملية المالية.';
+
+  @override
+  String get financeInvalidData =>
+      'أدخل اسماً ومبلغاً صحيحاً واختر نوع المصروف عند الحاجة.';
+
+  @override
+  String get financeLoadError =>
+      'تعذر تحميل بيانات مالية الإقامة. حاول مجدداً.';
+
+  @override
+  String get noFinancialTransactions => 'لا توجد عمليات مالية مسجلة.';
+
+  @override
+  String get noExpensesRecorded => 'لا توجد مصاريف مسجلة خلال هذه السنة.';
+
+  @override
+  String get manualTransaction => 'عملية يدوية';
+
+  @override
+  String get duesIncome => 'مدخول اشتراك';
+
+  @override
+  String duesIncomeForApartment(String apartment, String period) {
+    return 'اشتراك الشقة $apartment عن $period';
+  }
+
+  @override
+  String duesIncomeForApartmentRange(
+    String apartment,
+    String start,
+    String end,
+  ) {
+    return 'اشتراك الشقة $apartment عن $start إلى $end';
+  }
+
+  @override
+  String get editFinancialTransaction => 'تعديل العملية المالية';
+
+  @override
+  String get deleteFinancialTransaction => 'حذف العملية المالية';
+
+  @override
+  String confirmDeleteFinancialTransaction(String name) {
+    return 'هل تريد حذف عملية «$name»؟ لا يمكن التراجع عن ذلك.';
+  }
+
+  @override
+  String get financeTrackingNotice =>
+      'دارجار يتتبع الأموال فقط ولا يستلمها أو يعالج أي دفعات.';
+
+  @override
+  String get financeAutomaticDuesNotice =>
+      'تُضاف أداءات الاشتراكات تلقائياً من إدارة الاشتراكات ولا يمكن تعديلها هنا.';
+
+  @override
   String get duesStatus => 'حالة الواجبات';
 
   @override
@@ -640,6 +749,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get duesRemaining => 'المبلغ المتبقي';
 
   @override
+  String get duesDebitBalance => 'الرصيد المدين';
+
+  @override
+  String get duesCreditBalance => 'الرصيد الدائن';
+
+  @override
+  String get duesPrepaidMonths => 'أشهر مؤداة مسبقاً';
+
+  @override
   String get duesAmountDue => 'المبلغ المستحق';
 
   @override
@@ -647,6 +765,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get duesPaymentHistory => 'سجل الأداءات';
+
+  @override
+  String get showMore => 'عرض المزيد';
 
   @override
   String get duesNoPayments => 'لم يتم تسجيل أي أداء بعد.';

@@ -7,6 +7,7 @@ import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
+import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
@@ -24,6 +25,7 @@ class ResidenceHomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboard = ref.watch(residenceDashboardProvider);
     final residentDues = ref.watch(residentDuesProvider);
+    final finances = ref.watch(residenceFinancesProvider);
     final residenceMembers = ref.watch(residenceMembersProvider);
     final residenceSettings = ref.watch(residenceSettingsProvider);
     final activeResidence = ref.watch(
@@ -115,6 +117,7 @@ class ResidenceHomePage extends ConsumerWidget {
               _DashboardGrid(
                 data: dashboard,
                 residentDues: residentDues,
+                finances: finances,
                 residenceMembers: residenceMembers,
                 residenceSettings: residenceSettings,
               ),
@@ -130,12 +133,14 @@ class _DashboardGrid extends StatelessWidget {
   const _DashboardGrid({
     required this.data,
     required this.residentDues,
+    required this.finances,
     required this.residenceMembers,
     required this.residenceSettings,
   });
 
   final ResidenceDashboardData data;
   final AsyncValue<ResidenceDuesOverview> residentDues;
+  final AsyncValue<ResidenceFinances> finances;
   final AsyncValue<ResidenceMembersData> residenceMembers;
   final AsyncValue<ResidenceSettings> residenceSettings;
 
@@ -158,7 +163,7 @@ class _DashboardGrid extends StatelessWidget {
             ),
             SizedBox(
               width: constraints.maxWidth,
-              child: _ResidenceFinancesCard(data.finances),
+              child: _ResidenceFinancesCard(finances),
             ),
             SizedBox(width: pairWidth, child: _DocumentsCard(data.documents)),
             SizedBox(
@@ -292,8 +297,9 @@ class _AccountCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final overview = duesState.value;
-    final due = overview?.dues.firstOrNull;
-    final payment = overview?.payments.firstOrNull;
+    final currentPeriodKey = residenceDuesPeriodKey(DateTime.now());
+    final due = overview?.duesForPeriod(currentPeriodKey).firstOrNull;
+    final paymentGroup = overview?.paymentGroups.firstOrNull;
     final status = switch (due?.status) {
       ResidenceDueStatus.unpaid => localizations.duesStatusUnpaid,
       ResidenceDueStatus.partial => localizations.duesStatusPartial,
@@ -331,17 +337,18 @@ class _AccountCard extends StatelessWidget {
                     ),
             ),
             _FinancialMetric(
+              key: const Key('account-last-payment-total'),
               label: 'آخر عملية دفع',
-              value: payment == null ? '—' : '${payment.amount}',
+              value: paymentGroup == null ? '—' : '${paymentGroup.totalAmount}',
               suffix: 'درهم',
-              detail: payment == null
+              detail: paymentGroup == null
                   ? localizations.duesNoPayments
                   : localizations.duesRecordedOn(
                       DateFormat.yMMMd(
                         localizations.localeName,
-                      ).format(payment.paidAt),
+                      ).format(paymentGroup.paidAt),
                     ),
-              receipt: payment != null,
+              receipt: paymentGroup != null,
             ),
           ];
           if (narrow) {
@@ -378,6 +385,7 @@ class _FinancialMetric extends StatelessWidget {
     this.suffix,
     this.status = false,
     this.receipt = false,
+    super.key,
   });
 
   final String label;
@@ -482,11 +490,12 @@ class _FinancialMetric extends StatelessWidget {
 class _ResidenceFinancesCard extends StatelessWidget {
   const _ResidenceFinancesCard(this.finances);
 
-  final ResidenceFinances finances;
+  final AsyncValue<ResidenceFinances> finances;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final data = finances.value;
     return _DashboardCard(
       title: localizations.residenceFinances,
       icon: Icons.account_balance_outlined,
@@ -499,28 +508,33 @@ class _ResidenceFinancesCard extends StatelessWidget {
           final items = [
             _FinanceOverviewMetric(
               label: localizations.totalIncome,
-              value:
-                  '${_formatAmount(context, finances.totalIncome)} ${localizations.currency}',
+              value: data == null
+                  ? '—'
+                  : '${_formatAmount(context, data.totalIncome)} ${localizations.currency}',
               color: AppColors.residence,
               icon: Icons.south_west_rounded,
             ),
             _FinanceOverviewMetric(
               label: localizations.totalExpenses,
-              value:
-                  '${_formatAmount(context, finances.totalExpenses)} ${localizations.currency}',
+              value: data == null
+                  ? '—'
+                  : '${_formatAmount(context, data.totalExpenses)} ${localizations.currency}',
               color: AppColors.warning,
               icon: Icons.north_east_rounded,
             ),
             _FinanceOverviewMetric(
               label: localizations.currentBalance,
-              value:
-                  '${_formatAmount(context, finances.currentBalance)} ${localizations.currency}',
+              value: data == null
+                  ? '—'
+                  : '${_formatAmount(context, data.currentBalance)} ${localizations.currency}',
               color: const Color(0xFF7657D6),
               icon: Icons.account_balance_wallet_outlined,
             ),
             _FinanceOverviewMetric(
               label: localizations.collectionRate,
-              value: _formatPercentage(finances.collectionRate),
+              value: data == null
+                  ? '—'
+                  : _formatPercentage(data.collectionRate),
               color: const Color(0xFF367DDB),
               icon: Icons.donut_large_rounded,
             ),

@@ -404,6 +404,7 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
   late final TextEditingController _amountController;
   late final TextEditingController _dateController;
   final _noteController = TextEditingController();
+  final _documentController = TextEditingController();
   _ApartmentDuesGroup? _selectedGroup;
   DateTime _paidAt = DateTime.now();
   bool _saving = false;
@@ -430,6 +431,7 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
     _amountController.dispose();
     _dateController.dispose();
     _noteController.dispose();
+    _documentController.dispose();
     super.dispose();
   }
 
@@ -564,6 +566,13 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
                     label: localizations.duesPaymentNote,
                     prefixIcon: Icons.notes_rounded,
                   ),
+                  const SizedBox(height: AppSpacing.large),
+                  DarJarTextField(
+                    key: const Key('payment-supporting-document-field'),
+                    controller: _documentController,
+                    label: localizations.supportingDocumentName,
+                    prefixIcon: Icons.description_outlined,
+                  ),
                   const SizedBox(height: AppSpacing.xLarge),
                   DarJarButton(
                     key: const Key('save-payment-button'),
@@ -633,6 +642,7 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
             amount: amount,
             paidAt: _paidAt,
             note: _noteController.text,
+            supportingDocument: _documentController.text,
           );
       if (mounted) Navigator.of(context).pop(true);
     } on ResidenceDuesFailure {

@@ -544,6 +544,119 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expenseCategorySecurity => 'Security';
 
   @override
+  String get expenseCategoryCustom => 'Custom expense';
+
+  @override
+  String get financeManagement => 'Residence finance management';
+
+  @override
+  String get financeManagementDescription =>
+      'Record other income and expenses, and review subscription income added automatically.';
+
+  @override
+  String get manageFinanceDescription =>
+      'Record residence income and expenses and track its balance.';
+
+  @override
+  String get addFinancialTransaction => 'Add transaction';
+
+  @override
+  String get addIncome => 'Add other income';
+
+  @override
+  String get addExpense => 'Add expense';
+
+  @override
+  String get transactionType => 'Transaction type';
+
+  @override
+  String get transactionName => 'Transaction name';
+
+  @override
+  String get transactionAmount => 'Amount';
+
+  @override
+  String get transactionDate => 'Transaction date';
+
+  @override
+  String get transactionNote => 'Optional note';
+
+  @override
+  String get supportingDocumentName => 'Supporting document name (optional)';
+
+  @override
+  String get expenseCategory => 'Expense category';
+
+  @override
+  String get saveTransaction => 'Save transaction';
+
+  @override
+  String get financeTransactionSaved =>
+      'The financial transaction was recorded.';
+
+  @override
+  String get financeTransactionUpdated =>
+      'The financial transaction was updated.';
+
+  @override
+  String get financeTransactionDeleted =>
+      'The financial transaction was deleted.';
+
+  @override
+  String get financeInvalidData =>
+      'Enter a name and valid amount, and select an expense category when needed.';
+
+  @override
+  String get financeLoadError =>
+      'Residence finance data could not be loaded. Try again.';
+
+  @override
+  String get noFinancialTransactions =>
+      'No financial transactions have been recorded.';
+
+  @override
+  String get noExpensesRecorded => 'No expenses have been recorded this year.';
+
+  @override
+  String get manualTransaction => 'Manual transaction';
+
+  @override
+  String get duesIncome => 'Subscription income';
+
+  @override
+  String duesIncomeForApartment(String apartment, String period) {
+    return 'Apartment $apartment subscription for $period';
+  }
+
+  @override
+  String duesIncomeForApartmentRange(
+    String apartment,
+    String start,
+    String end,
+  ) {
+    return 'Apartment $apartment subscription from $start to $end';
+  }
+
+  @override
+  String get editFinancialTransaction => 'Edit financial transaction';
+
+  @override
+  String get deleteFinancialTransaction => 'Delete financial transaction';
+
+  @override
+  String confirmDeleteFinancialTransaction(String name) {
+    return 'Delete “$name”? This action cannot be undone.';
+  }
+
+  @override
+  String get financeTrackingNotice =>
+      'DarJar only tracks money and does not receive or process payments.';
+
+  @override
+  String get financeAutomaticDuesNotice =>
+      'Subscription payments are added automatically from dues management and cannot be edited here.';
+
+  @override
   String get duesStatus => 'Dues status';
 
   @override
@@ -651,6 +764,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duesRemaining => 'Remaining amount';
 
   @override
+  String get duesDebitBalance => 'Debit balance';
+
+  @override
+  String get duesCreditBalance => 'Credit balance';
+
+  @override
+  String get duesPrepaidMonths => 'Prepaid months';
+
+  @override
   String get duesAmountDue => 'Amount due';
 
   @override
@@ -658,6 +780,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get duesPaymentHistory => 'Payment history';
+
+  @override
+  String get showMore => 'Show more';
 
   @override
   String get duesNoPayments => 'No payment has been recorded yet.';

@@ -1082,6 +1082,196 @@ abstract class AppLocalizations {
   /// **'الحراسة'**
   String get expenseCategorySecurity;
 
+  /// No description provided for @expenseCategoryCustom.
+  ///
+  /// In ar, this message translates to:
+  /// **'مصروف مخصص'**
+  String get expenseCategoryCustom;
+
+  /// No description provided for @financeManagement.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة مالية الإقامة'**
+  String get financeManagement;
+
+  /// No description provided for @financeManagementDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجّل المداخيل الأخرى والمصاريف، وراجع مداخيل الاشتراكات المضافة تلقائياً.'**
+  String get financeManagementDescription;
+
+  /// No description provided for @manageFinanceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسجيل مداخيل الإقامة ومصاريفها وتتبع رصيدها.'**
+  String get manageFinanceDescription;
+
+  /// No description provided for @addFinancialTransaction.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة عملية'**
+  String get addFinancialTransaction;
+
+  /// No description provided for @addIncome.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة مدخول آخر'**
+  String get addIncome;
+
+  /// No description provided for @addExpense.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة مصروف'**
+  String get addExpense;
+
+  /// No description provided for @transactionType.
+  ///
+  /// In ar, this message translates to:
+  /// **'نوع العملية'**
+  String get transactionType;
+
+  /// No description provided for @transactionName.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم العملية'**
+  String get transactionName;
+
+  /// No description provided for @transactionAmount.
+  ///
+  /// In ar, this message translates to:
+  /// **'المبلغ'**
+  String get transactionAmount;
+
+  /// No description provided for @transactionDate.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاريخ العملية'**
+  String get transactionDate;
+
+  /// No description provided for @transactionNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملاحظة اختيارية'**
+  String get transactionNote;
+
+  /// No description provided for @supportingDocumentName.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم الوثيقة المثبتة (اختياري)'**
+  String get supportingDocumentName;
+
+  /// No description provided for @expenseCategory.
+  ///
+  /// In ar, this message translates to:
+  /// **'نوع المصروف'**
+  String get expenseCategory;
+
+  /// No description provided for @saveTransaction.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظ العملية'**
+  String get saveTransaction;
+
+  /// No description provided for @financeTransactionSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تسجيل العملية المالية.'**
+  String get financeTransactionSaved;
+
+  /// No description provided for @financeTransactionUpdated.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تحديث العملية المالية.'**
+  String get financeTransactionUpdated;
+
+  /// No description provided for @financeTransactionDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حذف العملية المالية.'**
+  String get financeTransactionDeleted;
+
+  /// No description provided for @financeInvalidData.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل اسماً ومبلغاً صحيحاً واختر نوع المصروف عند الحاجة.'**
+  String get financeInvalidData;
+
+  /// No description provided for @financeLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تحميل بيانات مالية الإقامة. حاول مجدداً.'**
+  String get financeLoadError;
+
+  /// No description provided for @noFinancialTransactions.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد عمليات مالية مسجلة.'**
+  String get noFinancialTransactions;
+
+  /// No description provided for @noExpensesRecorded.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد مصاريف مسجلة خلال هذه السنة.'**
+  String get noExpensesRecorded;
+
+  /// No description provided for @manualTransaction.
+  ///
+  /// In ar, this message translates to:
+  /// **'عملية يدوية'**
+  String get manualTransaction;
+
+  /// No description provided for @duesIncome.
+  ///
+  /// In ar, this message translates to:
+  /// **'مدخول اشتراك'**
+  String get duesIncome;
+
+  /// No description provided for @duesIncomeForApartment.
+  ///
+  /// In ar, this message translates to:
+  /// **'اشتراك الشقة {apartment} عن {period}'**
+  String duesIncomeForApartment(String apartment, String period);
+
+  /// No description provided for @duesIncomeForApartmentRange.
+  ///
+  /// In ar, this message translates to:
+  /// **'اشتراك الشقة {apartment} عن {start} إلى {end}'**
+  String duesIncomeForApartmentRange(
+    String apartment,
+    String start,
+    String end,
+  );
+
+  /// No description provided for @editFinancialTransaction.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل العملية المالية'**
+  String get editFinancialTransaction;
+
+  /// No description provided for @deleteFinancialTransaction.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف العملية المالية'**
+  String get deleteFinancialTransaction;
+
+  /// No description provided for @confirmDeleteFinancialTransaction.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد حذف عملية «{name}»؟ لا يمكن التراجع عن ذلك.'**
+  String confirmDeleteFinancialTransaction(String name);
+
+  /// No description provided for @financeTrackingNotice.
+  ///
+  /// In ar, this message translates to:
+  /// **'دارجار يتتبع الأموال فقط ولا يستلمها أو يعالج أي دفعات.'**
+  String get financeTrackingNotice;
+
+  /// No description provided for @financeAutomaticDuesNotice.
+  ///
+  /// In ar, this message translates to:
+  /// **'تُضاف أداءات الاشتراكات تلقائياً من إدارة الاشتراكات ولا يمكن تعديلها هنا.'**
+  String get financeAutomaticDuesNotice;
+
   /// No description provided for @duesStatus.
   ///
   /// In ar, this message translates to:
@@ -1256,6 +1446,24 @@ abstract class AppLocalizations {
   /// **'المبلغ المتبقي'**
   String get duesRemaining;
 
+  /// No description provided for @duesDebitBalance.
+  ///
+  /// In ar, this message translates to:
+  /// **'الرصيد المدين'**
+  String get duesDebitBalance;
+
+  /// No description provided for @duesCreditBalance.
+  ///
+  /// In ar, this message translates to:
+  /// **'الرصيد الدائن'**
+  String get duesCreditBalance;
+
+  /// No description provided for @duesPrepaidMonths.
+  ///
+  /// In ar, this message translates to:
+  /// **'أشهر مؤداة مسبقاً'**
+  String get duesPrepaidMonths;
+
   /// No description provided for @duesAmountDue.
   ///
   /// In ar, this message translates to:
@@ -1273,6 +1481,12 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'سجل الأداءات'**
   String get duesPaymentHistory;
+
+  /// No description provided for @showMore.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض المزيد'**
+  String get showMore;
 
   /// No description provided for @duesNoPayments.
   ///
