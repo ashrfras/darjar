@@ -4,6 +4,7 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 extension CommunityPostKindUi on CommunityPostKind {
   String label(BuildContext context) {
@@ -50,6 +51,7 @@ class CommunityPostCard extends StatelessWidget {
     required this.onLike,
     required this.onSave,
     required this.onVote,
+    this.onArchive,
     this.expanded = false,
     super.key,
   });
@@ -59,6 +61,7 @@ class CommunityPostCard extends StatelessWidget {
   final VoidCallback onLike;
   final VoidCallback onSave;
   final ValueChanged<String> onVote;
+  final VoidCallback? onArchive;
   final bool expanded;
 
   @override
@@ -79,7 +82,7 @@ class CommunityPostCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _PostHeader(post: post),
+                _PostHeader(post: post, onArchive: onArchive),
                 const SizedBox(height: AppSpacing.medium),
                 _KindLabel(post: post),
                 const SizedBox(height: AppSpacing.small),
@@ -90,16 +93,18 @@ class CommunityPostCard extends StatelessWidget {
                     height: 1.35,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  post.body,
-                  maxLines: expanded ? null : 3,
-                  overflow: expanded ? null : TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.inkMuted,
-                    height: 1.65,
+                if (post.body.trim().isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    post.body,
+                    maxLines: expanded ? null : 3,
+                    overflow: expanded ? null : TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.inkMuted,
+                      height: 1.65,
+                    ),
                   ),
-                ),
+                ],
                 if (post.imagePaths.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.medium),
                   _PostImages(
@@ -134,9 +139,10 @@ class CommunityPostCard extends StatelessWidget {
 }
 
 class _PostHeader extends StatelessWidget {
-  const _PostHeader({required this.post});
+  const _PostHeader({required this.post, required this.onArchive});
 
   final CommunityPost post;
+  final VoidCallback? onArchive;
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +167,7 @@ class _PostHeader extends StatelessWidget {
                 children: [
                   Flexible(
                     child: Text(
-                      post.author,
+                      abbreviatedCommunityName(post.author),
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(
                         context,
@@ -180,9 +186,9 @@ class _PostHeader extends StatelessWidget {
               ),
               Text(
                 [
-                  post.authorUnit,
+                  communityMemberRoleLabel(context, post.authorRole),
                   post.timeLabel,
-                ].whereType<String>().join(' · '),
+                ].join(' · '),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(
@@ -192,14 +198,85 @@ class _PostHeader extends StatelessWidget {
             ],
           ),
         ),
-        IconButton(
-          tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
-          onPressed: () {},
-          icon: const Icon(Icons.more_horiz_rounded),
-        ),
+        if (post.isCurrentUser && onArchive != null)
+          PopupMenuButton<String>(
+            key: ValueKey('post-menu-${post.id}'),
+            tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
+            onSelected: (value) {
+              if (value == 'archive') _confirmArchive(context);
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'archive',
+                child: Row(
+                  children: [
+                    const Icon(Icons.delete_outline_rounded),
+                    const SizedBox(width: AppSpacing.small),
+                    Text(
+                      Localizations.localeOf(context).languageCode == 'ar'
+                          ? 'حذف المنشور'
+                          : 'Delete post',
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            icon: const Icon(Icons.more_horiz_rounded),
+          ),
       ],
     );
   }
+
+  Future<void> _confirmArchive(BuildContext context) async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(ar ? 'حذف المنشور؟' : 'Delete post?'),
+        content: Text(
+          ar
+              ? 'هل تريد حذف هذا المنشور؟ لن يعود ظاهراً لسكان الإقامة.'
+              : 'Delete this post? It will no longer be visible to residents.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(ar ? 'إلغاء' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(ar ? 'حذف' : 'Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) onArchive?.call();
+  }
+}
+
+String abbreviatedCommunityName(String fullName) {
+  final parts = fullName
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
+  if (parts.length < 2) return parts.firstOrNull ?? fullName;
+  final surnameRunes = parts.last.runes.toList(growable: false);
+  final startsWithArticle =
+      parts.last.startsWith('ال') && surnameRunes.length > 2;
+  final initialIndex = startsWithArticle ? 2 : 0;
+  return '${parts.first} ${String.fromCharCode(surnameRunes[initialIndex])}.';
+}
+
+String communityMemberRoleLabel(BuildContext context, String role) {
+  final ar = Localizations.localeOf(context).languageCode == 'ar';
+  return switch (role) {
+    'president' || 'owner' => ar ? 'رئيس' : 'President',
+    'deputy' || 'manager' => ar ? 'نائب الرئيس' : 'Deputy',
+    'treasurer' => ar ? 'أمين المال' : 'Treasurer',
+    'moderator' => ar ? 'مشرف' : 'Moderator',
+    _ => ar ? 'ساكن' : 'Resident',
+  };
 }
 
 class _KindLabel extends StatelessWidget {
@@ -289,50 +366,81 @@ class _PostImages extends StatelessWidget {
   }
 }
 
-class _ImageTile extends StatelessWidget {
+class _ImageTile extends ConsumerWidget {
   const _ImageTile({required this.path});
 
   final String path;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final image = path.startsWith('assets/')
+        ? Image.asset(path, fit: BoxFit.cover)
+        : ref
+              .watch(communityPostImageProvider(path))
+              .when(
+                data: (bytes) => Image.memory(bytes, fit: BoxFit.cover),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) =>
+                    const Center(child: Icon(Icons.broken_image_outlined)),
+              );
     return Material(
       color: AppColors.canvas,
-      child: Ink.image(
-        image: AssetImage(path),
-        fit: BoxFit.cover,
-        child: InkWell(
-          onTap: () => showDialog<void>(
-            context: context,
-            builder: (context) => Dialog.fullscreen(
-              backgroundColor: Colors.black,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: InteractiveViewer(
-                      child: Center(
-                        child: Image.asset(path, fit: BoxFit.contain),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          image,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => showDialog<void>(
+                context: context,
+                builder: (context) => Dialog.fullscreen(
+                  backgroundColor: Colors.black,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: InteractiveViewer(
+                          child: Center(
+                            child: path.startsWith('assets/')
+                                ? Image.asset(path, fit: BoxFit.contain)
+                                : ref
+                                      .read(communityPostImageProvider(path))
+                                      .when(
+                                        data: (bytes) => Image.memory(
+                                          bytes,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        loading: () =>
+                                            const CircularProgressIndicator(),
+                                        error: (error, stackTrace) =>
+                                            const Icon(
+                                              Icons.broken_image_outlined,
+                                              color: Colors.white,
+                                            ),
+                                      ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  PositionedDirectional(
-                    top: AppSpacing.large,
-                    end: AppSpacing.large,
-                    child: SafeArea(
-                      child: IconButton.filledTonal(
-                        tooltip: MaterialLocalizations.of(
-                          context,
-                        ).closeButtonTooltip,
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close_rounded),
+                      PositionedDirectional(
+                        top: AppSpacing.large,
+                        end: AppSpacing.large,
+                        child: SafeArea(
+                          child: IconButton.filledTonal(
+                            tooltip: MaterialLocalizations.of(
+                              context,
+                            ).closeButtonTooltip,
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -528,7 +636,7 @@ class _PostActions extends StatelessWidget {
         ),
         _ActionButton(
           icon: Icons.chat_bubble_outline_rounded,
-          label: '${post.comments.length}',
+          label: '${post.commentCount}',
           onTap: onComment,
         ),
         const Spacer(),

@@ -257,12 +257,27 @@ class DirectoryProfilePage extends ConsumerWidget {
               label: localizations.publishRecommendation,
               icon: Icons.thumb_up_alt_outlined,
               expanded: true,
-              onPressed: () {
+              onPressed: () async {
                 final trimmedComment = comment.trim();
                 if (trimmedComment.isEmpty) return;
-                ref
-                    .read(directoryEntriesProvider.notifier)
-                    .recommend(id: entry.id, comment: trimmedComment);
+                try {
+                  await ref
+                      .read(directoryEntriesProvider.notifier)
+                      .recommend(id: entry.id, comment: trimmedComment);
+                } on DirectoryRecommendationFailure {
+                  if (!sheetContext.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        Localizations.localeOf(context).languageCode == 'ar'
+                            ? 'تعذّر نشر التوصية.'
+                            : 'Could not publish the recommendation.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                if (!sheetContext.mounted) return;
                 Navigator.of(sheetContext).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

@@ -31,10 +31,14 @@ class _CommunityPostDetailPageState
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(communityPostsProvider);
-    final post = ref.read(communityPostsProvider.notifier).post(widget.postId);
+    final postState = ref.watch(communityPostProvider(widget.postId));
+    final post = postState.value;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final compact = MediaQuery.sizeOf(context).width < 600;
+
+    if (post == null && postState.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     if (post == null) {
       return ListView(
@@ -83,21 +87,28 @@ class _CommunityPostDetailPageState
                     post: post,
                     expanded: true,
                     onOpen: () {},
-                    onLike: () => ref
-                        .read(communityPostsProvider.notifier)
-                        .toggleLike(post.id),
-                    onSave: () => ref
-                        .read(communityPostsProvider.notifier)
-                        .toggleSaved(post.id),
-                    onVote: (optionId) => ref
-                        .read(communityPostsProvider.notifier)
-                        .vote(post.id, optionId),
+                    onLike: () => _runAction(
+                      () => ref
+                          .read(communityActionsProvider)
+                          .toggleLike(post.id),
+                    ),
+                    onSave: () => _runAction(
+                      () => ref
+                          .read(communityActionsProvider)
+                          .toggleSaved(post.id),
+                    ),
+                    onVote: (optionId) => _runAction(
+                      () => ref
+                          .read(communityActionsProvider)
+                          .vote(post.id, optionId),
+                    ),
+                    onArchive: () => _archivePost(post.id),
                   ),
                   const SizedBox(height: AppSpacing.large),
                   Text(
                     ar
-                        ? 'التعليقات (${post.comments.length})'
-                        : 'Comments (${post.comments.length})',
+                        ? 'التعليقات (${post.commentCount})'
+                        : 'Comments (${post.commentCount})',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: AppSpacing.medium),
@@ -122,12 +133,60 @@ class _CommunityPostDetailPageState
     );
   }
 
-  void _submitComment(String postId) {
+  Future<void> _submitComment(String postId) async {
     final value = _commentController.text.trim();
     if (value.isEmpty) return;
-    ref.read(communityPostsProvider.notifier).addComment(postId, value);
-    _commentController.clear();
-    FocusScope.of(context).unfocus();
+    try {
+      await ref.read(communityActionsProvider).addComment(postId, value);
+      if (!mounted) return;
+      _commentController.clear();
+      FocusScope.of(context).unfocus();
+    } on CommunityFailure {
+      if (!mounted) return;
+      final ar = Localizations.localeOf(context).languageCode == 'ar';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ar ? 'تعذّر نشر التعليق.' : 'Could not publish the comment.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _runAction(Future<void> Function() action) async {
+    try {
+      await action();
+    } on CommunityFailure {
+      if (!mounted) return;
+      final ar = Localizations.localeOf(context).languageCode == 'ar';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ar ? 'تعذّر تنفيذ الإجراء.' : 'Could not complete the action.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _archivePost(String postId) async {
+    try {
+      await ref.read(communityActionsProvider).archivePost(postId);
+      if (mounted) {
+        Navigator.of(context).canPop() ? Navigator.of(context).pop() : null;
+      }
+    } on CommunityFailure {
+      if (!mounted) return;
+      final ar = Localizations.localeOf(context).languageCode == 'ar';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ar ? 'تعذّر حذف المنشور.' : 'Could not delete the post.',
+          ),
+        ),
+      );
+    }
   }
 }
 
@@ -219,7 +278,7 @@ class _CommentTile extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        comment.author,
+                        abbreviatedCommunityName(comment.author),
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                     ),

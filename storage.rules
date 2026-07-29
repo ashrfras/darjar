@@ -42,6 +42,16 @@ service firebase.storage {
         ];
     }
 
+    function isAcceptedCommunityImage() {
+      return request.resource.size > 0
+        && request.resource.size <= 1024 * 1024
+        && request.resource.contentType in [
+          'image/jpeg',
+          'image/png',
+          'image/webp'
+        ];
+    }
+
     match /residences/{residenceId}/documents/{documentId}/content {
       allow read: if isResidenceMember(residenceId);
       allow create: if canManageResidence(residenceId)
@@ -51,6 +61,19 @@ service firebase.storage {
         && request.resource.metadata.uploadedBy == request.auth.uid;
       allow update: if false;
       allow delete: if canManageResidence(residenceId);
+    }
+
+    match /residences/{residenceId}/community/{postId}/{imageId} {
+      allow read: if isResidenceMember(residenceId);
+      allow create: if isResidenceMember(residenceId)
+        && isAcceptedCommunityImage()
+        && imageId.matches('^image-[0-3]$')
+        && request.resource.metadata.residenceId == residenceId
+        && request.resource.metadata.postId == postId
+        && request.resource.metadata.uploadedBy == request.auth.uid;
+      allow update: if false;
+      allow delete: if canManageResidence(residenceId)
+        || request.auth.uid == resource.metadata.uploadedBy;
     }
 
     match /{allPaths=**} {

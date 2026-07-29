@@ -13,6 +13,7 @@ import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
+import 'package:darjar/features/community/presentation/community_post_card.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/documents/presentation/residence_documents_management_page.dart';
@@ -31,6 +32,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:image/image.dart' as test_image;
 
 void main() {
   group('design foundation', () {
@@ -141,11 +143,11 @@ void main() {
       expect(moroccanCities.any((city) => city.nameAr == 'الحسيمة'), isTrue);
     });
 
-    test('create community posts and recommendations', () {
+    test('create community posts and recommendations', () async {
       final community = MockCommunityRepository();
       final directory = MockDirectoryRepository();
 
-      community.createPost(title: 'عنوان', body: 'تفاصيل');
+      await community.createPost(title: 'عنوان', body: 'تفاصيل');
       directory.recommend(id: 'mohamed-electrician', comment: 'خدمة ممتازة');
 
       expect(community.getPosts().first.title, 'عنوان');
@@ -155,34 +157,63 @@ void main() {
       );
     });
 
-    test('community mock supports every post type and local interactions', () {
-      final community = MockCommunityRepository();
+    test(
+      'community mock supports every post type and local interactions',
+      () async {
+        final community = MockCommunityRepository();
 
+        expect(
+          community.getPosts().map((post) => post.kind).toSet(),
+          containsAll(CommunityPostKind.values),
+        );
+
+        final post = community.getPost('poll-garden')!;
+        final votesBefore = post.pollOptions.first.votes;
+        await community.vote(
+          postId: post.id,
+          optionId: post.pollOptions.first.id,
+        );
+        await community.toggleLike(postId: post.id);
+        await community.toggleSaved(postId: post.id);
+        await community.addComment(postId: post.id, body: 'سأشارك بالتأكيد');
+
+        final updated = community.getPost(post.id)!;
+        expect(updated.selectedPollOptionId, post.pollOptions.first.id);
+        expect(updated.pollOptions.first.votes, votesBefore + 1);
+        expect(updated.isLiked, isTrue);
+        expect(updated.isSaved, isTrue);
+        expect(updated.comments.last.body, 'سأشارك بالتأكيد');
+
+        final createdId = await community.createPost(
+          title: 'صور الإقامة',
+          body: 'أربع صور كحد أقصى',
+          imagePaths: const ['1', '2', '3', '4', '5'],
+        );
+        final created = community.getPost(createdId)!;
+        expect(created.imagePaths, hasLength(4));
+      },
+    );
+
+    test('community names abbreviate the family name in Arabic', () {
+      expect(abbreviatedCommunityName('محمد العيساوي'), 'محمد ع.');
+      expect(abbreviatedCommunityName('أشرف راس'), 'أشرف ر.');
+      expect(abbreviatedCommunityName('أحمد'), 'أحمد');
+    });
+
+    test('community images are resized and converted for efficient upload', () {
+      final source = test_image.Image(width: 2400, height: 1800);
+      test_image.fill(source, color: test_image.ColorRgb8(34, 139, 94));
+      final compressed = compressCommunityImageBytes(
+        test_image.encodePng(source),
+      );
+      final decoded = test_image.decodeJpg(compressed)!;
+
+      expect(decoded.width, lessThanOrEqualTo(communityImageMaxDimension));
+      expect(decoded.height, lessThanOrEqualTo(communityImageMaxDimension));
       expect(
-        community.getPosts().map((post) => post.kind).toSet(),
-        containsAll(CommunityPostKind.values),
+        compressed.lengthInBytes,
+        lessThan(communityImageMaxStoredSizeBytes),
       );
-
-      final post = community.getPost('poll-garden')!;
-      final votesBefore = post.pollOptions.first.votes;
-      community.vote(post.id, post.pollOptions.first.id);
-      community.toggleLike(post.id);
-      community.toggleSaved(post.id);
-      community.addComment(post.id, 'سأشارك بالتأكيد');
-
-      final updated = community.getPost(post.id)!;
-      expect(updated.selectedPollOptionId, post.pollOptions.first.id);
-      expect(updated.pollOptions.first.votes, votesBefore + 1);
-      expect(updated.isLiked, isTrue);
-      expect(updated.isSaved, isTrue);
-      expect(updated.comments.last.body, 'سأشارك بالتأكيد');
-
-      final created = community.createPost(
-        title: 'صور الإقامة',
-        body: 'أربع صور كحد أقصى',
-        imagePaths: const ['1', '2', '3', '4', '5'],
-      );
-      expect(created.imagePaths, hasLength(4));
     });
 
     test('residence dashboard mock covers every dashboard section', () {
@@ -938,7 +969,13 @@ void main() {
   });
 
   testWidgets('resident can create a community post', (tester) async {
-    await _pumpApp(tester, size: const Size(390, 844));
+    final communityRepository = MockCommunityRepository()
+      ..createBarrier = Completer<void>();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      communityRepository: communityRepository,
+    );
     await _enterResidence(tester);
 
     await tester.tap(find.byKey(const Key('create-post-fab')));
@@ -948,25 +985,21 @@ void main() {
     expect(find.byKey(const Key('compact-brand')), findsOneWidget);
     expect(find.byKey(const Key('subpage-back-button')), findsOneWidget);
     expect(find.byKey(const Key('subpage-title')), findsOneWidget);
+    expect(find.byKey(const Key('title-only-subpage-header')), findsOneWidget);
+    expect(
+      find.text('سيظهر هذا المنشور لسكان إقامة الاختبار فقط.'),
+      findsOneWidget,
+    );
 
     final fields = find.byType(TextField);
     expect(fields, findsNWidgets(2));
     await tester.enterText(fields.at(0), 'لقاء الجيران');
-    await tester.enterText(fields.at(1), 'نلتقي مساء السبت في الحديقة.');
-    await tester.ensureVisible(find.byKey(const Key('add-post-images-button')));
-    await tester.tap(find.byKey(const Key('add-post-images-button')));
-    await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(
-        const ValueKey(
-          'mock-gallery-assets/images/community/elevator-maintenance.jpg',
-        ),
-      ),
-    );
-    await tester.tap(find.byKey(const Key('confirm-post-images-button')));
-    await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const Key('publish-post-button')));
     await tester.tap(find.byKey(const Key('publish-post-button')));
+    await tester.pump();
+    expect(find.text('جارٍ نشر المنشور ورفع الصور…'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    communityRepository.createBarrier!.complete();
     await tester.pumpAndSettle();
 
     expect(find.text('لقاء الجيران'), findsOneWidget);
@@ -1044,6 +1077,37 @@ void main() {
     await tester.tap(find.byKey(const Key('submit-comment-button')));
     await tester.pumpAndSettle();
     expect(find.text('شكراً على التوضيح'), findsOneWidget);
+  });
+
+  testWidgets('author can archive their community post', (tester) async {
+    await _pumpApp(tester, size: const Size(1280, 900));
+    await _enterResidence(tester);
+
+    await tester.tap(find.byKey(const Key('community-filter-mine')));
+    await tester.pumpAndSettle();
+    expect(find.text('ساكن · منذ ساعة'), findsOneWidget);
+
+    final menu = find.byKey(const ValueKey('post-menu-question-plumber'));
+    await tester.ensureVisible(menu);
+    await tester.pumpAndSettle();
+    await tester.tap(menu);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('حذف المنشور'));
+    await tester.pumpAndSettle();
+    final dialog = find.byType(AlertDialog);
+    expect(dialog, findsOneWidget);
+    await tester.tap(
+      find.descendant(
+        of: dialog,
+        matching: find.widgetWithText(FilledButton, 'حذف'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('community-post-question-plumber')),
+      findsNothing,
+    );
   });
 
   testWidgets('resident can browse a craftsman profile and recommend it', (
@@ -2611,6 +2675,8 @@ Future<void> _pumpApp(
   ResidenceSettingsRepository? residenceSettingsRepository,
   ResidenceDocumentsRepository? residenceDocumentsRepository,
   ResidenceDocumentPicker? residenceDocumentPicker,
+  CommunityRepository? communityRepository,
+  DirectoryRecommendationsRepository? directoryRecommendationsRepository,
   ProfileRepository? profileRepository,
   ResidenceContext? residenceContext,
   Object? residenceContextError,
@@ -2639,11 +2705,23 @@ Future<void> _pumpApp(
       residenceSettingsRepository ?? _FakeResidenceSettingsRepository();
   final documentsRepository =
       residenceDocumentsRepository ?? _FakeResidenceDocumentsRepository();
+  final currentCommunityRepository =
+      communityRepository ?? MockCommunityRepository();
+  final currentDirectoryRecommendationsRepository =
+      directoryRecommendationsRepository ??
+      MockDirectoryRecommendationsRepository();
   final currentProfileRepository =
       profileRepository ?? _FakeProfileRepository();
   final contextData = residenceContext ?? _defaultResidenceContext;
   if (repository is _FakeAuthRepository) {
     addTearDown(repository.dispose);
+  }
+  if (currentCommunityRepository is MockCommunityRepository) {
+    addTearDown(currentCommunityRepository.dispose);
+  }
+  if (currentDirectoryRecommendationsRepository
+      is MockDirectoryRecommendationsRepository) {
+    addTearDown(currentDirectoryRecommendationsRepository.dispose);
   }
 
   await tester.pumpWidget(
@@ -2667,6 +2745,12 @@ Future<void> _pumpApp(
         ),
         residenceDocumentsRepositoryProvider.overrideWithValue(
           documentsRepository,
+        ),
+        communityRepositoryProvider.overrideWithValue(
+          currentCommunityRepository,
+        ),
+        directoryRecommendationsRepositoryProvider.overrideWithValue(
+          currentDirectoryRecommendationsRepository,
         ),
         if (residenceDocumentPicker != null)
           residenceDocumentPickerProvider.overrideWithValue(

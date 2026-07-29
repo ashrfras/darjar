@@ -24,14 +24,14 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
 
   @override
   Widget build(BuildContext context) {
-    final posts = ref.watch(communityPostsProvider);
+    final postsState = ref.watch(communityPostsProvider);
+    final posts = postsState.value ?? const <CommunityPost>[];
     final compact = MediaQuery.sizeOf(context).width < 600;
     final wide = MediaQuery.sizeOf(context).width >= 1180;
     final filtered = posts.where((post) {
       return switch (_filter) {
         CommunityFeedFilter.all => true,
-        CommunityFeedFilter.official =>
-          post.kind == CommunityPostKind.announcement,
+        CommunityFeedFilter.official => post.isOfficial,
         CommunityFeedFilter.mine => post.isCurrentUser,
         CommunityFeedFilter.saved => post.isSaved,
       };
@@ -80,7 +80,19 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                               onTap: () => context.go(AppRoutes.createPost),
                             ),
                             const SizedBox(height: AppSpacing.large),
-                            if (filtered.isEmpty)
+                            if (postsState.isLoading && posts.isEmpty)
+                              const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(AppSpacing.xLarge),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              )
+                            else if (postsState.hasError && posts.isEmpty)
+                              _CommunityLoadError(
+                                onRetry: () =>
+                                    ref.invalidate(communityPostsProvider),
+                              )
+                            else if (filtered.isEmpty)
                               _EmptyFilter(
                                 onReset: () => setState(
                                   () => _filter = CommunityFeedFilter.all,
@@ -93,15 +105,26 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                   onOpen: () => context.go(
                                     AppRoutes.communityPost(post.id),
                                   ),
-                                  onLike: () => ref
-                                      .read(communityPostsProvider.notifier)
-                                      .toggleLike(post.id),
-                                  onSave: () => ref
-                                      .read(communityPostsProvider.notifier)
-                                      .toggleSaved(post.id),
-                                  onVote: (optionId) => ref
-                                      .read(communityPostsProvider.notifier)
-                                      .vote(post.id, optionId),
+                                  onLike: () => _runAction(
+                                    () => ref
+                                        .read(communityActionsProvider)
+                                        .toggleLike(post.id),
+                                  ),
+                                  onSave: () => _runAction(
+                                    () => ref
+                                        .read(communityActionsProvider)
+                                        .toggleSaved(post.id),
+                                  ),
+                                  onVote: (optionId) => _runAction(
+                                    () => ref
+                                        .read(communityActionsProvider)
+                                        .vote(post.id, optionId),
+                                  ),
+                                  onArchive: () => _runAction(
+                                    () => ref
+                                        .read(communityActionsProvider)
+                                        .archivePost(post.id),
+                                  ),
                                 ),
                                 const SizedBox(height: AppSpacing.medium),
                               ],
@@ -117,6 +140,46 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _runAction(Future<void> Function() action) async {
+    try {
+      await action();
+    } on CommunityFailure {
+      if (!mounted) return;
+      final ar = Localizations.localeOf(context).languageCode == 'ar';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ar ? 'تعذّر تنفيذ الإجراء.' : 'Could not complete the action.',
+          ),
+        ),
+      );
+    }
+  }
+}
+
+class _CommunityLoadError extends StatelessWidget {
+  const _CommunityLoadError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return DarJarCard(
+      child: Column(
+        children: [
+          const Icon(Icons.cloud_off_outlined, color: AppColors.danger),
+          const SizedBox(height: AppSpacing.small),
+          Text(ar ? 'تعذّر تحميل المجتمع.' : 'Could not load the community.'),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(ar ? 'إعادة المحاولة' : 'Retry'),
           ),
         ],
       ),
@@ -196,7 +259,7 @@ extension on CommunityFeedFilter {
     return switch (this) {
       CommunityFeedFilter.all => ar ? 'الكل' : 'All',
       CommunityFeedFilter.official =>
-        ar ? 'المنشورات الرسمية' : 'Official posts',
+        ar ? 'منشورات الإدارة' : 'Management posts',
       CommunityFeedFilter.mine => ar ? 'منشوراتي الشخصية' : 'My posts',
       CommunityFeedFilter.saved => ar ? 'المنشورات المحفوظة' : 'Saved posts',
     };

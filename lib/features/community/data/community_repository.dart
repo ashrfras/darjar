@@ -1,4 +1,86 @@
+import 'dart:async';
+import 'dart:typed_data';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/features/account/data/account_onboarding_repository.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/documents/data/residence_documents_repository.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image/image.dart' as image;
+
+const communityImageMaxSourceSizeBytes = 8 * 1024 * 1024;
+const communityImageMaxStoredSizeBytes = 1024 * 1024;
+const communityImageMaxDimension = 1600;
+const communityImageTargetSizeBytes = 750 * 1024;
+
+Uint8List compressCommunityImageBytes(Uint8List sourceBytes) {
+  final decoded = image.decodeImage(sourceBytes);
+  if (decoded == null) {
+    throw const CommunityFailure('invalid-image-data');
+  }
+  var processed = image.bakeOrientation(decoded);
+  if (processed.width > communityImageMaxDimension ||
+      processed.height > communityImageMaxDimension) {
+    processed = processed.width >= processed.height
+        ? image.copyResize(
+            processed,
+            width: communityImageMaxDimension,
+            interpolation: image.Interpolation.average,
+          )
+        : image.copyResize(
+            processed,
+            height: communityImageMaxDimension,
+            interpolation: image.Interpolation.average,
+          );
+  }
+  processed = _flattenCommunityImage(processed);
+  var encoded = image.encodeJpg(processed, quality: 72);
+  if (encoded.lengthInBytes > communityImageTargetSizeBytes) {
+    processed = processed.width >= processed.height
+        ? image.copyResize(
+            processed,
+            width: processed.width > 1280 ? 1280 : processed.width,
+            interpolation: image.Interpolation.average,
+          )
+        : image.copyResize(
+            processed,
+            height: processed.height > 1280 ? 1280 : processed.height,
+            interpolation: image.Interpolation.average,
+          );
+    encoded = image.encodeJpg(processed, quality: 62);
+  }
+  if (encoded.lengthInBytes > communityImageTargetSizeBytes) {
+    encoded = image.encodeJpg(processed, quality: 50);
+  }
+  if (encoded.lengthInBytes > communityImageTargetSizeBytes) {
+    processed = processed.width >= processed.height
+        ? image.copyResize(
+            processed,
+            width: processed.width > 960 ? 960 : processed.width,
+            interpolation: image.Interpolation.average,
+          )
+        : image.copyResize(
+            processed,
+            height: processed.height > 960 ? 960 : processed.height,
+            interpolation: image.Interpolation.average,
+          );
+    encoded = image.encodeJpg(processed, quality: 45);
+  }
+  return encoded;
+}
+
+image.Image _flattenCommunityImage(image.Image source) {
+  if (!source.hasAlpha) return source;
+  final background = image.Image(
+    width: source.width,
+    height: source.height,
+    numChannels: 3,
+    backgroundColor: image.ColorRgb8(255, 255, 255),
+  );
+  return image.compositeImage(background, source);
+}
 
 enum CommunityPostKind {
   announcement,
@@ -53,6 +135,7 @@ class CommunityPost {
     required this.likes,
     required this.comments,
     this.authorUnit,
+    this.authorRole = 'resident',
     this.isOfficial = false,
     this.isCurrentUser = false,
     this.isLiked = false,
@@ -62,11 +145,13 @@ class CommunityPost {
     this.selectedPollOptionId,
     this.eventDate,
     this.eventLocation,
+    this.commentCountOverride,
   });
 
   final String id;
   final String author;
   final String? authorUnit;
+  final String authorRole;
   final String timeLabel;
   final String title;
   final String body;
@@ -82,6 +167,9 @@ class CommunityPost {
   final String? selectedPollOptionId;
   final String? eventDate;
   final String? eventLocation;
+  final int? commentCountOverride;
+
+  int get commentCount => commentCountOverride ?? comments.length;
 
   CommunityPost copyWith({
     int? likes,
@@ -95,6 +183,7 @@ class CommunityPost {
       id: id,
       author: author,
       authorUnit: authorUnit,
+      authorRole: authorRole,
       timeLabel: timeLabel,
       title: title,
       body: body,
@@ -110,40 +199,99 @@ class CommunityPost {
       selectedPollOptionId: selectedPollOptionId ?? this.selectedPollOptionId,
       eventDate: eventDate,
       eventLocation: eventLocation,
+      commentCountOverride: commentCountOverride,
     );
   }
 }
 
+class CommunityPostImageUpload {
+  const CommunityPostImageUpload({
+    required this.fileName,
+    required this.contentType,
+    required this.bytes,
+  });
+
+  final String fileName;
+  final String contentType;
+  final Uint8List bytes;
+}
+
+class CommunityFailure implements Exception {
+  const CommunityFailure(this.code, [this.details]);
+
+  final String code;
+  final String? details;
+}
+
 abstract interface class CommunityRepository {
-  List<CommunityPost> getPosts();
+  Stream<List<CommunityPost>> watchPosts({
+    required String residenceId,
+    required String userId,
+  });
 
-  CommunityPost? getPost(String id);
+  Stream<CommunityPost?> watchPost({
+    required String residenceId,
+    required String userId,
+    required String postId,
+  });
 
-  CommunityPost createPost({
+  Future<String> createPost({
+    required String residenceId,
+    required String userId,
     required String title,
     required String body,
     CommunityPostKind kind,
     List<String> pollOptions,
-    List<String> imagePaths,
+    List<CommunityPostImageUpload> images,
     String? eventDate,
     String? eventLocation,
   });
 
-  void toggleLike(String postId);
+  Future<void> toggleLike({
+    required String residenceId,
+    required String userId,
+    required String postId,
+  });
 
-  void toggleSaved(String postId);
+  Future<void> toggleSaved({
+    required String residenceId,
+    required String userId,
+    required String postId,
+  });
 
-  void addComment(String postId, String body);
+  Future<void> addComment({
+    required String residenceId,
+    required String userId,
+    required String postId,
+    required String body,
+  });
 
-  void vote(String postId, String optionId);
+  Future<void> vote({
+    required String residenceId,
+    required String userId,
+    required String postId,
+    required String optionId,
+  });
+
+  Future<void> archivePost({
+    required String residenceId,
+    required String userId,
+    required String postId,
+  });
+
+  Future<Uint8List> downloadImage(String storagePath);
 }
 
 class MockCommunityRepository implements CommunityRepository {
+  final _changes = StreamController<List<CommunityPost>>.broadcast();
+  Completer<void>? createBarrier;
+
   final List<CommunityPost> _posts = [
     CommunityPost(
       id: 'announcement-elevator',
       author: 'السانديك',
       authorUnit: 'إدارة الإقامة',
+      authorRole: 'president',
       timeLabel: 'منذ 30 دقيقة',
       title: 'صيانة المصاعد يوم الخميس القادم',
       body:
@@ -237,6 +385,7 @@ class MockCommunityRepository implements CommunityRepository {
       id: 'alert-water',
       author: 'السانديك',
       authorUnit: 'إدارة الإقامة',
+      authorRole: 'president',
       timeLabel: 'منذ 4 ساعات',
       title: 'انقطاع الماء غداً صباحاً',
       body:
@@ -290,10 +439,8 @@ class MockCommunityRepository implements CommunityRepository {
     ),
   ];
 
-  @override
   List<CommunityPost> getPosts() => List.unmodifiable(_posts);
 
-  @override
   CommunityPost? getPost(String id) {
     for (final post in _posts) {
       if (post.id == id) return post;
@@ -302,15 +449,40 @@ class MockCommunityRepository implements CommunityRepository {
   }
 
   @override
-  CommunityPost createPost({
+  Stream<List<CommunityPost>> watchPosts({
+    required String residenceId,
+    required String userId,
+  }) async* {
+    yield getPosts();
+    yield* _changes.stream;
+  }
+
+  @override
+  Stream<CommunityPost?> watchPost({
+    required String residenceId,
+    required String userId,
+    required String postId,
+  }) async* {
+    yield getPost(postId);
+    await for (final posts in _changes.stream) {
+      yield posts.where((post) => post.id == postId).firstOrNull;
+    }
+  }
+
+  @override
+  Future<String> createPost({
+    String residenceId = 'mock-residence',
+    String userId = 'mock-user',
     required String title,
     required String body,
     CommunityPostKind kind = CommunityPostKind.general,
     List<String> pollOptions = const [],
+    List<CommunityPostImageUpload> images = const [],
     List<String> imagePaths = const [],
     String? eventDate,
     String? eventLocation,
-  }) {
+  }) async {
+    await createBarrier?.future;
     final post = CommunityPost(
       id: 'post-${DateTime.now().microsecondsSinceEpoch}',
       author: 'أحمد من العمارة',
@@ -331,11 +503,16 @@ class MockCommunityRepository implements CommunityRepository {
       eventLocation: eventLocation,
     );
     _posts.insert(0, post);
-    return post;
+    _notify();
+    return post.id;
   }
 
   @override
-  void toggleLike(String postId) {
+  Future<void> toggleLike({
+    String residenceId = 'mock-residence',
+    String userId = 'mock-user',
+    required String postId,
+  }) async {
     _update(postId, (post) {
       return post.copyWith(
         isLiked: !post.isLiked,
@@ -345,12 +522,21 @@ class MockCommunityRepository implements CommunityRepository {
   }
 
   @override
-  void toggleSaved(String postId) {
+  Future<void> toggleSaved({
+    String residenceId = 'mock-residence',
+    String userId = 'mock-user',
+    required String postId,
+  }) async {
     _update(postId, (post) => post.copyWith(isSaved: !post.isSaved));
   }
 
   @override
-  void addComment(String postId, String body) {
+  Future<void> addComment({
+    String residenceId = 'mock-residence',
+    String userId = 'mock-user',
+    required String postId,
+    required String body,
+  }) async {
     _update(
       postId,
       (post) => post.copyWith(
@@ -369,7 +555,12 @@ class MockCommunityRepository implements CommunityRepository {
   }
 
   @override
-  void vote(String postId, String optionId) {
+  Future<void> vote({
+    String residenceId = 'mock-residence',
+    String userId = 'mock-user',
+    required String postId,
+    required String optionId,
+  }) async {
     _update(postId, (post) {
       if (post.kind != CommunityPostKind.poll ||
           post.selectedPollOptionId != null) {
@@ -387,75 +578,613 @@ class MockCommunityRepository implements CommunityRepository {
     });
   }
 
+  @override
+  Future<void> archivePost({
+    String residenceId = 'mock-residence',
+    String userId = 'mock-user',
+    required String postId,
+  }) async {
+    _posts.removeWhere((post) => post.id == postId && post.isCurrentUser);
+    _notify();
+  }
+
   void _update(String id, CommunityPost Function(CommunityPost) update) {
     final index = _posts.indexWhere((post) => post.id == id);
-    if (index >= 0) _posts[index] = update(_posts[index]);
+    if (index >= 0) {
+      _posts[index] = update(_posts[index]);
+      _notify();
+    }
   }
-}
 
-final communityRepositoryProvider = Provider<CommunityRepository>(
-  (ref) => MockCommunityRepository(),
-);
-
-final communityPostsProvider =
-    NotifierProvider<CommunityPostsController, List<CommunityPost>>(
-      CommunityPostsController.new,
-    );
-
-class CommunityPostsController extends Notifier<List<CommunityPost>> {
-  CommunityRepository get _repository => ref.read(communityRepositoryProvider);
+  void _notify() => _changes.add(getPosts());
 
   @override
-  List<CommunityPost> build() => _repository.getPosts();
-
-  CommunityPost? post(String id) {
-    for (final post in state) {
-      if (post.id == id) return post;
-    }
-    return null;
+  Future<Uint8List> downloadImage(String storagePath) {
+    throw const CommunityFailure('mock-image-unavailable');
   }
 
-  String createPost({
+  void dispose() => _changes.close();
+}
+
+class FirebaseCommunityRepository implements CommunityRepository {
+  FirebaseCommunityRepository(this._firestore, this._storage);
+
+  static const maxImages = 4;
+  static const maxImageSizeBytes = communityImageMaxStoredSizeBytes;
+  static const acceptedImageTypes = {'image/jpeg'};
+
+  final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
+  final Map<String, String> _authorRoleCache = {};
+
+  @override
+  Stream<List<CommunityPost>> watchPosts({
+    required String residenceId,
+    required String userId,
+  }) {
+    return _posts(residenceId)
+        .orderBy('createdAt', descending: true)
+        .limit(100)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          return Future.wait([
+            for (final document in snapshot.docs)
+              if (document.data()['archivedAt'] == null)
+                _postFromDocument(document, userId, includeComments: false),
+          ]);
+        })
+        .handleError((Object error) => throw _failure(error));
+  }
+
+  @override
+  Stream<CommunityPost?> watchPost({
+    required String residenceId,
+    required String userId,
+    required String postId,
+  }) {
+    return _posts(residenceId)
+        .doc(postId)
+        .snapshots()
+        .asyncMap((document) async {
+          if (!document.exists || document.data()?['archivedAt'] != null) {
+            return null;
+          }
+          return _postFromDocument(document, userId, includeComments: true);
+        })
+        .handleError((Object error) => throw _failure(error));
+  }
+
+  @override
+  Future<String> createPost({
+    required String residenceId,
+    required String userId,
     required String title,
     required String body,
     CommunityPostKind kind = CommunityPostKind.general,
     List<String> pollOptions = const [],
-    List<String> imagePaths = const [],
+    List<CommunityPostImageUpload> images = const [],
     String? eventDate,
     String? eventLocation,
-  }) {
-    final post = _repository.createPost(
-      title: title,
-      body: body,
-      kind: kind,
-      pollOptions: pollOptions,
-      imagePaths: imagePaths,
-      eventDate: eventDate,
-      eventLocation: eventLocation,
+  }) async {
+    final normalizedTitle = title.trim();
+    final normalizedBody = body.trim();
+    final normalizedPollOptions = pollOptions
+        .map((option) => option.trim())
+        .where((option) => option.isNotEmpty)
+        .toList(growable: false);
+    if (normalizedTitle.isEmpty ||
+        normalizedTitle.length > 160 ||
+        normalizedBody.length > 5000) {
+      throw const CommunityFailure('invalid-post');
+    }
+    if (kind == CommunityPostKind.announcement) {
+      throw const CommunityFailure('official-post-not-available');
+    }
+    if (kind == CommunityPostKind.poll &&
+        (normalizedPollOptions.length < 2 ||
+            normalizedPollOptions.length > 5)) {
+      throw const CommunityFailure('invalid-poll');
+    }
+    if (kind == CommunityPostKind.event &&
+        ((eventDate?.trim().isEmpty ?? true) ||
+            (eventLocation?.trim().isEmpty ?? true))) {
+      throw const CommunityFailure('invalid-event');
+    }
+    if (images.length > maxImages ||
+        images.any(
+          (image) =>
+              !acceptedImageTypes.contains(image.contentType) ||
+              image.bytes.isEmpty ||
+              image.bytes.lengthInBytes > maxImageSizeBytes,
+        )) {
+      throw const CommunityFailure('invalid-images');
+    }
+
+    final post = _posts(residenceId).doc();
+    final uploadedPaths = <String>[];
+    try {
+      final member = await _member(residenceId, userId).get();
+      if (!member.exists || member.data()?['status'] != 'active') {
+        throw const CommunityFailure('not-a-member');
+      }
+      final memberData = member.data()!;
+      final authorName =
+          '${memberData['firstName'] ?? ''} ${memberData['lastName'] ?? ''}'
+              .trim();
+      final apartmentId = memberData['apartmentId'] as String? ?? '';
+      final authorRole = memberData['role'] as String? ?? 'resident';
+      final isOfficial = authorRole == 'president' || authorRole == 'owner';
+
+      for (var index = 0; index < images.length; index++) {
+        final image = images[index];
+        final storagePath =
+            'residences/$residenceId/community/${post.id}/image-$index';
+        await _storage
+            .ref(storagePath)
+            .putData(
+              image.bytes,
+              SettableMetadata(
+                contentType: image.contentType,
+                cacheControl: 'private,max-age=3600',
+                customMetadata: {
+                  'residenceId': residenceId,
+                  'postId': post.id,
+                  'uploadedBy': userId,
+                },
+              ),
+            );
+        uploadedPaths.add(storagePath);
+      }
+
+      await post.set({
+        'authorId': userId,
+        'authorName': authorName.isEmpty ? userId : authorName,
+        'authorUnit': apartmentId,
+        'authorRole': authorRole,
+        'title': normalizedTitle,
+        'body': normalizedBody,
+        'kind': kind.name,
+        'isOfficial': isOfficial,
+        'imagePaths': uploadedPaths,
+        'pollOptions': [
+          for (var index = 0; index < normalizedPollOptions.length; index++)
+            {
+              'id': 'option-$index',
+              'label': normalizedPollOptions[index],
+              'votes': 0,
+            },
+        ],
+        'likedBy': <String>[],
+        'savedBy': <String>[],
+        'commentCount': 0,
+        'eventDate': eventDate?.trim(),
+        'eventLocation': eventLocation?.trim(),
+        'archivedAt': null,
+        'archivedBy': null,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return post.id;
+    } catch (error) {
+      await Future.wait([
+        for (final path in uploadedPaths)
+          _storage.ref(path).delete().catchError((_) {}),
+      ]);
+      throw _failure(error);
+    }
+  }
+
+  @override
+  Future<void> toggleLike({
+    required String residenceId,
+    required String userId,
+    required String postId,
+  }) async {
+    await _toggleMembership(
+      reference: _posts(residenceId).doc(postId),
+      field: 'likedBy',
+      userId: userId,
     );
-    _refresh();
-    return post.id;
   }
 
-  void toggleLike(String postId) {
-    _repository.toggleLike(postId);
-    _refresh();
+  @override
+  Future<void> toggleSaved({
+    required String residenceId,
+    required String userId,
+    required String postId,
+  }) async {
+    await _toggleMembership(
+      reference: _posts(residenceId).doc(postId),
+      field: 'savedBy',
+      userId: userId,
+    );
   }
 
-  void toggleSaved(String postId) {
-    _repository.toggleSaved(postId);
-    _refresh();
+  Future<void> _toggleMembership({
+    required DocumentReference<Map<String, dynamic>> reference,
+    required String field,
+    required String userId,
+  }) async {
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(reference);
+        if (!snapshot.exists) throw const CommunityFailure('post-not-found');
+        final values = List<String>.from(
+          snapshot.data()?[field] as List? ?? const [],
+        );
+        transaction.update(reference, {
+          field: values.contains(userId)
+              ? FieldValue.arrayRemove([userId])
+              : FieldValue.arrayUnion([userId]),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      });
+    } catch (error) {
+      throw _failure(error);
+    }
   }
 
-  void addComment(String postId, String body) {
-    _repository.addComment(postId, body);
-    _refresh();
+  @override
+  Future<void> addComment({
+    required String residenceId,
+    required String userId,
+    required String postId,
+    required String body,
+  }) async {
+    final normalizedBody = body.trim();
+    if (normalizedBody.isEmpty || normalizedBody.length > 1000) {
+      throw const CommunityFailure('invalid-comment');
+    }
+    try {
+      final member = await _member(residenceId, userId).get();
+      if (!member.exists || member.data()?['status'] != 'active') {
+        throw const CommunityFailure('not-a-member');
+      }
+      final data = member.data()!;
+      final authorName = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'
+          .trim();
+      final post = _posts(residenceId).doc(postId);
+      final comment = post.collection('comments').doc();
+      final batch = _firestore.batch()
+        ..set(comment, {
+          'authorId': userId,
+          'authorName': authorName.isEmpty ? userId : authorName,
+          'body': normalizedBody,
+          'createdAt': FieldValue.serverTimestamp(),
+        })
+        ..update(post, {
+          'commentCount': FieldValue.increment(1),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      await batch.commit();
+    } catch (error) {
+      throw _failure(error);
+    }
   }
 
-  void vote(String postId, String optionId) {
-    _repository.vote(postId, optionId);
-    _refresh();
+  @override
+  Future<void> vote({
+    required String residenceId,
+    required String userId,
+    required String postId,
+    required String optionId,
+  }) async {
+    final post = _posts(residenceId).doc(postId);
+    try {
+      final snapshot = await post.get();
+      final options = snapshot.data()?['pollOptions'] as List? ?? const [];
+      if (!snapshot.exists ||
+          !options.any((raw) => (raw as Map)['id'] == optionId)) {
+        throw const CommunityFailure('invalid-poll-option');
+      }
+      await post.collection('votes').doc(userId).set({
+        'userId': userId,
+        'optionId': optionId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      throw _failure(error);
+    }
   }
 
-  void _refresh() => state = _repository.getPosts();
+  @override
+  Future<void> archivePost({
+    required String residenceId,
+    required String userId,
+    required String postId,
+  }) async {
+    try {
+      await _posts(residenceId).doc(postId).update({
+        'archivedAt': FieldValue.serverTimestamp(),
+        'archivedBy': userId,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      throw _failure(error);
+    }
+  }
+
+  @override
+  Future<Uint8List> downloadImage(String storagePath) async {
+    try {
+      final bytes = await _storage.ref(storagePath).getData(maxImageSizeBytes);
+      if (bytes == null) throw const CommunityFailure('empty-image');
+      return bytes;
+    } catch (error) {
+      throw _failure(error);
+    }
+  }
+
+  Future<CommunityPost> _postFromDocument(
+    DocumentSnapshot<Map<String, dynamic>> document,
+    String userId, {
+    required bool includeComments,
+  }) async {
+    final data = document.data()!;
+    final commentsSnapshot = includeComments
+        ? await document.reference
+              .collection('comments')
+              .orderBy('createdAt')
+              .limit(100)
+              .get()
+        : null;
+    final votesSnapshot = data['kind'] == CommunityPostKind.poll.name
+        ? await document.reference.collection('votes').get()
+        : null;
+    final likedBy = List<String>.from(data['likedBy'] as List? ?? const []);
+    final savedBy = List<String>.from(data['savedBy'] as List? ?? const []);
+    var authorRole = data['authorRole'] as String?;
+    if (authorRole == null || authorRole.isEmpty) {
+      final residenceId = document.reference.parent.parent?.id;
+      final authorId = data['authorId'] as String?;
+      if (residenceId != null && authorId != null) {
+        final cacheKey = '$residenceId/$authorId';
+        authorRole = _authorRoleCache[cacheKey];
+        if (authorRole == null) {
+          final member = await _member(residenceId, authorId).get();
+          authorRole = member.data()?['role'] as String?;
+          if (authorRole != null) {
+            _authorRoleCache[cacheKey] = authorRole;
+          }
+        }
+      }
+    }
+    authorRole ??= 'resident';
+    final voteCounts = <String, int>{};
+    String? selectedPollOptionId;
+    for (final vote in votesSnapshot?.docs ?? const []) {
+      final optionId = vote.data()['optionId'] as String? ?? '';
+      voteCounts[optionId] = (voteCounts[optionId] ?? 0) + 1;
+      if (vote.id == userId) selectedPollOptionId = optionId;
+    }
+    return CommunityPost(
+      id: document.id,
+      author: data['authorName'] as String? ?? '',
+      authorUnit: _nullableString(data['authorUnit']),
+      authorRole: authorRole,
+      timeLabel: _relativeTime(data['createdAt']),
+      title: data['title'] as String? ?? '',
+      body: data['body'] as String? ?? '',
+      kind: _kindFrom(data['kind']),
+      likes: likedBy.length,
+      comments: [
+        for (final comment in commentsSnapshot?.docs ?? const [])
+          CommunityComment(
+            id: comment.id,
+            author: comment.data()['authorName'] as String? ?? '',
+            body: comment.data()['body'] as String? ?? '',
+            timeLabel: _relativeTime(comment.data()['createdAt']),
+            isAuthor: comment.data()['authorId'] == userId,
+          ),
+      ],
+      isOfficial:
+          (data['isOfficial'] as bool? ?? false) ||
+          authorRole == 'president' ||
+          authorRole == 'owner',
+      isCurrentUser: data['authorId'] == userId,
+      isLiked: likedBy.contains(userId),
+      isSaved: savedBy.contains(userId),
+      imagePaths: List<String>.from(data['imagePaths'] as List? ?? const []),
+      pollOptions: [
+        for (final raw in data['pollOptions'] as List? ?? const [])
+          PollOption(
+            id: (raw as Map)['id'] as String? ?? '',
+            label: raw['label'] as String? ?? '',
+            votes: voteCounts[raw['id']] ?? 0,
+          ),
+      ],
+      selectedPollOptionId: selectedPollOptionId,
+      eventDate: _nullableString(data['eventDate']),
+      eventLocation: _nullableString(data['eventLocation']),
+      commentCountOverride: data['commentCount'] as int? ?? 0,
+    );
+  }
+
+  CollectionReference<Map<String, dynamic>> _posts(String residenceId) =>
+      _firestore
+          .collection('residences')
+          .doc(residenceId)
+          .collection('communityPosts');
+
+  DocumentReference<Map<String, dynamic>> _member(
+    String residenceId,
+    String userId,
+  ) => _firestore
+      .collection('residences')
+      .doc(residenceId)
+      .collection('members')
+      .doc(userId);
+
+  CommunityPostKind _kindFrom(Object? value) =>
+      CommunityPostKind.values.firstWhere(
+        (kind) => kind.name == value,
+        orElse: () => CommunityPostKind.general,
+      );
+
+  String? _nullableString(Object? value) {
+    final text = value as String?;
+    return text == null || text.isEmpty ? null : text;
+  }
+
+  String _relativeTime(Object? value) {
+    final date = switch (value) {
+      Timestamp timestamp => timestamp.toDate(),
+      DateTime date => date,
+      _ => DateTime.now(),
+    };
+    final difference = DateTime.now().difference(date);
+    if (difference.inMinutes < 1) return 'الآن';
+    if (difference.inHours < 1) return 'منذ ${difference.inMinutes} دقيقة';
+    if (difference.inDays < 1) return 'منذ ${difference.inHours} ساعة';
+    if (difference.inDays == 1) return 'أمس';
+    return 'منذ ${difference.inDays} أيام';
+  }
+
+  CommunityFailure _failure(Object error) => switch (error) {
+    CommunityFailure failure => failure,
+    FirebaseException(:final code, :final message) => CommunityFailure(
+      code,
+      message,
+    ),
+    _ => CommunityFailure('unknown', error.toString()),
+  };
 }
+
+final communityRepositoryProvider = Provider<CommunityRepository>(
+  (ref) => FirebaseCommunityRepository(
+    ref.watch(firebaseFirestoreProvider),
+    ref.watch(firebaseStorageProvider),
+  ),
+);
+
+final communityPostsProvider = StreamProvider.autoDispose<List<CommunityPost>>((
+  ref,
+) async* {
+  final context = await ref.watch(residenceContextProvider.future);
+  final residence = context.activeResidence;
+  final user = ref.watch(authRepositoryProvider).currentUser;
+  if (residence == null || user == null) {
+    yield const [];
+    return;
+  }
+  yield* ref
+      .watch(communityRepositoryProvider)
+      .watchPosts(residenceId: residence.id, userId: user.uid);
+});
+
+final communityPostProvider = StreamProvider.autoDispose
+    .family<CommunityPost?, String>((ref, postId) async* {
+      final context = await ref.watch(residenceContextProvider.future);
+      final residence = context.activeResidence;
+      final user = ref.watch(authRepositoryProvider).currentUser;
+      if (residence == null || user == null) {
+        yield null;
+        return;
+      }
+      yield* ref
+          .watch(communityRepositoryProvider)
+          .watchPost(
+            residenceId: residence.id,
+            userId: user.uid,
+            postId: postId,
+          );
+    });
+
+final communityActionsProvider = Provider<CommunityActions>(
+  CommunityActions.new,
+);
+
+class CommunityActions {
+  CommunityActions(this._ref);
+
+  final Ref _ref;
+
+  Future<(String, String)> _scope() async {
+    final context = await _ref.read(residenceContextProvider.future);
+    final residence = context.activeResidence;
+    final user = _ref.read(authRepositoryProvider).currentUser;
+    if (residence == null || user == null) {
+      throw const CommunityFailure('missing-residence');
+    }
+    return (residence.id, user.uid);
+  }
+
+  Future<String> createPost({
+    required String title,
+    required String body,
+    CommunityPostKind kind = CommunityPostKind.general,
+    List<String> pollOptions = const [],
+    List<CommunityPostImageUpload> images = const [],
+    String? eventDate,
+    String? eventLocation,
+  }) async {
+    final (residenceId, userId) = await _scope();
+    return _ref
+        .read(communityRepositoryProvider)
+        .createPost(
+          residenceId: residenceId,
+          userId: userId,
+          title: title,
+          body: body,
+          kind: kind,
+          pollOptions: pollOptions,
+          images: images,
+          eventDate: eventDate,
+          eventLocation: eventLocation,
+        );
+  }
+
+  Future<void> toggleLike(String postId) async {
+    final (residenceId, userId) = await _scope();
+    await _ref
+        .read(communityRepositoryProvider)
+        .toggleLike(residenceId: residenceId, userId: userId, postId: postId);
+  }
+
+  Future<void> toggleSaved(String postId) async {
+    final (residenceId, userId) = await _scope();
+    await _ref
+        .read(communityRepositoryProvider)
+        .toggleSaved(residenceId: residenceId, userId: userId, postId: postId);
+  }
+
+  Future<void> addComment(String postId, String body) async {
+    final (residenceId, userId) = await _scope();
+    await _ref
+        .read(communityRepositoryProvider)
+        .addComment(
+          residenceId: residenceId,
+          userId: userId,
+          postId: postId,
+          body: body,
+        );
+  }
+
+  Future<void> vote(String postId, String optionId) async {
+    final (residenceId, userId) = await _scope();
+    await _ref
+        .read(communityRepositoryProvider)
+        .vote(
+          residenceId: residenceId,
+          userId: userId,
+          postId: postId,
+          optionId: optionId,
+        );
+    _ref.invalidate(communityPostsProvider);
+    _ref.invalidate(communityPostProvider(postId));
+  }
+
+  Future<void> archivePost(String postId) async {
+    final (residenceId, userId) = await _scope();
+    await _ref
+        .read(communityRepositoryProvider)
+        .archivePost(residenceId: residenceId, userId: userId, postId: postId);
+    _ref.invalidate(communityPostsProvider);
+    _ref.invalidate(communityPostProvider(postId));
+  }
+}
+
+final communityPostImageProvider = FutureProvider.autoDispose
+    .family<Uint8List, String>((ref, path) {
+      return ref.watch(communityRepositoryProvider).downloadImage(path);
+    });

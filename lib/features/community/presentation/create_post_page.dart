@@ -9,19 +9,12 @@ import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-const _mockGalleryImages = [
-  'assets/images/community/elevator-maintenance.jpg',
-  'assets/images/community/elevator-panel.jpg',
-  'assets/images/community/elevator-corridor.jpg',
-  'assets/images/community/elevator-tools.jpg',
-  'assets/images/community/plumber.jpg',
-  'assets/images/community/garden-night.jpg',
-  'assets/images/community/tree-saplings.jpg',
-];
 
 class CreatePostPage extends ConsumerStatefulWidget {
   const CreatePostPage({super.key});
@@ -36,8 +29,10 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   final _eventDateController = TextEditingController();
   final _eventLocationController = TextEditingController();
   final _pollControllers = [TextEditingController(), TextEditingController()];
-  final List<String> _selectedImagePaths = [];
+  final List<CommunityPostImageUpload> _selectedImages = [];
   CommunityPostKind _kind = CommunityPostKind.general;
+  bool _publishing = false;
+  bool _processingImages = false;
 
   @override
   void dispose() {
@@ -56,6 +51,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     final localizations = AppLocalizations.of(context);
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final compact = MediaQuery.sizeOf(context).width < 600;
+    final residenceName = ref
+        .watch(residenceContextProvider)
+        .value
+        ?.activeResidence
+        ?.name;
 
     return Scaffold(
       key: const Key('create-post-page'),
@@ -77,9 +77,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                 DarJarSubpageHeader(
                   title: localizations.createPost,
                   fallbackLocation: AppRoutes.community,
-                  description: ar
-                      ? 'اختر نوع المشاركة وأضف التفاصيل المهمة لجيرانك.'
-                      : 'Choose a post type and add the useful details.',
                 ),
                 const SizedBox(height: AppSpacing.xLarge),
                 Text(
@@ -119,17 +116,19 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         minLines: 5,
                         maxLines: 9,
                         decoration: InputDecoration(
-                          labelText: localizations.postBody,
+                          labelText:
+                              '${localizations.postBody} (${ar ? 'اختياري' : 'optional'})',
                           hintText: _bodyHint(ar),
                           alignLabelWithHint: true,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.medium),
                       _PostImagePicker(
-                        imagePaths: _selectedImagePaths,
-                        onAdd: _showMockGallery,
-                        onRemove: (path) =>
-                            setState(() => _selectedImagePaths.remove(path)),
+                        images: _selectedImages,
+                        processing: _processingImages,
+                        onAdd: _pickImages,
+                        onRemove: (image) =>
+                            setState(() => _selectedImages.remove(image)),
                       ),
                       if (_kind == CommunityPostKind.poll) ...[
                         const SizedBox(height: AppSpacing.large),
@@ -167,7 +166,26 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         ),
                       ],
                       const SizedBox(height: AppSpacing.large),
-                      _PrivacyNotice(),
+                      _PrivacyNotice(residenceName: residenceName),
+                      if (_publishing) ...[
+                        const SizedBox(height: AppSpacing.large),
+                        Semantics(
+                          liveRegion: true,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                ar
+                                    ? 'جارٍ نشر المنشور ورفع الصور…'
+                                    : 'Publishing post and uploading images…',
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                              const SizedBox(height: AppSpacing.small),
+                              const LinearProgressIndicator(),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: AppSpacing.xLarge),
                       if (compact)
                         Column(
@@ -177,7 +195,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                               key: const Key('publish-post-button'),
                               label: localizations.publish,
                               icon: Icons.send_rounded,
-                              onPressed: _publish,
+                              onPressed: _publishing ? null : _publish,
                             ),
                             const SizedBox(height: AppSpacing.small),
                             DarJarButton(
@@ -201,7 +219,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                               key: const Key('publish-post-button'),
                               label: localizations.publish,
                               icon: Icons.send_rounded,
-                              onPressed: _publish,
+                              onPressed: _publishing ? null : _publish,
                             ),
                           ],
                         ),
@@ -243,7 +261,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     setState(() => _pollControllers.add(TextEditingController()));
   }
 
-  void _publish() {
+  Future<void> _publish() async {
     final title = _titleController.text.trim();
     final body = _bodyController.text.trim();
     final pollOptions = _pollControllers
@@ -252,10 +270,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         .toList();
     final ar = Localizations.localeOf(context).languageCode == 'ar';
 
-    if (title.isEmpty || body.isEmpty) {
-      _showError(
-        ar ? 'أضف عنواناً وتفاصيل للمنشور.' : 'Add a title and details.',
-      );
+    if (title.isEmpty) {
+      _showError(ar ? 'أضف عنواناً للمنشور.' : 'Add a post title.');
       return;
     }
     if (_kind == CommunityPostKind.poll && pollOptions.length < 2) {
@@ -275,22 +291,32 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       return;
     }
 
-    ref
-        .read(communityPostsProvider.notifier)
-        .createPost(
-          title: title,
-          body: body,
-          kind: _kind,
-          pollOptions: pollOptions,
-          imagePaths: _selectedImagePaths,
-          eventDate: _eventDateController.text.trim().isEmpty
-              ? null
-              : _eventDateController.text.trim(),
-          eventLocation: _eventLocationController.text.trim().isEmpty
-              ? null
-              : _eventLocationController.text.trim(),
-        );
-    context.go(AppRoutes.community);
+    setState(() => _publishing = true);
+    try {
+      await ref
+          .read(communityActionsProvider)
+          .createPost(
+            title: title,
+            body: body,
+            kind: _kind,
+            pollOptions: pollOptions,
+            images: _selectedImages,
+            eventDate: _eventDateController.text.trim().isEmpty
+                ? null
+                : _eventDateController.text.trim(),
+            eventLocation: _eventLocationController.text.trim().isEmpty
+                ? null
+                : _eventLocationController.text.trim(),
+          );
+      if (mounted) context.go(AppRoutes.community);
+    } on CommunityFailure {
+      if (!mounted) return;
+      _showError(
+        ar ? 'تعذّر نشر المنشور. حاول مجددًا.' : 'Could not publish the post.',
+      );
+    } finally {
+      if (mounted) setState(() => _publishing = false);
+    }
   }
 
   void _showError(String message) {
@@ -299,98 +325,95 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> _showMockGallery() async {
+  Future<void> _pickImages() async {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, sheetSetState) {
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.large,
-                0,
-                AppSpacing.large,
-                AppSpacing.xLarge,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    ar ? 'اختر صوراً' : 'Choose photos',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    ar
-                        ? '${_selectedImagePaths.length} من 4 صور محددة'
-                        : '${_selectedImagePaths.length} of 4 selected',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
-                  ),
-                  const SizedBox(height: AppSpacing.medium),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: AppSpacing.small,
-                          mainAxisSpacing: AppSpacing.small,
-                        ),
-                    itemCount: _mockGalleryImages.length,
-                    itemBuilder: (context, index) {
-                      final path = _mockGalleryImages[index];
-                      final selected = _selectedImagePaths.contains(path);
-                      return _GalleryImageTile(
-                        path: path,
-                        selected: selected,
-                        onTap: () {
-                          if (!selected && _selectedImagePaths.length >= 4) {
-                            return;
-                          }
-                          setState(() {
-                            if (selected) {
-                              _selectedImagePaths.remove(path);
-                            } else {
-                              _selectedImagePaths.add(path);
-                            }
-                          });
-                          sheetSetState(() {});
-                        },
-                      );
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.large),
-                  DarJarButton(
-                    key: const Key('confirm-post-images-button'),
-                    label: ar ? 'تم' : 'Done',
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
+    final remaining =
+        FirebaseCommunityRepository.maxImages - _selectedImages.length;
+    if (remaining <= 0) return;
+    final files = await openFiles(
+      acceptedTypeGroups: const [
+        XTypeGroup(
+          label: 'Images',
+          extensions: ['jpg', 'jpeg', 'png', 'webp'],
+          mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+        ),
+      ],
+    );
+    if (files.isEmpty) return;
+    final additions = <CommunityPostImageUpload>[];
+    setState(() => _processingImages = true);
+    try {
+      for (final file in files.take(remaining)) {
+        final bytes = await file.readAsBytes();
+        final contentType = _imageContentType(file.name, file.mimeType);
+        if (contentType.isEmpty ||
+            bytes.isEmpty ||
+            bytes.lengthInBytes > communityImageMaxSourceSizeBytes) {
+          if (mounted) {
+            _showError(
+              ar
+                  ? 'يجب أن تكون الصورة JPG أو PNG أو WebP وأقل من 8MB.'
+                  : 'Images must be JPG, PNG, or WebP and under 8MB.',
+            );
+          }
+          continue;
+        }
+        try {
+          final compressed = await compute(compressCommunityImageBytes, bytes);
+          if (compressed.lengthInBytes > communityImageMaxStoredSizeBytes) {
+            throw const CommunityFailure('compressed-image-too-large');
+          }
+          additions.add(
+            CommunityPostImageUpload(
+              fileName: '${file.name.split('.').first}.jpg',
+              contentType: 'image/jpeg',
+              bytes: compressed,
             ),
           );
-        },
-      ),
-    );
+        } catch (_) {
+          if (mounted) {
+            _showError(
+              ar
+                  ? 'تعذّرت معالجة إحدى الصور.'
+                  : 'One of the images could not be processed.',
+            );
+          }
+        }
+      }
+      if (mounted && additions.isNotEmpty) {
+        setState(() => _selectedImages.addAll(additions));
+      }
+    } finally {
+      if (mounted) setState(() => _processingImages = false);
+    }
   }
+}
+
+String _imageContentType(String fileName, String? reportedType) {
+  if (FirebaseCommunityRepository.acceptedImageTypes.contains(reportedType)) {
+    return reportedType!;
+  }
+  final extension = fileName.split('.').last.toLowerCase();
+  return switch (extension) {
+    'jpg' || 'jpeg' => 'image/jpeg',
+    'png' => 'image/png',
+    'webp' => 'image/webp',
+    _ => '',
+  };
 }
 
 class _PostImagePicker extends StatelessWidget {
   const _PostImagePicker({
-    required this.imagePaths,
+    required this.images,
+    required this.processing,
     required this.onAdd,
     required this.onRemove,
   });
 
-  final List<String> imagePaths;
+  final List<CommunityPostImageUpload> images;
+  final bool processing;
   final VoidCallback onAdd;
-  final ValueChanged<String> onRemove;
+  final ValueChanged<CommunityPostImageUpload> onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -398,22 +421,22 @@ class _PostImagePicker extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (imagePaths.isNotEmpty) ...[
+        if (images.isNotEmpty) ...[
           SizedBox(
             height: 96,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: imagePaths.length,
+              itemCount: images.length,
               separatorBuilder: (context, index) =>
                   const SizedBox(width: AppSpacing.small),
               itemBuilder: (context, index) {
-                final path = imagePaths[index];
+                final image = images[index];
                 return Stack(
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(AppRadius.medium),
-                      child: Image.asset(
-                        path,
+                      child: Image.memory(
+                        image.bytes,
                         width: 112,
                         height: 96,
                         fit: BoxFit.cover,
@@ -426,7 +449,7 @@ class _PostImagePicker extends StatelessWidget {
                         key: ValueKey('remove-post-image-$index'),
                         tooltip: ar ? 'إزالة الصورة' : 'Remove photo',
                         visualDensity: VisualDensity.compact,
-                        onPressed: () => onRemove(path),
+                        onPressed: () => onRemove(image),
                         icon: const Icon(Icons.close_rounded, size: 17),
                       ),
                     ),
@@ -437,56 +460,23 @@ class _PostImagePicker extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.small),
         ],
-        if (imagePaths.length < 4)
+        if (images.length < FirebaseCommunityRepository.maxImages)
           OutlinedButton.icon(
             key: const Key('add-post-images-button'),
-            onPressed: onAdd,
-            icon: const Icon(Icons.add_photo_alternate_outlined),
-            label: Text(ar ? 'إضافة صور (حتى 4)' : 'Add photos (up to 4)'),
+            onPressed: processing ? null : onAdd,
+            icon: processing
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.add_photo_alternate_outlined),
+            label: Text(
+              processing
+                  ? (ar ? 'جارٍ تحسين الصور…' : 'Optimizing images…')
+                  : (ar ? 'إضافة صور (حتى 4)' : 'Add photos (up to 4)'),
+            ),
           ),
       ],
-    );
-  }
-}
-
-class _GalleryImageTile extends StatelessWidget {
-  const _GalleryImageTile({
-    required this.path,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String path;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.canvas,
-      borderRadius: BorderRadius.circular(AppRadius.medium),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        key: ValueKey('mock-gallery-$path'),
-        onTap: onTap,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset(path, fit: BoxFit.cover),
-            if (selected)
-              ColoredBox(color: AppColors.primary.withValues(alpha: .24)),
-            PositionedDirectional(
-              top: 6,
-              end: 6,
-              child: Icon(
-                selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-                color: Colors.white,
-                shadows: const [Shadow(color: Colors.black54, blurRadius: 4)],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -573,9 +563,15 @@ class _PollFields extends StatelessWidget {
 }
 
 class _PrivacyNotice extends StatelessWidget {
+  const _PrivacyNotice({required this.residenceName});
+
+  final String? residenceName;
+
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final displayName =
+        residenceName ?? (ar ? 'الإقامة الحالية' : 'the current residence');
     return Container(
       padding: const EdgeInsets.all(AppSpacing.medium),
       decoration: BoxDecoration(
@@ -593,8 +589,8 @@ class _PrivacyNotice extends StatelessWidget {
           Expanded(
             child: Text(
               ar
-                  ? 'سيظهر هذا المنشور لسكان إقامة الياسمين فقط.'
-                  : 'This post is visible only to Yasmeen Residence residents.',
+                  ? 'سيظهر هذا المنشور لسكان $displayName فقط.'
+                  : 'This post is visible only to residents of $displayName.',
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: AppColors.primary),

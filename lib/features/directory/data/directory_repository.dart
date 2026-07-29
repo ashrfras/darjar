@@ -1,3 +1,9 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/features/account/data/account_onboarding_repository.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum DirectoryCategory { all, craftsman, restaurant, cafe, pharmacy, facility }
@@ -63,6 +69,174 @@ class DirectoryEntry {
       neighborhood: neighborhood,
     );
   }
+}
+
+class DirectoryRecommendation {
+  const DirectoryRecommendation({
+    required this.entryId,
+    required this.userId,
+    required this.residenceId,
+    required this.author,
+    required this.residence,
+    required this.comment,
+    required this.createdAt,
+  });
+
+  final String entryId;
+  final String userId;
+  final String residenceId;
+  final String author;
+  final String residence;
+  final String comment;
+  final DateTime createdAt;
+}
+
+class DirectoryRecommendationFailure implements Exception {
+  const DirectoryRecommendationFailure(this.code, [this.details]);
+
+  final String code;
+  final String? details;
+}
+
+abstract interface class DirectoryRecommendationsRepository {
+  Stream<List<DirectoryRecommendation>> watch();
+
+  Future<void> recommend({
+    required String entryId,
+    required String residenceId,
+    required String userId,
+    required String comment,
+  });
+}
+
+class FirestoreDirectoryRecommendationsRepository
+    implements DirectoryRecommendationsRepository {
+  FirestoreDirectoryRecommendationsRepository(this._firestore);
+
+  final FirebaseFirestore _firestore;
+
+  @override
+  Stream<List<DirectoryRecommendation>> watch() {
+    return _firestore
+        .collection('directoryRecommendations')
+        .snapshots()
+        .map(
+          (snapshot) =>
+              [for (final document in snapshot.docs) _fromDocument(document)]
+                ..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
+        )
+        .handleError((Object error) => throw _failure(error));
+  }
+
+  @override
+  Future<void> recommend({
+    required String entryId,
+    required String residenceId,
+    required String userId,
+    required String comment,
+  }) async {
+    final normalizedComment = comment.trim();
+    if (normalizedComment.isEmpty || normalizedComment.length > 1000) {
+      throw const DirectoryRecommendationFailure('invalid-comment');
+    }
+    try {
+      final residence = _firestore.collection('residences').doc(residenceId);
+      final results = await Future.wait([
+        residence.get(),
+        residence.collection('members').doc(userId).get(),
+      ]);
+      final residenceData = results[0].data();
+      final memberData = results[1].data();
+      if (!results[1].exists || memberData?['status'] != 'active') {
+        throw const DirectoryRecommendationFailure('not-a-member');
+      }
+      final author =
+          '${memberData?['firstName'] ?? ''} ${memberData?['lastName'] ?? ''}'
+              .trim();
+      final documentId = '${entryId}_${residenceId}_$userId';
+      await _firestore
+          .collection('directoryRecommendations')
+          .doc(documentId)
+          .set({
+            'entryId': entryId,
+            'residenceId': residenceId,
+            'userId': userId,
+            'authorName': author.isEmpty ? userId : author,
+            'residenceName': residenceData?['name'] as String? ?? residenceId,
+            'comment': normalizedComment,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+    } catch (error) {
+      throw _failure(error);
+    }
+  }
+
+  DirectoryRecommendation _fromDocument(
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
+  ) {
+    final data = document.data();
+    return DirectoryRecommendation(
+      entryId: data['entryId'] as String? ?? '',
+      userId: data['userId'] as String? ?? '',
+      residenceId: data['residenceId'] as String? ?? '',
+      author: data['authorName'] as String? ?? '',
+      residence: data['residenceName'] as String? ?? '',
+      comment: data['comment'] as String? ?? '',
+      createdAt:
+          (data['createdAt'] as Timestamp?)?.toDate() ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+
+  DirectoryRecommendationFailure _failure(Object error) => switch (error) {
+    DirectoryRecommendationFailure failure => failure,
+    FirebaseException(:final code, :final message) =>
+      DirectoryRecommendationFailure(code, message),
+    _ => DirectoryRecommendationFailure('unknown', error.toString()),
+  };
+}
+
+class MockDirectoryRecommendationsRepository
+    implements DirectoryRecommendationsRepository {
+  final _recommendations =
+      StreamController<List<DirectoryRecommendation>>.broadcast();
+  final List<DirectoryRecommendation> values = [];
+
+  @override
+  Stream<List<DirectoryRecommendation>> watch() async* {
+    yield List.unmodifiable(values);
+    yield* _recommendations.stream;
+  }
+
+  @override
+  Future<void> recommend({
+    required String entryId,
+    required String residenceId,
+    required String userId,
+    required String comment,
+  }) async {
+    values.removeWhere(
+      (value) =>
+          value.entryId == entryId &&
+          value.residenceId == residenceId &&
+          value.userId == userId,
+    );
+    values.insert(
+      0,
+      DirectoryRecommendation(
+        entryId: entryId,
+        userId: userId,
+        residenceId: residenceId,
+        author: 'أنت',
+        residence: 'إقامة الاختبار',
+        comment: comment,
+        createdAt: DateTime.now(),
+      ),
+    );
+    _recommendations.add(List.unmodifiable(values));
+  }
+
+  void dispose() => _recommendations.close();
 }
 
 abstract interface class DirectoryRepository {
@@ -249,23 +423,108 @@ final directoryRepositoryProvider = Provider<DirectoryRepository>(
   (ref) => MockDirectoryRepository(),
 );
 
+final directoryRecommendationsRepositoryProvider =
+    Provider<DirectoryRecommendationsRepository>(
+      (ref) => FirestoreDirectoryRecommendationsRepository(
+        ref.watch(firebaseFirestoreProvider),
+      ),
+    );
+
 final directoryEntriesProvider =
     NotifierProvider<DirectoryController, List<DirectoryEntry>>(
       DirectoryController.new,
     );
 
 class DirectoryController extends Notifier<List<DirectoryEntry>> {
+  StreamSubscription<List<DirectoryRecommendation>>? _subscription;
+  late List<DirectoryEntry> _baseEntries;
+  String? _activeResidenceId;
+
   @override
   List<DirectoryEntry> build() {
-    return ref.read(directoryRepositoryProvider).getEntries();
+    _baseEntries = ref.read(directoryRepositoryProvider).getEntries();
+    ref.onDispose(() => _subscription?.cancel());
+    unawaited(_bindRecommendations());
+    return _baseEntries;
   }
 
   DirectoryEntry? find(String id) {
-    return ref.read(directoryRepositoryProvider).getEntry(id);
+    for (final entry in state) {
+      if (entry.id == id) return entry;
+    }
+    return null;
   }
 
-  void recommend({required String id, required String comment}) {
-    ref.read(directoryRepositoryProvider).recommend(id: id, comment: comment);
-    state = ref.read(directoryRepositoryProvider).getEntries();
+  Future<void> recommend({required String id, required String comment}) async {
+    final context = await ref.read(residenceContextProvider.future);
+    final residence = context.activeResidence;
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (residence == null || user == null) {
+      throw const DirectoryRecommendationFailure('missing-residence');
+    }
+    await ref
+        .read(directoryRecommendationsRepositoryProvider)
+        .recommend(
+          entryId: id,
+          residenceId: residence.id,
+          userId: user.uid,
+          comment: comment,
+        );
   }
+
+  Future<void> _bindRecommendations() async {
+    final context = await ref.read(residenceContextProvider.future);
+    _activeResidenceId = context.activeResidence?.id;
+    await _subscription?.cancel();
+    _subscription = ref
+        .read(directoryRecommendationsRepositoryProvider)
+        .watch()
+        .listen(_applyRecommendations);
+  }
+
+  void _applyRecommendations(List<DirectoryRecommendation> recommendations) {
+    state = [
+      for (final entry in _baseEntries)
+        _mergeEntry(
+          entry,
+          recommendations
+              .where((recommendation) => recommendation.entryId == entry.id)
+              .toList(growable: false),
+        ),
+    ];
+  }
+
+  DirectoryEntry _mergeEntry(
+    DirectoryEntry entry,
+    List<DirectoryRecommendation> recommendations,
+  ) {
+    final localCount = recommendations
+        .where(
+          (recommendation) => recommendation.residenceId == _activeResidenceId,
+        )
+        .length;
+    return entry.copyWith(
+      recommendationCount: entry.recommendationCount + recommendations.length,
+      localRecommendationCount: entry.localRecommendationCount + localCount,
+      reviews: [
+        for (final recommendation in recommendations)
+          DirectoryReview(
+            author: recommendation.author,
+            residence: recommendation.residence,
+            comment: recommendation.comment,
+            timeLabel: _recommendationTimeLabel(recommendation.createdAt),
+          ),
+        ...entry.reviews,
+      ],
+    );
+  }
+}
+
+String _recommendationTimeLabel(DateTime date) {
+  final difference = DateTime.now().difference(date);
+  if (difference.inMinutes < 1) return 'الآن';
+  if (difference.inHours < 1) return 'منذ ${difference.inMinutes} دقيقة';
+  if (difference.inDays < 1) return 'منذ ${difference.inHours} ساعة';
+  if (difference.inDays == 1) return 'أمس';
+  return 'منذ ${difference.inDays} أيام';
 }
