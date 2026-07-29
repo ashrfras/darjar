@@ -1920,6 +1920,30 @@ abstract class AppLocalizations {
   /// **'إشعارات الإقامة'**
   String get residenceNotifications;
 
+  /// No description provided for @importantNotifications.
+  ///
+  /// In ar, this message translates to:
+  /// **'إشعارات هامة'**
+  String get importantNotifications;
+
+  /// No description provided for @duesMarkedPaidNotification.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تسجيل مستحقات {period} كمؤداة'**
+  String duesMarkedPaidNotification(String period);
+
+  /// No description provided for @overdueDuesNotification.
+  ///
+  /// In ar, this message translates to:
+  /// **'مستحقات {period} متأخرة'**
+  String overdueDuesNotification(String period);
+
+  /// No description provided for @membershipApprovedNotification.
+  ///
+  /// In ar, this message translates to:
+  /// **'وافق الرئيس على طلب انضمامك إلى الإقامة'**
+  String get membershipApprovedNotification;
+
   /// No description provided for @residenceSettingsPageDescription.
   ///
   /// In ar, this message translates to:

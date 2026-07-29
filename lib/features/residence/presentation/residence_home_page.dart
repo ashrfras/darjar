@@ -8,6 +8,7 @@ import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
+import 'package:darjar/features/residence/data/residence_important_notifications.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
@@ -120,6 +121,7 @@ class ResidenceHomePage extends ConsumerWidget {
                 finances: finances,
                 residenceMembers: residenceMembers,
                 residenceSettings: residenceSettings,
+                joinedAt: activeResidence?.joinedAt,
               ),
             ],
           ),
@@ -136,6 +138,7 @@ class _DashboardGrid extends StatelessWidget {
     required this.finances,
     required this.residenceMembers,
     required this.residenceSettings,
+    required this.joinedAt,
   });
 
   final ResidenceDashboardData data;
@@ -143,6 +146,7 @@ class _DashboardGrid extends StatelessWidget {
   final AsyncValue<ResidenceFinances> finances;
   final AsyncValue<ResidenceMembersData> residenceMembers;
   final AsyncValue<ResidenceSettings> residenceSettings;
+  final DateTime? joinedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +172,7 @@ class _DashboardGrid extends StatelessWidget {
             SizedBox(width: pairWidth, child: _DocumentsCard(data.documents)),
             SizedBox(
               width: pairWidth,
-              child: _NotificationsCard(data.notifications),
+              child: _NotificationsCard(dues: residentDues, joinedAt: joinedAt),
             ),
             SizedBox(
               width: constraints.maxWidth,
@@ -191,7 +195,7 @@ class _DashboardCard extends StatelessWidget {
     required this.iconColor,
     required this.iconBackground,
     required this.child,
-    required this.footerLabel,
+    this.footerLabel,
     this.onTap,
   });
 
@@ -200,7 +204,7 @@ class _DashboardCard extends StatelessWidget {
   final Color iconColor;
   final Color iconBackground;
   final Widget child;
-  final String footerLabel;
+  final String? footerLabel;
   final VoidCallback? onTap;
 
   @override
@@ -234,29 +238,32 @@ class _DashboardCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: child,
           ),
-          const SizedBox(height: 10),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 9, 14, 11),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    footerLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelMedium,
+          if (footerLabel case final footerLabel?) ...[
+            const SizedBox(height: 10),
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 9, 14, 11),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      footerLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.small),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: AppColors.inkMuted,
-                  size: 13,
-                ),
-              ],
+                  const SizedBox(width: AppSpacing.small),
+                  const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: AppColors.inkMuted,
+                    size: 13,
+                  ),
+                ],
+              ),
             ),
-          ),
+          ] else
+            const SizedBox(height: 10),
         ],
       ),
     );
@@ -675,18 +682,22 @@ class _DocumentsCard extends StatelessWidget {
 }
 
 class _NotificationsCard extends StatelessWidget {
-  const _NotificationsCard(this.notifications);
+  const _NotificationsCard({required this.dues, required this.joinedAt});
 
-  final List<AdministrativeNotification> notifications;
+  final AsyncValue<ResidenceDuesOverview> dues;
+  final DateTime? joinedAt;
 
   @override
   Widget build(BuildContext context) {
+    final notifications = deriveImportantResidenceNotifications(
+      duesOverview: dues.value ?? ResidenceDuesOverview.empty,
+      joinedAt: joinedAt,
+    );
     return _DashboardCard(
-      title: 'الإشعارات الإدارية',
+      title: AppLocalizations.of(context).importantNotifications,
       icon: Icons.notifications_none_rounded,
       iconColor: AppColors.warning,
       iconBackground: AppColors.warningSoft,
-      footerLabel: 'عرض كل الإشعارات',
       child: Column(
         children: [
           for (final notification in notifications)
@@ -694,12 +705,12 @@ class _NotificationsCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 9),
               child: Row(
                 children: [
-                  const SizedBox(
+                  SizedBox(
                     width: 8,
                     height: 8,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: AppColors.warning,
+                        color: _notificationColor(notification.kind),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -707,17 +718,21 @@ class _NotificationsCard extends StatelessWidget {
                   const SizedBox(width: 9),
                   Expanded(
                     child: Text(
-                      notification.title,
+                      _notificationText(context, notification),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    notification.age,
-                    style: Theme.of(context).textTheme.labelMedium,
-                  ),
+                  if (notification.occurredAt case final occurredAt?) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      DateFormat.yMd(
+                        AppLocalizations.of(context).localeName,
+                      ).format(occurredAt),
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -725,6 +740,33 @@ class _NotificationsCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _notificationText(
+  BuildContext context,
+  ImportantResidenceNotification notification,
+) {
+  final localizations = AppLocalizations.of(context);
+  return switch (notification.kind) {
+    ImportantResidenceNotificationKind.paymentRecorded =>
+      localizations.duesMarkedPaidNotification(
+        _duesPeriodLabel(context, notification.periodKey!),
+      ),
+    ImportantResidenceNotificationKind.overdueDues =>
+      localizations.overdueDuesNotification(
+        _duesPeriodLabel(context, notification.periodKey!),
+      ),
+    ImportantResidenceNotificationKind.membershipApproved =>
+      localizations.membershipApprovedNotification,
+  };
+}
+
+Color _notificationColor(ImportantResidenceNotificationKind kind) {
+  return switch (kind) {
+    ImportantResidenceNotificationKind.paymentRecorded => AppColors.primary,
+    ImportantResidenceNotificationKind.overdueDues => AppColors.warning,
+    ImportantResidenceNotificationKind.membershipApproved => AppColors.primary,
+  };
 }
 
 class _ResidenceInfoCard extends StatelessWidget {

@@ -1003,6 +1003,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get residenceNotifications => 'إشعارات الإقامة';
 
   @override
+  String get importantNotifications => 'إشعارات هامة';
+
+  @override
+  String duesMarkedPaidNotification(String period) {
+    return 'تم تسجيل مستحقات $period كمؤداة';
+  }
+
+  @override
+  String overdueDuesNotification(String period) {
+    return 'مستحقات $period متأخرة';
+  }
+
+  @override
+  String get membershipApprovedNotification =>
+      'وافق الرئيس على طلب انضمامك إلى الإقامة';
+
+  @override
   String get residenceSettingsPageDescription =>
       'تحكّم في معلومات الإقامة وهيكلها والاشتراك.';
 

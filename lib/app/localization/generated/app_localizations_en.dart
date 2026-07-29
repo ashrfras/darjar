@@ -1019,6 +1019,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get residenceNotifications => 'Residence notifications';
 
   @override
+  String get importantNotifications => 'Important notifications';
+
+  @override
+  String duesMarkedPaidNotification(String period) {
+    return 'Dues for $period were recorded as paid';
+  }
+
+  @override
+  String overdueDuesNotification(String period) {
+    return 'Dues for $period are overdue';
+  }
+
+  @override
+  String get membershipApprovedNotification =>
+      'The president approved your request to join the residence';
+
+  @override
   String get residenceSettingsPageDescription =>
       'Manage residence information, structure, and subscriptions.';
 

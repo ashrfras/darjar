@@ -18,6 +18,7 @@ import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
+import 'package:darjar/features/residence/data/residence_important_notifications.dart';
 import 'package:darjar/features/residence/data/residence_invitation_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
@@ -184,8 +185,81 @@ void main() {
       final dashboard = MockResidenceRepository().getDashboardData();
 
       expect(dashboard.monthlyDue, greaterThan(0));
-      expect(dashboard.notifications, isNotEmpty);
       expect(dashboard.documents, isNotEmpty);
+    });
+
+    test(
+      'important residence notifications are derived and limited to three',
+      () {
+        final notifications = deriveImportantResidenceNotifications(
+          now: DateTime(2026, 7, 29),
+          joinedAt: DateTime(2026, 4, 15),
+          duesOverview: ResidenceDuesOverview(
+            dues: const [
+              ResidenceDue(
+                id: '2026-05_apartment-01',
+                apartmentId: 'apartment-01',
+                apartmentNumber: '01',
+                periodKey: '2026-05',
+                amountDue: 150,
+                amountPaid: 150,
+                status: ResidenceDueStatus.paid,
+              ),
+              ResidenceDue(
+                id: '2026-04_apartment-01',
+                apartmentId: 'apartment-01',
+                apartmentNumber: '01',
+                periodKey: '2026-04',
+                amountDue: 150,
+                amountPaid: 0,
+                status: ResidenceDueStatus.unpaid,
+              ),
+              ResidenceDue(
+                id: '2026-03_apartment-01',
+                apartmentId: 'apartment-01',
+                apartmentNumber: '01',
+                periodKey: '2026-03',
+                amountDue: 150,
+                amountPaid: 0,
+                status: ResidenceDueStatus.unpaid,
+              ),
+            ],
+            payments: [
+              ResidenceDuePayment(
+                id: 'payment-01',
+                dueId: '2026-05_apartment-01',
+                apartmentId: 'apartment-01',
+                apartmentNumber: '01',
+                amount: 150,
+                paidAt: DateTime(2026, 6, 10),
+                note: '',
+                recordedBy: 'president',
+              ),
+            ],
+          ),
+        );
+
+        expect(notifications, hasLength(3));
+        expect(notifications.map((notification) => notification.kind), [
+          ImportantResidenceNotificationKind.paymentRecorded,
+          ImportantResidenceNotificationKind.overdueDues,
+          ImportantResidenceNotificationKind.membershipApproved,
+        ]);
+      },
+    );
+
+    test('membership approval is always an important notification', () {
+      final notifications = deriveImportantResidenceNotifications(
+        now: DateTime(2026, 7, 29),
+        joinedAt: null,
+        duesOverview: ResidenceDuesOverview.empty,
+      );
+
+      expect(notifications, hasLength(1));
+      expect(
+        notifications.single.kind,
+        ImportantResidenceNotificationKind.membershipApproved,
+      );
     });
 
     test('residence finances derive annual totals and all-time balance', () {
@@ -1113,11 +1187,16 @@ void main() {
     for (final section in [
       'مالية الإقامة',
       'الوثائق',
-      'الإشعارات الإدارية',
+      'إشعارات هامة',
       'معلومات الإدارة',
     ]) {
       expect(find.text(section), findsOneWidget);
     }
+    expect(
+      find.text('وافق الرئيس على طلب انضمامك إلى الإقامة'),
+      findsOneWidget,
+    );
+    expect(find.text('عرض كل الإشعارات'), findsNothing);
   });
 
   testWidgets('profile exposes real editable account and residence data', (

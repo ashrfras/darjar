@@ -36,7 +36,6 @@ class ResidenceDashboardData {
     required this.lastPayment,
     required this.lastPaymentDate,
     required this.paidThrough,
-    required this.notifications,
     required this.documents,
   });
 
@@ -44,15 +43,7 @@ class ResidenceDashboardData {
   final int lastPayment;
   final String lastPaymentDate;
   final String paidThrough;
-  final List<AdministrativeNotification> notifications;
   final List<ResidenceDocument> documents;
-}
-
-class AdministrativeNotification {
-  const AdministrativeNotification({required this.title, required this.age});
-
-  final String title;
-  final String age;
 }
 
 class ResidenceDocument {
@@ -107,17 +98,6 @@ class MockResidenceRepository implements ResidenceRepository {
       lastPayment: 350,
       lastPaymentDate: '05 مايو 2026',
       paidThrough: 'مايو 2026',
-      notifications: const [
-        AdministrativeNotification(
-          title: 'إنذار لعدم سداد الاشتراك',
-          age: 'منذ يومين',
-        ),
-        AdministrativeNotification(title: 'مخالفة إزعاج', age: 'منذ 5 أيام'),
-        AdministrativeNotification(
-          title: 'تنبيه خاص بالمرافق',
-          age: 'منذ 8 أيام',
-        ),
-      ],
       documents: const [
         ResidenceDocument(title: 'القانون الداخلي', size: '2.4 MB'),
         ResidenceDocument(title: 'محضر اجتماع 2025-04', size: '1.8 MB'),
