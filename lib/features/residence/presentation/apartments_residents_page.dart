@@ -7,6 +7,7 @@ import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/core/widgets/darjar_phone_number.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:flutter/material.dart';
@@ -1408,11 +1409,10 @@ class _PendingInvitationCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xSmall),
-                Text(
+                DarJarPhoneNumber(
                   invitation.phone,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  textDirection: TextDirection.ltr,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: AppSpacing.small),
@@ -1512,11 +1512,10 @@ class _ResidentCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xSmall),
-                Text(
+                DarJarPhoneNumber(
                   member.phone,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  textDirection: TextDirection.ltr,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: AppSpacing.small),

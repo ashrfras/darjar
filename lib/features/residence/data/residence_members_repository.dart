@@ -122,7 +122,10 @@ class ResidenceMembersFailure implements Exception {
 }
 
 abstract interface class ResidenceMembersRepository {
-  Future<ResidenceMembersData> load(String residenceId);
+  Future<ResidenceMembersData> load(
+    String residenceId, {
+    bool includeInvitations = true,
+  });
 
   Future<void> createInvitation({
     required String residenceId,
@@ -181,7 +184,10 @@ class FirestoreResidenceMembersRepository
   final FirebaseFirestore _firestore;
 
   @override
-  Future<ResidenceMembersData> load(String residenceId) async {
+  Future<ResidenceMembersData> load(
+    String residenceId, {
+    bool includeInvitations = true,
+  }) async {
     try {
       final residence = _firestore.collection('residences').doc(residenceId);
       final results = await Future.wait([
@@ -190,14 +196,15 @@ class FirestoreResidenceMembersRepository
             .collection('members')
             .where('status', isEqualTo: 'active')
             .get(),
-        residence
-            .collection('invitations')
-            .where('status', isEqualTo: 'pending')
-            .get(),
+        if (includeInvitations)
+          residence
+              .collection('invitations')
+              .where('status', isEqualTo: 'pending')
+              .get(),
       ]);
       final buildingDocuments = results[0];
       final memberDocuments = results[1];
-      final invitationDocuments = results[2];
+      final invitationDocuments = includeInvitations ? results[2] : null;
 
       final buildings = await Future.wait([
         for (final building in buildingDocuments.docs) _loadBuilding(building),
@@ -209,7 +216,7 @@ class FirestoreResidenceMembersRepository
           _memberFromDocument(document),
       ]..sort((a, b) => a.name.compareTo(b.name));
       final pendingInvitations = [
-        for (final document in invitationDocuments.docs)
+        for (final document in invitationDocuments?.docs ?? const [])
           _pendingInvitationFromDocument(document),
       ]..sort((a, b) => a.name.compareTo(b.name));
 
@@ -527,16 +534,22 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
 
   @override
   Future<ResidenceMembersData> build() async {
-    _residenceId = await ref.watch(
+    final activeResidence = await ref.watch(
       residenceContextProvider.selectAsync(
-        (context) => context.activeResidenceId,
+        (context) => context.activeResidence,
       ),
     );
-    final residenceId = _residenceId;
+    final residenceId = activeResidence?.id;
+    _residenceId = residenceId;
     if (residenceId == null) {
       return ResidenceMembersData.empty;
     }
-    return ref.read(residenceMembersRepositoryProvider).load(residenceId);
+    return ref
+        .read(residenceMembersRepositoryProvider)
+        .load(
+          residenceId,
+          includeInvitations: activeResidence!.canManageResidence,
+        );
   }
 
   Future<void> createInvitation({

@@ -142,6 +142,7 @@ class _ManagementContent extends StatelessWidget {
       0,
       (total, due) => total + due.amountPaid,
     );
+    final paymentGroups = overview.paymentGroups;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -166,7 +167,7 @@ class _ManagementContent extends StatelessWidget {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: AppSpacing.medium),
-        if (overview.payments.isEmpty)
+        if (paymentGroups.isEmpty)
           _ManagementEmptyState(
             message: localizations.duesNoPayments,
             icon: Icons.history_rounded,
@@ -175,13 +176,9 @@ class _ManagementContent extends StatelessWidget {
           DarJarCard(
             child: Column(
               children: [
-                for (
-                  var index = 0;
-                  index < overview.payments.length;
-                  index++
-                ) ...[
-                  _ManagementPaymentRow(payment: overview.payments[index]),
-                  if (index != overview.payments.length - 1) const Divider(),
+                for (var index = 0; index < paymentGroups.length; index++) ...[
+                  _ManagementPaymentRow(paymentGroup: paymentGroups[index]),
+                  if (index != paymentGroups.length - 1) const Divider(),
                 ],
               ],
             ),
@@ -731,15 +728,16 @@ class _ManagementTotals extends StatelessWidget {
 }
 
 class _ManagementPaymentRow extends StatelessWidget {
-  const _ManagementPaymentRow({required this.payment});
+  const _ManagementPaymentRow({required this.paymentGroup});
 
-  final ResidenceDuePayment payment;
+  final ResidenceDuePaymentGroup paymentGroup;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final payment = paymentGroup.payments.first;
     return Padding(
-      key: ValueKey('management-payment-${payment.id}'),
+      key: ValueKey('management-payment-${paymentGroup.id}'),
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
       child: Row(
         children: [
@@ -774,7 +772,8 @@ class _ManagementPaymentRow extends StatelessWidget {
             ),
           ),
           Text(
-            '${_amount(context, payment.amount)} ${localizations.currency}',
+            '${_amount(context, paymentGroup.totalAmount)} '
+            '${localizations.currency}',
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(color: AppColors.residence),

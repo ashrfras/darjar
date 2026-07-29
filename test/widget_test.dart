@@ -458,7 +458,7 @@ void main() {
 
       expect(find.byKey(const Key('account-resolution-page')), findsOneWidget);
       expect(find.text('أمينة المريني'), findsOneWidget);
-      expect(find.text('+212600000001'), findsOneWidget);
+      expect(find.text('212600000001', findRichText: true), findsOneWidget);
       expect(find.text('إقامة الياسمين'), findsOneWidget);
       expect(find.text('إقامة الأندلس'), findsOneWidget);
 
@@ -1134,7 +1134,7 @@ void main() {
     await tester.tap(find.byKey(const Key('profile-button')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('profile-page')), findsOneWidget);
-    expect(find.text('+212 6 12 34 56 78'), findsOneWidget);
+    expect(find.text('212612345678', findRichText: true), findsOneWidget);
     expect(find.text('أمين المريني'), findsOneWidget);
     expect(find.text('الإقامات'), findsOneWidget);
     expect(find.text('إقامة الاختبار'), findsWidgets);
@@ -1145,6 +1145,19 @@ void main() {
     expect(find.text('الإعدادات'), findsNothing);
     expect(find.text('إعادة عرض البداية'), findsNothing);
     expect(find.byKey(const Key('profile-phone-number')), findsOneWidget);
+    final profilePhone = tester.widget<RichText>(
+      find.descendant(
+        of: find.byKey(const Key('profile-phone-number')),
+        matching: find.byType(RichText),
+      ),
+    );
+    final profilePhoneSpan = profilePhone.text as TextSpan;
+    TextSpan? countryCodeSpan;
+    profilePhoneSpan.visitChildren((span) {
+      if (span is TextSpan && span.text == '212') countryCodeSpan = span;
+      return true;
+    });
+    expect(countryCodeSpan?.style?.fontWeight, FontWeight.w600);
     expect(find.byType(TextField), findsNothing);
     expect(
       tester.getCenter(find.byKey(const Key('profile-full-name'))).dx,
@@ -1266,6 +1279,7 @@ void main() {
       DateTime(now.year, now.month + 1),
     );
     final paidAt = DateTime(now.year, now.month, 10);
+    final membersRepository = _FakeResidenceMembersRepository();
     final duesRepository = _FakeResidenceDuesRepository()
       ..residentStartDate = DateTime(now.year, now.month)
       ..overview = ResidenceDuesOverview(
@@ -1319,6 +1333,7 @@ void main() {
       tester,
       size: const Size(390, 844),
       residenceDuesRepository: duesRepository,
+      residenceMembersRepository: membersRepository,
       residenceContext: const ResidenceContext(
         residences: [
           UserResidence(
@@ -1338,6 +1353,14 @@ void main() {
     await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
 
+    expect(membersRepository.lastIncludeInvitations, isFalse);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('residence-apartment-count')),
+        matching: find.text('7'),
+      ),
+      findsOneWidget,
+    );
     expect(
       find.descendant(
         of: find.byKey(const Key('account-last-payment-total')),
@@ -1580,6 +1603,17 @@ void main() {
       isTrue,
     );
     expect(duesRepository.overview.payments.first.note, 'أداء نقدي');
+    expect(
+      find.descendant(
+        of: find.byKey(
+          ValueKey(
+            'management-payment-${apartmentOnePayments.first.paymentGroupId}',
+          ),
+        ),
+        matching: find.text('750 درهم'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('residence management is hidden from regular residents', (
@@ -2293,7 +2327,7 @@ void main() {
     await tester.tap(find.text('السكان').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('+212 6 12 34 56 78'), findsOneWidget);
+    expect(find.text('212612345678', findRichText: true), findsOneWidget);
     expect(find.textContaining('@example.com'), findsNothing);
     final searchField = find.byKey(const Key('residents-search-field'));
     final addResidentButton = find.byKey(const Key('add-resident-button'));
@@ -2350,7 +2384,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('الدعوة معلّقة'), findsOneWidget);
-    expect(find.text('+212698765432'), findsOneWidget);
+    expect(find.text('212698765432', findRichText: true), findsOneWidget);
 
     await tester.ensureVisible(groupInvitationButton);
     await tester.pumpAndSettle();
@@ -2770,10 +2804,15 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
   ResidenceMembersData data = initialData;
   final List<_CreatedInvitation> createdInvitations = [];
   int loadCount = 0;
+  bool? lastIncludeInvitations;
 
   @override
-  Future<ResidenceMembersData> load(String residenceId) async {
+  Future<ResidenceMembersData> load(
+    String residenceId, {
+    bool includeInvitations = true,
+  }) async {
     loadCount += 1;
+    lastIncludeInvitations = includeInvitations;
     return data;
   }
 

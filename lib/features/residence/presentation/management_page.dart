@@ -4,6 +4,7 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/core/widgets/darjar_phone_number.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,6 +67,7 @@ class ManagementPage extends ConsumerWidget {
                       icon: Icons.phone_outlined,
                       label: localizations.phone,
                       value: settings.managementPhone,
+                      phone: true,
                     ),
                   ],
                 ),
@@ -114,11 +116,13 @@ class _InfoRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.phone = false,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final bool phone;
 
   @override
   Widget build(BuildContext context) {
@@ -134,10 +138,16 @@ class _InfoRow extends StatelessWidget {
               children: [
                 Text(label, style: Theme.of(context).textTheme.labelMedium),
                 const SizedBox(height: AppSpacing.xSmall),
-                SelectableText(
-                  value,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
+                if (phone)
+                  DarJarPhoneNumber(
+                    value,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  )
+                else
+                  SelectableText(
+                    value,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
               ],
             ),
           ),

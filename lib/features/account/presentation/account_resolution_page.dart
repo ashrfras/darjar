@@ -5,6 +5,7 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_typography.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_phone_number.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
@@ -260,7 +261,10 @@ class _InvitationConfirmation extends StatelessWidget {
                       icon: Icons.phone_outlined,
                       label: localizations.phoneNumber,
                       value: phoneNumber,
-                      ltr: true,
+                      valueWidget: DarJarPhoneNumber(
+                        phoneNumber,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                     ),
                   ],
                 ),
@@ -378,13 +382,13 @@ class _InformationRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
-    this.ltr = false,
+    this.valueWidget,
   });
 
   final IconData icon;
   final String label;
   final String value;
-  final bool ltr;
+  final Widget? valueWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -403,15 +407,11 @@ class _InformationRow extends StatelessWidget {
                   context,
                 ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
               ),
-              Directionality(
-                textDirection: ltr ? TextDirection.ltr : TextDirection.rtl,
-                child: Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    value,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child:
+                    valueWidget ??
+                    Text(value, style: Theme.of(context).textTheme.bodyLarge),
               ),
             ],
           ),

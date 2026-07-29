@@ -6,6 +6,7 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_phone_number.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
@@ -114,11 +115,10 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           const SizedBox(height: AppSpacing.xSmall),
-                          Text(
+                          DarJarPhoneNumber(
                             widget.profile.phoneNumber,
                             key: const Key('profile-phone-number'),
                             textAlign: TextAlign.center,
-                            textDirection: TextDirection.ltr,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: AppColors.inkMuted),
                           ),
