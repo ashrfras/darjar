@@ -36,21 +36,12 @@ class ResidenceDashboardData {
     required this.lastPayment,
     required this.lastPaymentDate,
     required this.paidThrough,
-    required this.documents,
   });
 
   final int monthlyDue;
   final int lastPayment;
   final String lastPaymentDate;
   final String paidThrough;
-  final List<ResidenceDocument> documents;
-}
-
-class ResidenceDocument {
-  const ResidenceDocument({required this.title, required this.size});
-
-  final String title;
-  final String size;
 }
 
 abstract interface class ResidenceRepository {
@@ -98,11 +89,6 @@ class MockResidenceRepository implements ResidenceRepository {
       lastPayment: 350,
       lastPaymentDate: '05 مايو 2026',
       paidThrough: 'مايو 2026',
-      documents: const [
-        ResidenceDocument(title: 'القانون الداخلي', size: '2.4 MB'),
-        ResidenceDocument(title: 'محضر اجتماع 2025-04', size: '1.8 MB'),
-        ResidenceDocument(title: 'الميزانية السنوية 2025', size: '3.1 MB'),
-      ],
     );
   }
 }

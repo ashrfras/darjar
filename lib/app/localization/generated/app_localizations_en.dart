@@ -676,8 +676,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documents => 'Documents';
 
   @override
-  String get documentsDescription =>
-      'Official notices and documents coming soon.';
+  String get documentsDescription => 'Latest official residence documents.';
+
+  @override
+  String get documentsPageDescription =>
+      'Official documents and images shared with residents by residence management.';
+
+  @override
+  String get viewAllDocuments => 'View all documents';
+
+  @override
+  String get noDocuments =>
+      'No documents have been added to this residence yet.';
+
+  @override
+  String get documentsLoadError => 'Documents could not be loaded. Try again.';
+
+  @override
+  String get pdfDocument => 'PDF';
+
+  @override
+  String get imageDocument => 'Image';
+
+  @override
+  String get documentOpenError => 'This document could not be opened.';
+
+  @override
+  String get shareDocument => 'Share document';
+
+  @override
+  String get documentsManagement => 'Document management';
+
+  @override
+  String get documentsManagementDescription =>
+      'Upload official documents and edit their titles or delete them.';
+
+  @override
+  String get documentsUploadNotice =>
+      'Documents are visible to all active residents in this residence. Accepted types are PDF, JPEG, PNG, and WebP, up to 15 MB.';
+
+  @override
+  String get documentsPermissionDenied =>
+      'You do not have permission to manage this residence\'s documents.';
+
+  @override
+  String get uploadDocument => 'Upload document';
+
+  @override
+  String get documentUploading => 'Uploading document…';
+
+  @override
+  String documentUploadInProgress(String title) {
+    return 'Uploading “$title”';
+  }
+
+  @override
+  String documentUploadProgress(int percentage) {
+    return '$percentage% uploaded';
+  }
+
+  @override
+  String get documentTitle => 'Document title';
+
+  @override
+  String get selectDocumentFile => 'Select an image or PDF';
+
+  @override
+  String get documentFormRequired => 'Enter a title and select a file.';
+
+  @override
+  String get documentTooLarge => 'The document must not exceed 15 MB.';
+
+  @override
+  String get documentUnsupportedType =>
+      'Unsupported type. Select a PDF, JPEG, PNG, or WebP file.';
+
+  @override
+  String get documentUploaded => 'Document uploaded successfully.';
+
+  @override
+  String get documentUploadError =>
+      'The document could not be uploaded. Try again.';
+
+  @override
+  String get editDocument => 'Edit document';
+
+  @override
+  String get documentUpdated => 'Document title updated.';
+
+  @override
+  String get documentUpdateError => 'The document could not be updated.';
+
+  @override
+  String get deleteDocument => 'Delete document';
+
+  @override
+  String confirmDeleteDocument(String title) {
+    return 'Delete “$title”? This action cannot be undone.';
+  }
+
+  @override
+  String get documentDeleted => 'Document deleted.';
+
+  @override
+  String get documentDeleteError => 'The document could not be deleted.';
 
   @override
   String get duesPageDescription =>

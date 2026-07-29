@@ -663,7 +663,108 @@ class AppLocalizationsAr extends AppLocalizations {
   String get documents => 'الوثائق';
 
   @override
-  String get documentsDescription => 'الإعلانات والوثائق الرسمية قريباً.';
+  String get documentsDescription => 'آخر الوثائق الرسمية الخاصة بالإقامة.';
+
+  @override
+  String get documentsPageDescription =>
+      'الوثائق والصور الرسمية التي تشاركها إدارة الإقامة مع السكان.';
+
+  @override
+  String get viewAllDocuments => 'عرض كل الوثائق';
+
+  @override
+  String get noDocuments => 'لم تتم إضافة أي وثيقة إلى الإقامة بعد.';
+
+  @override
+  String get documentsLoadError => 'تعذر تحميل الوثائق. حاول مجدداً.';
+
+  @override
+  String get pdfDocument => 'PDF';
+
+  @override
+  String get imageDocument => 'صورة';
+
+  @override
+  String get documentOpenError => 'تعذر فتح هذه الوثيقة.';
+
+  @override
+  String get shareDocument => 'مشاركة الوثيقة';
+
+  @override
+  String get documentsManagement => 'إدارة الوثائق';
+
+  @override
+  String get documentsManagementDescription =>
+      'رفع الوثائق الرسمية وتعديل عناوينها أو حذفها.';
+
+  @override
+  String get documentsUploadNotice =>
+      'تظهر الوثائق لجميع السكان النشطين في هذه الإقامة. الأنواع المقبولة هي PDF وJPEG وPNG وWebP بحجم أقصى 15 MB.';
+
+  @override
+  String get documentsPermissionDenied =>
+      'لا تملك صلاحية إدارة وثائق هذه الإقامة.';
+
+  @override
+  String get uploadDocument => 'رفع وثيقة';
+
+  @override
+  String get documentUploading => 'جارٍ رفع الوثيقة…';
+
+  @override
+  String documentUploadInProgress(String title) {
+    return 'جارٍ رفع «$title»';
+  }
+
+  @override
+  String documentUploadProgress(int percentage) {
+    return 'اكتمل $percentage% من الرفع';
+  }
+
+  @override
+  String get documentTitle => 'عنوان الوثيقة';
+
+  @override
+  String get selectDocumentFile => 'اختيار صورة أو ملف PDF';
+
+  @override
+  String get documentFormRequired => 'أدخل عنوان الوثيقة واختر ملفاً.';
+
+  @override
+  String get documentTooLarge => 'يجب ألا يتجاوز حجم الوثيقة 15 MB.';
+
+  @override
+  String get documentUnsupportedType =>
+      'النوع غير مدعوم. اختر PDF أو JPEG أو PNG أو WebP.';
+
+  @override
+  String get documentUploaded => 'تم رفع الوثيقة بنجاح.';
+
+  @override
+  String get documentUploadError => 'تعذر رفع الوثيقة. حاول مجدداً.';
+
+  @override
+  String get editDocument => 'تعديل الوثيقة';
+
+  @override
+  String get documentUpdated => 'تم تحديث عنوان الوثيقة.';
+
+  @override
+  String get documentUpdateError => 'تعذر تحديث الوثيقة.';
+
+  @override
+  String get deleteDocument => 'حذف الوثيقة';
+
+  @override
+  String confirmDeleteDocument(String title) {
+    return 'هل تريد حذف وثيقة «$title»؟ لا يمكن التراجع عن ذلك.';
+  }
+
+  @override
+  String get documentDeleted => 'تم حذف الوثيقة.';
+
+  @override
+  String get documentDeleteError => 'تعذر حذف الوثيقة.';
 
   @override
   String get duesPageDescription =>

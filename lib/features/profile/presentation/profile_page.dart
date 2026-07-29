@@ -211,6 +211,15 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                         description: localizations.manageFinanceDescription,
                         route: AppRoutes.manageFinances,
                       ),
+                      const Divider(),
+                      _ManagementLink(
+                        key: const Key('manage-documents-link'),
+                        icon: Icons.folder_outlined,
+                        title: localizations.documentsManagement,
+                        description:
+                            localizations.documentsManagementDescription,
+                        route: AppRoutes.manageDocuments,
+                      ),
                     ],
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:darjar/app/app.dart';
 import 'package:darjar/app/routing/app_router.dart';
@@ -13,6 +14,8 @@ import 'package:darjar/features/account/data/account_onboarding_repository.dart'
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
+import 'package:darjar/features/documents/data/residence_documents_repository.dart';
+import 'package:darjar/features/documents/presentation/residence_documents_management_page.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
@@ -27,6 +30,7 @@ import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:file_selector/file_selector.dart';
 
 void main() {
   group('design foundation', () {
@@ -185,7 +189,19 @@ void main() {
       final dashboard = MockResidenceRepository().getDashboardData();
 
       expect(dashboard.monthlyDue, greaterThan(0));
-      expect(dashboard.documents, isNotEmpty);
+    });
+
+    test('residence document types are normalized from safe extensions', () {
+      expect(
+        residenceDocumentContentType('rules.PDF', null),
+        'application/pdf',
+      );
+      expect(
+        residenceDocumentContentType('photo.jpeg', 'image/jpeg'),
+        'image/jpeg',
+      );
+      expect(residenceDocumentContentType('archive.zip', null), isEmpty);
+      expect(residenceDocumentMaxSizeBytes, 15 * 1024 * 1024);
     });
 
     test(
@@ -1197,6 +1213,12 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('عرض كل الإشعارات'), findsNothing);
+
+    await tester.tap(find.text('الوثائق'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('residence-documents-page')), findsOneWidget);
+    expect(find.text('القانون الداخلي'), findsOneWidget);
+    expect(find.text('محضر الاجتماع'), findsOneWidget);
   });
 
   testWidgets('profile exposes real editable account and residence data', (
@@ -1722,6 +1744,7 @@ void main() {
 
     expect(find.byKey(const Key('residence-management-section')), findsNothing);
     expect(find.byKey(const Key('manage-residence-link')), findsNothing);
+    expect(find.byKey(const Key('manage-documents-link')), findsNothing);
   });
 
   testWidgets(
@@ -1795,7 +1818,7 @@ void main() {
     );
 
     final chevrons = find.byIcon(Icons.chevron_left_rounded);
-    expect(chevrons, findsNWidgets(4));
+    expect(chevrons, findsNWidgets(5));
     for (final icon in tester.widgetList<Icon>(chevrons)) {
       expect(icon.textDirection, TextDirection.ltr);
     }
@@ -1805,6 +1828,7 @@ void main() {
       (link: 'manage-apartments-link', page: 'apartments-management-page'),
       (link: 'manage-dues-link', page: 'dues-management-page'),
       (link: 'manage-finances-link', page: 'finance-management-page'),
+      (link: 'manage-documents-link', page: 'documents-management-page'),
     ]) {
       await tester.ensureVisible(find.byKey(Key(navigation.link)));
       await tester.tap(find.byKey(Key(navigation.link)));
@@ -1814,6 +1838,89 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('profile-page')), findsOneWidget);
     }
+  });
+
+  testWidgets('management uploads, renames, and deletes residence documents', (
+    tester,
+  ) async {
+    final uploadBarrier = Completer<void>();
+    final documentsRepository = _FakeResidenceDocumentsRepository(
+      uploadBarrier: uploadBarrier,
+    );
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceDocumentsRepository: documentsRepository,
+      residenceDocumentPicker: () async => XFile.fromData(
+        Uint8List.fromList([1, 2, 3, 4]),
+        mimeType: 'application/pdf',
+        name: 'budget.pdf',
+      ),
+    );
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('manage-documents-link')));
+    await tester.tap(find.byKey(const Key('manage-documents-link')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('documents-management-page')), findsOneWidget);
+    expect(find.text('القانون الداخلي'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('upload-residence-document-button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('document-title-field')),
+      'ميزانية 2026',
+    );
+    await tester.tap(find.byKey(const Key('select-document-file-button')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const Key('submit-document-upload-button')),
+    );
+    await tester.tap(find.byKey(const Key('submit-document-upload-button')));
+    await tester.pump();
+
+    expect(
+      find.byKey(const Key('document-upload-progress-card')),
+      findsOneWidget,
+    );
+    expect(find.text('50%'), findsOneWidget);
+
+    uploadBarrier.complete();
+    await tester.pumpAndSettle();
+
+    expect(documentsRepository.documents.first.title, 'ميزانية 2026');
+    final uploadedId = documentsRepository.documents.first.id;
+    expect(
+      find.byKey(ValueKey('residence-document-$uploadedId')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(ValueKey('edit-residence-document-$uploadedId')),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('edit-document-title-field')),
+      'الميزانية السنوية 2026',
+    );
+    await tester.tap(find.byKey(const Key('save-document-title-button')));
+    await tester.pumpAndSettle();
+    expect(documentsRepository.documents.first.title, 'الميزانية السنوية 2026');
+
+    await tester.tap(
+      find.byKey(ValueKey('delete-residence-document-$uploadedId')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('confirm-delete-document-button')));
+    await tester.pumpAndSettle();
+    expect(
+      documentsRepository.documents.any(
+        (document) => document.id == uploadedId,
+      ),
+      isFalse,
+    );
   });
 
   testWidgets('management records, edits, and deletes manual finances', (
@@ -2502,6 +2609,8 @@ Future<void> _pumpApp(
   ResidenceFinanceRepository? residenceFinanceRepository,
   ResidenceInvitationRepository? residenceInvitationRepository,
   ResidenceSettingsRepository? residenceSettingsRepository,
+  ResidenceDocumentsRepository? residenceDocumentsRepository,
+  ResidenceDocumentPicker? residenceDocumentPicker,
   ProfileRepository? profileRepository,
   ResidenceContext? residenceContext,
   Object? residenceContextError,
@@ -2528,6 +2637,8 @@ Future<void> _pumpApp(
       residenceInvitationRepository ?? _FakeResidenceInvitationRepository();
   final settingsRepository =
       residenceSettingsRepository ?? _FakeResidenceSettingsRepository();
+  final documentsRepository =
+      residenceDocumentsRepository ?? _FakeResidenceDocumentsRepository();
   final currentProfileRepository =
       profileRepository ?? _FakeProfileRepository();
   final contextData = residenceContext ?? _defaultResidenceContext;
@@ -2554,6 +2665,13 @@ Future<void> _pumpApp(
         residenceSettingsRepositoryProvider.overrideWithValue(
           settingsRepository,
         ),
+        residenceDocumentsRepositoryProvider.overrideWithValue(
+          documentsRepository,
+        ),
+        if (residenceDocumentPicker != null)
+          residenceDocumentPickerProvider.overrideWithValue(
+            residenceDocumentPicker,
+          ),
         profileRepositoryProvider.overrideWithValue(currentProfileRepository),
         residenceContextProvider.overrideWith((ref) async {
           if (residenceContextError != null) {
@@ -3522,4 +3640,113 @@ class _FakeResidenceContextRepository implements ResidenceContextRepository {
   }) async {
     selectedResidenceId = residenceId;
   }
+}
+
+class _FakeResidenceDocumentsRepository
+    implements ResidenceDocumentsRepository {
+  _FakeResidenceDocumentsRepository({
+    List<ResidenceDocument>? initialDocuments,
+    this.uploadBarrier,
+  }) : documents =
+           initialDocuments ??
+           [
+             ResidenceDocument(
+               id: 'rules',
+               title: 'القانون الداخلي',
+               originalFileName: 'rules.pdf',
+               storagePath: 'residences/test-residence/documents/rules/content',
+               contentType: 'application/pdf',
+               sizeBytes: 2048,
+               uploadedBy: 'test-user',
+               createdAt: DateTime(2026, 7, 20),
+               updatedAt: DateTime(2026, 7, 20),
+             ),
+             ResidenceDocument(
+               id: 'meeting',
+               title: 'محضر الاجتماع',
+               originalFileName: 'meeting.png',
+               storagePath:
+                   'residences/test-residence/documents/meeting/content',
+               contentType: 'image/png',
+               sizeBytes: 4096,
+               uploadedBy: 'test-user',
+               createdAt: DateTime(2026, 7, 18),
+               updatedAt: DateTime(2026, 7, 18),
+             ),
+           ];
+
+  final List<ResidenceDocument> documents;
+  final Completer<void>? uploadBarrier;
+  final _changes = StreamController<List<ResidenceDocument>>.broadcast();
+
+  @override
+  Stream<List<ResidenceDocument>> watch(String residenceId) async* {
+    yield List.unmodifiable(documents);
+    yield* _changes.stream;
+  }
+
+  @override
+  Future<void> upload({
+    required String residenceId,
+    required String uploadedBy,
+    required ResidenceDocumentUpload upload,
+    void Function(double progress)? onProgress,
+  }) async {
+    onProgress?.call(0.5);
+    await uploadBarrier?.future;
+    documents.insert(
+      0,
+      ResidenceDocument(
+        id: 'uploaded-${documents.length + 1}',
+        title: upload.title,
+        originalFileName: upload.originalFileName,
+        storagePath:
+            'residences/$residenceId/documents/uploaded-${documents.length + 1}/content',
+        contentType: upload.contentType,
+        sizeBytes: upload.bytes.lengthInBytes,
+        uploadedBy: uploadedBy,
+        createdAt: DateTime(2026, 7, 29),
+        updatedAt: DateTime(2026, 7, 29),
+      ),
+    );
+    onProgress?.call(1);
+    _emit();
+  }
+
+  @override
+  Future<void> updateTitle({
+    required String residenceId,
+    required String documentId,
+    required String title,
+  }) async {
+    final index = documents.indexWhere((document) => document.id == documentId);
+    final document = documents[index];
+    documents[index] = ResidenceDocument(
+      id: document.id,
+      title: title,
+      originalFileName: document.originalFileName,
+      storagePath: document.storagePath,
+      contentType: document.contentType,
+      sizeBytes: document.sizeBytes,
+      uploadedBy: document.uploadedBy,
+      createdAt: document.createdAt,
+      updatedAt: DateTime(2026, 7, 29),
+    );
+    _emit();
+  }
+
+  @override
+  Future<void> delete({
+    required String residenceId,
+    required ResidenceDocument document,
+  }) async {
+    documents.removeWhere((item) => item.id == document.id);
+    _emit();
+  }
+
+  @override
+  Future<Uint8List> download(ResidenceDocument document) async =>
+      Uint8List.fromList([1, 2, 3]);
+
+  void _emit() => _changes.add(List.unmodifiable(documents));
 }

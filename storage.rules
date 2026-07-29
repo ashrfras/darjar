@@ -1,0 +1,60 @@
+rules_version = '2';
+
+// Craft rules based on data in your Firestore database
+// allow write: if firestore.get(
+//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function memberPath(residenceId) {
+      return /databases/(default)/documents/residences/$(residenceId)/members/$(request.auth.uid);
+    }
+
+    function membership(residenceId) {
+      return firestore.get(memberPath(residenceId)).data;
+    }
+
+    function isResidenceMember(residenceId) {
+      return signedIn() && membership(residenceId).status == 'active';
+    }
+
+    function canManageResidence(residenceId) {
+      let member = membership(residenceId);
+      return signedIn()
+        && member.status == 'active'
+        && (
+          member.role in ['president', 'owner']
+          || member.hasPresidentPermissions == true
+        );
+    }
+
+    function isAcceptedDocument() {
+      return request.resource.size > 0
+        && request.resource.size <= 15 * 1024 * 1024
+        && request.resource.contentType in [
+          'application/pdf',
+          'image/jpeg',
+          'image/png',
+          'image/webp'
+        ];
+    }
+
+    match /residences/{residenceId}/documents/{documentId}/content {
+      allow read: if isResidenceMember(residenceId);
+      allow create: if canManageResidence(residenceId)
+        && isAcceptedDocument()
+        && request.resource.metadata.residenceId == residenceId
+        && request.resource.metadata.documentId == documentId
+        && request.resource.metadata.uploadedBy == request.auth.uid;
+      allow update: if false;
+      allow delete: if canManageResidence(residenceId);
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

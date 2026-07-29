@@ -7,6 +7,8 @@ import 'package:darjar/features/community/presentation/community_post_detail_pag
 import 'package:darjar/features/component_gallery/presentation/component_gallery_page.dart';
 import 'package:darjar/features/directory/presentation/directory_page.dart';
 import 'package:darjar/features/directory/presentation/directory_profile_page.dart';
+import 'package:darjar/features/documents/presentation/residence_documents_management_page.dart';
+import 'package:darjar/features/documents/presentation/residence_documents_page.dart';
 import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
 import 'package:darjar/features/profile/presentation/profile_page.dart';
 import 'package:darjar/features/profile/presentation/settings_page.dart';
@@ -36,6 +38,7 @@ abstract final class AppRoutes {
   static const createPost = '/community/create';
   static const directory = '/directory';
   static const residence = '/residence';
+  static const documents = '/residence/documents';
   static const dues = '/residence/dues';
   static const residenceFinances = '/residence/finances';
   static const financeTransactions = '/residence/finances/transactions';
@@ -43,6 +46,7 @@ abstract final class AppRoutes {
   static const manageApartments = '/residence/admin/apartments';
   static const manageDues = '/residence/admin/dues';
   static const manageFinances = '/residence/admin/finances';
+  static const manageDocuments = '/residence/admin/documents';
   static const groupInvitation = '/residence/admin/apartments/invitation';
   static const manageProjects = '/residence/admin/projects';
   static const manageResidence = '/residence/admin/details';
@@ -148,6 +152,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const DuesPage(),
           ),
           GoRoute(
+            path: AppRoutes.documents,
+            builder: (context, state) => const ResidenceDocumentsPage(),
+          ),
+          GoRoute(
             path: AppRoutes.residenceFinances,
             builder: (context, state) => const ResidenceFinancesPage(),
           ),
@@ -170,6 +178,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.manageFinances,
             builder: (context, state) => const FinanceManagementPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.manageDocuments,
+            builder: (context, state) =>
+                const ResidenceDocumentsManagementPage(),
           ),
           GoRoute(
             path: AppRoutes.groupInvitation,

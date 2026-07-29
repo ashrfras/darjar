@@ -1311,8 +1311,188 @@ abstract class AppLocalizations {
   /// No description provided for @documentsDescription.
   ///
   /// In ar, this message translates to:
-  /// **'الإعلانات والوثائق الرسمية قريباً.'**
+  /// **'آخر الوثائق الرسمية الخاصة بالإقامة.'**
   String get documentsDescription;
+
+  /// No description provided for @documentsPageDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'الوثائق والصور الرسمية التي تشاركها إدارة الإقامة مع السكان.'**
+  String get documentsPageDescription;
+
+  /// No description provided for @viewAllDocuments.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض كل الوثائق'**
+  String get viewAllDocuments;
+
+  /// No description provided for @noDocuments.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم تتم إضافة أي وثيقة إلى الإقامة بعد.'**
+  String get noDocuments;
+
+  /// No description provided for @documentsLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تحميل الوثائق. حاول مجدداً.'**
+  String get documentsLoadError;
+
+  /// No description provided for @pdfDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'PDF'**
+  String get pdfDocument;
+
+  /// No description provided for @imageDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'صورة'**
+  String get imageDocument;
+
+  /// No description provided for @documentOpenError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر فتح هذه الوثيقة.'**
+  String get documentOpenError;
+
+  /// No description provided for @shareDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشاركة الوثيقة'**
+  String get shareDocument;
+
+  /// No description provided for @documentsManagement.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة الوثائق'**
+  String get documentsManagement;
+
+  /// No description provided for @documentsManagementDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'رفع الوثائق الرسمية وتعديل عناوينها أو حذفها.'**
+  String get documentsManagementDescription;
+
+  /// No description provided for @documentsUploadNotice.
+  ///
+  /// In ar, this message translates to:
+  /// **'تظهر الوثائق لجميع السكان النشطين في هذه الإقامة. الأنواع المقبولة هي PDF وJPEG وPNG وWebP بحجم أقصى 15 MB.'**
+  String get documentsUploadNotice;
+
+  /// No description provided for @documentsPermissionDenied.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا تملك صلاحية إدارة وثائق هذه الإقامة.'**
+  String get documentsPermissionDenied;
+
+  /// No description provided for @uploadDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'رفع وثيقة'**
+  String get uploadDocument;
+
+  /// No description provided for @documentUploading.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ رفع الوثيقة…'**
+  String get documentUploading;
+
+  /// No description provided for @documentUploadInProgress.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ رفع «{title}»'**
+  String documentUploadInProgress(String title);
+
+  /// No description provided for @documentUploadProgress.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتمل {percentage}% من الرفع'**
+  String documentUploadProgress(int percentage);
+
+  /// No description provided for @documentTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'عنوان الوثيقة'**
+  String get documentTitle;
+
+  /// No description provided for @selectDocumentFile.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار صورة أو ملف PDF'**
+  String get selectDocumentFile;
+
+  /// No description provided for @documentFormRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل عنوان الوثيقة واختر ملفاً.'**
+  String get documentFormRequired;
+
+  /// No description provided for @documentTooLarge.
+  ///
+  /// In ar, this message translates to:
+  /// **'يجب ألا يتجاوز حجم الوثيقة 15 MB.'**
+  String get documentTooLarge;
+
+  /// No description provided for @documentUnsupportedType.
+  ///
+  /// In ar, this message translates to:
+  /// **'النوع غير مدعوم. اختر PDF أو JPEG أو PNG أو WebP.'**
+  String get documentUnsupportedType;
+
+  /// No description provided for @documentUploaded.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم رفع الوثيقة بنجاح.'**
+  String get documentUploaded;
+
+  /// No description provided for @documentUploadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر رفع الوثيقة. حاول مجدداً.'**
+  String get documentUploadError;
+
+  /// No description provided for @editDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل الوثيقة'**
+  String get editDocument;
+
+  /// No description provided for @documentUpdated.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تحديث عنوان الوثيقة.'**
+  String get documentUpdated;
+
+  /// No description provided for @documentUpdateError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تحديث الوثيقة.'**
+  String get documentUpdateError;
+
+  /// No description provided for @deleteDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الوثيقة'**
+  String get deleteDocument;
+
+  /// No description provided for @confirmDeleteDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد حذف وثيقة «{title}»؟ لا يمكن التراجع عن ذلك.'**
+  String confirmDeleteDocument(String title);
+
+  /// No description provided for @documentDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حذف الوثيقة.'**
+  String get documentDeleted;
+
+  /// No description provided for @documentDeleteError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر حذف الوثيقة.'**
+  String get documentDeleteError;
 
   /// No description provided for @duesPageDescription.
   ///

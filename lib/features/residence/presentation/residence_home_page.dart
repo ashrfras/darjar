@@ -5,6 +5,8 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/features/documents/data/residence_documents_repository.dart';
+import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
@@ -25,6 +27,7 @@ class ResidenceHomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboard = ref.watch(residenceDashboardProvider);
+    final documents = ref.watch(residenceDocumentsProvider);
     final residentDues = ref.watch(residentDuesProvider);
     final finances = ref.watch(residenceFinancesProvider);
     final residenceMembers = ref.watch(residenceMembersProvider);
@@ -117,6 +120,7 @@ class ResidenceHomePage extends ConsumerWidget {
               ],
               _DashboardGrid(
                 data: dashboard,
+                documents: documents,
                 residentDues: residentDues,
                 finances: finances,
                 residenceMembers: residenceMembers,
@@ -134,6 +138,7 @@ class ResidenceHomePage extends ConsumerWidget {
 class _DashboardGrid extends StatelessWidget {
   const _DashboardGrid({
     required this.data,
+    required this.documents,
     required this.residentDues,
     required this.finances,
     required this.residenceMembers,
@@ -142,6 +147,7 @@ class _DashboardGrid extends StatelessWidget {
   });
 
   final ResidenceDashboardData data;
+  final AsyncValue<List<ResidenceDocument>> documents;
   final AsyncValue<ResidenceDuesOverview> residentDues;
   final AsyncValue<ResidenceFinances> finances;
   final AsyncValue<ResidenceMembersData> residenceMembers;
@@ -169,7 +175,7 @@ class _DashboardGrid extends StatelessWidget {
               width: constraints.maxWidth,
               child: _ResidenceFinancesCard(finances),
             ),
-            SizedBox(width: pairWidth, child: _DocumentsCard(data.documents)),
+            SizedBox(width: pairWidth, child: _DocumentsCard(documents)),
             SizedBox(
               width: pairWidth,
               child: _NotificationsCard(dues: residentDues, joinedAt: joinedAt),
@@ -624,7 +630,7 @@ class _FinanceOverviewMetric extends StatelessWidget {
 class _DocumentsCard extends StatelessWidget {
   const _DocumentsCard(this.documents);
 
-  final List<ResidenceDocument> documents;
+  final AsyncValue<List<ResidenceDocument>> documents;
 
   @override
   Widget build(BuildContext context) {
@@ -633,49 +639,82 @@ class _DocumentsCard extends StatelessWidget {
       icon: Icons.folder_outlined,
       iconColor: AppColors.residence,
       iconBackground: AppColors.residenceSoft,
-      footerLabel: 'عرض كل الوثائق',
-      child: Column(
-        children: [
-          for (final document in documents)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Container(
-                    width: 28,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF0EE),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(
-                      Icons.picture_as_pdf_outlined,
-                      color: AppColors.danger,
-                      size: 18,
-                    ),
-                  ),
-                  const SizedBox(width: 9),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          document.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        Text(
-                          'PDF · ${document.size}',
-                          style: Theme.of(context).textTheme.labelMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+      footerLabel: AppLocalizations.of(context).viewAllDocuments,
+      onTap: () => context.go(AppRoutes.documents),
+      child: documents.when(
+        loading: () => const Padding(
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.large),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (error, stackTrace) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
+          child: Text(
+            AppLocalizations.of(context).documentsLoadError,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        data: (items) {
+          final visibleDocuments = items.take(3).toList(growable: false);
+          if (visibleDocuments.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
+              child: Text(
+                AppLocalizations.of(context).noDocuments,
+                textAlign: TextAlign.center,
               ),
-            ),
-        ],
+            );
+          }
+          return Column(
+            children: [
+              for (final document in visibleDocuments)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: document.isPdf
+                              ? const Color(0xFFFFF0EE)
+                              : AppColors.residenceSoft,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Icon(
+                          document.isPdf
+                              ? Icons.picture_as_pdf_outlined
+                              : Icons.image_outlined,
+                          color: document.isPdf
+                              ? AppColors.danger
+                              : AppColors.residence,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              document.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                            Text(
+                              '${residenceDocumentTypeLabel(AppLocalizations.of(context), document)}'
+                              ' · ${residenceDocumentSizeLabel(document.sizeBytes)}',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
