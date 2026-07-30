@@ -97,8 +97,10 @@ class CommunityPostCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     post.body,
-                    maxLines: expanded ? null : 3,
-                    overflow: expanded ? null : TextOverflow.ellipsis,
+                    maxLines: expanded || post.isSystem ? null : 3,
+                    overflow: expanded || post.isSystem
+                        ? null
+                        : TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.inkMuted,
                       height: 1.65,
@@ -107,10 +109,16 @@ class CommunityPostCard extends StatelessWidget {
                 ],
                 if (post.imagePaths.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.medium),
-                  _PostImages(
-                    key: ValueKey('post-images-${post.id}'),
-                    imagePaths: post.imagePaths,
-                  ),
+                  if (post.isSystem)
+                    _WelcomePostImage(
+                      key: ValueKey('post-images-${post.id}'),
+                      path: post.imagePaths.first,
+                    )
+                  else
+                    _PostImages(
+                      key: ValueKey('post-images-${post.id}'),
+                      imagePaths: post.imagePaths,
+                    ),
                 ],
                 if (post.eventDate != null) ...[
                   const SizedBox(height: AppSpacing.medium),
@@ -120,15 +128,17 @@ class CommunityPostCard extends StatelessWidget {
                   const SizedBox(height: AppSpacing.large),
                   PollPanel(post: post, onVote: onVote),
                 ],
-                const SizedBox(height: AppSpacing.medium),
-                const Divider(),
-                const SizedBox(height: AppSpacing.xSmall),
-                _PostActions(
-                  post: post,
-                  onLike: onLike,
-                  onComment: onOpen,
-                  onSave: onSave,
-                ),
+                if (!post.isSystem) ...[
+                  const SizedBox(height: AppSpacing.medium),
+                  const Divider(),
+                  const SizedBox(height: AppSpacing.xSmall),
+                  _PostActions(
+                    post: post,
+                    onLike: onLike,
+                    onComment: onOpen,
+                    onSave: onSave,
+                  ),
+                ],
               ],
             ),
           ),
@@ -275,6 +285,7 @@ String communityMemberRoleLabel(BuildContext context, String role) {
     'deputy' || 'manager' => ar ? 'نائب الرئيس' : 'Deputy',
     'treasurer' => ar ? 'أمين المال' : 'Treasurer',
     'moderator' => ar ? 'مشرف' : 'Moderator',
+    'platformAdmin' => ar ? 'فريق دارجار' : 'DarJar team',
     _ => ar ? 'ساكن' : 'Resident',
   };
 }
@@ -297,6 +308,33 @@ class _KindLabel extends StatelessWidget {
           style: Theme.of(context).textTheme.labelLarge?.copyWith(color: color),
         ),
       ],
+    );
+  }
+}
+
+class _WelcomePostImage extends StatelessWidget {
+  const _WelcomePostImage({required this.path, super.key});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).width < 600;
+    return Container(
+      height: compact ? 170 : 210,
+      decoration: BoxDecoration(
+        color: AppColors.primarySoft,
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+      ),
+      alignment: Alignment.center,
+      child: Image.asset(
+        path,
+        width: compact ? 120 : 150,
+        height: compact ? 120 : 150,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+        semanticLabel: 'DarJar',
+      ),
     );
   }
 }

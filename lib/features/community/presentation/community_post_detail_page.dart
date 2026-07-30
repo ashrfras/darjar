@@ -104,26 +104,28 @@ class _CommunityPostDetailPageState
                     ),
                     onArchive: () => _archivePost(post.id),
                   ),
-                  const SizedBox(height: AppSpacing.large),
-                  Text(
-                    ar
-                        ? 'التعليقات (${post.commentCount})'
-                        : 'Comments (${post.commentCount})',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: AppSpacing.medium),
-                  _CommentComposer(
-                    controller: _commentController,
-                    onSubmit: () => _submitComment(post.id),
-                  ),
-                  const SizedBox(height: AppSpacing.medium),
-                  if (post.comments.isEmpty)
-                    _NoComments()
-                  else
-                    for (final comment in post.comments) ...[
-                      _CommentTile(comment: comment),
-                      const SizedBox(height: AppSpacing.small),
-                    ],
+                  if (!post.isSystem) ...[
+                    const SizedBox(height: AppSpacing.large),
+                    Text(
+                      ar
+                          ? 'التعليقات (${post.commentCount})'
+                          : 'Comments (${post.commentCount})',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: AppSpacing.medium),
+                    _CommentComposer(
+                      controller: _commentController,
+                      onSubmit: () => _submitComment(post.id),
+                    ),
+                    const SizedBox(height: AppSpacing.medium),
+                    if (post.comments.isEmpty)
+                      _NoComments()
+                    else
+                      for (final comment in post.comments) ...[
+                        _CommentTile(comment: comment),
+                        const SizedBox(height: AppSpacing.small),
+                      ],
+                  ],
                 ],
               ),
             ),

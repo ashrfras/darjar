@@ -14,6 +14,26 @@ const communityImageMaxSourceSizeBytes = 8 * 1024 * 1024;
 const communityImageMaxStoredSizeBytes = 1024 * 1024;
 const communityImageMaxDimension = 1600;
 const communityImageTargetSizeBytes = 750 * 1024;
+const communityPostsPageSize = 10;
+const communityWelcomePostId = 'darjar-welcome';
+
+const communityWelcomePost = CommunityPost(
+  id: communityWelcomePostId,
+  author: 'دارجار',
+  authorRole: 'platformAdmin',
+  timeLabel: 'مرحباً بك',
+  title: 'أهلاً بك في إقامتك الرقمية',
+  body:
+      'المجتمع: تواصل مع جيرانك وتابع أخبار وإعلانات الإقامة.\n'
+      'الدليل: اعثر على الحرفيين والخدمات الموصى بها من السكان.\n'
+      'الإقامة: تابع اشتراكاتك ووثائقك واطّلع على ميزانية الإقامة.',
+  kind: CommunityPostKind.announcement,
+  likes: 0,
+  comments: [],
+  isOfficial: true,
+  isSystem: true,
+  imagePaths: ['assets/images/branding/darjar-logo.png'],
+);
 
 Uint8List compressCommunityImageBytes(Uint8List sourceBytes) {
   final decoded = image.decodeImage(sourceBytes);
@@ -146,6 +166,7 @@ class CommunityPost {
     this.eventDate,
     this.eventLocation,
     this.commentCountOverride,
+    this.isSystem = false,
   });
 
   final String id;
@@ -168,6 +189,7 @@ class CommunityPost {
   final String? eventDate;
   final String? eventLocation;
   final int? commentCountOverride;
+  final bool isSystem;
 
   int get commentCount => commentCountOverride ?? comments.length;
 
@@ -200,6 +222,7 @@ class CommunityPost {
       eventDate: eventDate,
       eventLocation: eventLocation,
       commentCountOverride: commentCountOverride,
+      isSystem: isSystem,
     );
   }
 }
@@ -227,6 +250,7 @@ abstract interface class CommunityRepository {
   Stream<List<CommunityPost>> watchPosts({
     required String residenceId,
     required String userId,
+    required int limit,
   });
 
   Stream<CommunityPost?> watchPost({
@@ -452,9 +476,12 @@ class MockCommunityRepository implements CommunityRepository {
   Stream<List<CommunityPost>> watchPosts({
     required String residenceId,
     required String userId,
+    int limit = communityPostsPageSize,
   }) async* {
-    yield getPosts();
-    yield* _changes.stream;
+    yield getPosts().take(limit).toList(growable: false);
+    yield* _changes.stream.map(
+      (posts) => posts.take(limit).toList(growable: false),
+    );
   }
 
   @override
@@ -621,10 +648,11 @@ class FirebaseCommunityRepository implements CommunityRepository {
   Stream<List<CommunityPost>> watchPosts({
     required String residenceId,
     required String userId,
+    required int limit,
   }) {
     return _posts(residenceId)
         .orderBy('createdAt', descending: true)
-        .limit(100)
+        .limit(limit)
         .snapshots()
         .asyncMap((snapshot) async {
           return Future.wait([
@@ -1057,9 +1085,22 @@ final communityRepositoryProvider = Provider<CommunityRepository>(
   ),
 );
 
+class CommunityPostsLimit extends Notifier<int> {
+  @override
+  int build() => communityPostsPageSize;
+
+  void loadMore() => state += communityPostsPageSize;
+}
+
+final communityPostsLimitProvider =
+    NotifierProvider.autoDispose<CommunityPostsLimit, int>(
+      CommunityPostsLimit.new,
+    );
+
 final communityPostsProvider = StreamProvider.autoDispose<List<CommunityPost>>((
   ref,
 ) async* {
+  final limit = ref.watch(communityPostsLimitProvider);
   final context = await ref.watch(residenceContextProvider.future);
   final residence = context.activeResidence;
   final user = ref.watch(authRepositoryProvider).currentUser;
@@ -1067,13 +1108,24 @@ final communityPostsProvider = StreamProvider.autoDispose<List<CommunityPost>>((
     yield const [];
     return;
   }
-  yield* ref
-      .watch(communityRepositoryProvider)
-      .watchPosts(residenceId: residence.id, userId: user.uid);
+  await for (final posts
+      in ref
+          .watch(communityRepositoryProvider)
+          .watchPosts(
+            residenceId: residence.id,
+            userId: user.uid,
+            limit: limit,
+          )) {
+    yield [...posts, if (posts.length < limit) communityWelcomePost];
+  }
 });
 
 final communityPostProvider = StreamProvider.autoDispose
     .family<CommunityPost?, String>((ref, postId) async* {
+      if (postId == communityWelcomePostId) {
+        yield communityWelcomePost;
+        return;
+      }
       final context = await ref.watch(residenceContextProvider.future);
       final residence = context.activeResidence;
       final user = ref.watch(authRepositoryProvider).currentUser;

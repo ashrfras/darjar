@@ -200,6 +200,19 @@ void main() {
       expect(abbreviatedCommunityName('أحمد'), 'أحمد');
     });
 
+    test(
+      'community feed repository respects the requested page size',
+      () async {
+        final community = MockCommunityRepository();
+
+        final posts = await community
+            .watchPosts(residenceId: 'residence', userId: 'resident', limit: 3)
+            .first;
+
+        expect(posts, hasLength(3));
+      },
+    );
+
     test('community images are resized and converted for efficient upload', () {
       final source = test_image.Image(width: 2400, height: 1800);
       test_image.fill(source, color: test_image.ColorRgb8(34, 139, 94));
@@ -986,10 +999,7 @@ void main() {
     expect(find.byKey(const Key('subpage-back-button')), findsOneWidget);
     expect(find.byKey(const Key('subpage-title')), findsOneWidget);
     expect(find.byKey(const Key('title-only-subpage-header')), findsOneWidget);
-    expect(
-      find.text('سيظهر هذا المنشور لسكان إقامة الاختبار فقط.'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('سيظهر هذا المنشور'), findsNothing);
 
     final fields = find.byType(TextField);
     expect(fields, findsNWidgets(2));
@@ -1012,6 +1022,38 @@ void main() {
     await _enterResidence(tester);
 
     expect(find.text('مجتمعك، صوتك، تفاعلك'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('community-post-darjar-welcome')),
+      findsOneWidget,
+    );
+    expect(find.text('أهلاً بك في إقامتك الرقمية'), findsOneWidget);
+    expect(find.textContaining('المجتمع: تواصل مع جيرانك'), findsOneWidget);
+    expect(find.textContaining('الدليل: اعثر على الحرفيين'), findsOneWidget);
+    expect(find.textContaining('الإقامة: تابع اشتراكاتك'), findsOneWidget);
+    final welcomeImage = tester.widget<Image>(
+      find.descendant(
+        of: find.byKey(const ValueKey('post-images-darjar-welcome')),
+        matching: find.byType(Image),
+      ),
+    );
+    expect(
+      (welcomeImage.image as AssetImage).assetName,
+      'assets/images/branding/darjar-logo.png',
+    );
+    expect(
+      tester
+          .getTopLeft(
+            find.byKey(const ValueKey('community-post-darjar-welcome')),
+          )
+          .dy,
+      greaterThan(
+        tester
+            .getTopLeft(
+              find.byKey(const ValueKey('community-post-general-books')),
+            )
+            .dy,
+      ),
+    );
     expect(
       find.byKey(const ValueKey('post-images-announcement-elevator')),
       findsOneWidget,
@@ -1057,7 +1099,11 @@ void main() {
     final announcement = find.byKey(
       const ValueKey('community-post-announcement-elevator'),
     );
-    await tester.ensureVisible(announcement);
+    await Scrollable.ensureVisible(
+      tester.element(announcement),
+      alignment: 0.5,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(announcement);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('community-post-detail-page')), findsOneWidget);

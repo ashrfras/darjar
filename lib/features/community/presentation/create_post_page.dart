@@ -9,7 +9,6 @@ import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
-import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -51,12 +50,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     final localizations = AppLocalizations.of(context);
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final compact = MediaQuery.sizeOf(context).width < 600;
-    final residenceName = ref
-        .watch(residenceContextProvider)
-        .value
-        ?.activeResidence
-        ?.name;
-
     return Scaffold(
       key: const Key('create-post-page'),
       backgroundColor: Colors.transparent,
@@ -165,8 +158,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                           ),
                         ),
                       ],
-                      const SizedBox(height: AppSpacing.large),
-                      _PrivacyNotice(residenceName: residenceName),
                       if (_publishing) ...[
                         const SizedBox(height: AppSpacing.large),
                         Semantics(
@@ -558,46 +549,6 @@ class _PollFields extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
-}
-
-class _PrivacyNotice extends StatelessWidget {
-  const _PrivacyNotice({required this.residenceName});
-
-  final String? residenceName;
-
-  @override
-  Widget build(BuildContext context) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
-    final displayName =
-        residenceName ?? (ar ? 'الإقامة الحالية' : 'the current residence');
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.medium),
-      decoration: BoxDecoration(
-        color: AppColors.primarySoft,
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.lock_outline_rounded,
-            color: AppColors.primary,
-            size: 20,
-          ),
-          const SizedBox(width: AppSpacing.small),
-          Expanded(
-            child: Text(
-              ar
-                  ? 'سيظهر هذا المنشور لسكان $displayName فقط.'
-                  : 'This post is visible only to residents of $displayName.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.primary),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

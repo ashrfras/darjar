@@ -21,11 +21,30 @@ class CommunityFeedPage extends ConsumerStatefulWidget {
 
 class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
   CommunityFeedFilter _filter = CommunityFeedFilter.all;
+  final _scrollController = ScrollController();
+  bool _loadingMore = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_loadMoreNearBottom);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_loadMoreNearBottom)
+      ..dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final postsState = ref.watch(communityPostsProvider);
     final posts = postsState.value ?? const <CommunityPost>[];
+    ref.listen(communityPostsProvider, (previous, next) {
+      if (!next.isLoading) _loadingMore = false;
+    });
     final compact = MediaQuery.sizeOf(context).width < 600;
     final wide = MediaQuery.sizeOf(context).width >= 1180;
     final filtered = posts.where((post) {
@@ -47,6 +66,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
             )
           : null,
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           SliverPersistentHeader(
             pinned: compact,
@@ -128,6 +148,14 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                 ),
                                 const SizedBox(height: AppSpacing.medium),
                               ],
+                            if (postsState.isLoading && posts.isNotEmpty)
+                              const Padding(
+                                key: Key('community-load-more-progress'),
+                                padding: EdgeInsets.all(AppSpacing.large),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -144,6 +172,22 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
         ],
       ),
     );
+  }
+
+  void _loadMoreNearBottom() {
+    if (!_scrollController.hasClients ||
+        _scrollController.position.extentAfter > 500 ||
+        _loadingMore) {
+      return;
+    }
+    final postsState = ref.read(communityPostsProvider);
+    final loadedPostCount =
+        postsState.value?.where((post) => !post.isSystem).length ?? 0;
+    final currentLimit = ref.read(communityPostsLimitProvider);
+    if (postsState.isLoading || loadedPostCount < currentLimit) return;
+
+    _loadingMore = true;
+    ref.read(communityPostsLimitProvider.notifier).loadMore();
   }
 
   Future<void> _runAction(Future<void> Function() action) async {
