@@ -1116,6 +1116,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get markAllNotificationsRead => 'Mark all as read';
 
   @override
+  String get noNotifications => 'There are no notifications right now.';
+
+  @override
+  String get notificationsLoadError => 'Notifications could not be loaded.';
+
+  @override
+  String get newPostNotificationTitle => 'New post';
+
+  @override
+  String newPostNotificationBody(String author) {
+    return '$author added a new post.';
+  }
+
+  @override
+  String get duesOverdueNotificationTitle => 'Overdue dues';
+
+  @override
+  String duesOverdueNotificationBody(String period) {
+    return 'Dues for $period are overdue.';
+  }
+
+  @override
+  String get budgetChangedNotificationTitle => 'Budget update';
+
+  @override
+  String get budgetChangedNotificationBody =>
+      'The residence budget was updated.';
+
+  @override
   String get waterInterruptionNotificationTitle =>
       'Scheduled water interruption';
 

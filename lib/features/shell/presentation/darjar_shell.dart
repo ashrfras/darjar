@@ -6,9 +6,11 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_typography.dart';
 import 'package:darjar/core/responsive/responsive_builder.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
+import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
-import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/notifications/data/notification_push_service.dart';
+import 'package:darjar/features/notifications/data/notifications_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
@@ -148,10 +150,7 @@ class _CompactShell extends StatelessWidget {
         leading: _CompactIdentity(residenceContext),
         title: const SizedBox.shrink(),
         actions: [
-          _NotificationsAction(
-            compact: true,
-            invitationCount: residenceContext.invitations.length,
-          ),
+          _NotificationsAction(compact: true),
           _ProfileAction(compact: true),
           const SizedBox(width: 6),
         ],
@@ -199,9 +198,7 @@ class _MediumShell extends StatelessWidget {
           ],
         ),
         actions: [
-          _NotificationsAction(
-            invitationCount: residenceContext.invitations.length,
-          ),
+          const _NotificationsAction(),
           _ProfileAction(),
           const SizedBox(width: AppSpacing.large),
         ],
@@ -281,9 +278,7 @@ class _ExpandedShell extends StatelessWidget {
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                       ),
-                      _NotificationsAction(
-                        invitationCount: residenceContext.invitations.length,
-                      ),
+                      const _NotificationsAction(),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.small),
@@ -423,18 +418,15 @@ class _Brand extends StatelessWidget {
   }
 }
 
-class _NotificationsAction extends StatelessWidget {
-  const _NotificationsAction({
-    required this.invitationCount,
-    this.compact = false,
-  });
+class _NotificationsAction extends ConsumerWidget {
+  const _NotificationsAction({this.compact = false});
 
   final bool compact;
-  final int invitationCount;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
     return IconButton(
       key: const Key('notifications-button'),
       tooltip: localizations.notifications,
@@ -442,13 +434,26 @@ class _NotificationsAction extends StatelessWidget {
       iconSize: compact ? 21 : 24,
       padding: const EdgeInsets.all(8),
       constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-      icon: Badge(
-        isLabelVisible: invitationCount > 0,
-        label: invitationCount > 0 ? Text('$invitationCount') : null,
-        smallSize: 7,
-        offset: Offset(1, -1),
-        backgroundColor: AppColors.warning,
-        child: const Icon(Icons.notifications_none_rounded),
+      icon: SizedBox.square(
+        dimension: 28,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            const Icon(Icons.notifications_none_rounded),
+            if (unreadCount > 0)
+              PositionedDirectional(
+                key: const Key('notifications-unread-badge-position'),
+                top: -4,
+                end: -5,
+                child: Badge(
+                  key: const Key('notifications-unread-badge'),
+                  label: Text(unreadCount > 99 ? '99+' : '$unreadCount'),
+                  backgroundColor: AppColors.warning,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -465,46 +470,15 @@ class _NotificationsAction extends StatelessWidget {
   }
 }
 
-class _NotificationsSheet extends ConsumerStatefulWidget {
+class _NotificationsSheet extends ConsumerWidget {
   const _NotificationsSheet();
 
-  @override
-  ConsumerState<_NotificationsSheet> createState() =>
-      _NotificationsSheetState();
-}
-
-class _NotificationsSheetState extends ConsumerState<_NotificationsSheet> {
-  String? _acceptingPath;
+  static const previewLimit = 5;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
-    final invitations =
-        ref.watch(residenceContextProvider).value?.invitations ??
-        const <ResidenceInvitation>[];
-    final notifications = [
-      (
-        icon: Icons.water_drop_outlined,
-        color: AppColors.residence,
-        title: localizations.waterInterruptionNotificationTitle,
-        body: localizations.waterInterruptionNotificationBody,
-        time: localizations.notificationTimeMinutes,
-      ),
-      (
-        icon: Icons.receipt_long_outlined,
-        color: AppColors.primary,
-        title: localizations.duesReminderNotificationTitle,
-        body: localizations.duesReminderNotificationBody,
-        time: localizations.notificationTimeHours,
-      ),
-      (
-        icon: Icons.engineering_outlined,
-        color: AppColors.warning,
-        title: localizations.maintenanceNotificationTitle,
-        body: localizations.maintenanceNotificationBody,
-        time: localizations.notificationTimeYesterday,
-      ),
-    ];
+    final notifications = ref.watch(notificationsProvider);
 
     return Material(
       key: const Key('notifications-sheet'),
@@ -530,122 +504,120 @@ class _NotificationsSheetState extends ConsumerState<_NotificationsSheet> {
                 ),
                 TextButton(
                   key: const Key('mark-notifications-read-button'),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed:
+                      notifications.value?.any(
+                            (notification) => !notification.isRead,
+                          ) ==
+                          true
+                      ? () =>
+                            ref.read(notificationActionsProvider).markAllRead()
+                      : null,
                   child: Text(localizations.markAllNotificationsRead),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.small),
-            for (final invitation in invitations) ...[
-              ListTile(
-                key: ValueKey('in-app-invitation-${invitation.id}'),
-                contentPadding: EdgeInsets.zero,
-                leading: const CircleAvatar(
-                  backgroundColor: AppColors.primarySoft,
-                  foregroundColor: AppColors.primary,
-                  child: Icon(Icons.mark_email_unread_outlined),
-                ),
-                title: Text(
-                  localizations.residenceDisplayName(
-                    normalizeResidenceName(invitation.residenceName),
-                  ),
-                ),
-                subtitle: Text(
-                  invitation.residenceAddress,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: FilledButton(
-                  key: ValueKey('accept-in-app-invitation-${invitation.id}'),
-                  onPressed: _acceptingPath == null
-                      ? () => _acceptInvitation(invitation)
-                      : null,
-                  child: _acceptingPath == invitation.path
-                      ? const SizedBox.square(
-                          dimension: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(localizations.acceptInvitation),
-                ),
+            notifications.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.all(AppSpacing.xLarge),
+                child: Center(child: CircularProgressIndicator()),
               ),
-              const Divider(),
-            ],
-            for (var index = 0; index < notifications.length; index++) ...[
-              _NotificationTile(
-                key: ValueKey('notification-$index'),
-                icon: notifications[index].icon,
-                color: notifications[index].color,
-                title: notifications[index].title,
-                body: notifications[index].body,
-                time: notifications[index].time,
+              error: (error, stackTrace) => Padding(
+                padding: const EdgeInsets.all(AppSpacing.large),
+                child: Text(localizations.notificationsLoadError),
               ),
-              if (index < notifications.length - 1) const Divider(),
-            ],
+              data: (items) {
+                if (items.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xLarge),
+                    child: Text(
+                      localizations.noNotifications,
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                }
+                final previewItems = items
+                    .take(_NotificationsSheet.previewLimit)
+                    .toList(growable: false);
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (
+                      var index = 0;
+                      index < previewItems.length;
+                      index++
+                    ) ...[
+                      _NotificationTile(
+                        key: ValueKey('notification-${previewItems[index].id}'),
+                        notification: previewItems[index],
+                        onTap: () => _openNotification(
+                          context,
+                          ref,
+                          previewItems[index],
+                        ),
+                      ),
+                      if (index < previewItems.length - 1) const Divider(),
+                    ],
+                  ],
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _acceptInvitation(ResidenceInvitation invitation) async {
-    final user = ref.read(authRepositoryProvider).currentUser;
-    if (user == null) {
-      return;
-    }
-    setState(() => _acceptingPath = invitation.path);
-    try {
-      final repository = ref.read(accountOnboardingRepositoryProvider);
-      final resolution = await repository.loadResolution(user);
-      final currentInvitation = resolution.invitations
-          .where((item) => item.path == invitation.path)
-          .firstOrNull;
-      if (currentInvitation == null) {
-        return;
-      }
-      await repository.acceptInvitations(
-        user: user,
-        resolution: resolution,
-        invitations: [currentInvitation],
-      );
-      ref.invalidate(residenceContextProvider);
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context).accountResolutionUnexpectedError,
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _acceptingPath = null);
-      }
-    }
+  Future<void> _openNotification(
+    BuildContext context,
+    WidgetRef ref,
+    DarJarNotification notification,
+  ) async {
+    await ref.read(notificationActionsProvider).markRead(notification.id);
+    if (!context.mounted) return;
+    Navigator.of(context).pop();
+    context.go(notificationRoute(notification));
   }
 }
 
 class _NotificationTile extends StatelessWidget {
   const _NotificationTile({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.body,
-    required this.time,
+    required this.notification,
+    required this.onTap,
     super.key,
   });
 
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String body;
-  final String time;
+  final DarJarNotification notification;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final (icon, color, title, body) = switch (notification.type) {
+      DarJarNotificationType.postCreated => (
+        Icons.article_outlined,
+        AppColors.residence,
+        localizations.newPostNotificationTitle,
+        localizations.newPostNotificationBody(
+          abbreviatedPersonName(notification.actorName),
+        ),
+      ),
+      DarJarNotificationType.duesOverdue => (
+        Icons.receipt_long_outlined,
+        AppColors.warning,
+        localizations.duesOverdueNotificationTitle,
+        localizations.duesOverdueNotificationBody(notification.periodKey),
+      ),
+      DarJarNotificationType.budgetChanged => (
+        Icons.account_balance_wallet_outlined,
+        AppColors.primary,
+        localizations.budgetChangedNotificationTitle,
+        localizations.budgetChangedNotificationBody,
+      ),
+    };
     return ListTile(
       contentPadding: EdgeInsets.zero,
+      tileColor: notification.isRead ? null : color.withValues(alpha: 0.05),
       leading: CircleAvatar(
         backgroundColor: color.withValues(alpha: 0.12),
         foregroundColor: color,
@@ -657,13 +629,21 @@ class _NotificationTile extends StatelessWidget {
         child: Text(body),
       ),
       trailing: Text(
-        time,
+        _notificationTime(localizations, notification.occurredAt),
         style: Theme.of(
           context,
         ).textTheme.labelSmall?.copyWith(color: AppColors.inkMuted),
       ),
+      onTap: onTap,
     );
   }
+}
+
+String _notificationTime(AppLocalizations localizations, DateTime occurredAt) {
+  final elapsed = DateTime.now().difference(occurredAt);
+  if (elapsed.inMinutes < 60) return localizations.notificationTimeMinutes;
+  if (elapsed.inHours < 24) return localizations.notificationTimeHours;
+  return localizations.notificationTimeYesterday;
 }
 
 class _ProfileAction extends StatelessWidget {

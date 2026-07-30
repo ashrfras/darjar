@@ -1100,6 +1100,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get markAllNotificationsRead => 'تحديد الكل كمقروء';
 
   @override
+  String get noNotifications => 'لا توجد إشعارات حاليًا.';
+
+  @override
+  String get notificationsLoadError => 'تعذّر تحميل الإشعارات.';
+
+  @override
+  String get newPostNotificationTitle => 'منشور جديد';
+
+  @override
+  String newPostNotificationBody(String author) {
+    return 'أضاف $author منشورًا جديدًا.';
+  }
+
+  @override
+  String get duesOverdueNotificationTitle => 'تأخر الأداء';
+
+  @override
+  String duesOverdueNotificationBody(String period) {
+    return 'تأخر أداء واجب الفترة $period.';
+  }
+
+  @override
+  String get budgetChangedNotificationTitle => 'تحديث الميزانية';
+
+  @override
+  String get budgetChangedNotificationBody => 'تم تحديث ميزانية الإقامة.';
+
+  @override
   String get waterInterruptionNotificationTitle => 'انقطاع مبرمج للماء';
 
   @override

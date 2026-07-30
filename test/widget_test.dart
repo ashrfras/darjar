@@ -7,17 +7,19 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_theme.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
+import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
-import 'package:darjar/features/community/presentation/community_post_card.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
 import 'package:darjar/features/documents/presentation/residence_documents_management_page.dart';
+import 'package:darjar/features/notifications/data/notification_push_service.dart';
+import 'package:darjar/features/notifications/data/notifications_repository.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
@@ -64,6 +66,43 @@ void main() {
   });
 
   group('mock repositories', () {
+    test('notifications are residence-scoped and persist read state', () async {
+      final repository = MockNotificationsRepository(
+        seed: [
+          DarJarNotification(
+            id: 'visible',
+            residenceId: 'residence-a',
+            recipientUserId: 'user-a',
+            type: DarJarNotificationType.postCreated,
+            occurredAt: DateTime(2026, 7, 30),
+            targetId: 'post-a',
+            actorName: 'أمينة',
+          ),
+          DarJarNotification(
+            id: 'other-residence',
+            residenceId: 'residence-b',
+            recipientUserId: 'user-a',
+            type: DarJarNotificationType.budgetChanged,
+            occurredAt: DateTime(2026, 7, 29),
+            targetId: '',
+          ),
+        ],
+      );
+      addTearDown(repository.dispose);
+
+      final initial = await repository
+          .watch(residenceId: 'residence-a', userId: 'user-a')
+          .first;
+      expect(initial.map((notification) => notification.id), ['visible']);
+      expect(initial.single.isRead, isFalse);
+
+      await repository.markRead('visible');
+      final updated = await repository
+          .watch(residenceId: 'residence-a', userId: 'user-a')
+          .first;
+      expect(updated.single.isRead, isTrue);
+    });
+
     test('dues overview exposes debit, credit, and grouped payment totals', () {
       final now = DateTime.now();
       final currentPeriod = residenceDuesPeriodKey(now);
@@ -195,10 +234,11 @@ void main() {
       },
     );
 
-    test('community names abbreviate the family name in Arabic', () {
-      expect(abbreviatedCommunityName('محمد العيساوي'), 'محمد ع.');
-      expect(abbreviatedCommunityName('أشرف راس'), 'أشرف ر.');
-      expect(abbreviatedCommunityName('أحمد'), 'أحمد');
+    test('people names abbreviate the family name in Arabic', () {
+      expect(abbreviatedPersonName('محمد العيساوي'), 'محمد ع.');
+      expect(abbreviatedPersonName('أشرف راس'), 'أشرف ر.');
+      expect(abbreviatedPersonName('كريم المنيعي'), 'كريم م.');
+      expect(abbreviatedPersonName('أحمد'), 'أحمد');
     });
 
     test(
@@ -789,6 +829,18 @@ void main() {
     final notificationButton = tester.widget<IconButton>(notification);
     expect(appBar.toolbarHeight, 58);
     expect(notificationButton.iconSize, 21);
+    final badgePosition = tester.widget<PositionedDirectional>(
+      find.byKey(const Key('notifications-unread-badge-position')),
+    );
+    expect(badgePosition.top, -4);
+    expect(badgePosition.end, -5);
+    final bell = find.descendant(
+      of: notification,
+      matching: find.byIcon(Icons.notifications_none_rounded),
+    );
+    final badge = find.byKey(const Key('notifications-unread-badge'));
+    expect(tester.getCenter(badge).dx, lessThan(tester.getCenter(bell).dx));
+    expect(tester.getCenter(badge).dy, lessThan(tester.getCenter(bell).dy));
     final brandImage = tester.widget<Image>(brand);
     expect(
       (brandImage.image as AssetImage).assetName,
@@ -806,13 +858,60 @@ void main() {
     await tester.tap(notification);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('notifications-sheet')), findsOneWidget);
-    expect(find.text('انقطاع مبرمج للماء'), findsOneWidget);
-    expect(find.text('تذكير بواجبات الإقامة'), findsOneWidget);
-    expect(find.text('صيانة المصعد'), findsOneWidget);
+    expect(find.text('منشور جديد'), findsOneWidget);
+    expect(find.text('أضاف محمد ع. منشورًا جديدًا.'), findsOneWidget);
+    expect(find.textContaining('محمد العلوي'), findsNothing);
+    expect(find.text('تأخر الأداء'), findsOneWidget);
+    expect(find.text('تحديث الميزانية'), findsOneWidget);
 
     final filter = find.byKey(const ValueKey('community-filter-all'));
     final appBarBottom = tester.getBottomLeft(find.byType(AppBar)).dy;
     expect(tester.getTopLeft(filter).dy - appBarBottom, 12);
+  });
+
+  testWidgets('notifications sheet shows only the five newest items', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 7, 30, 12);
+    final notificationsRepository = MockNotificationsRepository(
+      seed: [
+        for (var index = 0; index < 7; index++)
+          DarJarNotification(
+            id: 'preview-$index',
+            residenceId: '*',
+            recipientUserId: '*',
+            type: DarJarNotificationType.postCreated,
+            occurredAt: now.subtract(Duration(minutes: index)),
+            targetId: 'post-$index',
+            actorName: 'أشرف راس',
+          ),
+      ],
+    );
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      notificationsRepository: notificationsRepository,
+    );
+    await _enterResidence(tester);
+
+    final badge = find.descendant(
+      of: find.byKey(const Key('notifications-unread-badge')),
+      matching: find.text('7'),
+    );
+    expect(badge, findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('notifications-button')));
+    await tester.pumpAndSettle();
+
+    for (var index = 0; index < 5; index++) {
+      expect(
+        find.byKey(ValueKey('notification-preview-$index')),
+        findsOneWidget,
+      );
+    }
+    for (var index = 5; index < 7; index++) {
+      expect(find.byKey(ValueKey('notification-preview-$index')), findsNothing);
+    }
   });
 
   testWidgets('resident sees feedback for an unknown residence code', (
@@ -877,7 +976,7 @@ void main() {
   });
 
   testWidgets(
-    'resident switches real residences and accepts a new invitation',
+    'resident switches residences and invitations stay outside notifications',
     (tester) async {
       const invitation = ResidenceInvitation(
         path: 'residences/nakheel/invitations/invitation-3',
@@ -947,13 +1046,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         find.byKey(const ValueKey('in-app-invitation-invitation-3')),
-        findsOneWidget,
+        findsNothing,
       );
-      await tester.tap(
-        find.byKey(const ValueKey('accept-in-app-invitation-invitation-3')),
-      );
-      await tester.pumpAndSettle();
-      expect(accountRepository.acceptedInvitations, [invitation]);
+      expect(find.text('منشور جديد'), findsOneWidget);
     },
   );
 
@@ -2841,6 +2936,7 @@ Future<void> _pumpApp(
   CommunityRepository? communityRepository,
   DirectoryRecommendationsRepository? directoryRecommendationsRepository,
   ProfileRepository? profileRepository,
+  NotificationsRepository? notificationsRepository,
   ResidenceContext? residenceContext,
   Object? residenceContextError,
 }) async {
@@ -2875,6 +2971,8 @@ Future<void> _pumpApp(
       MockDirectoryRecommendationsRepository();
   final currentProfileRepository =
       profileRepository ?? _FakeProfileRepository();
+  final currentNotificationsRepository =
+      notificationsRepository ?? MockNotificationsRepository();
   final contextData = residenceContext ?? _defaultResidenceContext;
   if (repository is _FakeAuthRepository) {
     addTearDown(repository.dispose);
@@ -2886,12 +2984,19 @@ Future<void> _pumpApp(
       is MockDirectoryRecommendationsRepository) {
     addTearDown(currentDirectoryRecommendationsRepository.dispose);
   }
+  if (currentNotificationsRepository is MockNotificationsRepository) {
+    addTearDown(currentNotificationsRepository.dispose);
+  }
 
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         authRepositoryProvider.overrideWithValue(repository),
         appInitialLocationProvider.overrideWithValue(AppRoutes.onboarding),
+        notificationPushEnabledProvider.overrideWithValue(false),
+        notificationsRepositoryProvider.overrideWithValue(
+          currentNotificationsRepository,
+        ),
         accountOnboardingRepositoryProvider.overrideWithValue(
           onboardingRepository,
         ),

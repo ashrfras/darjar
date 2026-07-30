@@ -1,0 +1,16 @@
+name: darjar_notifications
+description: Trusted DarJar notification dispatcher for Cloud Run.
+publish_to: none
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  googleapis_auth: ^2.0.0
+  http: ^1.6.0
+  shelf: ^1.4.2
+  shelf_router: ^1.1.4
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.31.0

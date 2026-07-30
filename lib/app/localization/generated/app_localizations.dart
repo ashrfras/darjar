@@ -2088,6 +2088,54 @@ abstract class AppLocalizations {
   /// **'تحديد الكل كمقروء'**
   String get markAllNotificationsRead;
 
+  /// No description provided for @noNotifications.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد إشعارات حاليًا.'**
+  String get noNotifications;
+
+  /// No description provided for @notificationsLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل الإشعارات.'**
+  String get notificationsLoadError;
+
+  /// No description provided for @newPostNotificationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'منشور جديد'**
+  String get newPostNotificationTitle;
+
+  /// No description provided for @newPostNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضاف {author} منشورًا جديدًا.'**
+  String newPostNotificationBody(String author);
+
+  /// No description provided for @duesOverdueNotificationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأخر الأداء'**
+  String get duesOverdueNotificationTitle;
+
+  /// No description provided for @duesOverdueNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأخر أداء واجب الفترة {period}.'**
+  String duesOverdueNotificationBody(String period);
+
+  /// No description provided for @budgetChangedNotificationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحديث الميزانية'**
+  String get budgetChangedNotificationTitle;
+
+  /// No description provided for @budgetChangedNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تحديث ميزانية الإقامة.'**
+  String get budgetChangedNotificationBody;
+
   /// No description provided for @waterInterruptionNotificationTitle.
   ///
   /// In ar, this message translates to:

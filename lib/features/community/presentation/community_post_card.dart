@@ -1,6 +1,7 @@
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:flutter/material.dart';
@@ -177,7 +178,7 @@ class _PostHeader extends StatelessWidget {
                 children: [
                   Flexible(
                     child: Text(
-                      abbreviatedCommunityName(post.author),
+                      abbreviatedPersonName(post.author),
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(
                         context,
@@ -262,20 +263,6 @@ class _PostHeader extends StatelessWidget {
     );
     if (confirmed == true) onArchive?.call();
   }
-}
-
-String abbreviatedCommunityName(String fullName) {
-  final parts = fullName
-      .trim()
-      .split(RegExp(r'\s+'))
-      .where((part) => part.isNotEmpty)
-      .toList(growable: false);
-  if (parts.length < 2) return parts.firstOrNull ?? fullName;
-  final surnameRunes = parts.last.runes.toList(growable: false);
-  final startsWithArticle =
-      parts.last.startsWith('ال') && surnameRunes.length > 2;
-  final initialIndex = startsWithArticle ? 2 : 0;
-  return '${parts.first} ${String.fromCharCode(surnameRunes[initialIndex])}.';
 }
 
 String communityMemberRoleLabel(BuildContext context, String role) {
