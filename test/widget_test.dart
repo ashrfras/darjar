@@ -792,7 +792,7 @@ void main() {
     final brandImage = tester.widget<Image>(brand);
     expect(
       (brandImage.image as AssetImage).assetName,
-      'assets/images/branding/darjar-logo.png',
+      'assets/images/branding/darjar-logo-header-compact.png',
     );
     expect(brandImage.fit, BoxFit.contain);
     expect(

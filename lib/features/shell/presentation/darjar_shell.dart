@@ -377,14 +377,18 @@ class _Brand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final logoAsset = compact
+        ? 'assets/images/branding/darjar-logo-header-compact.png'
+        : 'assets/images/branding/darjar-logo-header.png';
+
     return Row(
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [
         Image.asset(
-          'assets/images/branding/darjar-logo.png',
+          logoAsset,
           key: compact ? const Key('compact-brand') : null,
-          width: compact ? 34 : 42,
-          height: compact ? 34 : 42,
+          width: compact ? 31 : 38,
+          height: compact ? 31 : 38,
           fit: BoxFit.contain,
           filterQuality: FilterQuality.high,
           isAntiAlias: true,
