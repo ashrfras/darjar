@@ -73,6 +73,7 @@
   "firstNameHint": "Enter your first name",
   "lastName": "Last name",
   "lastNameHint": "Enter your last name",
+  "lastNamePrivacyHint": "Your last name is not shown to other residents.",
   "joinPhoneDescription": "Enter your phone number to check whether it is linked to a residence.",
   "verificationCodeNotice": "A verification code will be sent to your phone number.",
   "verificationCode": "Verification code",

@@ -2,7 +2,7 @@ import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
-import 'package:darjar/app/theme/app_typography.dart';
+import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
@@ -35,13 +35,7 @@ class _AccountResolutionPageState extends ConsumerState<AccountResolutionPage> {
     return Scaffold(
       key: const Key('account-resolution-page'),
       appBar: AppBar(
-        title: Text(
-          localizations.appName,
-          style: AppTypography.brandArabic.copyWith(
-            color: AppColors.ink,
-            fontSize: 20,
-          ),
-        ),
+        title: const DarJarBrand(key: Key('account-resolution-brand')),
         leading: IconButton(
           key: const Key('account-resolution-sign-out-button'),
           tooltip: localizations.back,

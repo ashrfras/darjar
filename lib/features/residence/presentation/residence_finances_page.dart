@@ -6,6 +6,7 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -348,13 +349,13 @@ class _BreakdownRow extends StatelessWidget {
   }
 }
 
-class _RecentExpensesCard extends StatelessWidget {
+class _RecentExpensesCard extends ConsumerWidget {
   const _RecentExpensesCard({required this.finances});
 
   final ResidenceFinances finances;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return DarJarCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -375,7 +376,16 @@ class _RecentExpensesCard extends StatelessWidget {
               index < finances.recentExpenses.length;
               index++
             ) ...[
-              _ExpenseRow(expense: finances.recentExpenses[index]),
+              _ExpenseRow(
+                expense: finances.recentExpenses[index],
+                onOpenAttachment: finances.recentExpenses[index].hasAttachment
+                    ? () => showResidenceDocumentPreview(
+                        context,
+                        ref,
+                        finances.recentExpenses[index].attachmentDocument,
+                      )
+                    : null,
+              ),
               if (index != finances.recentExpenses.length - 1)
                 const Divider(height: AppSpacing.xLarge),
             ],
@@ -394,9 +404,10 @@ class _RecentExpensesCard extends StatelessWidget {
 }
 
 class _ExpenseRow extends StatelessWidget {
-  const _ExpenseRow({required this.expense});
+  const _ExpenseRow({required this.expense, this.onOpenAttachment});
 
   final ResidenceTransaction expense;
+  final VoidCallback? onOpenAttachment;
 
   @override
   Widget build(BuildContext context) {
@@ -459,32 +470,72 @@ class _ExpenseRow extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.small),
-                if (expense.hasAttachment)
+                if (expense.note.trim().isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xSmall),
                   Row(
+                    key: ValueKey('residence-expense-note-${expense.id}'),
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(
-                        Icons.description_outlined,
+                        Icons.notes_rounded,
                         size: 17,
-                        color: AppColors.residence,
+                        color: AppColors.inkMuted,
                       ),
                       const SizedBox(width: AppSpacing.xSmall),
                       Expanded(
                         child: Text(
-                          '${localizations.supportingDocument}: ${expense.attachmentName}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(color: AppColors.residence),
+                          expense.note.trim(),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),
                     ],
-                  )
-                else
+                  ),
+                ],
+                if (onOpenAttachment != null) ...[
+                  if (expense.note.trim().isEmpty)
+                    const SizedBox(height: AppSpacing.xSmall),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: InkWell(
+                      key: ValueKey(
+                        'residence-expense-attachment-${expense.id}',
+                      ),
+                      onTap: onOpenAttachment,
+                      borderRadius: BorderRadius.circular(AppRadius.small),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.xSmall,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.attachment_outlined,
+                              size: 17,
+                              color: AppColors.residence,
+                            ),
+                            const SizedBox(width: AppSpacing.xSmall),
+                            Flexible(
+                              child: Text(
+                                expense.attachmentName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(color: AppColors.residence),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  const SizedBox(height: AppSpacing.small),
                   Text(
                     localizations.noSupportingDocument,
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
+                ],
               ],
             ),
           ),

@@ -238,6 +238,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lastNameHint => 'أدخل نسبك';
 
   @override
+  String get lastNamePrivacyHint => 'لا يتم إظهار النسب للسكان الآخرين.';
+
+  @override
   String get joinPhoneDescription =>
       'أدخل رقم هاتفك للتحقق مما إذا كان مرتبطاً بإقامة.';
 

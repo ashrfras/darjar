@@ -403,6 +403,7 @@ class _EditProfileNameSheetState extends ConsumerState<_EditProfileNameSheet> {
                     DarJarTextField(
                       key: const Key('profile-last-name-field'),
                       label: localizations.lastName,
+                      helper: localizations.lastNamePrivacyHint,
                       controller: _lastNameController,
                       prefixIcon: Icons.person_outline_rounded,
                       textInputAction: TextInputAction.done,

@@ -589,7 +589,10 @@ class _AddResidentSheetState extends State<_AddResidentSheet> {
               key: const Key('resident-last-name-field'),
               controller: _lastNameController,
               textInputAction: TextInputAction.next,
-              decoration: InputDecoration(labelText: widget.copy.lastName),
+              decoration: InputDecoration(
+                labelText: widget.copy.lastName,
+                helperText: widget.copy.lastNamePrivacyHint,
+              ),
               validator: _requiredValidator,
             ),
             const SizedBox(height: AppSpacing.medium),
@@ -1852,6 +1855,9 @@ class _Copy {
   String get addResident => arabic ? 'إضافة ساكن' : 'Add resident';
   String get firstName => arabic ? 'الاسم' : 'First name';
   String get lastName => arabic ? 'النسب' : 'Last name';
+  String get lastNamePrivacyHint => arabic
+      ? 'لا يتم إظهار النسب للسكان الآخرين.'
+      : 'The last name is not shown to other residents.';
   String get phoneNumber => arabic ? 'رقم الهاتف' : 'Phone number';
   String get countryCode => arabic ? 'رمز الدولة' : 'Country code';
   String get phoneHint => arabic ? '6 12 34 56 78' : '6 12 34 56 78';

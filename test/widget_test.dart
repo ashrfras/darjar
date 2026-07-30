@@ -289,12 +289,15 @@ void main() {
       expect(residenceDocumentMaxSizeBytes, 15 * 1024 * 1024);
     });
 
-    test('transaction attachments use stable numeric names', () {
+    test('transaction attachments use stable low-collision numeric names', () {
       final name = residenceTransactionAttachmentName('transaction-1284');
 
-      expect(name, 'مرفق-1284');
-      expect(name, matches(RegExp(r'^مرفق-[0-9]{4}$')));
+      expect(name, matches(RegExp(r'^مرفق-[0-9]{12}$')));
       expect(residenceTransactionAttachmentName('transaction-1284'), name);
+      expect(
+        residenceTransactionAttachmentName('transaction-11284'),
+        isNot(name),
+      );
       expect(name, isNot(contains('transaction')));
     });
 
@@ -526,6 +529,14 @@ void main() {
       await tester.tap(find.byKey(const Key('start-button')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('phone-auth-page')), findsOneWidget);
+      expect(find.byKey(const Key('phone-auth-brand')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('phone-auth-brand')),
+          matching: find.byType(Image),
+        ),
+        findsOneWidget,
+      );
       expect(
         tester.getCenter(find.text('+212')).dx,
         lessThan(
@@ -641,6 +652,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('account-resolution-page')), findsOneWidget);
+      expect(find.byKey(const Key('account-resolution-brand')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('account-resolution-brand')),
+          matching: find.byType(Image),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('أمينة المريني'), findsOneWidget);
       expect(find.text('212600000001', findRichText: true), findsOneWidget);
       expect(find.text('إقامة الياسمين'), findsOneWidget);
@@ -746,6 +765,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('join-my-residence-option')));
       await tester.pumpAndSettle();
+      expect(find.text('لا يتم إظهار النسب للسكان الآخرين.'), findsOneWidget);
       await tester.enterText(
         find.byKey(const Key('join-first-name-field')),
         'أمين',
@@ -1355,6 +1375,16 @@ void main() {
       find.byKey(const ValueKey('residence-expense-elevator-service-july')),
       findsOneWidget,
     );
+    expect(find.text('تمت صيانة محرك المصعد'), findsOneWidget);
+    final recentExpenseAttachment = find.byKey(
+      const ValueKey('residence-expense-attachment-elevator-service-july'),
+    );
+    await tester.ensureVisible(recentExpenseAttachment);
+    await tester.tap(recentExpenseAttachment);
+    await tester.pump();
+    expect(find.byType(Dialog), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.close_rounded).last);
+    await tester.pumpAndSettle();
 
     final incomeCard = tester.getRect(
       find.byKey(const Key('finance-total-income')),
@@ -1378,6 +1408,16 @@ void main() {
       find.byKey(const ValueKey('finance-transaction-dues-july')),
       findsOneWidget,
     );
+    expect(find.text('تمت صيانة محرك المصعد'), findsOneWidget);
+    final transactionAttachment = find.byKey(
+      const ValueKey('finance-transaction-attachment-elevator-service-july'),
+    );
+    await tester.ensureVisible(transactionAttachment);
+    await tester.tap(transactionAttachment);
+    await tester.pump();
+    expect(find.byType(Dialog), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.close_rounded).last);
+    await tester.pumpAndSettle();
     final financeStart = DateTime.now();
     final financeEnd = DateTime(financeStart.year, financeStart.month + 3);
     expect(
@@ -1542,6 +1582,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('edit-profile-name-sheet')), findsOneWidget);
     expect(find.text('تعديل الاسم والنسب'), findsOneWidget);
+    expect(find.text('لا يتم إظهار النسب للسكان الآخرين.'), findsOneWidget);
     expect(find.byType(AlertDialog), findsNothing);
     final editSheet = tester.widget<DecoratedBox>(
       find.byKey(const Key('edit-profile-name-sheet')),
@@ -1769,6 +1810,20 @@ void main() {
     );
     await tester.ensureVisible(attachmentButton);
     expect(attachmentButton, findsOneWidget);
+    expect(
+      find.descendant(of: attachmentButton, matching: find.text('عرض المرفق')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(
+        of: attachmentButton,
+        matching: find.text(
+          residenceTransactionAttachmentName('payment-group-attachment'),
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.getSize(attachmentButton).height, lessThan(36));
     await tester.tap(attachmentButton);
     await tester.pump();
     expect(find.byType(Dialog), findsOneWidget);
@@ -2852,6 +2907,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('add-resident-button')));
     await tester.pumpAndSettle();
+    expect(find.text('لا يتم إظهار النسب للسكان الآخرين.'), findsOneWidget);
 
     expect(
       find
@@ -3058,11 +3114,16 @@ Future<void> _enterResidence(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('start-button')));
   await tester.pumpAndSettle();
   expect(find.byKey(const Key('residence-setup-page')), findsOneWidget);
-  final setupBrand = tester.widget<Text>(
-    find.byKey(const Key('setup-brand-title')),
+  final setupBrand = find.byKey(const Key('setup-brand-title'));
+  expect(
+    find.descendant(of: setupBrand, matching: find.byType(Image)),
+    findsOneWidget,
   );
-  expect(setupBrand.style?.fontFamily, 'Cairo');
-  expect(setupBrand.style?.fontWeight, FontWeight.w800);
+  final setupBrandText = tester.widget<Text>(
+    find.descendant(of: setupBrand, matching: find.text('دارجار')),
+  );
+  expect(setupBrandText.style?.fontFamily, 'Cairo');
+  expect(setupBrandText.style?.fontWeight, FontWeight.w800);
 
   await tester.tap(find.byKey(const Key('create-new-residence-option')));
   await tester.pumpAndSettle();
@@ -3076,6 +3137,7 @@ Future<void> _enterResidence(WidgetTester tester) async {
   expect(find.byKey(const Key('resident-phone-field')), findsNothing);
   expect(find.byKey(const Key('resident-first-name-field')), findsOneWidget);
   expect(find.byKey(const Key('resident-last-name-field')), findsOneWidget);
+  expect(find.text('لا يتم إظهار النسب للسكان الآخرين.'), findsOneWidget);
 
   await tester.enterText(
     find.byKey(const Key('residence-name-field')),
@@ -3606,6 +3668,7 @@ class _FakeResidenceFinanceRepository implements ResidenceFinanceRepository {
         name: 'صيانة المصعد',
         source: ResidenceTransactionSource.manual,
         expenseCategory: ResidenceExpenseCategory.maintenance,
+        note: 'تمت صيانة محرك المصعد',
         supportingDocument: 'فاتورة-صيانة.pdf',
         attachmentStoragePath:
             'residences/test-residence/attachments/finance-elevator-service-july/content',

@@ -17,17 +17,19 @@ const residenceDocumentContentTypes = {
 };
 
 String residenceTransactionAttachmentName(String transactionId) {
-  final digits = RegExp(
-    '[0-9]',
-  ).allMatches(transactionId).map((match) => match.group(0)!).join();
-  if (digits.length >= 4) {
-    return 'مرفق-${digits.substring(digits.length - 4)}';
-  }
-  var hash = 0;
+  const codeLength = 12;
+  final prime = BigInt.from(1099511628211);
+  final mask = BigInt.parse('ffffffffffffffff', radix: 16);
+  final codeRange = BigInt.from(1000000) * BigInt.from(1000000);
+  var hash = BigInt.parse('14695981039346656037');
   for (final codeUnit in transactionId.codeUnits) {
-    hash = ((hash * 31) + codeUnit) & 0x7fffffff;
+    hash ^= BigInt.from(codeUnit);
+    hash = (hash * prime) & mask;
   }
-  final transactionNumber = 1000 + (hash % 9000);
+  final transactionNumber = (hash % codeRange).toString().padLeft(
+    codeLength,
+    '0',
+  );
   return 'مرفق-$transactionNumber';
 }
 

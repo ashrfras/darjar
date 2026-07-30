@@ -239,6 +239,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lastNameHint => 'Enter your last name';
 
   @override
+  String get lastNamePrivacyHint =>
+      'Your last name is not shown to other residents.';
+
+  @override
   String get joinPhoneDescription =>
       'Enter your phone number to check whether it is linked to a residence.';
 

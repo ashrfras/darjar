@@ -1,6 +1,7 @@
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
+import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
@@ -413,19 +414,39 @@ class _PaymentRow extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 if (onOpenAttachment != null)
-                  TextButton.icon(
-                    key: ValueKey(
-                      'resident-payment-attachment-${paymentGroup.id}',
-                    ),
-                    onPressed: onOpenAttachment,
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    icon: const Icon(Icons.attachment_outlined, size: 18),
-                    label: Text(
-                      '${localizations.viewAttachment} · '
-                      '${payment.attachmentName}',
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: InkWell(
+                      key: ValueKey(
+                        'resident-payment-attachment-${paymentGroup.id}',
+                      ),
+                      onTap: onOpenAttachment,
+                      borderRadius: BorderRadius.circular(AppRadius.small),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.xSmall,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.attachment_outlined,
+                              size: 17,
+                              color: AppColors.residence,
+                            ),
+                            const SizedBox(width: AppSpacing.xSmall),
+                            Flexible(
+                              child: Text(
+                                payment.attachmentName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppColors.residence),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
               ],

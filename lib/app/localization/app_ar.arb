@@ -73,6 +73,7 @@
   "firstNameHint": "أدخل اسمك",
   "lastName": "النسب",
   "lastNameHint": "أدخل نسبك",
+  "lastNamePrivacyHint": "لا يتم إظهار النسب للسكان الآخرين.",
   "joinPhoneDescription": "أدخل رقم هاتفك للتحقق مما إذا كان مرتبطاً بإقامة.",
   "verificationCodeNotice": "سيتم إرسال رمز تحقق إلى رقم هاتفك.",
   "verificationCode": "رمز التحقق",

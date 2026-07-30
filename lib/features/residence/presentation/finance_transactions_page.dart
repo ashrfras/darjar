@@ -5,6 +5,7 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -133,7 +134,17 @@ class _FinanceTransactionsPageState
                               index < transactions.length;
                               index++
                             ) ...[
-                              _TransactionRow(transaction: transactions[index]),
+                              _TransactionRow(
+                                transaction: transactions[index],
+                                onOpenAttachment:
+                                    transactions[index].hasAttachment
+                                    ? () => showResidenceDocumentPreview(
+                                        context,
+                                        ref,
+                                        transactions[index].attachmentDocument,
+                                      )
+                                    : null,
+                              ),
                               if (index != transactions.length - 1)
                                 const Divider(height: AppSpacing.xLarge),
                             ],
@@ -250,9 +261,10 @@ class _PeriodTotal extends StatelessWidget {
 }
 
 class _TransactionRow extends StatelessWidget {
-  const _TransactionRow({required this.transaction});
+  const _TransactionRow({required this.transaction, this.onOpenAttachment});
 
   final ResidenceTransaction transaction;
+  final VoidCallback? onOpenAttachment;
 
   @override
   Widget build(BuildContext context) {
@@ -317,26 +329,64 @@ class _TransactionRow extends StatelessWidget {
                       ),
                   ],
                 ),
-                if (transaction.hasAttachment) ...[
-                  const SizedBox(height: AppSpacing.small),
+                if (transaction.note.trim().isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xSmall),
                   Row(
+                    key: ValueKey('finance-transaction-note-${transaction.id}'),
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(
-                        Icons.description_outlined,
+                        Icons.notes_rounded,
                         size: 17,
-                        color: AppColors.residence,
+                        color: AppColors.inkMuted,
                       ),
                       const SizedBox(width: AppSpacing.xSmall),
                       Expanded(
                         child: Text(
-                          '${localizations.supportingDocument}: ${transaction.attachmentName}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(color: AppColors.residence),
+                          transaction.note.trim(),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),
                     ],
+                  ),
+                ],
+                if (onOpenAttachment != null) ...[
+                  if (transaction.note.trim().isEmpty)
+                    const SizedBox(height: AppSpacing.xSmall),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: InkWell(
+                      key: ValueKey(
+                        'finance-transaction-attachment-${transaction.id}',
+                      ),
+                      onTap: onOpenAttachment,
+                      borderRadius: BorderRadius.circular(AppRadius.small),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.xSmall,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.attachment_outlined,
+                              size: 17,
+                              color: AppColors.residence,
+                            ),
+                            const SizedBox(width: AppSpacing.xSmall),
+                            Flexible(
+                              child: Text(
+                                transaction.attachmentName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(color: AppColors.residence),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ],

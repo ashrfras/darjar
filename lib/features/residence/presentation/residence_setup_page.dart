@@ -2,7 +2,7 @@ import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
-import 'package:darjar/app/theme/app_typography.dart';
+import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
@@ -42,14 +42,7 @@ class _ResidenceSetupPageState extends State<ResidenceSetupPage> {
     return Scaffold(
       key: const Key('residence-setup-page'),
       appBar: AppBar(
-        title: Text(
-          localizations.appName,
-          key: const Key('setup-brand-title'),
-          style: AppTypography.brandArabic.copyWith(
-            color: AppColors.ink,
-            fontSize: 20,
-          ),
-        ),
+        title: const DarJarBrand(key: Key('setup-brand-title')),
         leading: IconButton(
           key: const Key('residence-setup-back-button'),
           tooltip: localizations.back,
@@ -317,6 +310,7 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
                         controller: _lastNameController,
                         label: localizations.lastName,
                         hint: localizations.lastNameHint,
+                        helper: localizations.lastNamePrivacyHint,
                         textInputAction: TextInputAction.done,
                       ),
                     ),
@@ -454,6 +448,7 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
                 key: const Key('join-last-name-field'),
                 controller: _lastNameController,
                 label: localizations.lastName,
+                helper: localizations.lastNamePrivacyHint,
                 prefixIcon: Icons.person_outline_rounded,
                 textInputAction: TextInputAction.next,
               ),

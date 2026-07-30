@@ -530,6 +530,12 @@ abstract class AppLocalizations {
   /// **'أدخل نسبك'**
   String get lastNameHint;
 
+  /// No description provided for @lastNamePrivacyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يتم إظهار النسب للسكان الآخرين.'**
+  String get lastNamePrivacyHint;
+
   /// No description provided for @joinPhoneDescription.
   ///
   /// In ar, this message translates to:

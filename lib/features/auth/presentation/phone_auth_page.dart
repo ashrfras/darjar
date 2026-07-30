@@ -2,7 +2,7 @@ import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
-import 'package:darjar/app/theme/app_typography.dart';
+import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
@@ -40,13 +40,7 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
     return Scaffold(
       key: const Key('phone-auth-page'),
       appBar: AppBar(
-        title: Text(
-          localizations.appName,
-          style: AppTypography.brandArabic.copyWith(
-            color: AppColors.ink,
-            fontSize: 20,
-          ),
-        ),
+        title: const DarJarBrand(key: Key('phone-auth-brand')),
         leading: IconButton(
           key: const Key('auth-back-button'),
           tooltip: localizations.back,
