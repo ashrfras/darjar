@@ -460,7 +460,7 @@ class _ExpenseRow extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.small),
-                if (expense.supportingDocument.isNotEmpty)
+                if (expense.hasAttachment)
                   Row(
                     children: [
                       const Icon(
@@ -471,7 +471,7 @@ class _ExpenseRow extends StatelessWidget {
                       const SizedBox(width: AppSpacing.xSmall),
                       Expanded(
                         child: Text(
-                          '${localizations.supportingDocument}: ${expense.supportingDocument}',
+                          '${localizations.supportingDocument}: ${expense.attachmentName}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.labelMedium

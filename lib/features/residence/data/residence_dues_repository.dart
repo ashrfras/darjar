@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 enum ResidenceDueStatus { unpaid, partial, paid }
 
@@ -58,6 +60,9 @@ class ResidenceDuePayment {
     required this.recordedBy,
     this.paymentGroupId = '',
     this.supportingDocument = '',
+    this.attachmentStoragePath = '',
+    this.attachmentContentType = '',
+    this.attachmentSizeBytes = 0,
     this.createdAt,
   });
 
@@ -71,7 +76,16 @@ class ResidenceDuePayment {
   final String recordedBy;
   final String paymentGroupId;
   final String supportingDocument;
+  final String attachmentStoragePath;
+  final String attachmentContentType;
+  final int attachmentSizeBytes;
   final DateTime? createdAt;
+
+  bool get hasAttachment =>
+      supportingDocument.isNotEmpty && attachmentStoragePath.isNotEmpty;
+  String get attachmentName => residenceTransactionAttachmentName(
+    paymentGroupId.isEmpty ? id : paymentGroupId,
+  );
 }
 
 class ResidenceDuePaymentGroup {
@@ -84,6 +98,22 @@ class ResidenceDuePaymentGroup {
       payments.fold(0, (total, payment) => total + payment.amount);
 
   DateTime get paidAt => payments.first.paidAt;
+  bool get hasAttachment => payments.first.hasAttachment;
+
+  ResidenceDocument get attachmentDocument {
+    final payment = payments.first;
+    return ResidenceDocument(
+      id: 'attachment-$id',
+      title: payment.attachmentName,
+      originalFileName: payment.attachmentName,
+      storagePath: payment.attachmentStoragePath,
+      contentType: payment.attachmentContentType,
+      sizeBytes: payment.attachmentSizeBytes,
+      uploadedBy: payment.recordedBy,
+      createdAt: payment.paidAt,
+      updatedAt: payment.createdAt ?? payment.paidAt,
+    );
+  }
 }
 
 class ResidenceDuesOverview {
@@ -191,13 +221,15 @@ abstract interface class ResidenceDuesRepository {
     required String note,
     required String recordedBy,
     String supportingDocument = '',
+    ResidenceDocumentUpload? attachmentUpload,
   });
 }
 
 class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
-  FirestoreResidenceDuesRepository(this._firestore);
+  FirestoreResidenceDuesRepository(this._firestore, this._storage);
 
   final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
 
   @override
   Future<ResidenceDuesOverview> load({
@@ -335,6 +367,7 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
     required String note,
     required String recordedBy,
     String supportingDocument = '',
+    ResidenceDocumentUpload? attachmentUpload,
   }) async {
     if (amount <= 0 || defaultAmount < 0) {
       throw const ResidenceDuesFailure('invalid-payment-amount');
@@ -405,6 +438,12 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
       }
       final futureDueIds = {for (final due in futureDues) due.id};
       final paymentGroupId = residence.collection('duePayments').doc().id;
+      final attachmentData = await _uploadAttachment(
+        residenceId: residenceId,
+        paymentGroupId: paymentGroupId,
+        uploadedBy: recordedBy,
+        upload: attachmentUpload,
+      );
       await _firestore.runTransaction((transaction) async {
         final storedDues = <String, ResidenceDue>{};
         for (final allocation in allocations) {
@@ -461,7 +500,10 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
               'amount': allocated,
               'paidAt': Timestamp.fromDate(paidAt),
               'note': note.trim(),
-              'supportingDocument': supportingDocument.trim(),
+              'supportingDocument': attachmentUpload == null
+                  ? supportingDocument.trim()
+                  : residenceTransactionAttachmentName(paymentGroupId),
+              ...attachmentData,
               'recordedBy': recordedBy,
               'createdAt': FieldValue.serverTimestamp(),
             },
@@ -505,8 +547,51 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
       recordedBy: data['recordedBy'] as String,
       paymentGroupId: data['paymentGroupId'] as String? ?? '',
       supportingDocument: data['supportingDocument'] as String? ?? '',
+      attachmentStoragePath: data['attachmentStoragePath'] as String? ?? '',
+      attachmentContentType: data['attachmentContentType'] as String? ?? '',
+      attachmentSizeBytes: data['attachmentSizeBytes'] as int? ?? 0,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     );
+  }
+
+  Future<Map<String, Object>> _uploadAttachment({
+    required String residenceId,
+    required String paymentGroupId,
+    required String uploadedBy,
+    required ResidenceDocumentUpload? upload,
+  }) async {
+    if (upload == null) return const {};
+    if (!residenceDocumentContentTypes.contains(upload.contentType) ||
+        upload.bytes.isEmpty ||
+        upload.bytes.lengthInBytes > residenceDocumentMaxSizeBytes) {
+      throw const ResidenceDuesFailure('invalid-attachment');
+    }
+    final transactionKey = 'dues-$paymentGroupId';
+    final storagePath =
+        'residences/$residenceId/attachments/$transactionKey/content';
+    try {
+      await _storage
+          .ref(storagePath)
+          .putData(
+            upload.bytes,
+            SettableMetadata(
+              contentType: upload.contentType,
+              cacheControl: 'private,max-age=3600',
+              customMetadata: {
+                'residenceId': residenceId,
+                'transactionKey': transactionKey,
+                'uploadedBy': uploadedBy,
+              },
+            ),
+          );
+      return {
+        'attachmentStoragePath': storagePath,
+        'attachmentContentType': upload.contentType,
+        'attachmentSizeBytes': upload.bytes.lengthInBytes,
+      };
+    } on FirebaseException catch (error) {
+      throw ResidenceDuesFailure(error.code, error.message);
+    }
   }
 
   Future<_ApartmentBillingInfo?> _loadApartment(
@@ -603,8 +688,10 @@ String residenceDuesPeriodKey(DateTime date) {
 }
 
 final residenceDuesRepositoryProvider = Provider<ResidenceDuesRepository>(
-  (ref) =>
-      FirestoreResidenceDuesRepository(ref.watch(firebaseFirestoreProvider)),
+  (ref) => FirestoreResidenceDuesRepository(
+    ref.watch(firebaseFirestoreProvider),
+    ref.watch(firebaseStorageProvider),
+  ),
 );
 
 final residentDuesProvider = FutureProvider.autoDispose<ResidenceDuesOverview>((
@@ -663,6 +750,7 @@ class ResidenceDuesManagementController
     required DateTime paidAt,
     required String note,
     required String supportingDocument,
+    ResidenceDocumentUpload? attachmentUpload,
   }) async {
     final residenceId = _residenceId;
     final defaultAmount = _defaultAmount;
@@ -683,6 +771,7 @@ class ResidenceDuesManagementController
           note: note,
           recordedBy: user.uid,
           supportingDocument: supportingDocument,
+          attachmentUpload: attachmentUpload,
         );
     ref.invalidate(residentDuesProvider);
     ref.invalidate(residenceFinancesProvider);

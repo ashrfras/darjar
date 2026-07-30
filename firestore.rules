@@ -654,6 +654,9 @@ service cloud.firestore {
             'paidAt',
             'note',
             'supportingDocument',
+            'attachmentStoragePath',
+            'attachmentContentType',
+            'attachmentSizeBytes',
             'recordedBy',
             'createdAt'
           ])
@@ -670,6 +673,29 @@ service cloud.firestore {
           && request.resource.data.paidAt <= request.time
           && request.resource.data.note is string
           && request.resource.data.supportingDocument is string
+          && (
+            !request.resource.data.keys().hasAny([
+              'attachmentStoragePath',
+              'attachmentContentType',
+              'attachmentSizeBytes'
+            ])
+            || (
+              request.resource.data.attachmentStoragePath is string
+              && request.resource.data.attachmentStoragePath
+                == 'residences/' + residenceId + '/attachments/dues-'
+                  + request.resource.data.paymentGroupId + '/content'
+              && request.resource.data.attachmentContentType in [
+                'application/pdf',
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+              ]
+              && request.resource.data.attachmentSizeBytes is int
+              && request.resource.data.attachmentSizeBytes > 0
+              && request.resource.data.attachmentSizeBytes
+                <= 15 * 1024 * 1024
+            )
+          )
           && request.resource.data.recordedBy == request.auth.uid
           && request.resource.data.createdAt == request.time;
       }
@@ -686,6 +712,9 @@ service cloud.firestore {
             'expenseCategory',
             'note',
             'supportingDocument',
+            'attachmentStoragePath',
+            'attachmentContentType',
+            'attachmentSizeBytes',
             'recordedBy',
             'createdAt',
             'updatedAt'
@@ -715,6 +744,29 @@ service cloud.firestore {
           )
           && request.resource.data.note is string
           && request.resource.data.supportingDocument is string
+          && (
+            !request.resource.data.keys().hasAny([
+              'attachmentStoragePath',
+              'attachmentContentType',
+              'attachmentSizeBytes'
+            ])
+            || (
+              request.resource.data.attachmentStoragePath is string
+              && request.resource.data.attachmentStoragePath
+                == 'residences/' + residenceId + '/attachments/finance-'
+                  + transactionId + '/content'
+              && request.resource.data.attachmentContentType in [
+                'application/pdf',
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+              ]
+              && request.resource.data.attachmentSizeBytes is int
+              && request.resource.data.attachmentSizeBytes > 0
+              && request.resource.data.attachmentSizeBytes
+                <= 15 * 1024 * 1024
+            )
+          )
           && request.resource.data.recordedBy == request.auth.uid
           && request.resource.data.createdAt == request.time
           && request.resource.data.updatedAt == request.time;
@@ -728,6 +780,9 @@ service cloud.firestore {
             'expenseCategory',
             'note',
             'supportingDocument',
+            'attachmentStoragePath',
+            'attachmentContentType',
+            'attachmentSizeBytes',
             'updatedAt'
           ])
           && request.resource.data.type in ['income', 'expense']
@@ -755,6 +810,29 @@ service cloud.firestore {
           )
           && request.resource.data.note is string
           && request.resource.data.supportingDocument is string
+          && (
+            !request.resource.data.keys().hasAny([
+              'attachmentStoragePath',
+              'attachmentContentType',
+              'attachmentSizeBytes'
+            ])
+            || (
+              request.resource.data.attachmentStoragePath is string
+              && request.resource.data.attachmentStoragePath
+                == 'residences/' + residenceId + '/attachments/finance-'
+                  + transactionId + '/content'
+              && request.resource.data.attachmentContentType in [
+                'application/pdf',
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+              ]
+              && request.resource.data.attachmentSizeBytes is int
+              && request.resource.data.attachmentSizeBytes > 0
+              && request.resource.data.attachmentSizeBytes
+                <= 15 * 1024 * 1024
+            )
+          )
           && request.resource.data.updatedAt == request.time;
 
         allow delete: if canManageResidence(residenceId);

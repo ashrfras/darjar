@@ -10,6 +10,8 @@ import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
+import 'package:darjar/features/documents/data/residence_documents_repository.dart';
+import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -106,7 +108,11 @@ class DuesManagementPage extends ConsumerWidget {
                     label: localizations.duesRecordPayment,
                     icon: Icons.add_card_rounded,
                     expanded: true,
-                    onPressed: () => _showRecordPaymentSheet(context, groups),
+                    onPressed: () => _showRecordPaymentSheet(
+                      context,
+                      groups,
+                      ref.read(residenceDocumentPickerProvider),
+                    ),
                   ),
                 ),
               ),
@@ -372,12 +378,14 @@ class _PeriodDetailsSheet extends StatelessWidget {
 Future<void> _showRecordPaymentSheet(
   BuildContext context,
   List<_ApartmentDuesGroup> groups,
+  ResidenceDocumentPicker documentPicker,
 ) async {
   final saved = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => _RecordPaymentSheet(groups: groups),
+    builder: (context) =>
+        _RecordPaymentSheet(groups: groups, documentPicker: documentPicker),
   );
   if (saved == true && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -387,9 +395,13 @@ Future<void> _showRecordPaymentSheet(
 }
 
 class _RecordPaymentSheet extends ConsumerStatefulWidget {
-  const _RecordPaymentSheet({required this.groups});
+  const _RecordPaymentSheet({
+    required this.groups,
+    required this.documentPicker,
+  });
 
   final List<_ApartmentDuesGroup> groups;
+  final ResidenceDocumentPicker documentPicker;
 
   @override
   ConsumerState<_RecordPaymentSheet> createState() =>
@@ -400,12 +412,14 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
   late final TextEditingController _amountController;
   late final TextEditingController _dateController;
   final _noteController = TextEditingController();
-  final _documentController = TextEditingController();
   _ApartmentDuesGroup? _selectedGroup;
   DateTime _paidAt = DateTime.now();
   bool _saving = false;
   bool _invalidApartment = false;
   bool _invalidAmount = false;
+  ResidenceDocumentUpload? _attachmentUpload;
+  String _selectedAttachmentName = '';
+  String? _attachmentError;
 
   @override
   void initState() {
@@ -427,7 +441,6 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
     _amountController.dispose();
     _dateController.dispose();
     _noteController.dispose();
-    _documentController.dispose();
     super.dispose();
   }
 
@@ -563,11 +576,35 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
                     prefixIcon: Icons.notes_rounded,
                   ),
                   const SizedBox(height: AppSpacing.large),
-                  DarJarTextField(
-                    key: const Key('payment-supporting-document-field'),
-                    controller: _documentController,
-                    label: localizations.supportingDocumentName,
-                    prefixIcon: Icons.description_outlined,
+                  OutlinedButton.icon(
+                    key: const Key('select-payment-attachment-button'),
+                    onPressed: _saving ? null : _pickAttachment,
+                    icon: const Icon(Icons.upload_file_outlined),
+                    label: Text(
+                      _selectedAttachmentName.isEmpty
+                          ? localizations.attachSupportingDocument
+                          : localizations.replaceAttachment,
+                    ),
+                  ),
+                  if (_selectedAttachmentName.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.small),
+                    Text(
+                      _selectedAttachmentName,
+                      key: const Key('selected-payment-attachment-name'),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: AppColors.residence,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.xSmall),
+                  Text(
+                    _attachmentError ?? localizations.attachmentHint,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: _attachmentError == null
+                          ? AppColors.inkMuted
+                          : AppColors.danger,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xLarge),
                   DarJarButton(
@@ -599,6 +636,31 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
         _dateController.text = _formattedDate();
       });
     }
+  }
+
+  Future<void> _pickAttachment() async {
+    final file = await widget.documentPicker();
+    if (file == null || !mounted) return;
+    final bytes = await file.readAsBytes();
+    final contentType = residenceDocumentContentType(file.name, file.mimeType);
+    if (bytes.isEmpty ||
+        bytes.lengthInBytes > residenceDocumentMaxSizeBytes ||
+        contentType.isEmpty) {
+      setState(
+        () => _attachmentError = AppLocalizations.of(context).attachmentInvalid,
+      );
+      return;
+    }
+    setState(() {
+      _attachmentUpload = ResidenceDocumentUpload(
+        title: file.name,
+        originalFileName: file.name,
+        contentType: contentType,
+        bytes: bytes,
+      );
+      _selectedAttachmentName = file.name;
+      _attachmentError = null;
+    });
   }
 
   String _formattedDate() {
@@ -638,7 +700,8 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
             amount: amount,
             paidAt: _paidAt,
             note: _noteController.text,
-            supportingDocument: _documentController.text,
+            supportingDocument: _selectedAttachmentName,
+            attachmentUpload: _attachmentUpload,
           );
       if (mounted) Navigator.of(context).pop(true);
     } on ResidenceDuesFailure {
@@ -771,6 +834,26 @@ class _ManagementPaymentRow extends StatelessWidget {
                   Text(
                     payment.note,
                     style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                if (payment.hasAttachment)
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.attach_file_rounded,
+                        size: 16,
+                        color: AppColors.residence,
+                      ),
+                      const SizedBox(width: AppSpacing.xSmall),
+                      Expanded(
+                        child: Text(
+                          payment.attachmentName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.residence),
+                        ),
+                      ),
+                    ],
                   ),
               ],
             ),

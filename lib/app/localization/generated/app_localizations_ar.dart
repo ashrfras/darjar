@@ -517,10 +517,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get currency => 'درهم';
 
   @override
-  String get supportingDocument => 'الوثيقة المثبتة';
+  String get supportingDocument => 'المرفق';
 
   @override
   String get noSupportingDocument => 'لا توجد وثيقة مرفقة';
+
+  @override
+  String get attachSupportingDocument => 'إرفاق مستند (اختياري)';
+
+  @override
+  String get attachmentHint =>
+      'أرفق فاتورة أو إيصالًا أو أي مستند يدعم هذه المعاملة.';
+
+  @override
+  String get replaceAttachment => 'استبدال المرفق';
+
+  @override
+  String get attachmentInvalid =>
+      'تعذر إرفاق الملف. اختر PDF أو صورة بحجم لا يتجاوز 15 MB.';
+
+  @override
+  String get viewAttachment => 'عرض المرفق';
 
   @override
   String get expenseCategoryMaintenance => 'الصيانة والإصلاحات';
@@ -571,9 +588,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transactionNote => 'ملاحظة اختيارية';
-
-  @override
-  String get supportingDocumentName => 'اسم الوثيقة المثبتة (اختياري)';
 
   @override
   String get expenseCategory => 'نوع المصروف';
@@ -663,11 +677,29 @@ class AppLocalizationsAr extends AppLocalizations {
   String get documents => 'الوثائق';
 
   @override
-  String get documentsDescription => 'آخر الوثائق الرسمية الخاصة بالإقامة.';
+  String get documentsDescription =>
+      'الوثائق الإدارية ومرفقات المعاملات المالية.';
 
   @override
   String get documentsPageDescription =>
-      'الوثائق والصور الرسمية التي تشاركها إدارة الإقامة مع السكان.';
+      'الوثائق الإدارية ومرفقات المعاملات المالية الخاصة بالإقامة.';
+
+  @override
+  String get administrativeDocuments => 'الوثائق الإدارية';
+
+  @override
+  String get administrativeDocumentsDescription =>
+      'الوثائق الرسمية التي ترفعها إدارة الإقامة.';
+
+  @override
+  String get attachedDocuments => 'الوثائق المرفقة';
+
+  @override
+  String get attachedDocumentsDescription =>
+      'الفواتير والإيصالات والمستندات المرفقة بالمعاملات المالية.';
+
+  @override
+  String get noAttachedDocuments => 'لا توجد مرفقات للمعاملات المالية بعد.';
 
   @override
   String get viewAllDocuments => 'عرض كل الوثائق';

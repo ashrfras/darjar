@@ -63,6 +63,16 @@ service firebase.storage {
       allow delete: if canManageResidence(residenceId);
     }
 
+    match /residences/{residenceId}/attachments/{transactionKey}/content {
+      allow read: if isResidenceMember(residenceId);
+      allow create, update: if canManageResidence(residenceId)
+        && isAcceptedDocument()
+        && transactionKey.matches('^(finance|dues)-.+$')
+        && request.resource.metadata.residenceId == residenceId
+        && request.resource.metadata.transactionKey == transactionKey;
+      allow delete: if canManageResidence(residenceId);
+    }
+
     match /residences/{residenceId}/community/{postId}/{imageId} {
       allow read: if isResidenceMember(residenceId);
       allow create: if isResidenceMember(residenceId)

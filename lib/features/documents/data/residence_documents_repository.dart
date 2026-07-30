@@ -16,6 +16,21 @@ const residenceDocumentContentTypes = {
   'image/webp',
 };
 
+String residenceTransactionAttachmentName(String transactionId) {
+  final digits = RegExp(
+    '[0-9]',
+  ).allMatches(transactionId).map((match) => match.group(0)!).join();
+  if (digits.length >= 4) {
+    return 'مرفق-${digits.substring(digits.length - 4)}';
+  }
+  var hash = 0;
+  for (final codeUnit in transactionId.codeUnits) {
+    hash = ((hash * 31) + codeUnit) & 0x7fffffff;
+  }
+  final transactionNumber = 1000 + (hash % 9000);
+  return 'مرفق-$transactionNumber';
+}
+
 class ResidenceDocument {
   const ResidenceDocument({
     required this.id,

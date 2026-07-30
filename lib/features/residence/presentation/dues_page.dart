@@ -5,6 +5,7 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:flutter/material.dart';
@@ -75,16 +76,17 @@ class DuesPage extends ConsumerWidget {
   }
 }
 
-class _ResidentDuesContent extends StatefulWidget {
+class _ResidentDuesContent extends ConsumerStatefulWidget {
   const _ResidentDuesContent({required this.overview});
 
   final ResidenceDuesOverview overview;
 
   @override
-  State<_ResidentDuesContent> createState() => _ResidentDuesContentState();
+  ConsumerState<_ResidentDuesContent> createState() =>
+      _ResidentDuesContentState();
 }
 
-class _ResidentDuesContentState extends State<_ResidentDuesContent> {
+class _ResidentDuesContentState extends ConsumerState<_ResidentDuesContent> {
   static const _duesPageSize = 12;
   static const _paymentsPageSize = 10;
 
@@ -151,7 +153,16 @@ class _ResidentDuesContentState extends State<_ResidentDuesContent> {
                   index < visiblePaymentGroups.length;
                   index++
                 ) ...[
-                  _PaymentRow(paymentGroup: visiblePaymentGroups[index]),
+                  _PaymentRow(
+                    paymentGroup: visiblePaymentGroups[index],
+                    onOpenAttachment: visiblePaymentGroups[index].hasAttachment
+                        ? () => showResidenceDocumentPreview(
+                            context,
+                            ref,
+                            visiblePaymentGroups[index].attachmentDocument,
+                          )
+                        : null,
+                  ),
                   if (index != visiblePaymentGroups.length - 1) const Divider(),
                 ],
               ],
@@ -356,9 +367,13 @@ class _AmountLabel extends StatelessWidget {
 }
 
 class _PaymentRow extends StatelessWidget {
-  const _PaymentRow({required this.paymentGroup});
+  const _PaymentRow({
+    required this.paymentGroup,
+    required this.onOpenAttachment,
+  });
 
   final ResidenceDuePaymentGroup paymentGroup;
+  final VoidCallback? onOpenAttachment;
 
   @override
   Widget build(BuildContext context) {
@@ -396,6 +411,22 @@ class _PaymentRow extends StatelessWidget {
                   Text(
                     payment.note,
                     style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                if (onOpenAttachment != null)
+                  TextButton.icon(
+                    key: ValueKey(
+                      'resident-payment-attachment-${paymentGroup.id}',
+                    ),
+                    onPressed: onOpenAttachment,
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    icon: const Icon(Icons.attachment_outlined, size: 18),
+                    label: Text(
+                      '${localizations.viewAttachment} · '
+                      '${payment.attachmentName}',
+                    ),
                   ),
               ],
             ),

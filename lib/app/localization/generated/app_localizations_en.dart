@@ -526,10 +526,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currency => 'MAD';
 
   @override
-  String get supportingDocument => 'Supporting document';
+  String get supportingDocument => 'Attachment';
 
   @override
   String get noSupportingDocument => 'No document attached';
+
+  @override
+  String get attachSupportingDocument => 'Attach document (optional)';
+
+  @override
+  String get attachmentHint =>
+      'Attach an invoice, receipt, or any document supporting this transaction.';
+
+  @override
+  String get replaceAttachment => 'Replace attachment';
+
+  @override
+  String get attachmentInvalid =>
+      'The file could not be attached. Select a PDF or image up to 15 MB.';
+
+  @override
+  String get viewAttachment => 'View attachment';
 
   @override
   String get expenseCategoryMaintenance => 'Maintenance and repairs';
@@ -580,9 +597,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transactionNote => 'Optional note';
-
-  @override
-  String get supportingDocumentName => 'Supporting document name (optional)';
 
   @override
   String get expenseCategory => 'Expense category';
@@ -676,11 +690,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documents => 'Documents';
 
   @override
-  String get documentsDescription => 'Latest official residence documents.';
+  String get documentsDescription =>
+      'Administrative documents and financial transaction attachments.';
 
   @override
   String get documentsPageDescription =>
-      'Official documents and images shared with residents by residence management.';
+      'Administrative documents and financial transaction attachments for the residence.';
+
+  @override
+  String get administrativeDocuments => 'Administrative documents';
+
+  @override
+  String get administrativeDocumentsDescription =>
+      'Official documents uploaded by residence management.';
+
+  @override
+  String get attachedDocuments => 'Attached documents';
+
+  @override
+  String get attachedDocumentsDescription =>
+      'Invoices, receipts, and documents attached to financial transactions.';
+
+  @override
+  String get noAttachedDocuments => 'No financial transaction attachments yet.';
 
   @override
   String get viewAllDocuments => 'View all documents';

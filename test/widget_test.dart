@@ -16,6 +16,7 @@ import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
+import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
 import 'package:darjar/features/documents/presentation/residence_documents_management_page.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
@@ -246,6 +247,15 @@ void main() {
       );
       expect(residenceDocumentContentType('archive.zip', null), isEmpty);
       expect(residenceDocumentMaxSizeBytes, 15 * 1024 * 1024);
+    });
+
+    test('transaction attachments use stable numeric names', () {
+      final name = residenceTransactionAttachmentName('transaction-1284');
+
+      expect(name, 'مرفق-1284');
+      expect(name, matches(RegExp(r'^مرفق-[0-9]{4}$')));
+      expect(residenceTransactionAttachmentName('transaction-1284'), name);
+      expect(name, isNot(contains('transaction')));
     });
 
     test(
@@ -1232,6 +1242,7 @@ void main() {
     expect(find.byKey(const Key('dues-page')), findsOneWidget);
     expect(find.byType(BackButtonIcon), findsOneWidget);
 
+    await tester.ensureVisible(find.byKey(const Key('subpage-back-button')));
     await tester.tap(find.byKey(const Key('subpage-back-button')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('residence-home-page')), findsOneWidget);
@@ -1327,8 +1338,44 @@ void main() {
     await tester.tap(find.text('الوثائق'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('residence-documents-page')), findsOneWidget);
+    expect(find.text('الوثائق الإدارية'), findsOneWidget);
+    expect(find.text('الوثائق المرفقة'), findsOneWidget);
+    expect(
+      find.byKey(const Key('administrative-documents-section')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('transaction-attachments-section')),
+      findsOneWidget,
+    );
     expect(find.text('القانون الداخلي'), findsOneWidget);
     expect(find.text('محضر الاجتماع'), findsOneWidget);
+    expect(
+      find.text(residenceTransactionAttachmentName('elevator-service-july')),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const Key('view-all-administrative-documents')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('all-administrative-documents-sheet')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byIcon(Icons.close_rounded).last);
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(
+      find.byKey(const Key('view-all-transaction-attachments')),
+    );
+    await tester.tap(find.byKey(const Key('view-all-transaction-attachments')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('all-transaction-attachments-sheet')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('profile exposes real editable account and residence data', (
@@ -1538,6 +1585,12 @@ void main() {
             paidAt: paidAt,
             note: '',
             recordedBy: 'test-user',
+            paymentGroupId: 'payment-group-attachment',
+            supportingDocument: 'receipt.pdf',
+            attachmentStoragePath:
+                'residences/test-residence/attachments/dues-payment-group-attachment/content',
+            attachmentContentType: 'application/pdf',
+            attachmentSizeBytes: 1024,
             createdAt: paidAt,
           ),
           ResidenceDuePayment(
@@ -1549,6 +1602,12 @@ void main() {
             paidAt: paidAt,
             note: '',
             recordedBy: 'test-user',
+            paymentGroupId: 'payment-group-attachment',
+            supportingDocument: 'receipt.pdf',
+            attachmentStoragePath:
+                'residences/test-residence/attachments/dues-payment-group-attachment/content',
+            attachmentContentType: 'application/pdf',
+            attachmentSizeBytes: 1024,
             createdAt: paidAt,
           ),
         ],
@@ -1610,7 +1669,18 @@ void main() {
       ),
       findsOneWidget,
     );
+    final attachmentButton = find.byKey(
+      const ValueKey('resident-payment-attachment-payment-group-attachment'),
+    );
+    await tester.ensureVisible(attachmentButton);
+    expect(attachmentButton, findsOneWidget);
+    await tester.tap(attachmentButton);
+    await tester.pump();
+    expect(find.byType(Dialog), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.close_rounded).last);
+    await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.byKey(const Key('subpage-back-button')));
     await tester.tap(find.byKey(const Key('subpage-back-button')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('مالية الإقامة'));
@@ -1779,6 +1849,14 @@ void main() {
     await tester.tap(find.text('الشقة رقم 01').last);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('payment-amount-field')), findsOneWidget);
+    expect(
+      find.byKey(const Key('payment-supporting-document-field')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const Key('select-payment-attachment-button')),
+      findsOneWidget,
+    );
 
     await tester.enterText(
       find.descendant(
@@ -1811,14 +1889,11 @@ void main() {
       ),
       'أداء نقدي',
     );
-    await tester.enterText(
-      find.descendant(
-        of: find.byKey(const Key('payment-supporting-document-field')),
-        matching: find.byType(TextField),
-      ),
-      'وصل-الشقة-01.pdf',
-    );
-    await tester.tap(find.byKey(const Key('save-payment-button')));
+    tester
+        .widget<DarJarButton>(find.byKey(const Key('save-payment-button')))
+        .onPressed
+        ?.call();
+    await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpAndSettle();
 
     expect(find.text('تم تسجيل الأداء بنجاح.'), findsOneWidget);
@@ -1846,12 +1921,6 @@ void main() {
     expect(
       apartmentOnePayments.map((payment) => payment.paymentGroupId).toSet(),
       hasLength(1),
-    );
-    expect(
-      apartmentOnePayments.every(
-        (payment) => payment.supportingDocument == 'وصل-الشقة-01.pdf',
-      ),
-      isTrue,
     );
     expect(duesRepository.overview.payments.first.note, 'أداء نقدي');
     expect(
@@ -2097,6 +2166,14 @@ void main() {
 
     await tester.tap(find.byKey(const Key('add-finance-transaction-button')));
     await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('finance-supporting-document-field')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const Key('select-finance-attachment-button')),
+      findsOneWidget,
+    );
     await tester.enterText(
       find.byKey(const Key('finance-transaction-name-field')),
       'كراء موقف إضافي',
@@ -3425,6 +3502,10 @@ class _FakeResidenceFinanceRepository implements ResidenceFinanceRepository {
         source: ResidenceTransactionSource.manual,
         expenseCategory: ResidenceExpenseCategory.maintenance,
         supportingDocument: 'فاتورة-صيانة.pdf',
+        attachmentStoragePath:
+            'residences/test-residence/attachments/finance-elevator-service-july/content',
+        attachmentContentType: 'application/pdf',
+        attachmentSizeBytes: 2048,
         recordedBy: 'test-user',
       ),
       ResidenceTransaction(
@@ -3511,7 +3592,14 @@ class _FakeResidenceFinanceRepository implements ResidenceFinanceRepository {
       source: ResidenceTransactionSource.manual,
       expenseCategory: input.expenseCategory,
       note: input.note.trim(),
-      supportingDocument: input.supportingDocument.trim(),
+      supportingDocument: input.attachmentUpload == null
+          ? input.supportingDocument.trim()
+          : residenceTransactionAttachmentName(id),
+      attachmentStoragePath: input.attachmentUpload == null
+          ? ''
+          : 'residences/test-residence/attachments/finance-$id/content',
+      attachmentContentType: input.attachmentUpload?.contentType ?? '',
+      attachmentSizeBytes: input.attachmentUpload?.bytes.lengthInBytes ?? 0,
       recordedBy: recordedBy,
     );
   }
@@ -3654,6 +3742,7 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
     required String note,
     required String recordedBy,
     String supportingDocument = '',
+    ResidenceDocumentUpload? attachmentUpload,
   }) async {
     final apartmentDues =
         overview.dues.where((due) => due.apartmentId == apartmentId).toList()
@@ -3718,7 +3807,14 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
           note: note,
           recordedBy: recordedBy,
           paymentGroupId: paymentGroupId,
-          supportingDocument: supportingDocument,
+          supportingDocument: attachmentUpload == null
+              ? supportingDocument
+              : residenceTransactionAttachmentName(paymentGroupId),
+          attachmentStoragePath: attachmentUpload == null
+              ? ''
+              : 'residences/$residenceId/attachments/dues-$paymentGroupId/content',
+          attachmentContentType: attachmentUpload?.contentType ?? '',
+          attachmentSizeBytes: attachmentUpload?.bytes.lengthInBytes ?? 0,
         ),
       );
       unallocated -= allocated;

@@ -317,7 +317,7 @@ class _TransactionRow extends StatelessWidget {
                       ),
                   ],
                 ),
-                if (transaction.supportingDocument.isNotEmpty) ...[
+                if (transaction.hasAttachment) ...[
                   const SizedBox(height: AppSpacing.small),
                   Row(
                     children: [
@@ -329,7 +329,7 @@ class _TransactionRow extends StatelessWidget {
                       const SizedBox(width: AppSpacing.xSmall),
                       Expanded(
                         child: Text(
-                          '${localizations.supportingDocument}: ${transaction.supportingDocument}',
+                          '${localizations.supportingDocument}: ${transaction.attachmentName}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.labelMedium

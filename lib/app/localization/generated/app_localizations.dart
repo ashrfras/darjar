@@ -1049,7 +1049,7 @@ abstract class AppLocalizations {
   /// No description provided for @supportingDocument.
   ///
   /// In ar, this message translates to:
-  /// **'الوثيقة المثبتة'**
+  /// **'المرفق'**
   String get supportingDocument;
 
   /// No description provided for @noSupportingDocument.
@@ -1057,6 +1057,36 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'لا توجد وثيقة مرفقة'**
   String get noSupportingDocument;
+
+  /// No description provided for @attachSupportingDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرفاق مستند (اختياري)'**
+  String get attachSupportingDocument;
+
+  /// No description provided for @attachmentHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'أرفق فاتورة أو إيصالًا أو أي مستند يدعم هذه المعاملة.'**
+  String get attachmentHint;
+
+  /// No description provided for @replaceAttachment.
+  ///
+  /// In ar, this message translates to:
+  /// **'استبدال المرفق'**
+  String get replaceAttachment;
+
+  /// No description provided for @attachmentInvalid.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر إرفاق الملف. اختر PDF أو صورة بحجم لا يتجاوز 15 MB.'**
+  String get attachmentInvalid;
+
+  /// No description provided for @viewAttachment.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض المرفق'**
+  String get viewAttachment;
 
   /// No description provided for @expenseCategoryMaintenance.
   ///
@@ -1153,12 +1183,6 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'ملاحظة اختيارية'**
   String get transactionNote;
-
-  /// No description provided for @supportingDocumentName.
-  ///
-  /// In ar, this message translates to:
-  /// **'اسم الوثيقة المثبتة (اختياري)'**
-  String get supportingDocumentName;
 
   /// No description provided for @expenseCategory.
   ///
@@ -1311,14 +1335,44 @@ abstract class AppLocalizations {
   /// No description provided for @documentsDescription.
   ///
   /// In ar, this message translates to:
-  /// **'آخر الوثائق الرسمية الخاصة بالإقامة.'**
+  /// **'الوثائق الإدارية ومرفقات المعاملات المالية.'**
   String get documentsDescription;
 
   /// No description provided for @documentsPageDescription.
   ///
   /// In ar, this message translates to:
-  /// **'الوثائق والصور الرسمية التي تشاركها إدارة الإقامة مع السكان.'**
+  /// **'الوثائق الإدارية ومرفقات المعاملات المالية الخاصة بالإقامة.'**
   String get documentsPageDescription;
+
+  /// No description provided for @administrativeDocuments.
+  ///
+  /// In ar, this message translates to:
+  /// **'الوثائق الإدارية'**
+  String get administrativeDocuments;
+
+  /// No description provided for @administrativeDocumentsDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'الوثائق الرسمية التي ترفعها إدارة الإقامة.'**
+  String get administrativeDocumentsDescription;
+
+  /// No description provided for @attachedDocuments.
+  ///
+  /// In ar, this message translates to:
+  /// **'الوثائق المرفقة'**
+  String get attachedDocuments;
+
+  /// No description provided for @attachedDocumentsDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'الفواتير والإيصالات والمستندات المرفقة بالمعاملات المالية.'**
+  String get attachedDocumentsDescription;
+
+  /// No description provided for @noAttachedDocuments.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد مرفقات للمعاملات المالية بعد.'**
+  String get noAttachedDocuments;
 
   /// No description provided for @viewAllDocuments.
   ///

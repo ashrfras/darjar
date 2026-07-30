@@ -1,3 +1,5 @@
+export 'residence_document_picker.dart';
+
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
@@ -8,34 +10,13 @@ import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
+import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
 import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
-
-typedef ResidenceDocumentPicker = Future<XFile?> Function();
-
-final residenceDocumentPickerProvider = Provider<ResidenceDocumentPicker>(
-  (ref) => _pickResidenceDocument,
-);
-
-Future<XFile?> _pickResidenceDocument() {
-  const types = XTypeGroup(
-    label: 'PDF and images',
-    extensions: ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
-    mimeTypes: ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
-    uniformTypeIdentifiers: [
-      'com.adobe.pdf',
-      'public.jpeg',
-      'public.png',
-      'org.webmproject.webp',
-    ],
-    webWildCards: ['application/pdf', 'image/*'],
-  );
-  return openFile(acceptedTypeGroups: const [types]);
-}
 
 class ResidenceDocumentsManagementPage extends ConsumerStatefulWidget {
   const ResidenceDocumentsManagementPage({super.key});

@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum ResidenceExpenseCategory {
@@ -27,6 +29,9 @@ class ResidenceTransaction {
     this.expenseCategory,
     this.note = '',
     this.supportingDocument = '',
+    this.attachmentStoragePath = '',
+    this.attachmentContentType = '',
+    this.attachmentSizeBytes = 0,
     this.recordedBy = '',
     this.apartmentNumber = '',
     this.periodKey = '',
@@ -42,12 +47,34 @@ class ResidenceTransaction {
   final ResidenceExpenseCategory? expenseCategory;
   final String note;
   final String supportingDocument;
+  final String attachmentStoragePath;
+  final String attachmentContentType;
+  final int attachmentSizeBytes;
   final String recordedBy;
   final String apartmentNumber;
   final String periodKey;
   final String periodEndKey;
 
   bool get isManual => source == ResidenceTransactionSource.manual;
+  bool get hasAttachment =>
+      supportingDocument.isNotEmpty && attachmentStoragePath.isNotEmpty;
+  String get attachmentName => residenceTransactionAttachmentName(
+    source == ResidenceTransactionSource.dues && id.startsWith('dues-')
+        ? id.substring('dues-'.length)
+        : id,
+  );
+
+  ResidenceDocument get attachmentDocument => ResidenceDocument(
+    id: 'attachment-$id',
+    title: attachmentName,
+    originalFileName: attachmentName,
+    storagePath: attachmentStoragePath,
+    contentType: attachmentContentType,
+    sizeBytes: attachmentSizeBytes,
+    uploadedBy: recordedBy,
+    createdAt: date,
+    updatedAt: date,
+  );
 }
 
 class ResidenceExpenseBreakdown {
@@ -176,6 +203,7 @@ class ResidenceFinanceInput {
     this.expenseCategory,
     this.note = '',
     this.supportingDocument = '',
+    this.attachmentUpload,
   });
 
   final ResidenceTransactionType type;
@@ -185,6 +213,7 @@ class ResidenceFinanceInput {
   final ResidenceExpenseCategory? expenseCategory;
   final String note;
   final String supportingDocument;
+  final ResidenceDocumentUpload? attachmentUpload;
 }
 
 class ResidenceFinanceFailure implements Exception {
@@ -217,9 +246,10 @@ abstract interface class ResidenceFinanceRepository {
 
 class FirestoreResidenceFinanceRepository
     implements ResidenceFinanceRepository {
-  FirestoreResidenceFinanceRepository(this._firestore);
+  FirestoreResidenceFinanceRepository(this._firestore, this._storage);
 
   final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
 
   @override
   Future<ResidenceFinances> load(String residenceId) async {
@@ -302,6 +332,9 @@ class FirestoreResidenceFinanceRepository
       source: ResidenceTransactionSource.dues,
       note: first['note'] as String? ?? '',
       supportingDocument: first['supportingDocument'] as String? ?? '',
+      attachmentStoragePath: first['attachmentStoragePath'] as String? ?? '',
+      attachmentContentType: first['attachmentContentType'] as String? ?? '',
+      attachmentSizeBytes: first['attachmentSizeBytes'] as int? ?? 0,
       recordedBy: first['recordedBy'] as String? ?? '',
       apartmentNumber: first['apartmentNumber'] as String? ?? '',
       periodKey: periods.isEmpty ? '' : periods.first,
@@ -354,6 +387,9 @@ class FirestoreResidenceFinanceRepository
           : ResidenceExpenseCategory.values.byName(categoryName),
       note: data['note'] as String? ?? '',
       supportingDocument: data['supportingDocument'] as String? ?? '',
+      attachmentStoragePath: data['attachmentStoragePath'] as String? ?? '',
+      attachmentContentType: data['attachmentContentType'] as String? ?? '',
+      attachmentSizeBytes: data['attachmentSizeBytes'] as int? ?? 0,
       recordedBy: data['recordedBy'] as String? ?? '',
     );
   }
@@ -365,17 +401,30 @@ class FirestoreResidenceFinanceRepository
     required String recordedBy,
   }) async {
     _validate(input);
+    final transaction = _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('financeTransactions')
+        .doc();
+    final attachmentData = await _uploadAttachment(
+      residenceId: residenceId,
+      transactionKey: 'finance-${transaction.id}',
+      uploadedBy: recordedBy,
+      upload: input.attachmentUpload,
+    );
     try {
-      await _firestore
-          .collection('residences')
-          .doc(residenceId)
-          .collection('financeTransactions')
-          .add({
-            ..._inputData(input),
-            'recordedBy': recordedBy,
-            'createdAt': FieldValue.serverTimestamp(),
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
+      await transaction.set({
+        ..._inputData(
+          input,
+          attachmentName: input.attachmentUpload == null
+              ? null
+              : residenceTransactionAttachmentName(transaction.id),
+        ),
+        ...attachmentData,
+        'recordedBy': recordedBy,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     } on FirebaseException catch (error) {
       throw ResidenceFinanceFailure(error.code, error.message);
     }
@@ -388,16 +437,30 @@ class FirestoreResidenceFinanceRepository
     required ResidenceFinanceInput input,
   }) async {
     _validate(input);
+    final reference = _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('financeTransactions')
+        .doc(transactionId);
+    final attachmentData = await _uploadAttachment(
+      residenceId: residenceId,
+      transactionKey: 'finance-$transactionId',
+      uploadedBy: '',
+      upload: input.attachmentUpload,
+    );
     try {
-      await _firestore
-          .collection('residences')
-          .doc(residenceId)
-          .collection('financeTransactions')
-          .doc(transactionId)
-          .update({
-            ..._inputData(input),
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
+      await reference.update({
+        ..._inputData(
+          input,
+          attachmentName:
+              input.attachmentUpload == null &&
+                  input.supportingDocument.trim().isEmpty
+              ? null
+              : residenceTransactionAttachmentName(transactionId),
+        ),
+        ...attachmentData,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     } on FirebaseException catch (error) {
       throw ResidenceFinanceFailure(error.code, error.message);
     }
@@ -408,19 +471,32 @@ class FirestoreResidenceFinanceRepository
     required String residenceId,
     required String transactionId,
   }) async {
+    final reference = _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('financeTransactions')
+        .doc(transactionId);
     try {
-      await _firestore
-          .collection('residences')
-          .doc(residenceId)
-          .collection('financeTransactions')
-          .doc(transactionId)
-          .delete();
+      final snapshot = await reference.get();
+      final storagePath =
+          snapshot.data()?['attachmentStoragePath'] as String? ?? '';
+      await reference.delete();
+      if (storagePath.isNotEmpty) {
+        try {
+          await _storage.ref(storagePath).delete();
+        } on FirebaseException catch (error) {
+          if (error.code != 'object-not-found') rethrow;
+        }
+      }
     } on FirebaseException catch (error) {
       throw ResidenceFinanceFailure(error.code, error.message);
     }
   }
 
-  Map<String, Object?> _inputData(ResidenceFinanceInput input) {
+  Map<String, Object?> _inputData(
+    ResidenceFinanceInput input, {
+    String? attachmentName,
+  }) {
     return {
       'type': input.type.name,
       'amount': input.amount,
@@ -428,8 +504,47 @@ class FirestoreResidenceFinanceRepository
       'name': input.name.trim(),
       'expenseCategory': input.expenseCategory?.name,
       'note': input.note.trim(),
-      'supportingDocument': input.supportingDocument.trim(),
+      'supportingDocument': attachmentName ?? input.supportingDocument.trim(),
     };
+  }
+
+  Future<Map<String, Object>> _uploadAttachment({
+    required String residenceId,
+    required String transactionKey,
+    required String uploadedBy,
+    required ResidenceDocumentUpload? upload,
+  }) async {
+    if (upload == null) return const {};
+    if (!residenceDocumentContentTypes.contains(upload.contentType) ||
+        upload.bytes.isEmpty ||
+        upload.bytes.lengthInBytes > residenceDocumentMaxSizeBytes) {
+      throw const ResidenceFinanceFailure('invalid-attachment');
+    }
+    final storagePath =
+        'residences/$residenceId/attachments/$transactionKey/content';
+    try {
+      await _storage
+          .ref(storagePath)
+          .putData(
+            upload.bytes,
+            SettableMetadata(
+              contentType: upload.contentType,
+              cacheControl: 'private,max-age=3600',
+              customMetadata: {
+                'residenceId': residenceId,
+                'transactionKey': transactionKey,
+                if (uploadedBy.isNotEmpty) 'uploadedBy': uploadedBy,
+              },
+            ),
+          );
+      return {
+        'attachmentStoragePath': storagePath,
+        'attachmentContentType': upload.contentType,
+        'attachmentSizeBytes': upload.bytes.lengthInBytes,
+      };
+    } on FirebaseException catch (error) {
+      throw ResidenceFinanceFailure(error.code, error.message);
+    }
   }
 
   void _validate(ResidenceFinanceInput input) {
@@ -463,8 +578,10 @@ class FirestoreResidenceFinanceRepository
 }
 
 final residenceFinanceRepositoryProvider = Provider<ResidenceFinanceRepository>(
-  (ref) =>
-      FirestoreResidenceFinanceRepository(ref.watch(firebaseFirestoreProvider)),
+  (ref) => FirestoreResidenceFinanceRepository(
+    ref.watch(firebaseFirestoreProvider),
+    ref.watch(firebaseStorageProvider),
+  ),
 );
 
 class ResidenceFinanceController extends AsyncNotifier<ResidenceFinances> {
