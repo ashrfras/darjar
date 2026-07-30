@@ -265,7 +265,7 @@ class _Totals extends StatelessWidget {
             color: AppColors.primary,
           ),
         ];
-        if (constraints.maxWidth < 620) {
+        if (constraints.maxWidth < 330) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -278,6 +278,7 @@ class _Totals extends StatelessWidget {
           );
         }
         return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (var index = 0; index < items.length; index++) ...[
               Expanded(child: items[index]),
@@ -313,13 +314,18 @@ class _TotalCard extends StatelessWidget {
         children: [
           Text(label, style: Theme.of(context).textTheme.labelMedium),
           const SizedBox(height: AppSpacing.xSmall),
-          Text(
-            suffix == null
-                ? _amount(context, amount)
-                : '${_amount(context, amount)} $suffix',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(color: color),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              suffix == null
+                  ? _amount(context, amount)
+                  : '${_amount(context, amount)} $suffix',
+              maxLines: 1,
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: color),
+            ),
           ),
         ],
       ),

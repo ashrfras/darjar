@@ -46,7 +46,6 @@ class DuesManagementPage extends ConsumerWidget {
                     DarJarSubpageHeader(
                       title: localizations.duesManagement,
                       fallbackLocation: AppRoutes.profile,
-                      description: localizations.duesManagementDescription,
                     ),
                     const SizedBox(height: AppSpacing.xLarge),
                     DarJarCard(
@@ -689,7 +688,7 @@ class _ManagementTotals extends StatelessWidget {
     ];
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth < 620
+        final width = constraints.maxWidth < 330
             ? constraints.maxWidth
             : (constraints.maxWidth - AppSpacing.medium * 2) / 3;
         return Wrap(
@@ -709,12 +708,17 @@ class _ManagementTotals extends StatelessWidget {
                         style: Theme.of(context).textTheme.labelMedium,
                       ),
                       const SizedBox(height: AppSpacing.xSmall),
-                      Text(
-                        '${_amount(context, item.amount)} '
-                        '${localizations.currency}',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleLarge?.copyWith(color: item.color),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                          '${_amount(context, item.amount)} '
+                          '${localizations.currency}',
+                          maxLines: 1,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(color: item.color),
+                        ),
                       ),
                     ],
                   ),

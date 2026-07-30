@@ -1460,10 +1460,24 @@ void main() {
 
       expect(find.byKey(const Key('dues-page')), findsOneWidget);
       expect(find.byKey(const Key('dues-total-debit')), findsOneWidget);
+      final debitCard = find.byKey(const Key('dues-total-debit'));
+      final creditCard = find.byKey(const Key('dues-total-credit'));
+      final prepaidCard = find.byKey(const Key('dues-prepaid-months'));
+      expect(tester.getSize(debitCard).width, lessThan(130));
+      expect(tester.getTopLeft(debitCard).dy, tester.getTopLeft(creditCard).dy);
       expect(
-        tester.getSize(find.byKey(const Key('dues-total-debit'))).width,
-        greaterThan(300),
+        tester.getTopLeft(debitCard).dy,
+        tester.getTopLeft(prepaidCard).dy,
       );
+      tester.view.physicalSize = const Size(300, 844);
+      await tester.pumpAndSettle();
+      expect(tester.getSize(debitCard).width, greaterThan(250));
+      expect(
+        tester.getTopLeft(creditCard).dy,
+        greaterThan(tester.getBottomLeft(debitCard).dy),
+      );
+      tester.view.physicalSize = const Size(390, 844);
+      await tester.pumpAndSettle();
       expect(
         find.text('عرض مبسط لحالة واجبات السكن المسجلة من الإدارة.'),
         findsNothing,
@@ -1712,9 +1726,35 @@ void main() {
     await tester.tap(find.byKey(const Key('manage-dues-link')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('dues-management-page')), findsOneWidget);
+    expect(find.byKey(const Key('title-only-subpage-header')), findsOneWidget);
+    expect(
+      find.text('أنشئ واجبات الشهر تلقائياً لكل شقة وسجّل الأداءات اليدوية.'),
+      findsNothing,
+    );
     expect(find.byKey(const Key('management-dues-expected')), findsOneWidget);
     expect(find.byKey(const Key('management-dues-collected')), findsOneWidget);
     expect(find.byKey(const Key('management-dues-remaining')), findsOneWidget);
+    final expectedCard = find.byKey(const Key('management-dues-expected'));
+    final collectedCard = find.byKey(const Key('management-dues-collected'));
+    final remainingCard = find.byKey(const Key('management-dues-remaining'));
+    expect(tester.getSize(expectedCard).width, lessThan(130));
+    expect(
+      tester.getTopLeft(expectedCard).dy,
+      tester.getTopLeft(collectedCard).dy,
+    );
+    expect(
+      tester.getTopLeft(expectedCard).dy,
+      tester.getTopLeft(remainingCard).dy,
+    );
+    tester.view.physicalSize = const Size(300, 844);
+    await tester.pumpAndSettle();
+    expect(tester.getSize(expectedCard).width, greaterThan(250));
+    expect(
+      tester.getTopLeft(collectedCard).dy,
+      greaterThan(tester.getBottomLeft(expectedCard).dy),
+    );
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pumpAndSettle();
     expect(find.text('الأشهر غير المؤداة: 3'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('open-periods-apartment-01')));
     await tester.pumpAndSettle();
