@@ -35,6 +35,7 @@ abstract final class AppRoutes {
   static const accountResolution = '/auth/resolve';
   static const onboarding = '/onboarding';
   static const residenceSetup = '/residence/setup';
+  static const joinResidence = '/join/:code';
   static const community = '/community';
   static const createPost = '/community/create';
   static const directory = '/directory';
@@ -58,6 +59,7 @@ abstract final class AppRoutes {
 
   static String directoryProfile(String id) => '/directory/$id';
   static String communityPost(String id) => '/community/post/$id';
+  static String residenceInvitation(String code) => '/join/$code';
 }
 
 final appInitialLocationProvider = Provider<String>((ref) {
@@ -90,6 +92,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (user != null && isAuthRoute) {
+        final destination = state.uri.queryParameters['from'];
+        final uri = destination == null ? null : Uri.tryParse(destination);
+        if (uri != null && uri.path.startsWith('/join/') && !uri.hasAuthority) {
+          return uri.toString();
+        }
         return AppRoutes.accountResolution;
       }
 
@@ -116,6 +123,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.residenceSetup,
         builder: (context, state) => const ResidenceSetupPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.joinResidence,
+        builder: (context, state) =>
+            ResidenceSetupPage(invitationCode: state.pathParameters['code']),
       ),
       ShellRoute(
         builder: (context, state, child) {

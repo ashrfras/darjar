@@ -265,13 +265,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get joinCodeDescription =>
-      'أدخل رمز الإقامة لعرض معلوماتها والانضمام إليها مباشرة.';
+      'أدخل رمز الإقامة، أو أعد النقر على رابط الدعوة لملئه تلقائياً.';
 
   @override
   String get searchResidence => 'البحث عن الإقامة';
 
   @override
   String get searchingResidence => 'جارٍ البحث…';
+
+  @override
+  String get joinApartmentNumber => 'رقم الشقة';
+
+  @override
+  String get joinApartmentHint => 'اختر شقتك';
+
+  @override
+  String joinApartmentOption(String number, String building, String floor) {
+    return 'الشقة $number · $building · $floor';
+  }
+
+  @override
+  String get joinNoApartments =>
+      'لا توجد شقق متاحة للاختيار في هذه الإقامة. تواصل مع المسؤول عنها.';
 
   @override
   String get residenceCodeInvalid => 'أدخل رمز الإقامة المكوّن من 8 أرقام.';
@@ -306,6 +321,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get setupCompleteRequiredFields =>
       'أكمل جميع معلومات الإقامة والاسم والنسب.';
+
+  @override
+  String get setupCompleteJoinFields => 'أدخل الاسم والنسب واختر رقم الشقة.';
 
   @override
   String get setupUnexpectedError => 'تعذر إكمال العملية الآن. حاول مجدداً.';

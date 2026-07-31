@@ -269,13 +269,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get joinCodeDescription =>
-      'Enter the residence code to view its information and join immediately.';
+      'Enter the residence code, or tap the invitation link again to fill it automatically.';
 
   @override
   String get searchResidence => 'Find residence';
 
   @override
   String get searchingResidence => 'Searching…';
+
+  @override
+  String get joinApartmentNumber => 'Apartment number';
+
+  @override
+  String get joinApartmentHint => 'Select your apartment';
+
+  @override
+  String joinApartmentOption(String number, String building, String floor) {
+    return 'Apartment $number · $building · $floor';
+  }
+
+  @override
+  String get joinNoApartments =>
+      'There are no apartments available to select in this residence. Contact its manager.';
 
   @override
   String get residenceCodeInvalid => 'Enter the 8-digit residence code.';
@@ -310,6 +325,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setupCompleteRequiredFields =>
       'Complete all residence, first name, and last name fields.';
+
+  @override
+  String get setupCompleteJoinFields =>
+      'Enter your first and last name, then select your apartment number.';
 
   @override
   String get setupUnexpectedError =>

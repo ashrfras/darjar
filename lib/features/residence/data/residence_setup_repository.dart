@@ -29,6 +29,7 @@ class ResidenceCodeSummary {
     required this.address,
     required this.city,
     required this.joinRequestsEnabled,
+    this.apartments = const [],
   });
 
   final String residenceId;
@@ -37,6 +38,25 @@ class ResidenceCodeSummary {
   final String address;
   final String city;
   final bool joinRequestsEnabled;
+  final List<ResidenceJoinApartment> apartments;
+}
+
+class ResidenceJoinApartment {
+  const ResidenceJoinApartment({
+    required this.id,
+    required this.number,
+    required this.buildingNameAr,
+    required this.buildingNameEn,
+    required this.floorNameAr,
+    required this.floorNameEn,
+  });
+
+  final String id;
+  final String number;
+  final String buildingNameAr;
+  final String buildingNameEn;
+  final String floorNameAr;
+  final String floorNameEn;
 }
 
 class CreatedResidence {
@@ -65,6 +85,7 @@ abstract interface class ResidenceSetupRepository {
     required ResidenceCodeSummary residence,
     required String firstName,
     required String lastName,
+    required String apartmentId,
   });
 }
 
@@ -230,6 +251,7 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
         return null;
       }
       final data = residenceDocument.data()!;
+      final apartments = await _loadApartments(residenceDocument.reference);
       return ResidenceCodeSummary(
         residenceId: residenceId,
         code: normalizedCode,
@@ -237,6 +259,7 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
         address: data['address'] as String? ?? '',
         city: data['city'] as String? ?? '',
         joinRequestsEnabled: data['joinRequestsEnabled'] as bool? ?? false,
+        apartments: apartments,
       );
     } on ResidenceSetupFailure {
       rethrow;
@@ -251,12 +274,20 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
     required ResidenceCodeSummary residence,
     required String firstName,
     required String lastName,
+    required String apartmentId,
   }) async {
     final phoneNumber = _verifiedPhone(user);
     final normalizedFirstName = firstName.trim();
     final normalizedLastName = lastName.trim();
+    final normalizedApartmentId = apartmentId.trim();
     if (normalizedFirstName.isEmpty || normalizedLastName.isEmpty) {
       throw const ResidenceSetupFailure('invalid-data');
+    }
+    if (normalizedApartmentId.isEmpty ||
+        !residence.apartments.any(
+          (apartment) => apartment.id == normalizedApartmentId,
+        )) {
+      throw const ResidenceSetupFailure('invalid-apartment');
     }
     if (!residence.joinRequestsEnabled) {
       throw const ResidenceSetupFailure('join-requests-disabled');
@@ -281,7 +312,7 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
           'firstName': profile?['firstName'] as String? ?? normalizedFirstName,
           'lastName': profile?['lastName'] as String? ?? normalizedLastName,
           'phoneNumber': phoneNumber,
-          'apartmentId': '',
+          'apartmentId': normalizedApartmentId,
           'role': 'resident',
           'hasPresidentPermissions': false,
           'status': 'active',
@@ -316,6 +347,55 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
       throw const ResidenceSetupFailure('missing-phone-number');
     }
     return phoneNumber;
+  }
+
+  Future<List<ResidenceJoinApartment>> _loadApartments(
+    DocumentReference<Map<String, dynamic>> residence,
+  ) async {
+    final buildings = await residence.collection('buildings').get();
+    final apartments = <ResidenceJoinApartment>[];
+    for (final building in buildings.docs) {
+      final buildingData = building.data();
+      final floors = await building.reference.collection('floors').get();
+      for (final floor in floors.docs) {
+        final floorData = floor.data();
+        final apartmentDocuments = await floor.reference
+            .collection('apartments')
+            .get();
+        for (final apartment in apartmentDocuments.docs) {
+          apartments.add(
+            ResidenceJoinApartment(
+              id: apartment.id,
+              number: apartment.data()['number']?.toString() ?? '',
+              buildingNameAr:
+                  buildingData['nameAr'] as String? ??
+                  buildingData['name'] as String? ??
+                  '',
+              buildingNameEn:
+                  buildingData['nameEn'] as String? ??
+                  buildingData['name'] as String? ??
+                  '',
+              floorNameAr:
+                  floorData['nameAr'] as String? ??
+                  floorData['name'] as String? ??
+                  '',
+              floorNameEn:
+                  floorData['nameEn'] as String? ??
+                  floorData['name'] as String? ??
+                  '',
+            ),
+          );
+        }
+      }
+    }
+    apartments.sort((first, second) {
+      final building = first.buildingNameAr.compareTo(second.buildingNameAr);
+      if (building != 0) return building;
+      final floor = first.floorNameAr.compareTo(second.floorNameAr);
+      if (floor != 0) return floor;
+      return first.number.compareTo(second.number);
+    });
+    return apartments;
   }
 
   String _generateJoinCode() {

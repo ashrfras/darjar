@@ -581,7 +581,7 @@ abstract class AppLocalizations {
   /// No description provided for @joinCodeDescription.
   ///
   /// In ar, this message translates to:
-  /// **'أدخل رمز الإقامة لعرض معلوماتها والانضمام إليها مباشرة.'**
+  /// **'أدخل رمز الإقامة، أو أعد النقر على رابط الدعوة لملئه تلقائياً.'**
   String get joinCodeDescription;
 
   /// No description provided for @searchResidence.
@@ -595,6 +595,30 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'جارٍ البحث…'**
   String get searchingResidence;
+
+  /// No description provided for @joinApartmentNumber.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم الشقة'**
+  String get joinApartmentNumber;
+
+  /// No description provided for @joinApartmentHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر شقتك'**
+  String get joinApartmentHint;
+
+  /// No description provided for @joinApartmentOption.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشقة {number} · {building} · {floor}'**
+  String joinApartmentOption(String number, String building, String floor);
+
+  /// No description provided for @joinNoApartments.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد شقق متاحة للاختيار في هذه الإقامة. تواصل مع المسؤول عنها.'**
+  String get joinNoApartments;
 
   /// No description provided for @residenceCodeInvalid.
   ///
@@ -655,6 +679,12 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'أكمل جميع معلومات الإقامة والاسم والنسب.'**
   String get setupCompleteRequiredFields;
+
+  /// No description provided for @setupCompleteJoinFields.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل الاسم والنسب واختر رقم الشقة.'**
+  String get setupCompleteJoinFields;
 
   /// No description provided for @setupUnexpectedError.
   ///

@@ -19,14 +19,33 @@ import 'package:go_router/go_router.dart';
 enum ResidenceSetupStep { choice, create, join }
 
 class ResidenceSetupPage extends StatefulWidget {
-  const ResidenceSetupPage({super.key});
+  const ResidenceSetupPage({this.invitationCode, super.key});
+
+  final String? invitationCode;
 
   @override
   State<ResidenceSetupPage> createState() => _ResidenceSetupPageState();
 }
 
 class _ResidenceSetupPageState extends State<ResidenceSetupPage> {
-  ResidenceSetupStep _step = ResidenceSetupStep.choice;
+  late ResidenceSetupStep _step;
+
+  @override
+  void initState() {
+    super.initState();
+    _step = widget.invitationCode == null
+        ? ResidenceSetupStep.choice
+        : ResidenceSetupStep.join;
+  }
+
+  @override
+  void didUpdateWidget(covariant ResidenceSetupPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.invitationCode != null &&
+        widget.invitationCode != oldWidget.invitationCode) {
+      setState(() => _step = ResidenceSetupStep.join);
+    }
+  }
 
   void _goBack() {
     if (_step == ResidenceSetupStep.choice) {
@@ -71,8 +90,9 @@ class _ResidenceSetupPageState extends State<ResidenceSetupPage> {
                   ResidenceSetupStep.create => const _CreateResidenceForm(
                     key: ValueKey('create-residence-form'),
                   ),
-                  ResidenceSetupStep.join => const _JoinResidenceForm(
-                    key: ValueKey('join-residence-form'),
+                  ResidenceSetupStep.join => _JoinResidenceForm(
+                    key: const ValueKey('join-residence-form'),
+                    invitationCode: widget.invitationCode,
                   ),
                 },
               ),
@@ -396,7 +416,9 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
 }
 
 class _JoinResidenceForm extends ConsumerStatefulWidget {
-  const _JoinResidenceForm({super.key});
+  const _JoinResidenceForm({this.invitationCode, super.key});
+
+  final String? invitationCode;
 
   @override
   ConsumerState<_JoinResidenceForm> createState() => _JoinResidenceFormState();
@@ -409,8 +431,31 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
   ResidenceCodeSummary? _residence;
   bool _isSearching = false;
   bool _isJoining = false;
-  bool _requestSent = false;
   String? _errorCode;
+  String? _selectedApartmentId;
+
+  @override
+  void initState() {
+    super.initState();
+    _useInvitationCode(widget.invitationCode);
+  }
+
+  @override
+  void didUpdateWidget(covariant _JoinResidenceForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.invitationCode != oldWidget.invitationCode) {
+      _useInvitationCode(widget.invitationCode);
+    }
+  }
+
+  void _useInvitationCode(String? invitationCode) {
+    final code = normalizeResidenceCode(invitationCode ?? '');
+    if (!isValidResidenceCode(code)) return;
+    _codeController.text = code;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _search();
+    });
+  }
 
   @override
   void dispose() {
@@ -436,23 +481,6 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DarJarTextField(
-                key: const Key('join-first-name-field'),
-                controller: _firstNameController,
-                label: localizations.firstName,
-                prefixIcon: Icons.person_outline_rounded,
-                textInputAction: TextInputAction.next,
-              ),
-              const SizedBox(height: AppSpacing.medium),
-              DarJarTextField(
-                key: const Key('join-last-name-field'),
-                controller: _lastNameController,
-                label: localizations.lastName,
-                helper: localizations.lastNamePrivacyHint,
-                prefixIcon: Icons.person_outline_rounded,
-                textInputAction: TextInputAction.next,
-              ),
-              const SizedBox(height: AppSpacing.medium),
               DarJarTextField(
                 key: const Key('join-residence-code-field'),
                 controller: _codeController,
@@ -489,11 +517,65 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
               ],
               if (_residence != null) ...[
                 const SizedBox(height: AppSpacing.xLarge),
-                _ResidenceSearchResult(
-                  residence: _residence!,
-                  isJoining: _isJoining,
-                  requestSent: _requestSent,
-                  onJoin: _requestSent || !_residence!.joinRequestsEnabled
+                _ResidenceSearchResult(residence: _residence!),
+                const SizedBox(height: AppSpacing.xLarge),
+                DarJarTextField(
+                  key: const Key('join-first-name-field'),
+                  controller: _firstNameController,
+                  label: localizations.firstName,
+                  prefixIcon: Icons.person_outline_rounded,
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: AppSpacing.medium),
+                DarJarTextField(
+                  key: const Key('join-last-name-field'),
+                  controller: _lastNameController,
+                  label: localizations.lastName,
+                  helper: localizations.lastNamePrivacyHint,
+                  prefixIcon: Icons.person_outline_rounded,
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: AppSpacing.medium),
+                DropdownButtonFormField<String>(
+                  key: const Key('join-apartment-field'),
+                  initialValue: _selectedApartmentId,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: localizations.joinApartmentNumber,
+                    prefixIcon: const Icon(Icons.door_front_door_outlined),
+                  ),
+                  hint: Text(localizations.joinApartmentHint),
+                  items: [
+                    for (final apartment in _residence!.apartments)
+                      DropdownMenuItem(
+                        value: apartment.id,
+                        child: Text(_apartmentLabel(localizations, apartment)),
+                      ),
+                  ],
+                  onChanged: _isJoining || _residence!.apartments.isEmpty
+                      ? null
+                      : (value) => setState(() {
+                          _selectedApartmentId = value;
+                          _errorCode = null;
+                        }),
+                ),
+                if (_residence!.apartments.isEmpty) ...[
+                  const SizedBox(height: AppSpacing.large),
+                  _SetupError(message: localizations.joinNoApartments),
+                ],
+                const SizedBox(height: AppSpacing.large),
+                DarJarButton(
+                  key: const Key('join-found-residence-button'),
+                  label: !_residence!.joinRequestsEnabled
+                      ? localizations.joinRequestsClosed
+                      : _isJoining
+                      ? localizations.sendingJoinRequest
+                      : localizations.joinResidence,
+                  expanded: true,
+                  onPressed:
+                      _isJoining ||
+                          !_residence!.joinRequestsEnabled ||
+                          _residence!.apartments.isEmpty
                       ? null
                       : _join,
                 ),
@@ -518,7 +600,7 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
     setState(() {
       _isSearching = true;
       _residence = null;
-      _requestSent = false;
+      _selectedApartmentId = null;
       _errorCode = null;
     });
     try {
@@ -554,8 +636,9 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
       return;
     }
     if (_firstNameController.text.trim().isEmpty ||
-        _lastNameController.text.trim().isEmpty) {
-      setState(() => _errorCode = 'invalid-data');
+        _lastNameController.text.trim().isEmpty ||
+        _selectedApartmentId == null) {
+      setState(() => _errorCode = 'invalid-join-data');
       return;
     }
     setState(() {
@@ -570,6 +653,7 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
             residence: residence,
             firstName: _firstNameController.text,
             lastName: _lastNameController.text,
+            apartmentId: _selectedApartmentId!,
           );
       if (mounted) {
         ref.invalidate(residenceContextProvider);
@@ -590,20 +674,24 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
       }
     }
   }
+
+  String _apartmentLabel(
+    AppLocalizations localizations,
+    ResidenceJoinApartment apartment,
+  ) {
+    final arabic = Localizations.localeOf(context).languageCode == 'ar';
+    final building = arabic
+        ? apartment.buildingNameAr
+        : apartment.buildingNameEn;
+    final floor = arabic ? apartment.floorNameAr : apartment.floorNameEn;
+    return localizations.joinApartmentOption(apartment.number, building, floor);
+  }
 }
 
 class _ResidenceSearchResult extends StatelessWidget {
-  const _ResidenceSearchResult({
-    required this.residence,
-    required this.isJoining,
-    required this.requestSent,
-    required this.onJoin,
-  });
+  const _ResidenceSearchResult({required this.residence});
 
   final ResidenceCodeSummary residence;
-  final bool isJoining;
-  final bool requestSent;
-  final VoidCallback? onJoin;
 
   @override
   Widget build(BuildContext context) {
@@ -618,46 +706,23 @@ class _ResidenceSearchResult extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(
-            requestSent
-                ? Icons.mark_email_read_outlined
-                : Icons.apartment_rounded,
-            color: AppColors.primary,
-            size: 36,
-          ),
+          Icon(Icons.apartment_rounded, color: AppColors.primary, size: 36),
           const SizedBox(height: AppSpacing.medium),
           Text(
-            requestSent
-                ? localizations.joinRequestSent
-                : localizations.residenceDisplayName(
-                    normalizeResidenceName(residence.name),
-                  ),
+            localizations.residenceDisplayName(
+              normalizeResidenceName(residence.name),
+            ),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: AppSpacing.small),
           Text(
-            requestSent
-                ? localizations.joinRequestSentDescription
-                : '${residence.address} · ${_cityName(localizations)}',
+            '${residence.address} · ${_cityName(localizations)}',
             textAlign: TextAlign.center,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: AppColors.inkMuted),
           ),
-          if (!requestSent) ...[
-            const SizedBox(height: AppSpacing.large),
-            DarJarButton(
-              key: const Key('join-found-residence-button'),
-              label: !residence.joinRequestsEnabled
-                  ? localizations.joinRequestsClosed
-                  : isJoining
-                  ? localizations.sendingJoinRequest
-                  : localizations.joinResidence,
-              expanded: true,
-              onPressed: isJoining ? null : onJoin,
-            ),
-          ],
         ],
       ),
     );
@@ -778,6 +843,8 @@ class _SetupError extends StatelessWidget {
 String _setupErrorMessage(AppLocalizations localizations, String code) {
   return switch (code) {
     'invalid-data' => localizations.setupCompleteRequiredFields,
+    'invalid-join-data' ||
+    'invalid-apartment' => localizations.setupCompleteJoinFields,
     'invalid-code' => localizations.residenceCodeInvalid,
     'permission-denied' => localizations.accountResolutionPermissionDenied,
     'join-requests-disabled' => localizations.joinRequestsClosed,

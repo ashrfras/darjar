@@ -68,6 +68,11 @@ service cloud.firestore {
         ).data.apartmentId == apartmentId;
     }
 
+    function canExploreJoinableResidence(residenceId) {
+      return verifiedPhone()
+        && get(residencePath(residenceId)).data.joinRequestsEnabled == true;
+    }
+
     function isPresident(residenceId) {
       let membership = get(
         memberPath(residenceId, request.auth.uid)
@@ -182,7 +187,8 @@ service cloud.firestore {
         && request.resource.data.lastName is string
         && request.resource.data.phoneNumber
           == request.auth.token.phone_number
-        && request.resource.data.apartmentId == ''
+        && request.resource.data.apartmentId is string
+        && request.resource.data.apartmentId.size() > 0
         && request.resource.data.role == 'resident'
         && request.resource.data.hasPresidentPermissions == false
         && request.resource.data.status == 'active'
@@ -1081,7 +1087,8 @@ service cloud.firestore {
       }
 
       match /buildings/{buildingId} {
-        allow read: if isResidenceMember(residenceId);
+        allow read: if isResidenceMember(residenceId)
+          || canExploreJoinableResidence(residenceId);
         allow create: if canManageResidence(residenceId)
           || (
             verifiedPhone()
@@ -1093,7 +1100,8 @@ service cloud.firestore {
         allow update, delete: if canManageResidence(residenceId);
 
         match /floors/{floorId} {
-          allow read: if isResidenceMember(residenceId);
+          allow read: if isResidenceMember(residenceId)
+            || canExploreJoinableResidence(residenceId);
           allow create: if canManageResidence(residenceId)
             || (
               verifiedPhone()
@@ -1105,7 +1113,8 @@ service cloud.firestore {
           allow update, delete: if canManageResidence(residenceId);
 
           match /apartments/{apartmentId} {
-            allow read: if isResidenceMember(residenceId);
+            allow read: if isResidenceMember(residenceId)
+              || canExploreJoinableResidence(residenceId);
             allow create: if canManageResidence(residenceId)
               && request.resource.data.keys().hasOnly([
                 'number',

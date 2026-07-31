@@ -801,6 +801,16 @@ void main() {
           address: 'حي المعاريف',
           city: '6141010',
           joinRequestsEnabled: true,
+          apartments: [
+            ResidenceJoinApartment(
+              id: 'apartment-12',
+              number: '12',
+              buildingNameAr: 'العمارة الرئيسية',
+              buildingNameEn: 'Main building',
+              floorNameAr: 'الطابق الأول',
+              floorNameEn: 'First floor',
+            ),
+          ],
         ),
       );
       await _pumpApp(
@@ -813,15 +823,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('join-my-residence-option')));
       await tester.pumpAndSettle();
-      expect(find.text('لا يتم إظهار النسب للسكان الآخرين.'), findsOneWidget);
-      await tester.enterText(
-        find.byKey(const Key('join-first-name-field')),
-        'أمين',
-      );
-      await tester.enterText(
-        find.byKey(const Key('join-last-name-field')),
-        'المريني',
-      );
+      expect(find.byKey(const Key('join-first-name-field')), findsNothing);
       await tester.enterText(
         find.byKey(const Key('join-residence-code-field')),
         '48273165',
@@ -832,12 +834,141 @@ void main() {
       expect(find.byKey(const Key('residence-search-result')), findsOneWidget);
       expect(find.text('إقامة الياسمين'), findsOneWidget);
       expect(find.textContaining('حي المعاريف'), findsOneWidget);
+      expect(find.text('لا يتم إظهار النسب للسكان الآخرين.'), findsOneWidget);
 
+      await tester.enterText(
+        find.byKey(const Key('join-first-name-field')),
+        'أمين',
+      );
+      await tester.enterText(
+        find.byKey(const Key('join-last-name-field')),
+        'المريني',
+      );
+      await tester.tap(find.byKey(const Key('join-apartment-field')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.text('الشقة 12 · العمارة الرئيسية · الطابق الأول').last,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(
+        find.byKey(const Key('join-found-residence-button')),
+      );
       await tester.tap(find.byKey(const Key('join-found-residence-button')));
       await tester.pumpAndSettle();
 
       expect(setupRepository.requestedResidence?.code, '48273165');
+      expect(setupRepository.requestedApartmentId, 'apartment-12');
       expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+    });
+
+    testWidgets(
+      'invitation link keeps the verified session and searches automatically',
+      (tester) async {
+        final setupRepository = _FakeResidenceSetupRepository(
+          residence: const ResidenceCodeSummary(
+            residenceId: 'residence-yasmine',
+            code: '48273165',
+            name: 'إقامة الياسمين',
+            address: 'حي المعاريف',
+            city: '6141010',
+            joinRequestsEnabled: true,
+            apartments: [
+              ResidenceJoinApartment(
+                id: 'apartment-12',
+                number: '12',
+                buildingNameAr: 'العمارة الرئيسية',
+                buildingNameEn: 'Main building',
+                floorNameAr: 'الطابق الأول',
+                floorNameEn: 'First floor',
+              ),
+            ],
+          ),
+        );
+
+        await _pumpApp(
+          tester,
+          size: const Size(390, 844),
+          initialLocation: AppRoutes.residenceInvitation('48273165'),
+          residenceSetupRepository: setupRepository,
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const Key('phone-auth-page')), findsNothing);
+        expect(
+          find.byKey(const Key('residence-search-result')),
+          findsOneWidget,
+        );
+        expect(
+          tester
+              .widget<TextField>(
+                find.descendant(
+                  of: find.byKey(const Key('join-residence-code-field')),
+                  matching: find.byType(TextField),
+                ),
+              )
+              .controller
+              ?.text,
+          '48273165',
+        );
+        expect(find.byKey(const Key('join-first-name-field')), findsOneWidget);
+        expect(find.byKey(const Key('join-apartment-field')), findsOneWidget);
+      },
+    );
+
+    testWidgets('invitation link resumes after the first phone verification', (
+      tester,
+    ) async {
+      final authRepository = _FakeAuthRepository(signedIn: false);
+      final setupRepository = _FakeResidenceSetupRepository(
+        residence: const ResidenceCodeSummary(
+          residenceId: 'residence-yasmine',
+          code: '48273165',
+          name: 'إقامة الياسمين',
+          address: 'حي المعاريف',
+          city: '6141010',
+          joinRequestsEnabled: true,
+          apartments: [
+            ResidenceJoinApartment(
+              id: 'apartment-12',
+              number: '12',
+              buildingNameAr: 'العمارة الرئيسية',
+              buildingNameEn: 'Main building',
+              floorNameAr: 'الطابق الأول',
+              floorNameEn: 'First floor',
+            ),
+          ],
+        ),
+      );
+
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: AppRoutes.residenceInvitation('48273165'),
+        authRepository: authRepository,
+        residenceSetupRepository: setupRepository,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('phone-auth-page')), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const Key('auth-phone-field')),
+        '600000001',
+      );
+      await tester.tap(find.byKey(const Key('send-verification-code-button')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('auth-verification-code-field')),
+        '123456',
+      );
+      await tester.tap(
+        find.byKey(const Key('confirm-verification-code-button')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('phone-auth-page')), findsNothing);
+      expect(find.byKey(const Key('residence-search-result')), findsOneWidget);
+      expect(authRepository.confirmedCode, '123456');
     });
   });
 
@@ -3056,6 +3187,7 @@ void main() {
 Future<void> _pumpApp(
   WidgetTester tester, {
   required Size size,
+  String initialLocation = AppRoutes.onboarding,
   AuthRepository? authRepository,
   AccountOnboardingRepository? accountRepository,
   ResidenceSetupRepository? residenceSetupRepository,
@@ -3126,7 +3258,7 @@ Future<void> _pumpApp(
     ProviderScope(
       overrides: [
         authRepositoryProvider.overrideWithValue(repository),
-        appInitialLocationProvider.overrideWithValue(AppRoutes.onboarding),
+        appInitialLocationProvider.overrideWithValue(initialLocation),
         notificationPushEnabledProvider.overrideWithValue(false),
         notificationsRepositoryProvider.overrideWithValue(
           currentNotificationsRepository,
@@ -3353,6 +3485,7 @@ class _FakeResidenceSetupRepository implements ResidenceSetupRepository {
   final ResidenceCodeSummary? residence;
   CreateResidenceInput? createdInput;
   ResidenceCodeSummary? requestedResidence;
+  String? requestedApartmentId;
 
   @override
   Future<CreatedResidence> createResidence({
@@ -3380,8 +3513,10 @@ class _FakeResidenceSetupRepository implements ResidenceSetupRepository {
     required ResidenceCodeSummary residence,
     required String firstName,
     required String lastName,
+    required String apartmentId,
   }) async {
     requestedResidence = residence;
+    requestedApartmentId = apartmentId;
   }
 }
 
