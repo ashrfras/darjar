@@ -1,6 +1,6 @@
 # darjar
 
-DarJar (دارجار) is the daily digital space of an apartment building or residential community.
+DarJar is the daily digital space of an apartment building or residential community.
 
 ## Final stack
 - Flutter + Dart
