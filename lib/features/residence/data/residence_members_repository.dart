@@ -6,6 +6,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum ResidenceMemberRole { president, deputy, treasurer, resident }
 
+int residenceMemberRolePriority(ResidenceMemberRole role) => switch (role) {
+  ResidenceMemberRole.president => 0,
+  ResidenceMemberRole.deputy => 1,
+  ResidenceMemberRole.treasurer => 2,
+  ResidenceMemberRole.resident => 3,
+};
+
+int compareResidenceMembersByRole(
+  ResidenceMember first,
+  ResidenceMember second,
+) {
+  final roleComparison = residenceMemberRolePriority(
+    first.role,
+  ).compareTo(residenceMemberRolePriority(second.role));
+  return roleComparison != 0
+      ? roleComparison
+      : first.name.compareTo(second.name);
+}
+
 class ResidenceMember {
   const ResidenceMember({
     required this.id,
@@ -665,3 +684,16 @@ final residenceMembersProvider =
     AsyncNotifierProvider<ResidenceMembersController, ResidenceMembersData>(
       ResidenceMembersController.new,
     );
+
+final residenceDirectoryProvider = FutureProvider<ResidenceMembersData>((ref) {
+  final residenceId = ref.watch(
+    residenceContextProvider.select(
+      (context) => context.value?.activeResidence?.id,
+    ),
+  );
+  if (residenceId == null) return ResidenceMembersData.empty;
+
+  return ref
+      .watch(residenceMembersRepositoryProvider)
+      .load(residenceId, includeInvitations: false);
+});

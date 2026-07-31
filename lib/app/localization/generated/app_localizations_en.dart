@@ -983,6 +983,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get residenceConstructionYear => 'Construction year';
 
   @override
+  String get residenceResidents => 'Residence residents';
+
+  @override
+  String get residenceResidentsDescription =>
+      'Meet your neighbors and see where they live in the residence.';
+
+  @override
+  String residenceResidentsCount(int count) {
+    return 'Residents: $count';
+  }
+
+  @override
+  String get residenceNoResidents =>
+      'No residents have been registered in this residence yet.';
+
+  @override
+  String get residenceResidentsLoadError =>
+      'The residence residents could not be loaded. Try again.';
+
+  @override
+  String residentApartment(String number) {
+    return 'Apartment $number';
+  }
+
+  @override
   String get managementCompany => 'Management organization';
 
   @override

@@ -2,6 +2,7 @@ import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
@@ -85,7 +86,11 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
                   Text(
                     _codeSent
                         ? localizations.authCodeDescription(
-                            normalizeMoroccanPhoneNumber(_phoneController.text),
+                            formatPhoneNumberForDisplay(
+                              normalizeMoroccanPhoneNumber(
+                                _phoneController.text,
+                              ),
+                            ),
                           )
                         : localizations.authPhoneDescription,
                     textAlign: TextAlign.center,

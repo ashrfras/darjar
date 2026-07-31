@@ -966,6 +966,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get residenceConstructionYear => 'سنة البناء';
 
   @override
+  String get residenceResidents => 'سكان الإقامة';
+
+  @override
+  String get residenceResidentsDescription =>
+      'تعرّف على جيرانك وبيانات السكن داخل الإقامة.';
+
+  @override
+  String residenceResidentsCount(int count) {
+    return 'عدد السكان: $count';
+  }
+
+  @override
+  String get residenceNoResidents => 'لا يوجد سكان مسجلون في هذه الإقامة بعد.';
+
+  @override
+  String get residenceResidentsLoadError =>
+      'تعذر تحميل قائمة سكان الإقامة. حاول مجدداً.';
+
+  @override
+  String residentApartment(String number) {
+    return 'الشقة $number';
+  }
+
+  @override
   String get managementCompany => 'جهة الإدارة';
 
   @override

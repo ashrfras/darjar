@@ -66,6 +66,44 @@ void main() {
   });
 
   group('mock repositories', () {
+    test('residence members are ordered by role importance then name', () {
+      const members = [
+        ResidenceMember(
+          id: 'resident',
+          name: 'زياد السالمي',
+          phone: '',
+          role: ResidenceMemberRole.resident,
+        ),
+        ResidenceMember(
+          id: 'treasurer',
+          name: 'أمينة الكتاني',
+          phone: '',
+          role: ResidenceMemberRole.treasurer,
+        ),
+        ResidenceMember(
+          id: 'president',
+          name: 'يوسف العلوي',
+          phone: '',
+          role: ResidenceMemberRole.president,
+        ),
+        ResidenceMember(
+          id: 'deputy',
+          name: 'سلمى المريني',
+          phone: '',
+          role: ResidenceMemberRole.deputy,
+        ),
+      ];
+
+      final sorted = [...members]..sort(compareResidenceMembersByRole);
+
+      expect(sorted.map((member) => member.id), [
+        'president',
+        'deputy',
+        'treasurer',
+        'resident',
+      ]);
+    });
+
     test('notifications are residence-scoped and persist read state', () async {
       final repository = MockNotificationsRepository(
         seed: [
@@ -509,6 +547,15 @@ void main() {
       expect(normalizePhoneNumber('00212 6 12 34 56 78'), '+212612345678');
     });
 
+    test('formats phone numbers with a parenthesized country code', () {
+      expect(
+        formatPhoneNumberForDisplay('+212 6 01 19 13 22'),
+        '(212)601191322',
+      );
+      expect(formatPhoneNumberForDisplay('06 01 19 13 22'), '(212)601191322');
+      expect(formatPhoneNumberForDisplay('+33 6 12 34 56 78'), '(33)612345678');
+    });
+
     test('normalizes supported Moroccan mobile number formats', () {
       expect(normalizeMoroccanPhoneNumber('06 00 00 00 01'), '+212600000001');
       expect(normalizeMoroccanPhoneNumber('+212 600 000 001'), '+212600000001');
@@ -575,6 +622,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(authRepository.requestedPhoneNumber, '+212600000001');
+      expect(find.textContaining('(212)600000001'), findsOneWidget);
       expect(
         find.byKey(const Key('auth-verification-code-field')),
         findsOneWidget,
@@ -661,7 +709,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('أمينة المريني'), findsOneWidget);
-      expect(find.text('212600000001', findRichText: true), findsOneWidget);
+      expect(find.text('(212)600000001'), findsOneWidget);
       expect(find.text('إقامة الياسمين'), findsOneWidget);
       expect(find.text('إقامة الأندلس'), findsOneWidget);
 
@@ -1352,6 +1400,41 @@ void main() {
       findsOneWidget,
     );
 
+    final directoryCard = find.byKey(const Key('residence-directory-card'));
+    expect(
+      find.descendant(
+        of: directoryCard,
+        matching: find.byIcon(Icons.arrow_forward_ios_rounded),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(directoryCard);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('residence-members-page')), findsOneWidget);
+    expect(find.text('سكان الإقامة'), findsOneWidget);
+    expect(find.text('يوسف ع.'), findsOneWidget);
+    expect(find.text('كريم ت.'), findsOneWidget);
+    expect(find.text('الشقة 12 · الطابق الأول'), findsOneWidget);
+    expect(find.text('رئيس'), findsOneWidget);
+    expect(find.text('ساكن'), findsOneWidget);
+    expect(
+      tester
+          .getTopLeft(find.byKey(const ValueKey('residence-member-test-user')))
+          .dy,
+      lessThan(
+        tester
+            .getTopLeft(
+              find.byKey(const ValueKey('residence-member-member-karim')),
+            )
+            .dy,
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('subpage-back-button')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('residence-home-page')), findsOneWidget);
+
     await tester.tap(find.text('حالة الواجبات'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('dues-page')), findsOneWidget);
@@ -1527,7 +1610,7 @@ void main() {
     await tester.tap(find.byKey(const Key('profile-button')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('profile-page')), findsOneWidget);
-    expect(find.text('212612345678', findRichText: true), findsOneWidget);
+    expect(find.text('(212)612345678'), findsOneWidget);
     expect(find.text('أمين المريني'), findsOneWidget);
     expect(find.text('الإقامات'), findsOneWidget);
     expect(find.text('إقامة الاختبار'), findsWidgets);
@@ -1538,19 +1621,14 @@ void main() {
     expect(find.text('الإعدادات'), findsNothing);
     expect(find.text('إعادة عرض البداية'), findsNothing);
     expect(find.byKey(const Key('profile-phone-number')), findsOneWidget);
-    final profilePhone = tester.widget<RichText>(
+    final profilePhone = tester.widget<Text>(
       find.descendant(
         of: find.byKey(const Key('profile-phone-number')),
-        matching: find.byType(RichText),
+        matching: find.byType(Text),
       ),
     );
-    final profilePhoneSpan = profilePhone.text as TextSpan;
-    TextSpan? countryCodeSpan;
-    profilePhoneSpan.visitChildren((span) {
-      if (span is TextSpan && span.text == '212') countryCodeSpan = span;
-      return true;
-    });
-    expect(countryCodeSpan?.style?.fontWeight, FontWeight.w600);
+    expect(profilePhone.data, '(212)612345678');
+    expect(profilePhone.style?.fontWeight, isNot(FontWeight.w600));
     expect(find.byType(TextField), findsNothing);
     expect(
       tester.getCenter(find.byKey(const Key('profile-full-name'))).dx,
@@ -2890,7 +2968,7 @@ void main() {
     await tester.tap(find.text('السكان').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('212612345678', findRichText: true), findsOneWidget);
+    expect(find.text('(212)612345678'), findsOneWidget);
     expect(find.textContaining('@example.com'), findsNothing);
     final searchField = find.byKey(const Key('residents-search-field'));
     final addResidentButton = find.byKey(const Key('add-resident-button'));
@@ -2948,7 +3026,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('الدعوة معلّقة'), findsOneWidget);
-    expect(find.text('212698765432', findRichText: true), findsOneWidget);
+    expect(find.text('(212)698765432'), findsOneWidget);
 
     await tester.ensureVisible(groupInvitationButton);
     await tester.pumpAndSettle();

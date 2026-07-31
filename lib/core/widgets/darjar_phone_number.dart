@@ -1,3 +1,4 @@
+import 'package:darjar/core/utils/phone_number.dart';
 import 'package:flutter/material.dart';
 
 class DarJarPhoneNumber extends StatelessWidget {
@@ -18,26 +19,13 @@ class DarJarPhoneNumber extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final digits = phoneNumber.replaceAll(RegExp(r'\D'), '');
-    final hasMoroccanCode = digits.startsWith('212') && digits.length > 3;
-    final countryCode = hasMoroccanCode ? '212' : '';
-    final nationalNumber = hasMoroccanCode ? digits.substring(3) : digits;
     final baseStyle = style ?? Theme.of(context).textTheme.bodyMedium;
 
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: Text.rich(
-        TextSpan(
-          children: [
-            if (countryCode.isNotEmpty) ...[
-              TextSpan(
-                text: countryCode,
-                style: baseStyle?.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
-            TextSpan(text: nationalNumber, style: baseStyle),
-          ],
-        ),
+      child: Text(
+        formatPhoneNumberForDisplay(phoneNumber),
+        style: baseStyle,
         textAlign: textAlign,
         maxLines: maxLines,
         overflow: overflow,

@@ -7,6 +7,7 @@ import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/core/widgets/darjar_phone_number.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -138,7 +139,7 @@ class DirectoryProfilePage extends ConsumerWidget {
                           color: AppColors.inkMuted,
                         ),
                         const SizedBox(width: 6),
-                        Text(entry.phone, textDirection: TextDirection.ltr),
+                        DarJarPhoneNumber(entry.phone),
                       ],
                     ),
                   ],

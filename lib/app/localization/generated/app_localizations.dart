@@ -1836,6 +1836,42 @@ abstract class AppLocalizations {
   /// **'سنة البناء'**
   String get residenceConstructionYear;
 
+  /// No description provided for @residenceResidents.
+  ///
+  /// In ar, this message translates to:
+  /// **'سكان الإقامة'**
+  String get residenceResidents;
+
+  /// No description provided for @residenceResidentsDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعرّف على جيرانك وبيانات السكن داخل الإقامة.'**
+  String get residenceResidentsDescription;
+
+  /// No description provided for @residenceResidentsCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'عدد السكان: {count}'**
+  String residenceResidentsCount(int count);
+
+  /// No description provided for @residenceNoResidents.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يوجد سكان مسجلون في هذه الإقامة بعد.'**
+  String get residenceNoResidents;
+
+  /// No description provided for @residenceResidentsLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تحميل قائمة سكان الإقامة. حاول مجدداً.'**
+  String get residenceResidentsLoadError;
+
+  /// No description provided for @residentApartment.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشقة {number}'**
+  String residentApartment(String number);
+
   /// No description provided for @managementCompany.
   ///
   /// In ar, this message translates to:

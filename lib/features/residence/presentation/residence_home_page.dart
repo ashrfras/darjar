@@ -30,7 +30,7 @@ class ResidenceHomePage extends ConsumerWidget {
     final documents = ref.watch(residenceDocumentsProvider);
     final residentDues = ref.watch(residentDuesProvider);
     final finances = ref.watch(residenceFinancesProvider);
-    final residenceMembers = ref.watch(residenceMembersProvider);
+    final residenceMembers = ref.watch(residenceDirectoryProvider);
     final residenceSettings = ref.watch(residenceSettingsProvider);
     final activeResidence = ref.watch(
       residenceContextProvider.select(
@@ -75,6 +75,8 @@ class ResidenceHomePage extends ConsumerWidget {
               ],
               if (compact && activeResidence != null) ...[
                 DarJarCard(
+                  key: const Key('residence-directory-card'),
+                  onTap: () => context.push(AppRoutes.residenceResidents),
                   child: Row(
                     children: [
                       const CircleAvatar(
@@ -112,6 +114,12 @@ class ResidenceHomePage extends ConsumerWidget {
                               ),
                           ],
                         ),
+                      ),
+                      const SizedBox(width: AppSpacing.small),
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: AppColors.inkMuted,
+                        size: 15,
                       ),
                     ],
                   ),
