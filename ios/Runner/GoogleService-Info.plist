@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>app.darjar.darjar</string>
+	<string>ma.raqmain.darjar</string>
 	<key>PROJECT_ID</key>
 	<string>raq-darjar</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:1080325854470:ios:4627f8256fe5e50c1b3a87</string>
+	<string>1:1080325854470:ios:3204b78a259842741b3a87</string>
 </dict>
 </plist>

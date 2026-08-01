@@ -2565,9 +2565,11 @@ void main() {
       findsOneWidget,
     );
 
-    await tester.tap(
-      find.byKey(const ValueKey('edit-finance-transaction-manual-1')),
+    final editManualTransactionButton = find.byKey(
+      const ValueKey('edit-finance-transaction-manual-1'),
     );
+    await tester.ensureVisible(editManualTransactionButton);
+    await tester.tap(editManualTransactionButton);
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('finance-transaction-name-field')),
@@ -2590,9 +2592,11 @@ void main() {
       'كراء موقف',
     );
 
-    await tester.tap(
-      find.byKey(const ValueKey('delete-finance-transaction-manual-1')),
+    final deleteManualTransactionButton = find.byKey(
+      const ValueKey('delete-finance-transaction-manual-1'),
     );
+    await tester.ensureVisible(deleteManualTransactionButton);
+    await tester.tap(deleteManualTransactionButton);
     await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const Key('confirm-delete-finance-transaction')),

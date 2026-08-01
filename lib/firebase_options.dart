@@ -58,17 +58,17 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBCJ3ixarMi-ZRHjAlsqnFTTV4GLg4SQi0',
-    appId: '1:1080325854470:android:5ab86da40ecfb2101b3a87',
+    appId: '1:1080325854470:android:e66c2d1094c011631b3a87',
     messagingSenderId: '1080325854470',
     projectId: 'raq-darjar',
     storageBucket: 'raq-darjar.firebasestorage.app',
   );
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAjSgQFhSNgArs9ZbYtcl9Bxui2-Kb-Yf0',
-    appId: '1:1080325854470:ios:4627f8256fe5e50c1b3a87',
+    appId: '1:1080325854470:ios:3204b78a259842741b3a87',
     messagingSenderId: '1080325854470',
     projectId: 'raq-darjar',
     storageBucket: 'raq-darjar.firebasestorage.app',
-    iosBundleId: 'app.darjar.darjar',
+    iosBundleId: 'ma.raqmain.darjar',
   );
 }

@@ -182,7 +182,7 @@ flutter build web \
 
 ### iOS
 
-1. فعّل Push Notifications للـApp ID `app.darjar.darjar` في Apple Developer.
+1. فعّل Push Notifications للـApp ID `ma.raqmain.darjar` في Apple Developer.
 2. أنشئ APNs Authentication Key.
 3. ارفعه في Firebase Console > Project settings > Cloud Messaging > Apple app.
 4. فعّل Push Notifications وBackground Modes > Remote notifications في Xcode.

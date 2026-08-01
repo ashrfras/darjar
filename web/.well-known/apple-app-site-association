@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "MHA5HH6YWR.ma.raqmain.darjar"
+        ],
+        "components": [
+          {
+            "/": "/join/*",
+            "comment": "DarJar residence invitation links"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1080325854470:android:5ab86da40ecfb2101b3a87",
+        "mobilesdk_app_id": "1:1080325854470:android:e66c2d1094c011631b3a87",
         "android_client_info": {
-          "package_name": "app.darjar.darjar"
+          "package_name": "ma.raqmain.darjar"
         }
       },
       "oauth_client": [],

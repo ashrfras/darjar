@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ma.raqmain.darjar",
+      "sha256_cert_fingerprints": [
+        "03:42:54:58:C7:CF:73:73:AF:DF:15:71:2E:2D:09:1C:99:B2:BF:B0:02:CA:CD:E0:5F:14:82:C0:98:D6:21:17"
+      ]
+    }
+  }
+]
