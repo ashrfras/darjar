@@ -5,8 +5,10 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/images/app_image_picker.dart';
 import 'package:darjar/core/images/storage_image_provider.dart';
+import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_international_phone_field.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
@@ -61,6 +63,7 @@ class _ResidenceSettingsFormState
   late final TextEditingController _amountController;
   late final TextEditingController _managementOrganizationController;
   late final TextEditingController _managementPhoneController;
+  late String _managementCountryCode;
   late final TextEditingController _bankNameController;
   late final TextEditingController _bankAccountController;
   late ResidenceSettings _savedSettings;
@@ -91,8 +94,12 @@ class _ResidenceSettingsFormState
     _managementOrganizationController = TextEditingController(
       text: settings.managementOrganization,
     );
+    final managementPhone = splitInternationalPhoneNumber(
+      settings.managementPhone,
+    );
+    _managementCountryCode = managementPhone.countryCode;
     _managementPhoneController = TextEditingController(
-      text: settings.managementPhone,
+      text: managementPhone.nationalNumber,
     );
     _bankNameController = TextEditingController(text: settings.bankName);
     _bankAccountController = TextEditingController(text: settings.bankAccount);
@@ -180,6 +187,8 @@ class _ResidenceSettingsFormState
                                 organizationController:
                                     _managementOrganizationController,
                                 phoneController: _managementPhoneController,
+                                countryCode: _managementCountryCode,
+                                onCountryCodeChanged: _setManagementCountryCode,
                                 bankNameController: _bankNameController,
                                 bankAccountController: _bankAccountController,
                               ),
@@ -229,6 +238,9 @@ class _ResidenceSettingsFormState
                                             _managementOrganizationController,
                                         phoneController:
                                             _managementPhoneController,
+                                        countryCode: _managementCountryCode,
+                                        onCountryCodeChanged:
+                                            _setManagementCountryCode,
                                         bankNameController: _bankNameController,
                                         bankAccountController:
                                             _bankAccountController,
@@ -315,6 +327,14 @@ class _ResidenceSettingsFormState
     if (city == null || city == _selectedCity) return;
     setState(() {
       _selectedCity = city;
+      _isDirty = _hasChanges;
+    });
+  }
+
+  void _setManagementCountryCode(String countryCode) {
+    if (countryCode == _managementCountryCode) return;
+    setState(() {
+      _managementCountryCode = countryCode;
       _isDirty = _hasChanges;
     });
   }
@@ -414,7 +434,10 @@ class _ResidenceSettingsFormState
       hasImage: _hasImage,
       buildings: _buildings,
       managementOrganization: _managementOrganizationController.text.trim(),
-      managementPhone: _managementPhoneController.text.trim(),
+      managementPhone: formatInternationalPhoneNumber(
+        _managementCountryCode,
+        _managementPhoneController.text,
+      ),
       bankName: _bankNameController.text.trim(),
       bankAccount: _bankAccountController.text.trim(),
     );
@@ -497,8 +520,13 @@ class _ResidenceSettingsFormState
             _savedSettings.defaultSubscriptionAmount.toString() ||
         _managementOrganizationController.text.trim() !=
             _savedSettings.managementOrganization ||
-        _managementPhoneController.text.trim() !=
-            _savedSettings.managementPhone ||
+        normalizePhoneNumber(
+              formatInternationalPhoneNumber(
+                _managementCountryCode,
+                _managementPhoneController.text,
+              ),
+            ) !=
+            normalizePhoneNumber(_savedSettings.managementPhone) ||
         _bankNameController.text.trim() != _savedSettings.bankName ||
         _bankAccountController.text.trim() != _savedSettings.bankAccount ||
         _hasImage != _savedSettings.hasImage ||
@@ -885,12 +913,16 @@ class _ManagementInformationSection extends StatelessWidget {
   const _ManagementInformationSection({
     required this.organizationController,
     required this.phoneController,
+    required this.countryCode,
+    required this.onCountryCodeChanged,
     required this.bankNameController,
     required this.bankAccountController,
   });
 
   final TextEditingController organizationController;
   final TextEditingController phoneController;
+  final String countryCode;
+  final ValueChanged<String> onCountryCodeChanged;
   final TextEditingController bankNameController;
   final TextEditingController bankAccountController;
 
@@ -912,12 +944,15 @@ class _ManagementInformationSection extends StatelessWidget {
             prefixIcon: Icons.business_center_outlined,
           ),
           const SizedBox(height: AppSpacing.large),
-          DarJarTextField(
+          DarJarInternationalPhoneField(
             key: const Key('management-phone-field'),
+            fieldKey: const Key('management-phone-number-field'),
+            countryCodeKey: const Key('management-phone-country-code-field'),
             controller: phoneController,
-            label: localizations.phone,
-            prefixIcon: Icons.phone_outlined,
-            keyboardType: TextInputType.phone,
+            countryCode: countryCode,
+            onCountryCodeChanged: onCountryCodeChanged,
+            phoneLabel: localizations.phone,
+            countryCodeLabel: localizations.countryCode,
           ),
           const SizedBox(height: AppSpacing.large),
           DarJarTextField(

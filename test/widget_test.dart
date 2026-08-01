@@ -627,6 +627,21 @@ void main() {
       expect(formatPhoneNumberForDisplay('+33 6 12 34 56 78'), '(33)612345678');
     });
 
+    test('splits and rebuilds international phone numbers', () {
+      expect(splitInternationalPhoneNumber('+212 6 00 00 00 01'), (
+        countryCode: '+212',
+        nationalNumber: '600000001',
+      ));
+      expect(splitInternationalPhoneNumber('+33 6 12 34 56 78'), (
+        countryCode: '+33',
+        nationalNumber: '612345678',
+      ));
+      expect(
+        formatInternationalPhoneNumber('+212', '5 22 11 22 33'),
+        '+212 5 22 11 22 33',
+      );
+    });
+
     test('normalizes supported Moroccan mobile number formats', () {
       expect(normalizeMoroccanPhoneNumber('06 00 00 00 01'), '+212600000001');
       expect(normalizeMoroccanPhoneNumber('+212 600 000 001'), '+212600000001');
@@ -1441,6 +1456,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('أهلاً بك في إقامتك الرقمية'), findsOneWidget);
+    expect(find.byKey(const Key('darjar-post-avatar')), findsOneWidget);
     expect(find.textContaining('المجتمع: تواصل مع جيرانك'), findsOneWidget);
     expect(find.textContaining('الدليل: اعثر على الحرفيين'), findsOneWidget);
     expect(find.textContaining('الإقامة: تابع اشتراكاتك'), findsOneWidget);
@@ -2893,13 +2909,21 @@ void main() {
         tester
             .widget<TextField>(
               find.descendant(
-                of: find.byKey(const Key('management-phone-field')),
+                of: find.byKey(const Key('management-phone-number-field')),
                 matching: find.byType(TextField),
               ),
             )
             .controller
             ?.text,
-        '+212600000001',
+        '600000001',
+      );
+      expect(
+        tester
+            .widget<DropdownButtonFormField<String>>(
+              find.byKey(const Key('management-phone-country-code-field')),
+            )
+            .initialValue,
+        '+212',
       );
       expect(
         find.byKey(const Key('residence-subscription-section')),
@@ -3017,8 +3041,8 @@ void main() {
         'شركة الإدارة الجديدة',
       );
       await tester.enterText(
-        find.byKey(const Key('management-phone-field')),
-        '+212 5 22 11 22 33',
+        find.byKey(const Key('management-phone-number-field')),
+        '5 22 11 22 33',
       );
       await tester.tap(
         find.byKey(const Key('save-residence-settings-button')).hitTestable(),

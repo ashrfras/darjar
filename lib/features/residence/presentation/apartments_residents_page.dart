@@ -494,21 +494,6 @@ class _NewResident {
   final String apartmentId;
 }
 
-class _CountryCallingCode {
-  const _CountryCallingCode(this.code);
-
-  final String code;
-}
-
-const _countryCallingCodes = [
-  _CountryCallingCode('+212'),
-  _CountryCallingCode('+213'),
-  _CountryCallingCode('+216'),
-  _CountryCallingCode('+33'),
-  _CountryCallingCode('+34'),
-  _CountryCallingCode('+1'),
-];
-
 class _AddResidentSheet extends StatefulWidget {
   const _AddResidentSheet({required this.data, required this.copy});
 
@@ -612,10 +597,10 @@ class _AddResidentSheetState extends State<_AddResidentSheet> {
                         labelText: widget.copy.countryCode,
                       ),
                       items: [
-                        for (final country in _countryCallingCodes)
+                        for (final countryCode in supportedCountryCallingCodes)
                           DropdownMenuItem(
-                            value: country.code,
-                            child: Text(country.code),
+                            value: countryCode,
+                            child: Text(countryCode),
                           ),
                       ],
                       onChanged: (value) {
@@ -700,38 +685,14 @@ class _AddResidentSheetState extends State<_AddResidentSheet> {
       _NewResident(
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
-        phone: _formatInternationalPhone(_countryCode, _phoneController.text),
+        phone: formatInternationalPhoneNumber(
+          _countryCode,
+          _phoneController.text,
+        ),
         apartmentId: _apartmentId!,
       ),
     );
   }
-}
-
-String _formatInternationalPhone(String countryCode, String nationalNumber) {
-  var digits = nationalNumber.replaceAll(RegExp(r'\D'), '');
-  if (digits.startsWith('0')) digits = digits.substring(1);
-  final groups = <String>[];
-  if (countryCode == '+212' && digits.length == 9) {
-    groups
-      ..add(digits.substring(0, 1))
-      ..addAll([
-        for (var index = 1; index < digits.length; index += 2)
-          digits.substring(
-            index,
-            index + 2 < digits.length ? index + 2 : digits.length,
-          ),
-      ]);
-  } else {
-    for (var index = 0; index < digits.length; index += 3) {
-      groups.add(
-        digits.substring(
-          index,
-          index + 3 < digits.length ? index + 3 : digits.length,
-        ),
-      );
-    }
-  }
-  return '$countryCode ${groups.join(' ')}';
 }
 
 class _AddApartmentSheet extends StatefulWidget {

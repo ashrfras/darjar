@@ -161,13 +161,28 @@ class _PostHeader extends StatelessWidget {
     final color = post.kind.color;
     return Row(
       children: [
-        DarJarUserAvatar(
-          userId: post.authorId,
-          name: post.author,
-          radius: 22,
-          backgroundColor: color.withValues(alpha: .12),
-          foregroundColor: color,
-        ),
+        if (post.isSystem)
+          CircleAvatar(
+            key: const Key('darjar-post-avatar'),
+            radius: 22,
+            backgroundColor: AppColors.primary,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Image.asset(
+                'assets/images/branding/darjar-logo.png',
+                color: Colors.white,
+                colorBlendMode: BlendMode.srcIn,
+              ),
+            ),
+          )
+        else
+          DarJarUserAvatar(
+            userId: post.authorId,
+            name: post.author,
+            radius: 22,
+            backgroundColor: color.withValues(alpha: .12),
+            foregroundColor: color,
+          ),
         const SizedBox(width: AppSpacing.medium),
         Expanded(
           child: Column(
