@@ -13,6 +13,7 @@ class UserResidence {
     required this.role,
     required this.apartmentId,
     this.hasPresidentPermissions = false,
+    this.hasImage = false,
     this.joinedAt,
   });
 
@@ -23,6 +24,7 @@ class UserResidence {
   final String role;
   final String apartmentId;
   final bool hasPresidentPermissions;
+  final bool hasImage;
   final DateTime? joinedAt;
 
   bool get canManageResidence =>
@@ -193,6 +195,7 @@ class FirestoreResidenceContextRepository
       apartmentId: membershipData['apartmentId'] as String? ?? '',
       hasPresidentPermissions:
           membershipData['hasPresidentPermissions'] as bool? ?? false,
+      hasImage: residenceData['hasImage'] as bool? ?? false,
       joinedAt: (membershipData['joinedAt'] as Timestamp?)?.toDate(),
     );
   }

@@ -4,6 +4,7 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
@@ -79,10 +80,9 @@ class ResidenceHomePage extends ConsumerWidget {
                   onTap: () => context.push(AppRoutes.residenceResidents),
                   child: Row(
                     children: [
-                      const CircleAvatar(
-                        backgroundColor: AppColors.primarySoft,
-                        foregroundColor: AppColors.primary,
-                        child: Icon(Icons.apartment_rounded),
+                      DarJarResidenceAvatar(
+                        residenceId: activeResidence.id,
+                        hasImage: activeResidence.hasImage,
                       ),
                       const SizedBox(width: AppSpacing.medium),
                       Expanded(

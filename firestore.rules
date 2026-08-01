@@ -110,6 +110,7 @@ service cloud.firestore {
           'apartmentId',
           'role',
           'hasPresidentPermissions',
+          'hasProfileImage',
           'status',
           'sourceInvitationId',
           'joinedAt'
@@ -126,6 +127,7 @@ service cloud.firestore {
           'treasurer'
         ]
         && request.resource.data.hasPresidentPermissions == false
+        && request.resource.data.hasProfileImage == false
         && request.resource.data.status == 'active'
         && request.resource.data.sourceInvitationId is string
         && request.resource.data.joinedAt == request.time
@@ -147,6 +149,7 @@ service cloud.firestore {
           'apartmentId',
           'role',
           'hasPresidentPermissions',
+          'hasProfileImage',
           'status',
           'source',
           'joinedAt'
@@ -159,6 +162,7 @@ service cloud.firestore {
         && request.resource.data.apartmentId == ''
         && request.resource.data.role == 'president'
         && request.resource.data.hasPresidentPermissions == false
+        && request.resource.data.hasProfileImage == false
         && request.resource.data.status == 'active'
         && request.resource.data.source == 'residence-creation'
         && request.resource.data.joinedAt == request.time
@@ -177,6 +181,7 @@ service cloud.firestore {
           'apartmentId',
           'role',
           'hasPresidentPermissions',
+          'hasProfileImage',
           'status',
           'source',
           'residenceCode',
@@ -191,6 +196,7 @@ service cloud.firestore {
         && request.resource.data.apartmentId.size() > 0
         && request.resource.data.role == 'resident'
         && request.resource.data.hasPresidentPermissions == false
+        && request.resource.data.hasProfileImage == false
         && request.resource.data.status == 'active'
         && request.resource.data.source == 'join-code'
         && request.resource.data.residenceCode is string
@@ -231,6 +237,7 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'firstName',
           'lastName',
+          'hasProfileImage',
           'activeResidenceId',
           'updatedAt'
         ])
@@ -238,6 +245,10 @@ service cloud.firestore {
         && request.resource.data.firstName.size() > 0
         && request.resource.data.lastName is string
         && request.resource.data.lastName.size() > 0
+        && (
+          !request.resource.data.keys().hasAny(['hasProfileImage'])
+          || request.resource.data.hasProfileImage is bool
+        )
         && request.resource.data.phoneNumber == request.auth.token.phone_number
         && (
           !request.resource.data.diff(resource.data).affectedKeys()
@@ -570,12 +581,17 @@ service cloud.firestore {
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
               'firstName',
               'lastName',
+              'hasProfileImage',
               'updatedAt'
             ])
             && request.resource.data.firstName is string
             && request.resource.data.firstName.size() > 0
             && request.resource.data.lastName is string
             && request.resource.data.lastName.size() > 0
+            && (
+              !request.resource.data.keys().hasAny(['hasProfileImage'])
+              || request.resource.data.hasProfileImage is bool
+            )
             && request.resource.data.updatedAt == request.time
           )
           || isJoinCodeMembership(residenceId, memberId);

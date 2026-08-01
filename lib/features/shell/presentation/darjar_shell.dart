@@ -8,6 +8,7 @@ import 'package:darjar/core/responsive/responsive_builder.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
 import 'package:darjar/features/notifications/data/notifications_repository.dart';
@@ -685,27 +686,29 @@ String _notificationTime(AppLocalizations localizations, DateTime occurredAt) {
   return localizations.notificationTimeYesterday;
 }
 
-class _ProfileAction extends StatelessWidget {
+class _ProfileAction extends ConsumerWidget {
   const _ProfileAction({this.compact = false});
 
   final bool compact;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
+    final userId = ref.watch(authRepositoryProvider).currentUser?.uid ?? '';
     return IconButton(
       key: const Key('profile-button'),
       tooltip: localizations.profile,
       onPressed: () => context.go(AppRoutes.profile),
       icon: Container(
-        width: compact ? 32 : 38,
-        height: compact ? 32 : 38,
         decoration: BoxDecoration(
-          color: AppColors.directorySoft,
           shape: BoxShape.circle,
           border: Border.all(color: AppColors.outline),
         ),
-        child: Icon(Icons.person_outline_rounded, size: compact ? 18 : 20),
+        child: DarJarUserAvatar(
+          userId: userId,
+          radius: compact ? 15 : 18,
+          backgroundColor: AppColors.directorySoft,
+        ),
       ),
     );
   }
@@ -773,10 +776,10 @@ class _ResidenceSelector extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (expanded) ...[
-                const CircleAvatar(
-                  backgroundColor: AppColors.primarySoft,
-                  foregroundColor: AppColors.primary,
-                  child: Icon(Icons.apartment_rounded),
+                DarJarResidenceAvatar(
+                  residenceId: active.id,
+                  hasImage: active.hasImage,
+                  size: 42,
                 ),
                 const SizedBox(width: AppSpacing.medium),
               ],
@@ -987,17 +990,10 @@ class _ResidenceSwitcherOption extends StatelessWidget {
         color: selected ? AppColors.primarySoft : AppColors.surface,
         child: Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: selected ? AppColors.primary : AppColors.canvas,
-                borderRadius: BorderRadius.circular(AppRadius.medium),
-              ),
-              child: Icon(
-                Icons.apartment_outlined,
-                color: selected ? Colors.white : AppColors.inkMuted,
-              ),
+            DarJarResidenceAvatar(
+              residenceId: residence.id,
+              hasImage: residence.hasImage,
+              size: 44,
             ),
             const SizedBox(width: AppSpacing.medium),
             Expanded(

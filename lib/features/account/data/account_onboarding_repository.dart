@@ -216,6 +216,7 @@ class FirestoreAccountOnboardingRepository
           'apartmentId': invitation.apartmentId,
           'role': invitation.role,
           'hasPresidentPermissions': false,
+          'hasProfileImage': false,
           'status': 'active',
           'sourceInvitationId': invitation.id,
           'joinedAt': FieldValue.serverTimestamp(),

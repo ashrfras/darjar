@@ -14,12 +14,14 @@ class DirectoryReview {
     required this.residence,
     required this.comment,
     required this.timeLabel,
+    this.userId = '',
   });
 
   final String author;
   final String residence;
   final String comment;
   final String timeLabel;
+  final String userId;
 }
 
 class DirectoryEntry {
@@ -509,6 +511,7 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
       reviews: [
         for (final recommendation in recommendations)
           DirectoryReview(
+            userId: recommendation.userId,
             author: recommendation.author,
             residence: recommendation.residence,
             comment: recommendation.comment,

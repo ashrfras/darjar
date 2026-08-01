@@ -3,12 +3,16 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/images/app_image_picker.dart';
+import 'package:darjar/core/images/storage_image_provider.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
+import 'package:darjar/features/residence/data/residence_image_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,6 +66,9 @@ class _ResidenceSettingsFormState
   late ResidenceSettings _savedSettings;
   late String _selectedCity;
   late bool _hasImage;
+  Uint8List? _selectedImageBytes;
+  bool _imageChanged = false;
+  bool _processingImage = false;
   late List<ResidenceBuildingConfiguration> _buildings;
   bool _isDirty = false;
   bool _isSaving = false;
@@ -155,6 +162,7 @@ class _ResidenceSettingsFormState
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               _ResidenceInformationSection(
+                                residenceId: widget.settings.residenceId,
                                 residenceIdController: _joinCodeController,
                                 nameController: _nameController,
                                 addressController: _addressController,
@@ -162,7 +170,10 @@ class _ResidenceSettingsFormState
                                 onCityChanged: _setCity,
                                 yearController: _yearController,
                                 hasImage: _hasImage,
-                                onToggleImage: _toggleImage,
+                                selectedImageBytes: _selectedImageBytes,
+                                processingImage: _processingImage,
+                                onSelectImage: _selectImage,
+                                onRemoveImage: _removeImage,
                               ),
                               const SizedBox(height: AppSpacing.large),
                               _ManagementInformationSection(
@@ -197,6 +208,8 @@ class _ResidenceSettingsFormState
                                   child: Column(
                                     children: [
                                       _ResidenceInformationSection(
+                                        residenceId:
+                                            widget.settings.residenceId,
                                         residenceIdController:
                                             _joinCodeController,
                                         nameController: _nameController,
@@ -205,7 +218,10 @@ class _ResidenceSettingsFormState
                                         onCityChanged: _setCity,
                                         yearController: _yearController,
                                         hasImage: _hasImage,
-                                        onToggleImage: _toggleImage,
+                                        selectedImageBytes: _selectedImageBytes,
+                                        processingImage: _processingImage,
+                                        onSelectImage: _selectImage,
+                                        onRemoveImage: _removeImage,
                                       ),
                                       const SizedBox(height: AppSpacing.large),
                                       _ManagementInformationSection(
@@ -265,9 +281,32 @@ class _ResidenceSettingsFormState
     );
   }
 
-  void _toggleImage() {
+  Future<void> _selectImage() async {
+    if (_processingImage) return;
+    setState(() => _processingImage = true);
+    try {
+      final selection = await pickAndCompressAppImage();
+      if (selection == null || !mounted) return;
+      setState(() {
+        _selectedImageBytes = selection.bytes;
+        _hasImage = true;
+        _imageChanged = true;
+        _isDirty = _hasChanges;
+      });
+    } catch (_) {
+      if (mounted) {
+        _showMessage(AppLocalizations.of(context).imageProcessingFailed);
+      }
+    } finally {
+      if (mounted) setState(() => _processingImage = false);
+    }
+  }
+
+  void _removeImage() {
     setState(() {
-      _hasImage = !_hasImage;
+      _selectedImageBytes = null;
+      _hasImage = false;
+      _imageChanged = true;
       _isDirty = _hasChanges;
     });
   }
@@ -381,23 +420,48 @@ class _ResidenceSettingsFormState
     );
     setState(() => _isSaving = true);
     try {
+      if (_imageChanged) {
+        if (_hasImage && _selectedImageBytes != null) {
+          final user = ref.read(authRepositoryProvider).currentUser;
+          if (user == null) {
+            throw const ResidenceSettingsFailure('signed-out');
+          }
+          await ref
+              .read(residenceImageRepositoryProvider)
+              .upload(
+                residenceId: updatedSettings.residenceId,
+                userId: user.uid,
+                bytes: _selectedImageBytes!,
+              );
+        } else if (!_hasImage) {
+          await ref
+              .read(residenceImageRepositoryProvider)
+              .remove(updatedSettings.residenceId);
+        }
+        ref.invalidate(storageImageBytesProvider);
+      }
       await ref.read(residenceSettingsProvider.notifier).save(updatedSettings);
       ref.invalidate(residenceMembersProvider);
       if (mounted) {
         setState(() {
           _savedSettings = updatedSettings;
+          _selectedImageBytes = null;
+          _imageChanged = false;
           _isDirty = false;
           _isSaving = false;
         });
         _showMessage(localizations.residenceSettingsSaved);
       }
       return true;
-    } on ResidenceSettingsFailure catch (error) {
+    } catch (error) {
       if (mounted) {
         setState(() => _isSaving = false);
         _showMessage(
-          error.code == 'structure-not-empty'
+          error is ResidenceSettingsFailure &&
+                  error.code == 'structure-not-empty'
               ? localizations.structureContainsApartments
+              : _imageChanged
+              ? localizations.imageUploadFailed
               : localizations.setupUnexpectedError,
         );
       }
@@ -438,6 +502,7 @@ class _ResidenceSettingsFormState
         _bankNameController.text.trim() != _savedSettings.bankName ||
         _bankAccountController.text.trim() != _savedSettings.bankAccount ||
         _hasImage != _savedSettings.hasImage ||
+        _imageChanged ||
         !_sameBuildings(_buildings, _savedSettings.buildings);
   }
 
@@ -615,8 +680,9 @@ class _BuildingEditorDialogState extends State<_BuildingEditorDialog> {
   }
 }
 
-class _ResidenceInformationSection extends StatelessWidget {
+class _ResidenceInformationSection extends ConsumerWidget {
   const _ResidenceInformationSection({
+    required this.residenceId,
     required this.residenceIdController,
     required this.nameController,
     required this.addressController,
@@ -624,9 +690,13 @@ class _ResidenceInformationSection extends StatelessWidget {
     required this.onCityChanged,
     required this.yearController,
     required this.hasImage,
-    required this.onToggleImage,
+    required this.selectedImageBytes,
+    required this.processingImage,
+    required this.onSelectImage,
+    required this.onRemoveImage,
   });
 
+  final String residenceId;
   final TextEditingController residenceIdController;
   final TextEditingController nameController;
   final TextEditingController addressController;
@@ -634,10 +704,13 @@ class _ResidenceInformationSection extends StatelessWidget {
   final ValueChanged<String?> onCityChanged;
   final TextEditingController yearController;
   final bool hasImage;
-  final VoidCallback onToggleImage;
+  final Uint8List? selectedImageBytes;
+  final bool processingImage;
+  final VoidCallback onSelectImage;
+  final VoidCallback onRemoveImage;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final cities = localizedMoroccanCities(localizations);
     return _SettingsSection(
@@ -659,12 +732,42 @@ class _ResidenceInformationSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.large),
                 ),
                 alignment: Alignment.center,
-                child: hasImage
-                    ? Text(
-                        'ي',
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(color: AppColors.surface),
+                child: selectedImageBytes != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(AppRadius.large),
+                        child: Image.memory(
+                          selectedImageBytes!,
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                        ),
                       )
+                    : hasImage
+                    ? ref
+                          .watch(
+                            storageImageBytesProvider(
+                              residenceImageStoragePath(residenceId),
+                            ),
+                          )
+                          .when(
+                            data: (bytes) => ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.large,
+                              ),
+                              child: Image.memory(
+                                bytes,
+                                width: 72,
+                                height: 72,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            loading: () =>
+                                const CircularProgressIndicator(strokeWidth: 2),
+                            error: (_, _) => const Icon(
+                              Icons.broken_image_outlined,
+                              color: AppColors.primary,
+                            ),
+                          )
                     : const Icon(
                         Icons.apartment_rounded,
                         color: AppColors.primary,
@@ -682,20 +785,33 @@ class _ResidenceInformationSection extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.xSmall),
                     Text(
-                      localizations.residenceImageOptional,
-                      style: Theme.of(context).textTheme.bodySmall,
+                      localizations.squareImageRecommended,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.inkMuted,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.small),
-                    DarJarButton(
-                      key: const Key('toggle-residence-image-button'),
-                      label: hasImage
-                          ? localizations.removeImage
-                          : localizations.addImage,
-                      icon: hasImage
-                          ? Icons.delete_outline_rounded
-                          : Icons.add_photo_alternate_outlined,
-                      variant: DarJarButtonVariant.tertiary,
-                      onPressed: onToggleImage,
+                    Wrap(
+                      spacing: AppSpacing.xSmall,
+                      children: [
+                        DarJarButton(
+                          key: const Key('select-residence-image-button'),
+                          label: hasImage
+                              ? localizations.changeImage
+                              : localizations.addImage,
+                          icon: Icons.add_photo_alternate_outlined,
+                          variant: DarJarButtonVariant.tertiary,
+                          onPressed: processingImage ? null : onSelectImage,
+                        ),
+                        if (hasImage)
+                          DarJarButton(
+                            key: const Key('remove-residence-image-button'),
+                            label: localizations.removeImage,
+                            icon: Icons.delete_outline_rounded,
+                            variant: DarJarButtonVariant.tertiary,
+                            onPressed: processingImage ? null : onRemoveImage,
+                          ),
+                      ],
                     ),
                   ],
                 ),

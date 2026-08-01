@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/core/images/app_image_processing.dart';
 import 'package:darjar/core/performance/data_load_timer.dart';
 import 'package:darjar/core/providers/provider_cache.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
@@ -10,12 +11,11 @@ import 'package:darjar/features/documents/data/residence_documents_repository.da
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image/image.dart' as image;
 
-const communityImageMaxSourceSizeBytes = 8 * 1024 * 1024;
-const communityImageMaxStoredSizeBytes = 1024 * 1024;
-const communityImageMaxDimension = 1600;
-const communityImageTargetSizeBytes = 750 * 1024;
+const communityImageMaxSourceSizeBytes = appImageMaxSourceSizeBytes;
+const communityImageMaxStoredSizeBytes = appImageMaxStoredSizeBytes;
+const communityImageMaxDimension = appImageMaxDimension;
+const communityImageTargetSizeBytes = appImageTargetSizeBytes;
 const communityPostsPageSize = 10;
 const communityWelcomePostId = 'darjar-welcome';
 
@@ -38,70 +38,11 @@ const communityWelcomePost = CommunityPost(
 );
 
 Uint8List compressCommunityImageBytes(Uint8List sourceBytes) {
-  final decoded = image.decodeImage(sourceBytes);
-  if (decoded == null) {
+  try {
+    return compressAppImageBytes(sourceBytes);
+  } on FormatException {
     throw const CommunityFailure('invalid-image-data');
   }
-  var processed = image.bakeOrientation(decoded);
-  if (processed.width > communityImageMaxDimension ||
-      processed.height > communityImageMaxDimension) {
-    processed = processed.width >= processed.height
-        ? image.copyResize(
-            processed,
-            width: communityImageMaxDimension,
-            interpolation: image.Interpolation.average,
-          )
-        : image.copyResize(
-            processed,
-            height: communityImageMaxDimension,
-            interpolation: image.Interpolation.average,
-          );
-  }
-  processed = _flattenCommunityImage(processed);
-  var encoded = image.encodeJpg(processed, quality: 72);
-  if (encoded.lengthInBytes > communityImageTargetSizeBytes) {
-    processed = processed.width >= processed.height
-        ? image.copyResize(
-            processed,
-            width: processed.width > 1280 ? 1280 : processed.width,
-            interpolation: image.Interpolation.average,
-          )
-        : image.copyResize(
-            processed,
-            height: processed.height > 1280 ? 1280 : processed.height,
-            interpolation: image.Interpolation.average,
-          );
-    encoded = image.encodeJpg(processed, quality: 62);
-  }
-  if (encoded.lengthInBytes > communityImageTargetSizeBytes) {
-    encoded = image.encodeJpg(processed, quality: 50);
-  }
-  if (encoded.lengthInBytes > communityImageTargetSizeBytes) {
-    processed = processed.width >= processed.height
-        ? image.copyResize(
-            processed,
-            width: processed.width > 960 ? 960 : processed.width,
-            interpolation: image.Interpolation.average,
-          )
-        : image.copyResize(
-            processed,
-            height: processed.height > 960 ? 960 : processed.height,
-            interpolation: image.Interpolation.average,
-          );
-    encoded = image.encodeJpg(processed, quality: 45);
-  }
-  return encoded;
-}
-
-image.Image _flattenCommunityImage(image.Image source) {
-  if (!source.hasAlpha) return source;
-  final background = image.Image(
-    width: source.width,
-    height: source.height,
-    numChannels: 3,
-    backgroundColor: image.ColorRgb8(255, 255, 255),
-  );
-  return image.compositeImage(background, source);
 }
 
 enum CommunityPostKind {
@@ -121,11 +62,13 @@ class CommunityComment {
     required this.author,
     required this.body,
     required this.timeLabel,
+    this.authorId = '',
     this.isAuthor = false,
   });
 
   final String id;
   final String author;
+  final String authorId;
   final String body;
   final String timeLabel;
   final bool isAuthor;
@@ -156,6 +99,7 @@ class CommunityPost {
     required this.kind,
     required this.likes,
     required this.comments,
+    this.authorId = '',
     this.authorUnit,
     this.authorRole = 'resident',
     this.isOfficial = false,
@@ -173,6 +117,7 @@ class CommunityPost {
 
   final String id;
   final String author;
+  final String authorId;
   final String? authorUnit;
   final String authorRole;
   final String timeLabel;
@@ -206,6 +151,7 @@ class CommunityPost {
     return CommunityPost(
       id: id,
       author: author,
+      authorId: authorId,
       authorUnit: authorUnit,
       authorRole: authorRole,
       timeLabel: timeLabel,
@@ -975,6 +921,7 @@ class FirebaseCommunityRepository implements CommunityRepository {
     return CommunityPost(
       id: document.id,
       author: data['authorName'] as String? ?? '',
+      authorId: data['authorId'] as String? ?? '',
       authorUnit: _nullableString(data['authorUnit']),
       authorRole: authorRole,
       timeLabel: _relativeTime(data['createdAt']),
@@ -987,6 +934,7 @@ class FirebaseCommunityRepository implements CommunityRepository {
           CommunityComment(
             id: comment.id,
             author: comment.data()['authorName'] as String? ?? '',
+            authorId: comment.data()['authorId'] as String? ?? '',
             body: comment.data()['body'] as String? ?? '',
             timeLabel: _relativeTime(comment.data()['createdAt']),
             isAuthor: comment.data()['authorId'] == userId,

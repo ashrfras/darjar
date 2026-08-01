@@ -4,6 +4,8 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_image_avatar.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
@@ -410,25 +412,26 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-class _Composer extends StatelessWidget {
+class _Composer extends ConsumerWidget {
   const _Composer({required this.onTap});
 
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final userId = ref.watch(authRepositoryProvider).currentUser?.uid ?? '';
     return DarJarCard(
       key: const Key('community-composer'),
       padding: const EdgeInsets.all(AppSpacing.medium),
       onTap: onTap,
       child: Row(
         children: [
-          const CircleAvatar(
+          DarJarUserAvatar(
+            userId: userId,
             radius: 22,
             backgroundColor: AppColors.primarySoft,
             foregroundColor: AppColors.primary,
-            child: Icon(Icons.person_rounded),
           ),
           const SizedBox(width: AppSpacing.medium),
           Expanded(

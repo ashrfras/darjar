@@ -3,6 +3,7 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -160,14 +161,12 @@ class _PostHeader extends StatelessWidget {
     final color = post.kind.color;
     return Row(
       children: [
-        CircleAvatar(
+        DarJarUserAvatar(
+          userId: post.authorId,
+          name: post.author,
           radius: 22,
           backgroundColor: color.withValues(alpha: .12),
           foregroundColor: color,
-          child: Text(
-            post.author.characters.first,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
         ),
         const SizedBox(width: AppSpacing.medium),
         Expanded(

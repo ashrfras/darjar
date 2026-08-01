@@ -8,6 +8,7 @@ import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
+import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:flutter/material.dart';
@@ -1192,7 +1193,12 @@ class _ApartmentTile extends StatelessWidget {
                 padding: const EdgeInsets.only(top: AppSpacing.xSmall),
                 child: Row(
                   children: [
-                    _InitialAvatar(name: member.name, radius: 13),
+                    DarJarUserAvatar(
+                      userId: member.id,
+                      name: member.name,
+                      radius: 13,
+                      showImage: member.hasProfileImage,
+                    ),
                     const SizedBox(width: AppSpacing.small),
                     Expanded(
                       child: Text(
@@ -1486,7 +1492,12 @@ class _ResidentCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _InitialAvatar(name: member.name, radius: 23),
+          DarJarUserAvatar(
+            userId: member.id,
+            name: member.name,
+            radius: 23,
+            showImage: member.hasProfileImage,
+          ),
           const SizedBox(width: AppSpacing.medium),
           Expanded(
             child: Column(

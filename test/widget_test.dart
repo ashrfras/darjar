@@ -8,6 +8,7 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_theme.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
+import 'package:darjar/core/images/app_image_processing.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
@@ -358,6 +359,23 @@ void main() {
       expect(
         compressed.lengthInBytes,
         lessThan(communityImageMaxStoredSizeBytes),
+      );
+    });
+
+    test('profile and residence images use compact display dimensions', () {
+      final source = test_image.Image(width: 2200, height: 1600);
+      test_image.fill(source, color: test_image.ColorRgb8(34, 139, 94));
+
+      final compressed = compressDisplayImageBytes(
+        test_image.encodePng(source),
+      );
+      final decoded = test_image.decodeJpg(compressed)!;
+
+      expect(decoded.width, lessThanOrEqualTo(displayImageMaxDimension));
+      expect(decoded.height, lessThanOrEqualTo(displayImageMaxDimension));
+      expect(
+        compressed.lengthInBytes,
+        lessThan(displayImageMaxStoredSizeBytes),
       );
     });
 
@@ -1848,6 +1866,15 @@ void main() {
     expect(find.text('الإعدادات'), findsNothing);
     expect(find.text('إعادة عرض البداية'), findsNothing);
     expect(find.byKey(const Key('profile-phone-number')), findsOneWidget);
+    expect(find.byKey(const Key('profile-image-menu-button')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('profile-image-menu-button')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('select-profile-image-button')),
+      findsOneWidget,
+    );
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
     final profilePhone = tester.widget<Text>(
       find.descendant(
         of: find.byKey(const Key('profile-phone-number')),
@@ -2813,6 +2840,15 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('الدار البيضاء'), findsOneWidget);
+      expect(
+        find.byKey(const Key('select-residence-image-button')),
+        findsOneWidget,
+      );
+      expect(
+        find.text('يفضّل اختيار صورة مربعة للحصول على أفضل عرض.'),
+        findsOneWidget,
+      );
+      expect(find.text('اختياري، ويمكن تغييره في أي وقت.'), findsNothing);
       expect(
         find.byKey(const Key('residence-structure-section')),
         findsOneWidget,

@@ -8,6 +8,7 @@ import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
+import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -370,10 +371,11 @@ class _ReviewTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CircleAvatar(
+          DarJarUserAvatar(
+            userId: review.userId,
+            name: review.author,
             backgroundColor: AppColors.primarySoft,
             foregroundColor: AppColors.primary,
-            child: Icon(Icons.person_outline_rounded),
           ),
           const SizedBox(width: AppSpacing.medium),
           Expanded(

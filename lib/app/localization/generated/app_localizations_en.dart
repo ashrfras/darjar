@@ -1270,14 +1270,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get residenceImage => 'Residence image or logo';
 
   @override
-  String get residenceImageOptional =>
-      'Optional, and can be changed at any time.';
+  String get squareImageRecommended =>
+      'A square image is recommended for the best display.';
 
   @override
   String get addImage => 'Add image';
 
   @override
+  String get changeImage => 'Change image';
+
+  @override
   String get removeImage => 'Remove image';
+
+  @override
+  String get imageProcessingFailed =>
+      'The image could not be selected or processed. Choose a JPG, PNG, or WebP under 8MB.';
+
+  @override
+  String get imageUploadFailed =>
+      'The image could not be uploaded. Check your connection and permissions, then try again.';
+
+  @override
+  String get profileImageSaved => 'Profile photo updated.';
+
+  @override
+  String get profileImageRemoved => 'Profile photo removed.';
 
   @override
   String get address => 'Address';

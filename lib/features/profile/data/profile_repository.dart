@@ -10,11 +10,13 @@ class ProfileResidence {
     required this.id,
     required this.name,
     required this.apartmentNumber,
+    this.hasImage = false,
   });
 
   final String id;
   final String name;
   final String? apartmentNumber;
+  final bool hasImage;
 }
 
 class ResidentProfile {
@@ -23,12 +25,14 @@ class ResidentProfile {
     required this.lastName,
     required this.phoneNumber,
     required this.residences,
+    this.profileImagePath = '',
   });
 
   final String firstName;
   final String lastName;
   final String phoneNumber;
   final List<ProfileResidence> residences;
+  final String profileImagePath;
 
   String get fullName => '$firstName $lastName'.trim();
 }
@@ -83,6 +87,9 @@ class FirestoreProfileRepository implements ProfileRepository {
         firstName: data['firstName'] as String? ?? '',
         lastName: data['lastName'] as String? ?? '',
         phoneNumber: user.phoneNumber ?? '',
+        profileImagePath: data['hasProfileImage'] == true
+            ? 'users/${user.uid}/profile/image.jpg'
+            : '',
         residences: [
           for (
             var index = 0;
@@ -93,6 +100,7 @@ class FirestoreProfileRepository implements ProfileRepository {
               id: residenceContext.residences[index].id,
               name: residenceContext.residences[index].name,
               apartmentNumber: apartmentNumbers[index],
+              hasImage: residenceContext.residences[index].hasImage,
             ),
         ],
       );

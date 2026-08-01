@@ -33,6 +33,7 @@ class ResidenceMember {
     required this.phone,
     required this.role,
     this.hasPresidentPermissions = false,
+    this.hasProfileImage = false,
     this.apartmentId,
   });
 
@@ -41,6 +42,7 @@ class ResidenceMember {
   final String phone;
   final ResidenceMemberRole role;
   final bool hasPresidentPermissions;
+  final bool hasProfileImage;
   final String? apartmentId;
 
   bool get canManageResidence =>
@@ -311,6 +313,9 @@ class FirestoreResidenceMembersRepository
       role: _roleFromValue(data['role'] as String?),
       hasPresidentPermissions:
           data['hasPresidentPermissions'] as bool? ?? false,
+      // Legacy memberships predate this field. Trying the deterministic path
+      // once lets their already-uploaded photo appear without a migration.
+      hasProfileImage: data['hasProfileImage'] as bool? ?? true,
       apartmentId: apartmentId.isEmpty ? null : apartmentId,
     );
   }

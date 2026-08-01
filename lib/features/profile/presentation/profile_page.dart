@@ -3,14 +3,20 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/images/app_image_picker.dart';
+import 'package:darjar/core/images/storage_image_provider.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
+import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
+import 'package:darjar/features/profile/data/profile_image_repository.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,6 +55,8 @@ class _ProfileContent extends ConsumerStatefulWidget {
 }
 
 class _ProfileContentState extends ConsumerState<_ProfileContent> {
+  bool _processingImage = false;
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
@@ -101,11 +109,13 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                       width: double.infinity,
                       child: Column(
                         children: [
-                          const CircleAvatar(
-                            radius: 42,
-                            backgroundColor: AppColors.primarySoft,
-                            foregroundColor: AppColors.primary,
-                            child: Icon(Icons.person_rounded, size: 44),
+                          _EditableProfileAvatar(
+                            imagePath: widget.profile.profileImagePath,
+                            processing: _processingImage,
+                            onSelect: _selectProfileImage,
+                            onRemove: widget.profile.profileImagePath.isEmpty
+                                ? null
+                                : _removeProfileImage,
                           ),
                           const SizedBox(height: AppSpacing.large),
                           Text(
@@ -242,7 +252,180 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
       builder: (context) => _EditProfileNameSheet(profile: widget.profile),
     );
   }
+
+  Future<void> _selectProfileImage() async {
+    if (_processingImage) return;
+    final localizations = AppLocalizations.of(context);
+    AppImageSelection? selection;
+    try {
+      selection = await pickAndCompressAppImage();
+    } catch (_) {
+      if (mounted) _showImageMessage(localizations.imageProcessingFailed);
+      return;
+    }
+    if (selection == null || !mounted) return;
+    setState(() => _processingImage = true);
+    try {
+      final user = ref.read(authRepositoryProvider).currentUser;
+      if (user == null) throw const ProfileFailure('signed-out');
+      await ref
+          .read(profileImageRepositoryProvider)
+          .upload(
+            userId: user.uid,
+            residenceIds: [
+              for (final residence in widget.profile.residences) residence.id,
+            ],
+            bytes: selection.bytes,
+          );
+      ref.invalidate(storageImageBytesProvider);
+      ref.invalidate(residenceMembersProvider);
+      ref.invalidate(residenceDirectoryProvider);
+      ref.invalidate(residentProfileProvider);
+      if (mounted) _showImageMessage(localizations.profileImageSaved);
+    } catch (_) {
+      if (mounted) _showImageMessage(localizations.imageUploadFailed);
+    } finally {
+      if (mounted) setState(() => _processingImage = false);
+    }
+  }
+
+  Future<void> _removeProfileImage() async {
+    if (_processingImage) return;
+    final localizations = AppLocalizations.of(context);
+    setState(() => _processingImage = true);
+    try {
+      final user = ref.read(authRepositoryProvider).currentUser;
+      if (user == null) throw const ProfileFailure('signed-out');
+      await ref
+          .read(profileImageRepositoryProvider)
+          .remove(
+            userId: user.uid,
+            residenceIds: [
+              for (final residence in widget.profile.residences) residence.id,
+            ],
+          );
+      ref.invalidate(storageImageBytesProvider);
+      ref.invalidate(residenceMembersProvider);
+      ref.invalidate(residenceDirectoryProvider);
+      ref.invalidate(residentProfileProvider);
+      if (mounted) _showImageMessage(localizations.profileImageRemoved);
+    } catch (_) {
+      if (mounted) _showImageMessage(localizations.imageUploadFailed);
+    } finally {
+      if (mounted) setState(() => _processingImage = false);
+    }
+  }
+
+  void _showImageMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
 }
+
+class _EditableProfileAvatar extends ConsumerWidget {
+  const _EditableProfileAvatar({
+    required this.imagePath,
+    required this.processing,
+    required this.onSelect,
+    required this.onRemove,
+  });
+
+  final String imagePath;
+  final bool processing;
+  final VoidCallback onSelect;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final localizations = AppLocalizations.of(context);
+    final pathParts = imagePath.split('/');
+    final userId = pathParts.length > 1 ? pathParts[1] : '';
+    return SizedBox(
+      width: 96,
+      height: 96,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          DarJarUserAvatar(
+            userId: userId,
+            radius: 42,
+            showImage: imagePath.isNotEmpty,
+          ),
+          PositionedDirectional(
+            end: 0,
+            bottom: 0,
+            child: PopupMenuButton<_ProfileImageAction>(
+              key: const Key('profile-image-menu-button'),
+              tooltip: localizations.edit,
+              enabled: !processing,
+              onSelected: (action) {
+                switch (action) {
+                  case _ProfileImageAction.select:
+                    onSelect();
+                    return;
+                  case _ProfileImageAction.remove:
+                    onRemove?.call();
+                    return;
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  key: const Key('select-profile-image-button'),
+                  value: _ProfileImageAction.select,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.add_a_photo_outlined),
+                    title: Text(
+                      imagePath.isEmpty
+                          ? localizations.addImage
+                          : localizations.changeImage,
+                    ),
+                  ),
+                ),
+                if (onRemove != null)
+                  PopupMenuItem(
+                    key: const Key('remove-profile-image-button'),
+                    value: _ProfileImageAction.remove,
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.delete_outline_rounded),
+                      title: Text(localizations.removeImage),
+                    ),
+                  ),
+              ],
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.surface, width: 3),
+                ),
+                alignment: Alignment.center,
+                child: processing
+                    ? const SizedBox.square(
+                        dimension: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.edit_rounded,
+                        size: 17,
+                        color: Colors.white,
+                      ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+enum _ProfileImageAction { select, remove }
 
 class _ResidenceItem extends StatelessWidget {
   const _ResidenceItem({required this.residence, required this.isCurrent});
@@ -256,7 +439,11 @@ class _ResidenceItem extends StatelessWidget {
     final apartmentNumber = residence.apartmentNumber;
     return ListTile(
       key: ValueKey('profile-residence-${residence.id}'),
-      leading: const Icon(Icons.apartment_outlined, color: AppColors.primary),
+      leading: DarJarResidenceAvatar(
+        residenceId: residence.id,
+        hasImage: residence.hasImage,
+        size: 40,
+      ),
       title: Row(
         children: [
           Flexible(

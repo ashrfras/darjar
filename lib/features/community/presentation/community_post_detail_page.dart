@@ -5,6 +5,8 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_image_avatar.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
 import 'package:flutter/material.dart';
@@ -193,25 +195,26 @@ class _CommunityPostDetailPageState
   }
 }
 
-class _CommentComposer extends StatelessWidget {
+class _CommentComposer extends ConsumerWidget {
   const _CommentComposer({required this.controller, required this.onSubmit});
 
   final TextEditingController controller;
   final VoidCallback onSubmit;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final userId = ref.watch(authRepositoryProvider).currentUser?.uid ?? '';
     return DarJarCard(
       padding: const EdgeInsets.all(AppSpacing.medium),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          const CircleAvatar(
+          DarJarUserAvatar(
+            userId: userId,
             radius: 19,
             backgroundColor: AppColors.primarySoft,
             foregroundColor: AppColors.primary,
-            child: Icon(Icons.person_rounded, size: 20),
           ),
           const SizedBox(width: AppSpacing.small),
           Expanded(
@@ -262,7 +265,9 @@ class _CommentTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
+          DarJarUserAvatar(
+            userId: comment.authorId,
+            name: comment.author,
             radius: 18,
             backgroundColor: comment.isAuthor
                 ? AppColors.primary
@@ -270,7 +275,6 @@ class _CommentTile extends StatelessWidget {
             foregroundColor: comment.isAuthor
                 ? Colors.white
                 : AppColors.inkMuted,
-            child: Text(comment.author.characters.first),
           ),
           const SizedBox(width: AppSpacing.medium),
           Expanded(

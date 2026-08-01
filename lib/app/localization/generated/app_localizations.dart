@@ -2340,11 +2340,11 @@ abstract class AppLocalizations {
   /// **'صورة أو شعار الإقامة'**
   String get residenceImage;
 
-  /// No description provided for @residenceImageOptional.
+  /// No description provided for @squareImageRecommended.
   ///
   /// In ar, this message translates to:
-  /// **'اختياري، ويمكن تغييره في أي وقت.'**
-  String get residenceImageOptional;
+  /// **'يفضّل اختيار صورة مربعة للحصول على أفضل عرض.'**
+  String get squareImageRecommended;
 
   /// No description provided for @addImage.
   ///
@@ -2352,11 +2352,41 @@ abstract class AppLocalizations {
   /// **'إضافة صورة'**
   String get addImage;
 
+  /// No description provided for @changeImage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير الصورة'**
+  String get changeImage;
+
   /// No description provided for @removeImage.
   ///
   /// In ar, this message translates to:
   /// **'إزالة الصورة'**
   String get removeImage;
+
+  /// No description provided for @imageProcessingFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر اختيار الصورة أو معالجتها. اختر JPG أو PNG أو WebP بحجم أقل من 8MB.'**
+  String get imageProcessingFailed;
+
+  /// No description provided for @imageUploadFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر رفع الصورة. تحقق من الاتصال والصلاحيات ثم حاول مجددًا.'**
+  String get imageUploadFailed;
+
+  /// No description provided for @profileImageSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تحديث صورة البروفايل.'**
+  String get profileImageSaved;
+
+  /// No description provided for @profileImageRemoved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تمت إزالة صورة البروفايل.'**
+  String get profileImageRemoved;
 
   /// No description provided for @address.
   ///

@@ -1249,13 +1249,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get residenceImage => 'صورة أو شعار الإقامة';
 
   @override
-  String get residenceImageOptional => 'اختياري، ويمكن تغييره في أي وقت.';
+  String get squareImageRecommended =>
+      'يفضّل اختيار صورة مربعة للحصول على أفضل عرض.';
 
   @override
   String get addImage => 'إضافة صورة';
 
   @override
+  String get changeImage => 'تغيير الصورة';
+
+  @override
   String get removeImage => 'إزالة الصورة';
+
+  @override
+  String get imageProcessingFailed =>
+      'تعذّر اختيار الصورة أو معالجتها. اختر JPG أو PNG أو WebP بحجم أقل من 8MB.';
+
+  @override
+  String get imageUploadFailed =>
+      'تعذّر رفع الصورة. تحقق من الاتصال والصلاحيات ثم حاول مجددًا.';
+
+  @override
+  String get profileImageSaved => 'تم تحديث صورة البروفايل.';
+
+  @override
+  String get profileImageRemoved => 'تمت إزالة صورة البروفايل.';
 
   @override
   String get address => 'العنوان';

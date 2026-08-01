@@ -7,6 +7,7 @@ import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
+import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -150,10 +151,10 @@ class _MemberCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            backgroundColor: AppColors.primarySoft,
-            foregroundColor: AppColors.primary,
-            child: Text(_initial(member.name)),
+          DarJarUserAvatar(
+            userId: member.id,
+            name: member.name,
+            showImage: member.hasProfileImage,
           ),
           const SizedBox(width: AppSpacing.medium),
           Expanded(
@@ -250,11 +251,6 @@ class _MemberCard extends StatelessWidget {
       if (showBuilding && buildingName.isNotEmpty) buildingName,
       if (floorName.isNotEmpty) floorName,
     ].join(' · ');
-  }
-
-  String _initial(String name) {
-    final trimmed = name.trim();
-    return trimmed.isEmpty ? '؟' : String.fromCharCode(trimmed.runes.first);
   }
 
   String _roleLabel(AppLocalizations localizations, ResidenceMemberRole role) =>
