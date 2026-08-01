@@ -4,6 +4,7 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
@@ -71,12 +72,7 @@ class _FinanceTransactionsPageState
               ),
               const SizedBox(height: AppSpacing.large),
               if (financesState.isLoading)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppSpacing.xxxLarge),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
+                const DarJarLoadingSkeleton()
               else if (financesState.hasError)
                 DarJarCard(
                   child: Column(

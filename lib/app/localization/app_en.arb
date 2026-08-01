@@ -1,6 +1,7 @@
 {
   "@@locale": "en",
   "appName": "DarJar",
+  "dataLoading": "Loading data…",
   "brandLatin": "DarJar",
   "community": "Community",
   "directory": "Directory",

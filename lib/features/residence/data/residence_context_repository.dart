@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class UserResidence {
@@ -32,7 +33,7 @@ class ResidenceContext {
   const ResidenceContext({
     required this.residences,
     required this.activeResidenceId,
-    required this.invitations,
+    this.invitations = const [],
   });
 
   final List<UserResidence> residences;
@@ -71,48 +72,32 @@ abstract interface class ResidenceContextRepository {
 
 class FirestoreResidenceContextRepository
     implements ResidenceContextRepository {
-  FirestoreResidenceContextRepository(this._firestore, this._accountRepository);
+  FirestoreResidenceContextRepository(this._firestore);
 
   final FirebaseFirestore _firestore;
-  final AccountOnboardingRepository _accountRepository;
 
   @override
   Future<ResidenceContext> load(AuthUser user) async {
+    final stopwatch = Stopwatch()..start();
     try {
       final results = await Future.wait([
         _firestore.collection('users').doc(user.uid).get(),
-        _accountRepository.loadResolution(user),
+        _firestore
+            .collectionGroup('members')
+            .where('userId', isEqualTo: user.uid)
+            .get(),
       ]);
       final userDocument = results[0] as DocumentSnapshot<Map<String, dynamic>>;
-      final resolution = results[1] as AccountResolution;
+      final membershipQuery = results[1] as QuerySnapshot<Map<String, dynamic>>;
       final storedActiveId =
           userDocument.data()?['activeResidenceId'] as String?;
 
-      final discoveredResidenceIds = <String>{
-        ?storedActiveId,
-        ...resolution.acceptedResidenceIds,
-      };
-      final optionalDiscoveries = await Future.wait([
-        _loadMemberResidenceIds(user.uid),
-        _loadCreatorResidenceIds(user.uid),
-      ]);
-      for (final residenceIds in optionalDiscoveries) {
-        discoveredResidenceIds.addAll(residenceIds);
-      }
-
-      final membershipDocuments = await Future.wait([
-        for (final residenceId in discoveredResidenceIds)
-          _firestore
-              .collection('residences')
-              .doc(residenceId)
-              .collection('members')
-              .doc(user.uid)
-              .get(),
-      ]);
-      final memberships = membershipDocuments
+      // These are already the complete membership documents. Re-reading every
+      // membership added an unnecessary network round-trip to every page load.
+      final memberships = membershipQuery.docs
           .where(
             (membership) =>
-                membership.exists && membership.data()?['status'] == 'active',
+                membership.exists && membership.data()['status'] == 'active',
           )
           .toList(growable: false);
       final residenceDocuments = await Future.wait([
@@ -141,37 +126,20 @@ class FirestoreResidenceContextRepository
       return ResidenceContext(
         residences: residences,
         activeResidenceId: activeId,
-        invitations: resolution.invitations,
       );
-    } on AccountOnboardingFailure catch (error) {
-      throw ResidenceContextFailure(error.code, error.details);
     } on FirebaseException catch (error) {
       throw ResidenceContextFailure(error.code, error.message);
     } catch (error) {
       throw ResidenceContextFailure('unknown', error.toString());
+    } finally {
+      stopwatch.stop();
+      if (kDebugMode) {
+        debugPrint(
+          'DarJar performance: residence context '
+          '${stopwatch.elapsedMilliseconds}ms',
+        );
+      }
     }
-  }
-
-  Future<Set<String>> _loadMemberResidenceIds(String userId) async {
-    final query = await _firestore
-        .collectionGroup('members')
-        .where('userId', isEqualTo: userId)
-        .get();
-    return {
-      for (final membership in query.docs) _residenceReference(membership).id,
-    };
-  }
-
-  Future<Set<String>> _loadCreatorResidenceIds(String userId) async {
-    final query = await _firestore
-        .collectionGroup('settings')
-        .where('createdBy', isEqualTo: userId)
-        .get();
-    return {
-      for (final settings in query.docs)
-        if (settings.reference.parent.parent != null)
-          settings.reference.parent.parent!.id,
-    };
   }
 
   Future<void> _persistActiveResidence(
@@ -210,16 +178,6 @@ class FirestoreResidenceContextRepository
     }
   }
 
-  DocumentReference<Map<String, dynamic>> _residenceReference(
-    QueryDocumentSnapshot<Map<String, dynamic>> membership,
-  ) {
-    final reference = membership.reference.parent.parent;
-    if (reference == null) {
-      throw const ResidenceContextFailure('invalid-membership');
-    }
-    return reference;
-  }
-
   UserResidence _residenceFromDocuments(
     DocumentSnapshot<Map<String, dynamic>> membership,
     DocumentSnapshot<Map<String, dynamic>> residence,
@@ -244,17 +202,23 @@ final residenceContextRepositoryProvider = Provider<ResidenceContextRepository>(
   (ref) {
     return FirestoreResidenceContextRepository(
       ref.watch(firebaseFirestoreProvider),
-      ref.watch(accountOnboardingRepositoryProvider),
     );
   },
 );
 
-final residenceContextProvider = FutureProvider.autoDispose<ResidenceContext>((
-  ref,
-) {
-  final user = ref.watch(authRepositoryProvider).currentUser;
+const residenceDataTimeout = Duration(seconds: 12);
+
+final residenceContextProvider = FutureProvider<ResidenceContext>((ref) {
+  final authState = ref.watch(authStateProvider);
+  final user = authState.value ?? ref.watch(authRepositoryProvider).currentUser;
   if (user == null) {
     throw const ResidenceContextFailure('signed-out');
   }
-  return ref.watch(residenceContextRepositoryProvider).load(user);
+  return ref
+      .watch(residenceContextRepositoryProvider)
+      .load(user)
+      .timeout(
+        residenceDataTimeout,
+        onTimeout: () => throw const ResidenceContextFailure('request-timeout'),
+      );
 });

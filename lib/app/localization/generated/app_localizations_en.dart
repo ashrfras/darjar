@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'DarJar';
 
   @override
+  String get dataLoading => 'Loading data…';
+
+  @override
   String get brandLatin => 'DarJar';
 
   @override

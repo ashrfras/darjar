@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'دارجار'**
   String get appName;
 
+  /// No description provided for @dataLoading.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تحميل البيانات…'**
+  String get dataLoading;
+
   /// No description provided for @brandLatin.
   ///
   /// In ar, this message translates to:

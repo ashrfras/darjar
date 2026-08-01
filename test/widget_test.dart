@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:darjar/app/app.dart';
+import 'package:darjar/app/bootstrap.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
@@ -62,6 +63,52 @@ void main() {
           const Duration(milliseconds: 180),
         );
       }
+    });
+  });
+
+  group('application bootstrap', () {
+    testWidgets('shows progress before initialization completes', (
+      tester,
+    ) async {
+      final initialization = Completer<void>();
+
+      await tester.pumpWidget(
+        DarJarBootstrap(
+          initialize: () => initialization.future,
+          child: const SizedBox(key: Key('initialized-app')),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byKey(const Key('bootstrap-loading')), findsOneWidget);
+      expect(find.byKey(const Key('initialized-app')), findsNothing);
+
+      initialization.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('initialized-app')), findsOneWidget);
+    });
+
+    testWidgets('offers a retry when initialization fails', (tester) async {
+      var attempts = 0;
+
+      await tester.pumpWidget(
+        DarJarBootstrap(
+          initialize: () async {
+            attempts++;
+            if (attempts == 1) throw StateError('offline');
+          },
+          child: const SizedBox(key: Key('initialized-app')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('bootstrap-load-error')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('bootstrap-retry-button')));
+      await tester.pumpAndSettle();
+
+      expect(attempts, 2);
+      expect(find.byKey(const Key('initialized-app')), findsOneWidget);
     });
   });
 
@@ -1814,78 +1861,88 @@ void main() {
     expect(find.text('تم حفظ معلومات الحساب.'), findsOneWidget);
   });
 
-  testWidgets(
-    'resident sees dues and manual payment history for their apartment',
-    (tester) async {
-      final duesRepository = _FakeResidenceDuesRepository()
-        ..overview = ResidenceDuesOverview.empty
-        ..residentStartDate = DateTime(
-          DateTime.now().year,
-          DateTime.now().month - 2,
-        );
-      await _pumpApp(
-        tester,
-        size: const Size(390, 844),
-        residenceDuesRepository: duesRepository,
-        residenceContext: const ResidenceContext(
-          residences: [
-            UserResidence(
-              id: 'test-residence',
-              name: 'إقامة الاختبار',
-              address: 'شارع الاختبار',
-              city: '6141010',
-              role: 'resident',
+  testWidgets('resident sees stored dues without creating records while opening', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final duesRepository = _FakeResidenceDuesRepository()
+      ..overview = ResidenceDuesOverview(
+        dues: [
+          for (var index = 0; index < 3; index++)
+            ResidenceDue(
+              id:
+                  '${residenceDuesPeriodKey(DateTime(now.year, now.month - index))}'
+                  '_apartment-01',
               apartmentId: 'apartment-01',
+              apartmentNumber: '01',
+              periodKey: residenceDuesPeriodKey(
+                DateTime(now.year, now.month - index),
+              ),
+              amountDue: 150,
+              amountPaid: 0,
+              status: ResidenceDueStatus.unpaid,
             ),
-          ],
-          activeResidenceId: 'test-residence',
-          invitations: [],
-        ),
+        ],
+        payments: const [],
       );
-      await _enterResidence(tester);
-      await tester.tap(find.text('الإقامة'));
-      await tester.pumpAndSettle();
-      expect(duesRepository.residentPeriodChecks, 1);
-      expect(duesRepository.overview.dues, hasLength(3));
-      await tester.tap(find.text('حالة الواجبات'));
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('dues-page')), findsOneWidget);
-      expect(find.byKey(const Key('dues-total-debit')), findsOneWidget);
-      final debitCard = find.byKey(const Key('dues-total-debit'));
-      final creditCard = find.byKey(const Key('dues-total-credit'));
-      final prepaidCard = find.byKey(const Key('dues-prepaid-months'));
-      expect(tester.getSize(debitCard).width, lessThan(130));
-      expect(tester.getTopLeft(debitCard).dy, tester.getTopLeft(creditCard).dy);
-      expect(
-        tester.getTopLeft(debitCard).dy,
-        tester.getTopLeft(prepaidCard).dy,
-      );
-      tester.view.physicalSize = const Size(300, 844);
-      await tester.pumpAndSettle();
-      expect(tester.getSize(debitCard).width, greaterThan(250));
-      expect(
-        tester.getTopLeft(creditCard).dy,
-        greaterThan(tester.getBottomLeft(debitCard).dy),
-      );
-      tester.view.physicalSize = const Size(390, 844);
-      await tester.pumpAndSettle();
-      expect(
-        find.text('عرض مبسط لحالة واجبات السكن المسجلة من الإدارة.'),
-        findsNothing,
-      );
-      expect(
-        find.byKey(
-          ValueKey(
-            'resident-due-${residenceDuesPeriodKey(DateTime.now())}_apartment-01',
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceDuesRepository: duesRepository,
+      residenceContext: const ResidenceContext(
+        residences: [
+          UserResidence(
+            id: 'test-residence',
+            name: 'إقامة الاختبار',
+            address: 'شارع الاختبار',
+            city: '6141010',
+            role: 'resident',
+            apartmentId: 'apartment-01',
           ),
+        ],
+        activeResidenceId: 'test-residence',
+        invitations: [],
+      ),
+    );
+    await _enterResidence(tester);
+    await tester.tap(find.text('الإقامة'));
+    await tester.pumpAndSettle();
+    expect(duesRepository.overview.dues, hasLength(3));
+    await tester.tap(find.text('حالة الواجبات'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('dues-page')), findsOneWidget);
+    expect(find.byKey(const Key('dues-total-debit')), findsOneWidget);
+    final debitCard = find.byKey(const Key('dues-total-debit'));
+    final creditCard = find.byKey(const Key('dues-total-credit'));
+    final prepaidCard = find.byKey(const Key('dues-prepaid-months'));
+    expect(tester.getSize(debitCard).width, lessThan(130));
+    expect(tester.getTopLeft(debitCard).dy, tester.getTopLeft(creditCard).dy);
+    expect(tester.getTopLeft(debitCard).dy, tester.getTopLeft(prepaidCard).dy);
+    tester.view.physicalSize = const Size(300, 844);
+    await tester.pumpAndSettle();
+    expect(tester.getSize(debitCard).width, greaterThan(250));
+    expect(
+      tester.getTopLeft(creditCard).dy,
+      greaterThan(tester.getBottomLeft(debitCard).dy),
+    );
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('عرض مبسط لحالة واجبات السكن المسجلة من الإدارة.'),
+      findsNothing,
+    );
+    expect(
+      find.byKey(
+        ValueKey(
+          'resident-due-${residenceDuesPeriodKey(DateTime.now())}_apartment-01',
         ),
-        findsOneWidget,
-      );
-      expect(find.text('غير مؤدى'), findsNWidgets(3));
-      expect(find.text('لا توجد اشتراكات مسجلة لهذه الشقة بعد.'), findsNothing);
-    },
-  );
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('غير مؤدى'), findsNWidgets(3));
+    expect(find.text('لا توجد اشتراكات مسجلة لهذه الشقة بعد.'), findsNothing);
+  });
 
   testWidgets('resident sees prepaid credit and the full last payment total', (
     tester,
@@ -1898,7 +1955,6 @@ void main() {
     final paidAt = DateTime(now.year, now.month, 10);
     final membersRepository = _FakeResidenceMembersRepository();
     final duesRepository = _FakeResidenceDuesRepository()
-      ..residentStartDate = DateTime(now.year, now.month)
       ..overview = ResidenceDuesOverview(
         dues: [
           ResidenceDue(
@@ -2075,7 +2131,6 @@ void main() {
         ),
     ];
     final duesRepository = _FakeResidenceDuesRepository()
-      ..residentStartDate = DateTime(now.year, now.month)
       ..overview = ResidenceDuesOverview(dues: dues, payments: const []);
     await _pumpApp(
       tester,
@@ -4030,8 +4085,6 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
   }
 
   late ResidenceDuesOverview overview;
-  int residentPeriodChecks = 0;
-  DateTime residentStartDate = DateTime.now();
 
   @override
   Future<void> ensurePeriod({
@@ -4059,42 +4112,6 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
               status: ResidenceDueStatus.unpaid,
             ),
       ],
-      payments: overview.payments,
-    );
-  }
-
-  @override
-  Future<void> ensureResidentPeriod({
-    required String residenceId,
-    required String apartmentId,
-    required String periodKey,
-  }) async {
-    residentPeriodChecks++;
-    final currentPeriod = _testPeriodDate(periodKey);
-    final missingDues = <ResidenceDue>[];
-    var period = DateTime(residentStartDate.year, residentStartDate.month);
-    while (!period.isAfter(currentPeriod)) {
-      final missingPeriod = residenceDuesPeriodKey(period);
-      if (!overview.dues.any(
-        (due) =>
-            due.apartmentId == apartmentId && due.periodKey == missingPeriod,
-      )) {
-        missingDues.add(
-          ResidenceDue(
-            id: '${missingPeriod}_$apartmentId',
-            apartmentId: apartmentId,
-            apartmentNumber: apartmentId == 'apartment-01' ? '01' : '02',
-            periodKey: missingPeriod,
-            amountDue: 150,
-            amountPaid: 0,
-            status: ResidenceDueStatus.unpaid,
-          ),
-        );
-      }
-      period = DateTime(period.year, period.month + 1);
-    }
-    overview = ResidenceDuesOverview(
-      dues: [...missingDues.reversed, ...overview.dues],
       payments: overview.payments,
     );
   }
@@ -4334,6 +4351,34 @@ class _FakeResidenceDocumentsRepository
   Stream<List<ResidenceDocument>> watch(String residenceId) async* {
     yield List.unmodifiable(documents);
     yield* _changes.stream;
+  }
+
+  @override
+  Future<List<ResidenceTransactionAttachment>> loadAttachments(
+    String residenceId,
+  ) async {
+    final date = DateTime(2026, 7, 19);
+    final id = 'elevator-service-july';
+    final title = residenceTransactionAttachmentName(id);
+    return [
+      ResidenceTransactionAttachment(
+        id: 'finance-$id',
+        isIncome: false,
+        date: date,
+        document: ResidenceDocument(
+          id: 'attachment-$id',
+          title: title,
+          originalFileName: title,
+          storagePath:
+              'residences/$residenceId/attachments/finance-$id/content',
+          contentType: 'application/pdf',
+          sizeBytes: 2048,
+          uploadedBy: 'test-user',
+          createdAt: date,
+          updatedAt: date,
+        ),
+      ),
+    ];
   }
 
   @override

@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/core/performance/data_load_timer.dart';
+import 'package:darjar/core/providers/provider_cache.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
@@ -163,18 +165,7 @@ class ResidenceDuesOverview {
   List<ResidenceDuePaymentGroup> get paymentGroups {
     final grouped = <String, List<ResidenceDuePayment>>{};
     for (final payment in payments) {
-      final groupId = payment.paymentGroupId.isNotEmpty
-          ? payment.paymentGroupId
-          : payment.createdAt == null
-          ? payment.id
-          : [
-              'legacy',
-              payment.createdAt!.microsecondsSinceEpoch,
-              payment.apartmentId,
-              payment.recordedBy,
-              payment.note,
-            ].join('|');
-      grouped.putIfAbsent(groupId, () => []).add(payment);
+      grouped.putIfAbsent(payment.paymentGroupId, () => []).add(payment);
     }
     final groups = [
       for (final entry in grouped.entries)
@@ -202,12 +193,6 @@ abstract interface class ResidenceDuesRepository {
     required String periodKey,
     required int defaultAmount,
     required List<ResidenceApartment> apartments,
-  });
-
-  Future<void> ensureResidentPeriod({
-    required String residenceId,
-    required String apartmentId,
-    required String periodKey,
   });
 
   Future<void> recordApartmentPayment({
@@ -306,50 +291,6 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
         }
       }
       await _createMissingDues(dues, seeds, defaultAmount);
-    } on FirebaseException catch (error) {
-      throw ResidenceDuesFailure(error.code, error.message);
-    }
-  }
-
-  @override
-  Future<void> ensureResidentPeriod({
-    required String residenceId,
-    required String apartmentId,
-    required String periodKey,
-  }) async {
-    try {
-      final residence = _firestore.collection('residences').doc(residenceId);
-      final apartment = await _loadApartment(residence, apartmentId);
-      if (apartment == null) {
-        throw const ResidenceDuesFailure('apartment-not-found');
-      }
-      final privateSettings = residence.collection('settings').doc('private');
-      final settingsDocument = await privateSettings.get();
-      final defaultAmount =
-          settingsDocument.data()?['defaultSubscriptionAmount'] as int?;
-      if (defaultAmount == null || defaultAmount < 0) {
-        throw const ResidenceDuesFailure('invalid-default-amount');
-      }
-      final dues = residence.collection('dues');
-      final existing = await dues
-          .where('apartmentId', isEqualTo: apartmentId)
-          .get();
-      final existingIds = {for (final document in existing.docs) document.id};
-      final currentPeriod = _periodDate(periodKey);
-      final start = apartment.createdAt ?? currentPeriod;
-      final seeds = [
-        for (final missingPeriod in _periodKeys(start, currentPeriod))
-          if (!existingIds.contains('${missingPeriod}_$apartmentId'))
-            _DueSeed(
-              id: '${missingPeriod}_$apartmentId',
-              apartmentId: apartmentId,
-              apartmentNumber: apartment.number,
-              periodKey: missingPeriod,
-            ),
-      ];
-      await _createMissingDues(dues, seeds, defaultAmount);
-    } on ResidenceDuesFailure {
-      rethrow;
     } on FirebaseException catch (error) {
       throw ResidenceDuesFailure(error.code, error.message);
     }
@@ -545,7 +486,7 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
       paidAt: (data['paidAt'] as Timestamp).toDate(),
       note: data['note'] as String,
       recordedBy: data['recordedBy'] as String,
-      paymentGroupId: data['paymentGroupId'] as String? ?? '',
+      paymentGroupId: data['paymentGroupId'] as String,
       supportingDocument: data['supportingDocument'] as String? ?? '',
       attachmentStoragePath: data['attachmentStoragePath'] as String? ?? '',
       attachmentContentType: data['attachmentContentType'] as String? ?? '',
@@ -594,30 +535,6 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
     }
   }
 
-  Future<_ApartmentBillingInfo?> _loadApartment(
-    DocumentReference<Map<String, dynamic>> residence,
-    String apartmentId,
-  ) async {
-    final buildings = await residence.collection('buildings').get();
-    for (final building in buildings.docs) {
-      final floors = await building.reference.collection('floors').get();
-      for (final floor in floors.docs) {
-        final apartment = await floor.reference
-            .collection('apartments')
-            .doc(apartmentId)
-            .get();
-        if (apartment.exists) {
-          final data = apartment.data()!;
-          return _ApartmentBillingInfo(
-            number: data['number']?.toString() ?? '',
-            createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
-          );
-        }
-      }
-    }
-    return null;
-  }
-
   Future<void> _createMissingDues(
     CollectionReference<Map<String, dynamic>> dues,
     List<_DueSeed> seeds,
@@ -646,13 +563,6 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
       await batch.commit();
     }
   }
-}
-
-class _ApartmentBillingInfo {
-  const _ApartmentBillingInfo({required this.number, required this.createdAt});
-
-  final String number;
-  final DateTime? createdAt;
 }
 
 class _DueSeed {
@@ -697,21 +607,21 @@ final residenceDuesRepositoryProvider = Provider<ResidenceDuesRepository>(
 final residentDuesProvider = FutureProvider.autoDispose<ResidenceDuesOverview>((
   ref,
 ) async {
-  final context = await ref.watch(residenceContextProvider.future);
-  final activeResidence = context.activeResidence;
-  if (activeResidence == null || activeResidence.apartmentId.isEmpty) {
-    return ResidenceDuesOverview.empty;
-  }
-  final repository = ref.watch(residenceDuesRepositoryProvider);
-  await repository.ensureResidentPeriod(
-    residenceId: activeResidence.id,
-    apartmentId: activeResidence.apartmentId,
-    periodKey: residenceDuesPeriodKey(DateTime.now()),
-  );
-  return repository.load(
-    residenceId: activeResidence.id,
-    apartmentId: activeResidence.apartmentId,
-  );
+  return measureDataLoad('resident dues', () async {
+    cacheProviderFor(ref);
+    final context = await ref.watch(residenceContextProvider.future);
+    final activeResidence = context.activeResidence;
+    if (activeResidence == null || activeResidence.apartmentId.isEmpty) {
+      return ResidenceDuesOverview.empty;
+    }
+    final repository = ref.watch(residenceDuesRepositoryProvider);
+    return repository
+        .load(
+          residenceId: activeResidence.id,
+          apartmentId: activeResidence.apartmentId,
+        )
+        .timeout(residenceDataTimeout);
+  });
 });
 
 class ResidenceDuesManagementController
@@ -775,6 +685,7 @@ class ResidenceDuesManagementController
         );
     ref.invalidate(residentDuesProvider);
     ref.invalidate(residenceFinancesProvider);
+    ref.invalidate(residenceTransactionAttachmentsProvider);
     ref.invalidateSelf();
   }
 }

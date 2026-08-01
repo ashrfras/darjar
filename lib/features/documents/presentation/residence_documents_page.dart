@@ -6,10 +6,10 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
-import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -28,7 +28,7 @@ class _ResidenceDocumentsPageState
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final documents = ref.watch(residenceDocumentsProvider);
-    final finances = ref.watch(residenceFinancesProvider);
+    final attachments = ref.watch(residenceTransactionAttachmentsProvider);
     final compact = MediaQuery.sizeOf(context).width < 600;
     return SingleChildScrollView(
       key: const Key('residence-documents-page'),
@@ -106,23 +106,19 @@ class _ResidenceDocumentsPageState
                 icon: Icons.attach_file_rounded,
                 compact: true,
                 onViewAll: () {
-                  final attachments =
-                      finances.value?.transactions
-                          .where((transaction) => transaction.hasAttachment)
-                          .toList() ??
-                      const <ResidenceTransaction>[];
-                  _showAllTransactionAttachments(attachments);
+                  final visibleAttachments =
+                      attachments.value ??
+                      const <ResidenceTransactionAttachment>[];
+                  _showAllTransactionAttachments(visibleAttachments);
                 },
               ),
               const SizedBox(height: AppSpacing.small),
-              finances.when(
+              attachments.when(
                 loading: _loading,
-                error: (error, stackTrace) =>
-                    _loadError(() => ref.invalidate(residenceFinancesProvider)),
-                data: (data) {
-                  final attachments = data.transactions
-                      .where((transaction) => transaction.hasAttachment)
-                      .toList();
+                error: (error, stackTrace) => _loadError(
+                  () => ref.invalidate(residenceTransactionAttachmentsProvider),
+                ),
+                data: (attachments) {
                   final visible = attachments.take(3).toList();
                   return DarJarCard(
                     key: const Key('transaction-attachments-section'),
@@ -141,14 +137,12 @@ class _ResidenceDocumentsPageState
                                 index++
                               ) ...[
                                 _TransactionAttachmentRow(
-                                  transaction: visible[index],
-                                  onOpen: visible[index].hasAttachment
-                                      ? () => showResidenceDocumentPreview(
-                                          context,
-                                          ref,
-                                          visible[index].attachmentDocument,
-                                        )
-                                      : null,
+                                  attachment: visible[index],
+                                  onOpen: () => showResidenceDocumentPreview(
+                                    context,
+                                    ref,
+                                    visible[index].document,
+                                  ),
                                 ),
                                 if (index < visible.length - 1) const Divider(),
                               ],
@@ -164,12 +158,7 @@ class _ResidenceDocumentsPageState
     );
   }
 
-  Widget _loading() => const Center(
-    child: Padding(
-      padding: EdgeInsets.all(AppSpacing.xLarge),
-      child: CircularProgressIndicator(),
-    ),
-  );
+  Widget _loading() => const DarJarLoadingSkeleton(itemCount: 2);
 
   Widget _loadError(VoidCallback retry) => DarJarCard(
     child: Column(
@@ -216,7 +205,7 @@ class _ResidenceDocumentsPageState
   }
 
   Future<void> _showAllTransactionAttachments(
-    List<ResidenceTransaction> attachments,
+    List<ResidenceTransactionAttachment> attachments,
   ) {
     final localizations = AppLocalizations.of(context);
     return showModalBottomSheet<void>(
@@ -230,16 +219,12 @@ class _ResidenceDocumentsPageState
         emptyMessage: localizations.noAttachedDocuments,
         compact: true,
         children: [
-          for (final transaction in attachments)
+          for (final attachment in attachments)
             _TransactionAttachmentRow(
-              transaction: transaction,
+              attachment: attachment,
               onOpen: () {
                 Navigator.of(sheetContext).pop();
-                showResidenceDocumentPreview(
-                  context,
-                  ref,
-                  transaction.attachmentDocument,
-                );
+                showResidenceDocumentPreview(context, ref, attachment.document);
               },
             ),
         ],
@@ -313,31 +298,31 @@ class _SectionHeader extends StatelessWidget {
 
 class _TransactionAttachmentRow extends StatelessWidget {
   const _TransactionAttachmentRow({
-    required this.transaction,
+    required this.attachment,
     required this.onOpen,
   });
 
-  final ResidenceTransaction transaction;
+  final ResidenceTransactionAttachment attachment;
   final VoidCallback? onOpen;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     return ListTile(
-      key: ValueKey('transaction-attachment-${transaction.id}'),
+      key: ValueKey('transaction-attachment-${attachment.id}'),
       onTap: onOpen,
       leading: const Icon(
         Icons.description_outlined,
         color: AppColors.residence,
       ),
       title: Text(
-        transaction.attachmentName,
+        attachment.document.title,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
-        '${transaction.type == ResidenceTransactionType.income ? localizations.income : localizations.expense}'
-        ' · ${DateFormat.yMMMd(localizations.localeName).format(transaction.date)}',
+        '${attachment.isIncome ? localizations.income : localizations.expense}'
+        ' · ${DateFormat.yMMMd(localizations.localeName).format(attachment.date)}',
       ),
       trailing: onOpen == null
           ? null

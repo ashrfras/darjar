@@ -1,6 +1,7 @@
 {
   "@@locale": "ar",
   "appName": "دارجار",
+  "dataLoading": "جارٍ تحميل البيانات…",
   "brandLatin": "DarJar",
   "community": "المجتمع",
   "directory": "الدليل",

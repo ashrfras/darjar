@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/core/performance/data_load_timer.dart';
+import 'package:darjar/core/providers/provider_cache.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -74,6 +76,20 @@ class ResidenceDocumentUpload {
   final Uint8List bytes;
 }
 
+class ResidenceTransactionAttachment {
+  const ResidenceTransactionAttachment({
+    required this.id,
+    required this.isIncome,
+    required this.date,
+    required this.document,
+  });
+
+  final String id;
+  final bool isIncome;
+  final DateTime date;
+  final ResidenceDocument document;
+}
+
 class ResidenceDocumentsFailure implements Exception {
   const ResidenceDocumentsFailure(this.code, [this.details]);
 
@@ -83,6 +99,10 @@ class ResidenceDocumentsFailure implements Exception {
 
 abstract interface class ResidenceDocumentsRepository {
   Stream<List<ResidenceDocument>> watch(String residenceId);
+
+  Future<List<ResidenceTransactionAttachment>> loadAttachments(
+    String residenceId,
+  );
 
   Future<void> upload({
     required String residenceId,
@@ -126,6 +146,43 @@ class FirebaseResidenceDocumentsRepository
         .handleError((Object error) {
           throw _failure(error);
         });
+  }
+
+  @override
+  Future<List<ResidenceTransactionAttachment>> loadAttachments(
+    String residenceId,
+  ) async {
+    try {
+      final residence = _firestore.collection('residences').doc(residenceId);
+      final results = await Future.wait([
+        residence
+            .collection('financeTransactions')
+            .where('attachmentStoragePath', isGreaterThan: '')
+            .get(),
+        residence
+            .collection('duePayments')
+            .where('attachmentStoragePath', isGreaterThan: '')
+            .get(),
+      ]);
+      final manualAttachments = [
+        for (final document in results[0].docs) _manualAttachment(document),
+      ];
+      final dueGroups = <String, QueryDocumentSnapshot<Map<String, dynamic>>>{};
+      for (final document in results[1].docs) {
+        dueGroups.putIfAbsent(
+          document.data()['paymentGroupId'] as String,
+          () => document,
+        );
+      }
+      final attachments = [
+        ...manualAttachments,
+        for (final entry in dueGroups.entries)
+          _dueAttachment(entry.key, entry.value),
+      ]..sort((first, second) => second.date.compareTo(first.date));
+      return attachments;
+    } catch (error) {
+      throw _failure(error);
+    }
   }
 
   @override
@@ -277,6 +334,52 @@ class FirebaseResidenceDocumentsRepository
     );
   }
 
+  ResidenceTransactionAttachment _manualAttachment(
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
+  ) {
+    final data = document.data();
+    final date = _dateFrom(data['date']);
+    return ResidenceTransactionAttachment(
+      id: 'finance-${document.id}',
+      isIncome: data['type'] == 'income',
+      date: date,
+      document: _attachmentDocument(id: document.id, data: data, date: date),
+    );
+  }
+
+  ResidenceTransactionAttachment _dueAttachment(
+    String paymentGroupId,
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
+  ) {
+    final data = document.data();
+    final date = _dateFrom(data['paidAt']);
+    return ResidenceTransactionAttachment(
+      id: 'dues-$paymentGroupId',
+      isIncome: true,
+      date: date,
+      document: _attachmentDocument(id: paymentGroupId, data: data, date: date),
+    );
+  }
+
+  ResidenceDocument _attachmentDocument({
+    required String id,
+    required Map<String, dynamic> data,
+    required DateTime date,
+  }) {
+    final title = residenceTransactionAttachmentName(id);
+    return ResidenceDocument(
+      id: 'attachment-$id',
+      title: title,
+      originalFileName: title,
+      storagePath: data['attachmentStoragePath'] as String,
+      contentType: data['attachmentContentType'] as String,
+      sizeBytes: data['attachmentSizeBytes'] as int,
+      uploadedBy: data['recordedBy'] as String,
+      createdAt: date,
+      updatedAt: date,
+    );
+  }
+
   DateTime _dateFrom(Object? value) {
     return switch (value) {
       Timestamp timestamp => timestamp.toDate(),
@@ -309,15 +412,43 @@ final residenceDocumentsRepositoryProvider =
 
 final residenceDocumentsProvider =
     StreamProvider.autoDispose<List<ResidenceDocument>>((ref) async* {
-      final context = await ref.watch(residenceContextProvider.future);
-      final activeResidence = context.activeResidence;
-      if (activeResidence == null) {
-        yield const [];
-        return;
+      final timer = DataLoadTimer('residence documents');
+      cacheProviderFor(ref);
+      try {
+        final context = await ref.watch(residenceContextProvider.future);
+        final activeResidence = context.activeResidence;
+        if (activeResidence == null) {
+          timer.finish();
+          yield const [];
+          return;
+        }
+        await for (final documents
+            in ref
+                .watch(residenceDocumentsRepositoryProvider)
+                .watch(activeResidence.id)) {
+          timer.finish();
+          yield documents;
+        }
+      } catch (error) {
+        timer.finish(error: error);
+        rethrow;
       }
-      yield* ref
-          .watch(residenceDocumentsRepositoryProvider)
-          .watch(activeResidence.id);
+    });
+
+final residenceTransactionAttachmentsProvider =
+    FutureProvider.autoDispose<List<ResidenceTransactionAttachment>>((
+      ref,
+    ) async {
+      return measureDataLoad('transaction attachments', () async {
+        cacheProviderFor(ref);
+        final context = await ref.watch(residenceContextProvider.future);
+        final residence = context.activeResidence;
+        if (residence == null) return const [];
+        return ref
+            .watch(residenceDocumentsRepositoryProvider)
+            .loadAttachments(residence.id)
+            .timeout(residenceDataTimeout);
+      });
     });
 
 String residenceDocumentContentType(String fileName, String? reportedType) {

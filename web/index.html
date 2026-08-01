@@ -31,8 +31,50 @@
 
   <title>DarJar</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    html, body {
+      background: #f8f6f2;
+      height: 100%;
+      margin: 0;
+    }
+
+    #darjar-loading {
+      align-items: center;
+      color: #17151d;
+      display: flex;
+      flex-direction: column;
+      font-family: system-ui, -apple-system, sans-serif;
+      inset: 0;
+      justify-content: center;
+      position: fixed;
+    }
+
+    #darjar-loading strong {
+      color: #0f766e;
+      font-size: 28px;
+      margin-bottom: 18px;
+    }
+
+    #darjar-loading span {
+      border: 3px solid #d5e9e6;
+      border-top-color: #0f766e;
+      border-radius: 50%;
+      height: 30px;
+      width: 30px;
+      animation: darjar-spin 0.8s linear infinite;
+    }
+
+    @keyframes darjar-spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
+  <div id="darjar-loading" dir="rtl" role="status" aria-live="polite">
+    <strong>دارجار</strong>
+    <span aria-hidden="true"></span>
+    <p>جارٍ تحميل التطبيق…</p>
+  </div>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

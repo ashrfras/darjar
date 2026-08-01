@@ -14,6 +14,7 @@ import 'package:darjar/features/notifications/data/notifications_repository.dart
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
+import 'package:darjar/features/shell/data/residence_data_warmup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -79,6 +80,7 @@ class DarJarShell extends ConsumerWidget {
         if (data.activeResidence == null) {
           return const _ResidenceSetupRedirect();
         }
+        ref.watch(residenceDataWarmupProvider(data.activeResidence!.id));
         return _buildShell(context, data);
       },
     );

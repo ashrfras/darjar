@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/core/performance/data_load_timer.dart';
+import 'package:darjar/core/providers/provider_cache.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
@@ -642,7 +644,6 @@ class FirebaseCommunityRepository implements CommunityRepository {
 
   final FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
-  final Map<String, String> _authorRoleCache = {};
 
   @override
   Stream<List<CommunityPost>> watchPosts({
@@ -776,12 +777,13 @@ class FirebaseCommunityRepository implements CommunityRepository {
         'imagePaths': uploadedPaths,
         'pollOptions': [
           for (var index = 0; index < normalizedPollOptions.length; index++)
-            {
-              'id': 'option-$index',
-              'label': normalizedPollOptions[index],
-              'votes': 0,
-            },
+            {'id': 'option-$index', 'label': normalizedPollOptions[index]},
         ],
+        'pollOptionIds': [
+          for (var index = 0; index < normalizedPollOptions.length; index++)
+            'option-$index',
+        ],
+        'pollVotes': <String, String>{},
         'likedBy': <String>[],
         'savedBy': <String>[],
         'commentCount': 0,
@@ -899,16 +901,22 @@ class FirebaseCommunityRepository implements CommunityRepository {
   }) async {
     final post = _posts(residenceId).doc(postId);
     try {
-      final snapshot = await post.get();
-      final options = snapshot.data()?['pollOptions'] as List? ?? const [];
-      if (!snapshot.exists ||
-          !options.any((raw) => (raw as Map)['id'] == optionId)) {
-        throw const CommunityFailure('invalid-poll-option');
-      }
-      await post.collection('votes').doc(userId).set({
-        'userId': userId,
-        'optionId': optionId,
-        'createdAt': FieldValue.serverTimestamp(),
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(post);
+        if (!snapshot.exists) {
+          throw const CommunityFailure('invalid-poll-option');
+        }
+        final data = snapshot.data()!;
+        final optionIds = List<String>.from(data['pollOptionIds'] as List);
+        if (!optionIds.contains(optionId)) {
+          throw const CommunityFailure('invalid-poll-option');
+        }
+        final votes = Map<String, String>.from(data['pollVotes'] as Map);
+        votes[userId] = optionId;
+        transaction.update(post, {
+          'pollVotes': votes,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
       });
     } catch (error) {
       throw _failure(error);
@@ -956,34 +964,13 @@ class FirebaseCommunityRepository implements CommunityRepository {
               .limit(100)
               .get()
         : null;
-    final votesSnapshot = data['kind'] == CommunityPostKind.poll.name
-        ? await document.reference.collection('votes').get()
-        : null;
     final likedBy = List<String>.from(data['likedBy'] as List? ?? const []);
     final savedBy = List<String>.from(data['savedBy'] as List? ?? const []);
-    var authorRole = data['authorRole'] as String?;
-    if (authorRole == null || authorRole.isEmpty) {
-      final residenceId = document.reference.parent.parent?.id;
-      final authorId = data['authorId'] as String?;
-      if (residenceId != null && authorId != null) {
-        final cacheKey = '$residenceId/$authorId';
-        authorRole = _authorRoleCache[cacheKey];
-        if (authorRole == null) {
-          final member = await _member(residenceId, authorId).get();
-          authorRole = member.data()?['role'] as String?;
-          if (authorRole != null) {
-            _authorRoleCache[cacheKey] = authorRole;
-          }
-        }
-      }
-    }
-    authorRole ??= 'resident';
+    final authorRole = data['authorRole'] as String;
+    final pollVotes = Map<String, String>.from(data['pollVotes'] as Map);
     final voteCounts = <String, int>{};
-    String? selectedPollOptionId;
-    for (final vote in votesSnapshot?.docs ?? const []) {
-      final optionId = vote.data()['optionId'] as String? ?? '';
+    for (final optionId in pollVotes.values) {
       voteCounts[optionId] = (voteCounts[optionId] ?? 0) + 1;
-      if (vote.id == userId) selectedPollOptionId = optionId;
     }
     return CommunityPost(
       id: document.id,
@@ -1021,7 +1008,7 @@ class FirebaseCommunityRepository implements CommunityRepository {
             votes: voteCounts[raw['id']] ?? 0,
           ),
       ],
-      selectedPollOptionId: selectedPollOptionId,
+      selectedPollOptionId: pollVotes[userId],
       eventDate: _nullableString(data['eventDate']),
       eventLocation: _nullableString(data['eventLocation']),
       commentCountOverride: data['commentCount'] as int? ?? 0,
@@ -1100,28 +1087,38 @@ final communityPostsLimitProvider =
 final communityPostsProvider = StreamProvider.autoDispose<List<CommunityPost>>((
   ref,
 ) async* {
-  final limit = ref.watch(communityPostsLimitProvider);
-  final context = await ref.watch(residenceContextProvider.future);
-  final residence = context.activeResidence;
-  final user = ref.watch(authRepositoryProvider).currentUser;
-  if (residence == null || user == null) {
-    yield const [];
-    return;
-  }
-  await for (final posts
-      in ref
-          .watch(communityRepositoryProvider)
-          .watchPosts(
-            residenceId: residence.id,
-            userId: user.uid,
-            limit: limit,
-          )) {
-    yield [...posts, if (posts.length < limit) communityWelcomePost];
+  final timer = DataLoadTimer('community posts');
+  cacheProviderFor(ref);
+  try {
+    final limit = ref.watch(communityPostsLimitProvider);
+    final context = await ref.watch(residenceContextProvider.future);
+    final residence = context.activeResidence;
+    final user = ref.watch(authRepositoryProvider).currentUser;
+    if (residence == null || user == null) {
+      timer.finish();
+      yield const [];
+      return;
+    }
+    await for (final posts
+        in ref
+            .watch(communityRepositoryProvider)
+            .watchPosts(
+              residenceId: residence.id,
+              userId: user.uid,
+              limit: limit,
+            )) {
+      timer.finish();
+      yield [...posts, if (posts.length < limit) communityWelcomePost];
+    }
+  } catch (error) {
+    timer.finish(error: error);
+    rethrow;
   }
 });
 
 final communityPostProvider = StreamProvider.autoDispose
     .family<CommunityPost?, String>((ref, postId) async* {
+      cacheProviderFor(ref);
       if (postId == communityWelcomePostId) {
         yield communityWelcomePost;
         return;

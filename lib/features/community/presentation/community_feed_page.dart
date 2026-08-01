@@ -4,6 +4,7 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
 import 'package:flutter/material.dart';
@@ -101,12 +102,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                             ),
                             const SizedBox(height: AppSpacing.large),
                             if (postsState.isLoading && posts.isEmpty)
-                              const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(AppSpacing.xLarge),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              )
+                              const DarJarLoadingSkeleton()
                             else if (postsState.hasError && posts.isEmpty)
                               _CommunityLoadError(
                                 onRetry: () =>

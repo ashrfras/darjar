@@ -937,6 +937,8 @@ service cloud.firestore {
             'isOfficial',
             'imagePaths',
             'pollOptions',
+            'pollOptionIds',
+            'pollVotes',
             'likedBy',
             'savedBy',
             'commentCount',
@@ -977,6 +979,10 @@ service cloud.firestore {
           && request.resource.data.imagePaths.size() <= 4
           && request.resource.data.pollOptions is list
           && request.resource.data.pollOptions.size() <= 5
+          && request.resource.data.pollOptionIds is list
+          && request.resource.data.pollOptionIds.size()
+            == request.resource.data.pollOptions.size()
+          && request.resource.data.pollVotes == {}
           && request.resource.data.likedBy == []
           && request.resource.data.savedBy == []
           && request.resource.data.commentCount == 0
@@ -1039,6 +1045,19 @@ service cloud.firestore {
             == resource.data.commentCount + 1
           && request.resource.data.updatedAt == request.time;
 
+        allow update: if isResidenceMember(residenceId)
+          && resource.data.kind == 'poll'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'pollVotes',
+            'updatedAt'
+          ])
+          && request.resource.data.pollVotes is map
+          && request.resource.data.pollVotes.diff(resource.data.pollVotes)
+            .affectedKeys().hasOnly([request.auth.uid])
+          && request.resource.data.pollVotes[request.auth.uid]
+            in resource.data.pollOptionIds
+          && request.resource.data.updatedAt == request.time;
+
         match /comments/{commentId} {
           allow read: if isResidenceMember(residenceId);
           allow create: if isResidenceMember(residenceId)
@@ -1063,27 +1082,6 @@ service cloud.firestore {
             );
         }
 
-        match /votes/{userId} {
-          allow read: if isResidenceMember(residenceId);
-          allow create: if isResidenceMember(residenceId)
-            && userId == request.auth.uid
-            && !exists(
-              /databases/$(database)/documents/residences/$(residenceId)/communityPosts/$(postId)/votes/$(userId)
-            )
-            && get(
-              /databases/$(database)/documents/residences/$(residenceId)/communityPosts/$(postId)
-            ).data.kind == 'poll'
-            && request.resource.data.keys().hasOnly([
-              'userId',
-              'optionId',
-              'createdAt'
-            ])
-            && request.resource.data.userId == request.auth.uid
-            && request.resource.data.optionId is string
-            && request.resource.data.optionId.matches('^option-[0-4]$')
-            && request.resource.data.createdAt == request.time;
-          allow update, delete: if false;
-        }
       }
 
       match /buildings/{buildingId} {

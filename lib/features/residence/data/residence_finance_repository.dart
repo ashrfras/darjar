@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/core/performance/data_load_timer.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
@@ -262,29 +263,29 @@ class FirestoreResidenceFinanceRepository
         residence
             .collection('dues')
             .where('periodKey', isEqualTo: currentPeriod)
+            .count()
             .get(),
-        _loadApartmentCount(residence),
+        residence
+            .collection('dues')
+            .where('periodKey', isEqualTo: currentPeriod)
+            .where('status', isEqualTo: 'paid')
+            .count()
+            .get(),
       ]);
       final paymentDocuments =
           results[0] as QuerySnapshot<Map<String, dynamic>>;
       final manualDocuments = results[1] as QuerySnapshot<Map<String, dynamic>>;
-      final currentDues = results[2] as QuerySnapshot<Map<String, dynamic>>;
-      final apartmentCount = results[3] as int;
+      final currentDues = results[2] as AggregateQuerySnapshot;
+      final paidDues = results[3] as AggregateQuerySnapshot;
       final transactions = [
         ..._duesTransactions(paymentDocuments.docs),
         for (final document in manualDocuments.docs)
           _manualTransaction(document),
       ];
-      final paidResidents = currentDues.docs.where((document) {
-        final data = document.data();
-        return data['status'] == 'paid' ||
-            (data['amountPaid'] as int? ?? 0) >=
-                (data['amountDue'] as int? ?? 0);
-      }).length;
       return ResidenceFinances.fromTransactions(
         transactions: transactions,
-        paidResidents: paidResidents,
-        totalResidents: apartmentCount,
+        paidResidents: paidDues.count ?? 0,
+        totalResidents: currentDues.count ?? 0,
       );
     } on FirebaseException catch (error) {
       throw ResidenceFinanceFailure(error.code, error.message);
@@ -298,10 +299,7 @@ class FirestoreResidenceFinanceRepository
         <String, List<QueryDocumentSnapshot<Map<String, dynamic>>>>{};
     for (final document in documents) {
       final data = document.data();
-      final storedGroupId = data['paymentGroupId'] as String? ?? '';
-      final groupId = storedGroupId.isNotEmpty
-          ? storedGroupId
-          : _legacyPaymentGroupKey(data);
+      final groupId = data['paymentGroupId'] as String;
       grouped.putIfAbsent(groupId, () => []).add(document);
     }
     return [
@@ -340,34 +338,6 @@ class FirestoreResidenceFinanceRepository
       periodKey: periods.isEmpty ? '' : periods.first,
       periodEndKey: periods.isEmpty ? '' : periods.last,
     );
-  }
-
-  String _legacyPaymentGroupKey(Map<String, dynamic> data) {
-    final paidAt = _dateFrom(data['paidAt']).microsecondsSinceEpoch;
-    final createdAt = _dateFrom(data['createdAt']).microsecondsSinceEpoch;
-    return [
-      'legacy',
-      paidAt,
-      createdAt,
-      data['apartmentId'] ?? '',
-      data['recordedBy'] ?? '',
-      data['note'] ?? '',
-    ].join('|');
-  }
-
-  Future<int> _loadApartmentCount(
-    DocumentReference<Map<String, dynamic>> residence,
-  ) async {
-    final buildings = await residence.collection('buildings').get();
-    var count = 0;
-    for (final building in buildings.docs) {
-      final floors = await building.reference.collection('floors').get();
-      for (final floor in floors.docs) {
-        final apartments = await floor.reference.collection('apartments').get();
-        count += apartments.size;
-      }
-    }
-    return count;
   }
 
   ResidenceTransaction _manualTransaction(
@@ -589,13 +559,15 @@ class ResidenceFinanceController extends AsyncNotifier<ResidenceFinances> {
 
   @override
   Future<ResidenceFinances> build() async {
-    final context = await ref.watch(residenceContextProvider.future);
-    final residence = context.activeResidence;
-    if (residence == null) {
-      return ResidenceFinances.empty;
-    }
-    _residenceId = residence.id;
-    return ref.read(residenceFinanceRepositoryProvider).load(residence.id);
+    return measureDataLoad('residence finances', () async {
+      final context = await ref.watch(residenceContextProvider.future);
+      final residence = context.activeResidence;
+      if (residence == null) {
+        return ResidenceFinances.empty;
+      }
+      _residenceId = residence.id;
+      return ref.read(residenceFinanceRepositoryProvider).load(residence.id);
+    });
   }
 
   Future<void> addManualTransaction(ResidenceFinanceInput input) async {
@@ -643,6 +615,7 @@ class ResidenceFinanceController extends AsyncNotifier<ResidenceFinances> {
     state = AsyncData(
       await ref.read(residenceFinanceRepositoryProvider).load(residenceId),
     );
+    ref.invalidate(residenceTransactionAttachmentsProvider);
   }
 
   String _requiredResidenceId() {

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/core/performance/data_load_timer.dart';
 import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
@@ -553,22 +554,24 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
 
   @override
   Future<ResidenceMembersData> build() async {
-    final activeResidence = await ref.watch(
-      residenceContextProvider.selectAsync(
-        (context) => context.activeResidence,
-      ),
-    );
-    final residenceId = activeResidence?.id;
-    _residenceId = residenceId;
-    if (residenceId == null) {
-      return ResidenceMembersData.empty;
-    }
-    return ref
-        .read(residenceMembersRepositoryProvider)
-        .load(
-          residenceId,
-          includeInvitations: activeResidence!.canManageResidence,
-        );
+    return measureDataLoad('residence members', () async {
+      final activeResidence = await ref.watch(
+        residenceContextProvider.selectAsync(
+          (context) => context.activeResidence,
+        ),
+      );
+      final residenceId = activeResidence?.id;
+      _residenceId = residenceId;
+      if (residenceId == null) {
+        return ResidenceMembersData.empty;
+      }
+      return ref
+          .read(residenceMembersRepositoryProvider)
+          .load(
+            residenceId,
+            includeInvitations: activeResidence!.canManageResidence,
+          );
+    });
   }
 
   Future<void> createInvitation({
@@ -606,14 +609,17 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
     required String floorId,
     required String number,
   }) async {
-    await ref
-        .read(residenceMembersRepositoryProvider)
-        .addApartment(
-          residenceId: _requiredResidenceId(),
-          buildingId: buildingId,
-          floorId: floorId,
-          number: number,
-        );
+    await measureDataLoad(
+      'add apartment write',
+      () => ref
+          .read(residenceMembersRepositoryProvider)
+          .addApartment(
+            residenceId: _requiredResidenceId(),
+            buildingId: buildingId,
+            floorId: floorId,
+            number: number,
+          ),
+    );
     ref.invalidateSelf();
   }
 

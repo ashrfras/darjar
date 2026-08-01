@@ -4,6 +4,7 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
@@ -46,12 +47,7 @@ class ResidenceFinancesPage extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.large),
               financesState.when(
-                loading: () => const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppSpacing.xxxLarge),
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
+                loading: DarJarLoadingSkeleton.new,
                 error: (error, stackTrace) => DarJarCard(
                   child: Column(
                     children: [

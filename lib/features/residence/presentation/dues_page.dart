@@ -5,6 +5,7 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
@@ -55,12 +56,7 @@ class DuesPage extends ConsumerWidget {
                 )
               else
                 duesState.when(
-                  loading: () => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.xxxLarge),
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
+                  loading: DarJarLoadingSkeleton.new,
                   error: (error, stackTrace) => _EmptyState(
                     key: const Key('dues-load-error'),
                     icon: Icons.error_outline_rounded,
