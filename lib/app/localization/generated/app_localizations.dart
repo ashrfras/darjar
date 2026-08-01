@@ -410,6 +410,36 @@ abstract class AppLocalizations {
   /// **'اختر المدينة'**
   String get citySelectHint;
 
+  /// No description provided for @cityPickerTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار المدينة'**
+  String get cityPickerTitle;
+
+  /// No description provided for @citySearchLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'البحث عن مدينة'**
+  String get citySearchLabel;
+
+  /// No description provided for @citySearchHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتب اسم المدينة للبحث، مثال: الدار البيضاء'**
+  String get citySearchHint;
+
+  /// No description provided for @citySearchPrompt.
+  ///
+  /// In ar, this message translates to:
+  /// **'ابدأ بكتابة اسم المدينة لتظهر النتائج.'**
+  String get citySearchPrompt;
+
+  /// No description provided for @citySearchNoResults.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم نعثر على مدينة بهذا الاسم. جرّب كتابة اسم آخر.'**
+  String get citySearchNoResults;
+
   /// No description provided for @cityCasablanca.
   ///
   /// In ar, this message translates to:
@@ -493,6 +523,66 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'رمز الدولة'**
   String get countryCode;
+
+  /// No description provided for @countryCodePickerTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار رمز الدولة'**
+  String get countryCodePickerTitle;
+
+  /// No description provided for @countryGroupArab.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدول العربية'**
+  String get countryGroupArab;
+
+  /// No description provided for @countryGroupEurope.
+  ///
+  /// In ar, this message translates to:
+  /// **'أوروبا'**
+  String get countryGroupEurope;
+
+  /// No description provided for @countryGroupNorthAmerica.
+  ///
+  /// In ar, this message translates to:
+  /// **'أمريكا الشمالية'**
+  String get countryGroupNorthAmerica;
+
+  /// No description provided for @countryMorocco.
+  ///
+  /// In ar, this message translates to:
+  /// **'المغرب'**
+  String get countryMorocco;
+
+  /// No description provided for @countryAlgeria.
+  ///
+  /// In ar, this message translates to:
+  /// **'الجزائر'**
+  String get countryAlgeria;
+
+  /// No description provided for @countryTunisia.
+  ///
+  /// In ar, this message translates to:
+  /// **'تونس'**
+  String get countryTunisia;
+
+  /// No description provided for @countryFrance.
+  ///
+  /// In ar, this message translates to:
+  /// **'فرنسا'**
+  String get countryFrance;
+
+  /// No description provided for @countrySpain.
+  ///
+  /// In ar, this message translates to:
+  /// **'إسبانيا'**
+  String get countrySpain;
+
+  /// No description provided for @countryUnitedStatesCanada.
+  ///
+  /// In ar, this message translates to:
+  /// **'الولايات المتحدة وكندا'**
+  String get countryUnitedStatesCanada;
 
   /// No description provided for @phoneNumber.
   ///
@@ -2715,7 +2805,7 @@ abstract class AppLocalizations {
   /// No description provided for @authInvalidPhone.
   ///
   /// In ar, this message translates to:
-  /// **'أدخل رقم هاتف مغربي صحيحاً.'**
+  /// **'أدخل رقم هاتف صحيحاً.'**
   String get authInvalidPhone;
 
   /// No description provided for @authInvalidCode.

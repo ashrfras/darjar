@@ -179,6 +179,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get citySelectHint => 'Select a city';
 
   @override
+  String get cityPickerTitle => 'Choose a city';
+
+  @override
+  String get citySearchLabel => 'Search for a city';
+
+  @override
+  String get citySearchHint => 'Type a city name, for example: Casablanca';
+
+  @override
+  String get citySearchPrompt => 'Start typing a city name to see results.';
+
+  @override
+  String get citySearchNoResults =>
+      'We could not find a city with that name. Try another name.';
+
+  @override
   String get cityCasablanca => 'Casablanca';
 
   @override
@@ -219,6 +235,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get countryCode => 'Country code';
+
+  @override
+  String get countryCodePickerTitle => 'Choose a country code';
+
+  @override
+  String get countryGroupArab => 'Arab countries';
+
+  @override
+  String get countryGroupEurope => 'Europe';
+
+  @override
+  String get countryGroupNorthAmerica => 'North America';
+
+  @override
+  String get countryMorocco => 'Morocco';
+
+  @override
+  String get countryAlgeria => 'Algeria';
+
+  @override
+  String get countryTunisia => 'Tunisia';
+
+  @override
+  String get countryFrance => 'France';
+
+  @override
+  String get countrySpain => 'Spain';
+
+  @override
+  String get countryUnitedStatesCanada => 'United States and Canada';
 
   @override
   String get phoneNumber => 'Phone number';
@@ -1478,7 +1524,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your phone number is used to sign in and protect your account under the privacy policy.';
 
   @override
-  String get authInvalidPhone => 'Enter a valid Moroccan phone number.';
+  String get authInvalidPhone => 'Enter a valid phone number.';
 
   @override
   String get authInvalidCode =>

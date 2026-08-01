@@ -10,6 +10,7 @@ import 'package:darjar/features/account/data/account_onboarding_repository.dart'
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
+import 'package:darjar/features/residence/presentation/darjar_city_picker.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -237,7 +238,6 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final cities = localizedMoroccanCities(localizations);
     return Form(
       key: _formKey,
       child: Column(
@@ -277,29 +277,11 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: AppSpacing.large),
-                DropdownButtonFormField<String>(
+                DarJarCityPickerField(
                   key: const Key('residence-city-field'),
-                  initialValue: _selectedCity,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText: localizations.city,
-                    prefixIcon: const Icon(Icons.location_city_outlined),
-                  ),
-                  hint: Text(localizations.citySelectHint),
-                  items: [
-                    for (final city in cities)
-                      DropdownMenuItem(
-                        value: city.id,
-                        child: Text(
-                          city.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                  ],
-                  onChanged: _isSubmitting
-                      ? null
-                      : (value) => setState(() => _selectedCity = value),
+                  value: _selectedCity,
+                  enabled: !_isSubmitting,
+                  onChanged: (value) => setState(() => _selectedCity = value),
                   validator: (value) =>
                       value == null ? localizations.setupFieldRequired : null,
                 ),

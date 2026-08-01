@@ -6,6 +6,7 @@ import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_country_code_picker.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class PhoneAuthPage extends ConsumerStatefulWidget {
 class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
   final _phoneController = TextEditingController();
   final _codeController = TextEditingController();
+  String _countryCode = '+212';
   bool _codeSent = false;
   bool _isSubmitting = false;
   String? _errorCode;
@@ -87,11 +89,7 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
                     _codeSent
                         ? localizations.authCodeDescription(
                             _ltrIsolate(
-                              formatPhoneNumberForDisplay(
-                                normalizeMoroccanPhoneNumber(
-                                  _phoneController.text,
-                                ),
-                              ),
+                              formatPhoneNumberForDisplay(_phoneNumber),
                             ),
                           )
                         : localizations.authPhoneDescription,
@@ -115,11 +113,12 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
                               children: [
                                 SizedBox(
                                   width: 108,
-                                  child: InputDecorator(
-                                    decoration: InputDecoration(
-                                      labelText: localizations.countryCode,
-                                    ),
-                                    child: const Text('+212'),
+                                  child: DarJarCountryCodePickerField(
+                                    key: const Key('auth-country-code-field'),
+                                    value: _countryCode,
+                                    label: localizations.countryCode,
+                                    onChanged: (value) =>
+                                        setState(() => _countryCode = value),
                                   ),
                                 ),
                                 const SizedBox(width: AppSpacing.medium),
@@ -215,8 +214,12 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
   }
 
   Future<void> _sendCode() async {
-    final phoneNumber = normalizeMoroccanPhoneNumber(_phoneController.text);
-    if (!isValidMoroccanMobileNumber(phoneNumber)) {
+    final phoneNumber = _phoneNumber;
+    final nationalDigits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
+    final validPhone = _countryCode == '+212'
+        ? isValidMoroccanMobileNumber(phoneNumber)
+        : nationalDigits.length >= 8 && nationalDigits.length <= 12;
+    if (!validPhone) {
       setState(() => _errorCode = 'invalid-phone-number');
       return;
     }
@@ -245,6 +248,10 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
       }
     }
   }
+
+  String get _phoneNumber => normalizePhoneNumber(
+    formatInternationalPhoneNumber(_countryCode, _phoneController.text),
+  );
 
   Future<void> _confirmCode() async {
     if (_codeController.text.length != 6) {

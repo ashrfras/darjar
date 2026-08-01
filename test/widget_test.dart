@@ -11,6 +11,7 @@ import 'package:darjar/core/responsive/window_size_class.dart';
 import 'package:darjar/core/images/app_image_processing.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/utils/phone_number.dart';
+import 'package:darjar/core/widgets/darjar_country_code_picker.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
@@ -640,6 +641,34 @@ void main() {
         formatInternationalPhoneNumber('+212', '5 22 11 22 33'),
         '+212 5 22 11 22 33',
       );
+      expect(splitInternationalPhoneNumber('+353 87 123 4567'), (
+        countryCode: '+353',
+        nationalNumber: '871234567',
+      ));
+    });
+
+    test('offers prominent Arab, European, and North American codes', () {
+      expect(supportedCountries.length, greaterThanOrEqualTo(30));
+      expect(
+        supportedCountries.map((country) => country.code).toSet(),
+        hasLength(supportedCountries.length),
+      );
+      expect(
+        supportedCountryCallingCodes.toSet(),
+        supportedCountries.map((country) => country.code).toSet(),
+      );
+      expect(
+        supportedCountryCallingCodes,
+        containsAll(<String>[
+          '+212',
+          '+966',
+          '+971',
+          '+33',
+          '+44',
+          '+49',
+          '+1',
+        ]),
+      );
     });
 
     test('normalizes supported Moroccan mobile number formats', () {
@@ -676,6 +705,37 @@ void main() {
           tester.getCenter(find.byKey(const Key('auth-phone-field'))).dx,
         ),
       );
+      expect(find.byKey(const Key('auth-country-code-field')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('auth-country-code-field')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('country-code-picker-sheet')),
+        findsOneWidget,
+      );
+      expect(find.text('المغرب'), findsOneWidget);
+      expect(find.text('الدول العربية'), findsOneWidget);
+      expect(
+        tester
+            .getSize(find.byKey(const Key('country-code-picker-sheet')))
+            .height,
+        480,
+      );
+      await tester.scrollUntilVisible(
+        find.text('فرنسا'),
+        300,
+        scrollable: find.descendant(
+          of: find.byKey(const Key('country-code-options')),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      expect(find.text('فرنسا'), findsOneWidget);
+      await tester.tapAt(const Offset(8, 8));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('country-code-picker-sheet')), findsNothing);
+      await tester.tap(find.byKey(const Key('auth-country-code-field')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('country-code-option-+212')));
+      await tester.pumpAndSettle();
 
       await tester.enterText(
         find.byKey(const Key('auth-phone-field')),
@@ -2917,12 +2977,32 @@ void main() {
             ?.text,
         '600000001',
       );
+      final managementPhoneField = tester.widget<TextField>(
+        find.descendant(
+          of: find.byKey(const Key('management-phone-number-field')),
+          matching: find.byType(TextField),
+        ),
+      );
+      expect(managementPhoneField.textDirection, TextDirection.ltr);
+      expect(managementPhoneField.decoration?.labelText, isNull);
+      expect(managementPhoneField.decoration?.hintText, 'الهاتف');
+      expect(
+        Directionality.of(
+          tester.element(
+            find.descendant(
+              of: find.byKey(const Key('management-phone-number-field')),
+              matching: find.byType(TextField),
+            ),
+          ),
+        ),
+        TextDirection.rtl,
+      );
       expect(
         tester
-            .widget<DropdownButtonFormField<String>>(
+            .widget<DarJarCountryCodePickerField>(
               find.byKey(const Key('management-phone-country-code-field')),
             )
-            .initialValue,
+            .value,
         '+212',
       );
       expect(
@@ -3313,7 +3393,7 @@ void main() {
           .evaluate()
           .single
           .widget,
-      isA<DropdownButtonFormField<String>>(),
+      isA<DarJarCountryCodePickerField>(),
     );
     await tester.enterText(
       find.byKey(const Key('resident-first-name-field')),
@@ -3548,6 +3628,36 @@ Future<void> _enterResidence(WidgetTester tester) async {
   );
   await tester.tap(find.byKey(const Key('residence-city-field')));
   await tester.pumpAndSettle();
+  expect(find.byKey(const Key('city-picker-sheet')), findsOneWidget);
+  final cityPickerSize = tester.getSize(
+    find.byKey(const Key('city-picker-sheet')),
+  );
+  expect(
+    find.text('اكتب اسم المدينة للبحث، مثال: الدار البيضاء'),
+    findsOneWidget,
+  );
+  final citySearchTextField = tester.widget<TextField>(
+    find.descendant(
+      of: find.byKey(const Key('city-search-field')),
+      matching: find.byType(TextField),
+    ),
+  );
+  expect(citySearchTextField.decoration?.labelText, isNull);
+  expect(
+    citySearchTextField.decoration?.hintText,
+    'اكتب اسم المدينة للبحث، مثال: الدار البيضاء',
+  );
+  expect(citySearchTextField.decoration?.hintMaxLines, 1);
+  expect(find.byKey(const ValueKey('city-option-6141010')), findsNothing);
+  await tester.enterText(
+    find.byKey(const Key('city-search-field')),
+    'الدار البيضاء',
+  );
+  await tester.pumpAndSettle();
+  expect(
+    tester.getSize(find.byKey(const Key('city-picker-sheet'))),
+    cityPickerSize,
+  );
   await tester.tap(find.text('الدار البيضاء').last);
   await tester.pumpAndSettle();
   await tester.enterText(

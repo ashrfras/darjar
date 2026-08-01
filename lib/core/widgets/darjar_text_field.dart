@@ -16,6 +16,8 @@ class DarJarTextField extends StatelessWidget {
     this.textInputAction,
     this.textDirection,
     this.textCapitalization = TextCapitalization.none,
+    this.labelAsHint = false,
+    this.onChanged,
     this.onSubmitted,
     super.key,
   });
@@ -33,6 +35,8 @@ class DarJarTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final TextDirection? textDirection;
   final TextCapitalization textCapitalization;
+  final bool labelAsHint;
+  final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
 
   @override
@@ -46,10 +50,12 @@ class DarJarTextField extends StatelessWidget {
       textInputAction: textInputAction,
       textDirection: textDirection,
       textCapitalization: textCapitalization,
+      onChanged: onChanged,
       onSubmitted: onSubmitted,
       decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
+        labelText: labelAsHint ? null : label,
+        hintText: labelAsHint ? (hint ?? label) : hint,
+        hintMaxLines: 1,
         helperText: helper,
         prefixIcon: prefixIcon == null ? null : Icon(prefixIcon),
         suffixText: suffixText,

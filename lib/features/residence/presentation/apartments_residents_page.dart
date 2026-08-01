@@ -6,6 +6,7 @@ import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_country_code_picker.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
@@ -589,25 +590,12 @@ class _AddResidentSheetState extends State<_AddResidentSheet> {
                 children: [
                   SizedBox(
                     width: 132,
-                    child: DropdownButtonFormField<String>(
+                    child: DarJarCountryCodePickerField(
                       key: const Key('resident-country-code-field'),
-                      initialValue: _countryCode,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        labelText: widget.copy.countryCode,
-                      ),
-                      items: [
-                        for (final countryCode in supportedCountryCallingCodes)
-                          DropdownMenuItem(
-                            value: countryCode,
-                            child: Text(countryCode),
-                          ),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() => _countryCode = value);
-                        }
-                      },
+                      value: _countryCode,
+                      label: widget.copy.countryCode,
+                      onChanged: (value) =>
+                          setState(() => _countryCode = value),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.small),

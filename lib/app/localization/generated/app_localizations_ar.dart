@@ -178,6 +178,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get citySelectHint => 'اختر المدينة';
 
   @override
+  String get cityPickerTitle => 'اختيار المدينة';
+
+  @override
+  String get citySearchLabel => 'البحث عن مدينة';
+
+  @override
+  String get citySearchHint => 'اكتب اسم المدينة للبحث، مثال: الدار البيضاء';
+
+  @override
+  String get citySearchPrompt => 'ابدأ بكتابة اسم المدينة لتظهر النتائج.';
+
+  @override
+  String get citySearchNoResults =>
+      'لم نعثر على مدينة بهذا الاسم. جرّب كتابة اسم آخر.';
+
+  @override
   String get cityCasablanca => 'الدار البيضاء';
 
   @override
@@ -218,6 +234,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get countryCode => 'رمز الدولة';
+
+  @override
+  String get countryCodePickerTitle => 'اختيار رمز الدولة';
+
+  @override
+  String get countryGroupArab => 'الدول العربية';
+
+  @override
+  String get countryGroupEurope => 'أوروبا';
+
+  @override
+  String get countryGroupNorthAmerica => 'أمريكا الشمالية';
+
+  @override
+  String get countryMorocco => 'المغرب';
+
+  @override
+  String get countryAlgeria => 'الجزائر';
+
+  @override
+  String get countryTunisia => 'تونس';
+
+  @override
+  String get countryFrance => 'فرنسا';
+
+  @override
+  String get countrySpain => 'إسبانيا';
+
+  @override
+  String get countryUnitedStatesCanada => 'الولايات المتحدة وكندا';
 
   @override
   String get phoneNumber => 'رقم الهاتف';
@@ -1456,7 +1502,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'يُستخدم رقم هاتفك لتسجيل الدخول وحماية حسابك وفق سياسة الخصوصية.';
 
   @override
-  String get authInvalidPhone => 'أدخل رقم هاتف مغربي صحيحاً.';
+  String get authInvalidPhone => 'أدخل رقم هاتف صحيحاً.';
 
   @override
   String get authInvalidCode => 'رمز التحقق غير صحيح. راجع الرمز وحاول مجدداً.';

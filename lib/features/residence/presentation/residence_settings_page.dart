@@ -15,7 +15,7 @@ import 'package:darjar/features/residence/data/residence_members_repository.dart
 import 'package:darjar/features/residence/data/residence_image_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
-import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
+import 'package:darjar/features/residence/presentation/darjar_city_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -740,7 +740,6 @@ class _ResidenceInformationSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
-    final cities = localizedMoroccanCities(localizations);
     return _SettingsSection(
       key: const Key('residence-information-section'),
       icon: Icons.domain_outlined,
@@ -870,25 +869,9 @@ class _ResidenceInformationSection extends ConsumerWidget {
             prefixIcon: Icons.location_on_outlined,
           ),
           const SizedBox(height: AppSpacing.large),
-          DropdownButtonFormField<String>(
+          DarJarCityPickerField(
             key: const Key('settings-residence-city-field'),
-            initialValue: selectedCity,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: localizations.city,
-              prefixIcon: const Icon(Icons.location_city_outlined),
-            ),
-            items: [
-              for (final city in cities)
-                DropdownMenuItem(
-                  value: city.id,
-                  child: Text(
-                    city.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-            ],
+            value: selectedCity,
             onChanged: onCityChanged,
           ),
           const SizedBox(height: AppSpacing.large),
