@@ -126,6 +126,10 @@ class ResidenceHomePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.medium),
               ],
+              if (activeResidence?.apartmentId.isEmpty ?? false) ...[
+                const _ApartmentAssignmentAlert(),
+                const SizedBox(height: AppSpacing.medium),
+              ],
               _DashboardGrid(
                 data: dashboard,
                 documents: documents,
@@ -138,6 +142,39 @@ class ResidenceHomePage extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ApartmentAssignmentAlert extends StatelessWidget {
+  const _ApartmentAssignmentAlert();
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return Container(
+      key: const Key('apartment-not-assigned-alert'),
+      padding: const EdgeInsets.all(AppSpacing.medium),
+      decoration: BoxDecoration(
+        color: AppColors.warningSoft,
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.home_work_outlined, color: AppColors.warning),
+          const SizedBox(width: AppSpacing.medium),
+          Expanded(
+            child: Text(
+              localizations.duesNoApartment,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.ink,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

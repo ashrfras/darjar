@@ -50,6 +50,8 @@ void main() {
     test('uses the DarJar canvas and primary color', () {
       expect(AppTheme.light.scaffoldBackgroundColor, AppColors.canvas);
       expect(AppTheme.light.colorScheme.primary, AppColors.primary);
+      expect(AppTheme.light.dialogTheme.backgroundColor, AppColors.surface);
+      expect(AppTheme.light.dialogTheme.surfaceTintColor, Colors.transparent);
     });
 
     test('uses one short direction-neutral page transition', () {
@@ -81,6 +83,10 @@ void main() {
       await tester.pump();
 
       expect(find.byKey(const Key('bootstrap-loading')), findsOneWidget);
+      expect(find.byKey(const Key('bootstrap-logo')), findsOneWidget);
+      expect(find.byKey(const Key('bootstrap-progress-bar')), findsOneWidget);
+      expect(find.text('دارجار'), findsNothing);
+      expect(find.text('جارٍ تجهيز التطبيق…'), findsNothing);
       expect(find.byKey(const Key('initialized-app')), findsNothing);
 
       initialization.complete();
@@ -670,6 +676,10 @@ void main() {
 
       expect(authRepository.requestedPhoneNumber, '+212600000001');
       expect(find.textContaining('(212)600000001'), findsOneWidget);
+      final codeDescription = tester.widget<Text>(
+        find.byKey(const Key('auth-step-description')),
+      );
+      expect(codeDescription.data, contains('\u2066(212)600000001\u2069'));
       expect(
         find.byKey(const Key('auth-verification-code-field')),
         findsOneWidget,
@@ -1115,6 +1125,32 @@ void main() {
     expect(tester.getTopLeft(filter).dy - appBarBottom, 12);
   });
 
+  testWidgets('header brand navigates back to the community', (tester) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+
+    await tester.tap(find.text('الدليل'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('directory-page')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('brand-home-button')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+    expect(
+      tester
+          .widget<MouseRegion>(find.byKey(const Key('brand-home-pointer')))
+          .cursor,
+      SystemMouseCursors.click,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('brand-home-button')),
+        matching: find.byType(InkWell),
+      ),
+      findsNothing,
+    );
+  });
+
   testWidgets('notifications sheet shows only the five newest items', (
     tester,
   ) async {
@@ -1148,6 +1184,11 @@ void main() {
 
     await tester.tap(find.byKey(const Key('notifications-button')));
     await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('apartment-not-assigned-notification')),
+      findsOneWidget,
+    );
 
     for (var index = 0; index < 5; index++) {
       expect(
@@ -1208,6 +1249,10 @@ void main() {
     await tester.tap(find.byKey(const Key('residence-selector')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('residence-switcher-sheet')), findsOneWidget);
+    final switcher = tester.widget<DecoratedBox>(
+      find.byKey(const Key('residence-switcher-sheet')),
+    );
+    expect((switcher.decoration as BoxDecoration).color, AppColors.surface);
     expect(find.byType(PopupMenuItem<String>), findsNothing);
     expect(find.text('إقامة الاختبار'), findsWidgets);
     expect(find.textContaining('الدار البيضاء'), findsOneWidget);
@@ -1548,6 +1593,10 @@ void main() {
     await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('residence-home-page')), findsOneWidget);
+    expect(
+      find.byKey(const Key('apartment-not-assigned-alert')),
+      findsOneWidget,
+    );
     expect(
       tester
           .widget<Text>(
@@ -2580,6 +2629,10 @@ void main() {
 
     await tester.tap(find.byKey(const Key('add-finance-transaction-button')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('finance-transaction-type-field')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('مداخيل').last);
+    await tester.pumpAndSettle();
     expect(
       find.byKey(const Key('finance-supporting-document-field')),
       findsNothing,
@@ -2666,10 +2719,22 @@ void main() {
 
     await tester.tap(find.byKey(const Key('add-finance-transaction-button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('finance-transaction-type-field')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('مصاريف').last);
-    await tester.pumpAndSettle();
+    expect(
+      tester
+          .state<FormFieldState<ResidenceTransactionType>>(
+            find.byKey(const Key('finance-transaction-type-field')),
+          )
+          .value,
+      ResidenceTransactionType.expense,
+    );
+    expect(
+      tester
+          .state<FormFieldState<ResidenceExpenseCategory>>(
+            find.byKey(const Key('finance-expense-category-field')),
+          )
+          .value,
+      ResidenceExpenseCategory.maintenance,
+    );
     expect(
       find.byKey(const Key('finance-transaction-name-field')),
       findsNothing,
@@ -2865,6 +2930,11 @@ void main() {
       await tester.tap(find.byKey(const Key('add-building-button')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('building-editor-dialog')), findsOneWidget);
+      final buildingDialog = tester.widget<AlertDialog>(
+        find.byKey(const Key('building-editor-dialog')),
+      );
+      expect(buildingDialog.backgroundColor, AppColors.surface);
+      expect(buildingDialog.surfaceTintColor, Colors.transparent);
       expect(find.text('مثال: جناح أ'), findsOneWidget);
       await tester.enterText(
         find.byKey(const Key('building-name-field')),

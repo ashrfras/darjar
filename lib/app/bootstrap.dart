@@ -85,29 +85,21 @@ class _DarJarBootstrapState extends State<DarJarBootstrap> {
                   ),
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(
-                      'assets/images/branding/darjar-logo-header-compact.png',
-                      width: 64,
-                      height: 64,
-                      semanticLabel: 'DarJar',
-                    ),
-                    const SizedBox(height: AppSpacing.large),
-                    Text(
-                      'دارجار',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                    const SizedBox(height: AppSpacing.large),
                     if (_error == null) ...[
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: AppSpacing.medium),
-                      Text(
-                        'جارٍ تجهيز التطبيق…',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.inkMuted,
+                      Image.asset(
+                        'assets/images/branding/darjar-logo.png',
+                        key: const Key('bootstrap-logo'),
+                        width: 84,
+                        height: 84,
+                        semanticLabel: 'DarJar',
+                      ),
+                      const SizedBox(height: AppSpacing.xLarge),
+                      const SizedBox(
+                        width: 240,
+                        child: LinearProgressIndicator(
+                          key: Key('bootstrap-progress-bar'),
+                          minHeight: 4,
+                          borderRadius: BorderRadius.all(Radius.circular(2)),
                         ),
                       ),
                     ] else ...[

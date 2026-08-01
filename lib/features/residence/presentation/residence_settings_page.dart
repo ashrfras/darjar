@@ -322,6 +322,8 @@ class _ResidenceSettingsFormState
       context: context,
       builder: (context) => AlertDialog(
         key: const Key('delete-building-dialog'),
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
         title: Text(localizations.deleteBuilding),
         content: Text(localizations.confirmDeleteBuilding(building.name)),
         actions: [
@@ -546,6 +548,8 @@ class _BuildingEditorDialogState extends State<_BuildingEditorDialog> {
     final localizations = AppLocalizations.of(context);
     return AlertDialog(
       key: const Key('building-editor-dialog'),
+      backgroundColor: AppColors.surface,
+      surfaceTintColor: Colors.transparent,
       title: Text(
         widget.building == null
             ? localizations.addBuilding

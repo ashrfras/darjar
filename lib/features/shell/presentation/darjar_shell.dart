@@ -378,44 +378,52 @@ class _Brand extends StatelessWidget {
         ? 'assets/images/branding/darjar-logo-header-compact.png'
         : 'assets/images/branding/darjar-logo-header.png';
 
-    return Row(
-      mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
-      children: [
-        Image.asset(
-          logoAsset,
-          key: compact ? const Key('compact-brand') : null,
-          width: compact ? 31 : 38,
-          height: compact ? 31 : 38,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-          isAntiAlias: true,
-          semanticLabel: 'DarJar',
-        ),
-        SizedBox(width: compact ? AppSpacing.small : AppSpacing.medium),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return MouseRegion(
+      key: const Key('brand-home-pointer'),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        key: const Key('brand-home-button'),
+        onTap: () => context.go(AppRoutes.community),
+        child: Row(
+          mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
           children: [
-            Text(
-              'دارجار',
-              style: AppTypography.brandArabic.copyWith(
-                color: AppColors.ink,
-                fontSize: compact ? 16 : null,
-              ),
+            Image.asset(
+              logoAsset,
+              key: compact ? const Key('compact-brand') : null,
+              width: compact ? 31 : 38,
+              height: compact ? 31 : 38,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              isAntiAlias: true,
+              semanticLabel: 'DarJar',
             ),
-            if (!compact) ...[
-              const SizedBox(height: 3),
-              Text(
-                'DarJar',
-                style: AppTypography.brandLatin.copyWith(
-                  color: AppColors.inkMuted,
-                  fontSize: 10,
+            SizedBox(width: compact ? AppSpacing.small : AppSpacing.medium),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'دارجار',
+                  style: AppTypography.brandArabic.copyWith(
+                    color: AppColors.ink,
+                    fontSize: compact ? 16 : null,
+                  ),
                 ),
-              ),
-            ],
+                if (!compact) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'DarJar',
+                    style: AppTypography.brandLatin.copyWith(
+                      color: AppColors.inkMuted,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -481,6 +489,11 @@ class _NotificationsSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final notifications = ref.watch(notificationsProvider);
+    final apartmentNotAssigned = ref.watch(
+      residenceContextProvider.select(
+        (state) => state.value?.activeResidence?.apartmentId.isEmpty ?? false,
+      ),
+    );
 
     return Material(
       key: const Key('notifications-sheet'),
@@ -519,6 +532,30 @@ class _NotificationsSheet extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.small),
+            if (apartmentNotAssigned) ...[
+              ListTile(
+                key: const Key('apartment-not-assigned-notification'),
+                contentPadding: EdgeInsets.zero,
+                leading: const CircleAvatar(
+                  backgroundColor: AppColors.warningSoft,
+                  foregroundColor: AppColors.warning,
+                  child: Icon(Icons.home_work_outlined),
+                ),
+                title: Text(
+                  localizations.profileApartmentNotAssigned,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xSmall),
+                  child: Text(localizations.duesNoApartment),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  context.go(AppRoutes.residence);
+                },
+              ),
+              const Divider(),
+            ],
             notifications.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(AppSpacing.xLarge),
@@ -830,7 +867,7 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
       child: DecoratedBox(
         key: const Key('residence-switcher-sheet'),
         decoration: BoxDecoration(
-          color: AppColors.canvas,
+          color: AppColors.surface,
           border: Border.all(color: AppColors.outline),
           borderRadius: BorderRadius.circular(AppRadius.large),
           boxShadow: const [

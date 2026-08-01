@@ -86,13 +86,16 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
                   Text(
                     _codeSent
                         ? localizations.authCodeDescription(
-                            formatPhoneNumberForDisplay(
-                              normalizeMoroccanPhoneNumber(
-                                _phoneController.text,
+                            _ltrIsolate(
+                              formatPhoneNumberForDisplay(
+                                normalizeMoroccanPhoneNumber(
+                                  _phoneController.text,
+                                ),
                               ),
                             ),
                           )
                         : localizations.authPhoneDescription,
+                    key: const Key('auth-step-description'),
                     textAlign: TextAlign.center,
                     style: Theme.of(
                       context,
@@ -292,6 +295,8 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
     };
   }
 }
+
+String _ltrIsolate(String value) => '\u2066$value\u2069';
 
 class _AuthError extends StatelessWidget {
   const _AuthError({required this.message});

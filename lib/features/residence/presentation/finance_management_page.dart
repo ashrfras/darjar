@@ -470,8 +470,10 @@ class _TransactionFormSheetState extends ConsumerState<_TransactionFormSheet> {
     _selectedAttachmentName = transaction?.hasAttachment == true
         ? transaction!.attachmentName
         : '';
-    _type = transaction?.type ?? ResidenceTransactionType.income;
-    _category = transaction?.expenseCategory;
+    _type = transaction?.type ?? ResidenceTransactionType.expense;
+    _category =
+        transaction?.expenseCategory ??
+        (transaction == null ? ResidenceExpenseCategory.maintenance : null);
     _date = transaction?.date ?? DateTime.now();
   }
 
