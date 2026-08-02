@@ -1,4 +1,5 @@
 import 'package:darjar/app/bootstrap.dart';
+import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
 import 'package:darjar/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,10 +13,19 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   usePathUrlStrategy();
+  final platformInitialLocation =
+      WidgetsBinding.instance.platformDispatcher.defaultRouteName;
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   runApp(
-    ProviderScope(child: DarJarBootstrap(initialize: _initializeFirebase)),
+    ProviderScope(
+      overrides: [
+        platformInitialLocationProvider.overrideWithValue(
+          platformInitialLocation,
+        ),
+      ],
+      child: DarJarBootstrap(initialize: _initializeFirebase),
+    ),
   );
 }
 

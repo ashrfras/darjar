@@ -189,10 +189,11 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
+        key: const Key('city-search-empty-state'),
         width: double.infinity,
         padding: const EdgeInsets.all(AppSpacing.xLarge),
         decoration: BoxDecoration(
-          color: AppColors.canvas,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.medium),
         ),
         child: Column(

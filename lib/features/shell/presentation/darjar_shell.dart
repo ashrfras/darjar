@@ -19,6 +19,7 @@ import 'package:darjar/features/shell/data/residence_data_warmup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class DarJarShell extends ConsumerWidget {
   const DarJarShell({required this.location, required this.child, super.key});
@@ -490,6 +491,7 @@ class _NotificationsSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final notifications = ref.watch(notificationsProvider);
+    final now = ref.watch(notificationTimeNowProvider);
     final apartmentNotAssigned = ref.watch(
       residenceContextProvider.select(
         (state) => state.value?.activeResidence?.apartmentId.isEmpty ?? false,
@@ -590,6 +592,7 @@ class _NotificationsSheet extends ConsumerWidget {
                       _NotificationTile(
                         key: ValueKey('notification-${previewItems[index].id}'),
                         notification: previewItems[index],
+                        now: now,
                         onTap: () => _openNotification(
                           context,
                           ref,
@@ -623,11 +626,13 @@ class _NotificationsSheet extends ConsumerWidget {
 class _NotificationTile extends StatelessWidget {
   const _NotificationTile({
     required this.notification,
+    required this.now,
     required this.onTap,
     super.key,
   });
 
   final DarJarNotification notification;
+  final DateTime now;
   final VoidCallback onTap;
 
   @override
@@ -657,11 +662,31 @@ class _NotificationTile extends StatelessWidget {
     };
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      tileColor: notification.isRead ? null : color.withValues(alpha: 0.05),
-      leading: CircleAvatar(
-        backgroundColor: color.withValues(alpha: 0.12),
-        foregroundColor: color,
-        child: Icon(icon),
+      tileColor: AppColors.surface,
+      leading: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          CircleAvatar(
+            backgroundColor: color.withValues(alpha: 0.12),
+            foregroundColor: color,
+            child: Icon(icon),
+          ),
+          if (!notification.isRead)
+            PositionedDirectional(
+              top: 0,
+              start: -2,
+              child: Container(
+                key: ValueKey('notification-unread-${notification.id}'),
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(
+                  color: AppColors.warning,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.surface, width: 1.5),
+                ),
+              ),
+            ),
+        ],
       ),
       title: Text(title, style: Theme.of(context).textTheme.titleSmall),
       subtitle: Padding(
@@ -669,7 +694,7 @@ class _NotificationTile extends StatelessWidget {
         child: Text(body),
       ),
       trailing: Text(
-        _notificationTime(localizations, notification.occurredAt),
+        _notificationTime(localizations, notification.occurredAt, now),
         style: Theme.of(
           context,
         ).textTheme.labelSmall?.copyWith(color: AppColors.inkMuted),
@@ -679,11 +704,35 @@ class _NotificationTile extends StatelessWidget {
   }
 }
 
-String _notificationTime(AppLocalizations localizations, DateTime occurredAt) {
-  final elapsed = DateTime.now().difference(occurredAt);
-  if (elapsed.inMinutes < 60) return localizations.notificationTimeMinutes;
-  if (elapsed.inHours < 24) return localizations.notificationTimeHours;
-  return localizations.notificationTimeYesterday;
+final notificationTimeNowProvider = Provider<DateTime>((ref) => DateTime.now());
+
+String _notificationTime(
+  AppLocalizations localizations,
+  DateTime occurredAt,
+  DateTime now,
+) {
+  final safeOccurredAt = occurredAt.isAfter(now) ? now : occurredAt;
+  final today = DateTime(now.year, now.month, now.day);
+  final occurredDay = DateTime(
+    safeOccurredAt.year,
+    safeOccurredAt.month,
+    safeOccurredAt.day,
+  );
+  final elapsedDays = today.difference(occurredDay).inDays;
+  if (elapsedDays == 1) return localizations.notificationTimeYesterday;
+  if (elapsedDays > 1 && elapsedDays < 7) {
+    return localizations.notificationTimeDays(elapsedDays);
+  }
+  if (elapsedDays >= 7) {
+    return DateFormat.yMMMd(localizations.localeName).format(safeOccurredAt);
+  }
+
+  final elapsed = now.difference(safeOccurredAt);
+  if (elapsed.inMinutes < 1) return localizations.notificationTimeNow;
+  if (elapsed.inMinutes < 60) {
+    return localizations.notificationTimeMinutes(elapsed.inMinutes);
+  }
+  return localizations.notificationTimeHours(elapsed.inHours);
 }
 
 class _ProfileAction extends ConsumerWidget {

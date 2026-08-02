@@ -9,11 +9,13 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_theme.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
 import 'package:darjar/core/images/app_image_processing.dart';
+import 'package:darjar/core/images/storage_image_provider.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_country_code_picker.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
@@ -34,6 +36,7 @@ import 'package:darjar/features/residence/data/residence_members_repository.dart
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
+import 'package:darjar/features/shell/presentation/darjar_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,6 +70,39 @@ void main() {
           const Duration(milliseconds: 180),
         );
       }
+    });
+
+    testWidgets('profile images preserve aspect ratio and crop to the avatar', (
+      tester,
+    ) async {
+      final source = test_image.Image(width: 120, height: 60);
+      final bytes = Uint8List.fromList(test_image.encodeJpg(source));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            storageImageBytesProvider.overrideWith(
+              (ref, storagePath) async => bytes,
+            ),
+          ],
+          child: const MaterialApp(
+            home: Center(
+              child: DarJarUserAvatar(userId: 'profile-user', radius: 30),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final profileImage = tester.widget<Image>(find.byType(Image));
+      expect(profileImage.width, 60);
+      expect(profileImage.height, 60);
+      expect(profileImage.fit, BoxFit.cover);
+      expect(profileImage.alignment, Alignment.center);
+      final resizedImage = profileImage.image as ResizeImage;
+      expect(resizedImage.width, 120);
+      expect(resizedImage.height, isNull);
+      expect(find.byType(ClipOval), findsOneWidget);
     });
   });
 
@@ -1039,7 +1075,9 @@ void main() {
         await _pumpApp(
           tester,
           size: const Size(390, 844),
-          initialLocation: AppRoutes.residenceInvitation('48273165'),
+          initialLocation: null,
+          platformInitialLocation: AppRoutes.residenceInvitation('48273165'),
+          useBootstrap: true,
           residenceSetupRepository: setupRepository,
         );
         await tester.pumpAndSettle();
@@ -1212,6 +1250,25 @@ void main() {
     expect(find.textContaining('محمد العلوي'), findsNothing);
     expect(find.text('تأخر الأداء'), findsOneWidget);
     expect(find.text('تحديث الميزانية'), findsOneWidget);
+    final unreadNotification = find.byKey(
+      const ValueKey('notification-mock-post-created'),
+    );
+    final unreadTile = tester.widget<ListTile>(
+      find.descendant(of: unreadNotification, matching: find.byType(ListTile)),
+    );
+    expect(unreadTile.tileColor, AppColors.surface);
+    final unreadDot = find.byKey(
+      const ValueKey('notification-unread-mock-post-created'),
+    );
+    expect(unreadDot, findsOneWidget);
+    final unreadAvatar = find.descendant(
+      of: unreadNotification,
+      matching: find.byType(CircleAvatar),
+    );
+    expect(
+      tester.getCenter(unreadDot).dx,
+      greaterThan(tester.getCenter(unreadAvatar).dx),
+    );
 
     final filter = find.byKey(const ValueKey('community-filter-all'));
     final appBarBottom = tester.getBottomLeft(find.byType(AppBar)).dy;
@@ -1293,6 +1350,70 @@ void main() {
       expect(find.byKey(ValueKey('notification-preview-$index')), findsNothing);
     }
   });
+
+  testWidgets(
+    'notification times respect calendar days and real elapsed time',
+    (tester) async {
+      final now = DateTime(2026, 8, 2, 12);
+      final notificationsRepository = MockNotificationsRepository(
+        seed: [
+          DarJarNotification(
+            id: 'today-five-hours',
+            residenceId: '*',
+            recipientUserId: '*',
+            type: DarJarNotificationType.postCreated,
+            occurredAt: DateTime(2026, 8, 2, 7),
+            targetId: 'today-post',
+            actorName: 'أشرف راس',
+          ),
+          DarJarNotification(
+            id: 'yesterday-two-hours',
+            residenceId: '*',
+            recipientUserId: '*',
+            type: DarJarNotificationType.budgetChanged,
+            occurredAt: DateTime(2026, 8, 1, 23, 30),
+            targetId: '',
+            readAt: now,
+          ),
+        ],
+      );
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        notificationsRepository: notificationsRepository,
+        notificationNow: now,
+      );
+      await _enterResidence(tester);
+
+      await tester.tap(find.byKey(const Key('notifications-button')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('منذ 5 س'), findsOneWidget);
+      expect(find.text('أمس'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('notification-unread-today-five-hours')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('notification-unread-yesterday-two-hours')),
+        findsNothing,
+      );
+      final readNotification = find.byKey(
+        const ValueKey('notification-yesterday-two-hours'),
+      );
+      expect(
+        tester
+            .widget<ListTile>(
+              find.descendant(
+                of: readNotification,
+                matching: find.byType(ListTile),
+              ),
+            )
+            .tileColor,
+        AppColors.surface,
+      );
+    },
+  );
 
   testWidgets('resident sees feedback for an unknown residence code', (
     tester,
@@ -2732,6 +2853,12 @@ void main() {
 
     await tester.tap(find.byKey(const Key('add-finance-transaction-button')));
     await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<Material>(find.byKey(const Key('finance-transaction-sheet')))
+          .color,
+      AppColors.surface,
+    );
     await tester.tap(find.byKey(const Key('finance-transaction-type-field')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('مداخيل').last);
@@ -3456,7 +3583,10 @@ void main() {
 Future<void> _pumpApp(
   WidgetTester tester, {
   required Size size,
-  String initialLocation = AppRoutes.onboarding,
+  String? initialLocation = AppRoutes.onboarding,
+  String? platformInitialLocation,
+  bool useBootstrap = false,
+  DateTime? notificationNow,
   AuthRepository? authRepository,
   AccountOnboardingRepository? accountRepository,
   ResidenceSetupRepository? residenceSetupRepository,
@@ -3527,8 +3657,15 @@ Future<void> _pumpApp(
     ProviderScope(
       overrides: [
         authRepositoryProvider.overrideWithValue(repository),
-        appInitialLocationProvider.overrideWithValue(initialLocation),
+        if (initialLocation != null)
+          appInitialLocationProvider.overrideWithValue(initialLocation),
+        if (platformInitialLocation != null)
+          platformInitialLocationProvider.overrideWithValue(
+            platformInitialLocation,
+          ),
         notificationPushEnabledProvider.overrideWithValue(false),
+        if (notificationNow != null)
+          notificationTimeNowProvider.overrideWithValue(notificationNow),
         notificationsRepositoryProvider.overrideWithValue(
           currentNotificationsRepository,
         ),
@@ -3567,7 +3704,9 @@ Future<void> _pumpApp(
           return contextData;
         }),
       ],
-      child: const DarJarApp(),
+      child: useBootstrap
+          ? DarJarBootstrap(initialize: () async {}, child: const DarJarApp())
+          : const DarJarApp(),
     ),
   );
   await tester.pumpAndSettle();
@@ -3610,6 +3749,23 @@ Future<void> _enterResidence(WidgetTester tester) async {
   expect(find.byKey(const Key('residence-name-field')), findsOneWidget);
   expect(find.byKey(const Key('residence-address-field')), findsOneWidget);
   expect(find.byKey(const Key('residence-city-field')), findsOneWidget);
+  final cityField = find.byKey(const Key('residence-city-field'));
+  final cityInputDecorator = tester.widget<InputDecorator>(
+    find.descendant(of: cityField, matching: find.byType(InputDecorator)),
+  );
+  expect(cityInputDecorator.isEmpty, isFalse);
+  final cityLabel = find.descendant(
+    of: cityField,
+    matching: find.text('المدينة'),
+  );
+  final cityPlaceholder = find.descendant(
+    of: cityField,
+    matching: find.text('اختر المدينة'),
+  );
+  expect(
+    tester.getCenter(cityLabel).dy,
+    lessThan(tester.getCenter(cityPlaceholder).dy),
+  );
   expect(find.text('معلومات الإقامة'), findsOneWidget);
   expect(find.text('معلوماتك'), findsOneWidget);
   expect(find.byKey(const Key('country-code-field')), findsNothing);
@@ -3629,6 +3785,10 @@ Future<void> _enterResidence(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('residence-city-field')));
   await tester.pumpAndSettle();
   expect(find.byKey(const Key('city-picker-sheet')), findsOneWidget);
+  final cityEmptyState = tester.widget<Container>(
+    find.byKey(const Key('city-search-empty-state')),
+  );
+  expect((cityEmptyState.decoration as BoxDecoration).color, AppColors.surface);
   final cityPickerSize = tester.getSize(
     find.byKey(const Key('city-picker-sheet')),
   );

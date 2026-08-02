@@ -2340,23 +2340,35 @@ abstract class AppLocalizations {
   /// **'اكتملت صيانة المصعد وأصبح متاحاً للاستعمال.'**
   String get maintenanceNotificationBody;
 
+  /// No description provided for @notificationTimeNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'الآن'**
+  String get notificationTimeNow;
+
   /// No description provided for @notificationTimeMinutes.
   ///
   /// In ar, this message translates to:
-  /// **'منذ 15 د'**
-  String get notificationTimeMinutes;
+  /// **'منذ {minutes} د'**
+  String notificationTimeMinutes(int minutes);
 
   /// No description provided for @notificationTimeHours.
   ///
   /// In ar, this message translates to:
-  /// **'منذ ساعتين'**
-  String get notificationTimeHours;
+  /// **'منذ {hours} س'**
+  String notificationTimeHours(int hours);
 
   /// No description provided for @notificationTimeYesterday.
   ///
   /// In ar, this message translates to:
   /// **'أمس'**
   String get notificationTimeYesterday;
+
+  /// No description provided for @notificationTimeDays.
+  ///
+  /// In ar, this message translates to:
+  /// **'منذ {days} أيام'**
+  String notificationTimeDays(int days);
 
   /// No description provided for @communityNotifications.
   ///

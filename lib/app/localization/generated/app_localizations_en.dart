@@ -1264,13 +1264,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Elevator maintenance is complete and it is available for use.';
 
   @override
-  String get notificationTimeMinutes => '15 min ago';
+  String get notificationTimeNow => 'Now';
 
   @override
-  String get notificationTimeHours => '2 hours ago';
+  String notificationTimeMinutes(int minutes) {
+    return '$minutes min ago';
+  }
+
+  @override
+  String notificationTimeHours(int hours) {
+    return '$hours hr ago';
+  }
 
   @override
   String get notificationTimeYesterday => 'Yesterday';
+
+  @override
+  String notificationTimeDays(int days) {
+    return '$days days ago';
+  }
 
   @override
   String get communityNotifications => 'Community notifications';

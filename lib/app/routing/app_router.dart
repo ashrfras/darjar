@@ -63,9 +63,20 @@ abstract final class AppRoutes {
 }
 
 final appInitialLocationProvider = Provider<String>((ref) {
+  final platformInitialLocation = ref.watch(platformInitialLocationProvider);
+  final platformUri = Uri.tryParse(platformInitialLocation);
+  if (platformUri != null &&
+      !platformUri.hasAuthority &&
+      platformUri.path.startsWith('/') &&
+      platformUri.path != '/') {
+    return platformUri.toString();
+  }
+
   final user = ref.watch(authRepositoryProvider).currentUser;
   return user == null ? AppRoutes.onboarding : AppRoutes.accountResolution;
 });
+
+final platformInitialLocationProvider = Provider<String>((ref) => '/');
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);

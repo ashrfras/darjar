@@ -1243,13 +1243,25 @@ class AppLocalizationsAr extends AppLocalizations {
       'اكتملت صيانة المصعد وأصبح متاحاً للاستعمال.';
 
   @override
-  String get notificationTimeMinutes => 'منذ 15 د';
+  String get notificationTimeNow => 'الآن';
 
   @override
-  String get notificationTimeHours => 'منذ ساعتين';
+  String notificationTimeMinutes(int minutes) {
+    return 'منذ $minutes د';
+  }
+
+  @override
+  String notificationTimeHours(int hours) {
+    return 'منذ $hours س';
+  }
 
   @override
   String get notificationTimeYesterday => 'أمس';
+
+  @override
+  String notificationTimeDays(int days) {
+    return 'منذ $days أيام';
+  }
 
   @override
   String get communityNotifications => 'إشعارات المجتمع';

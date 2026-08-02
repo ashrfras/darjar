@@ -55,7 +55,7 @@ class DarJarPickerField<T> extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.medium),
             onTap: enabled ? openPicker : null,
             child: InputDecorator(
-              isEmpty: valueLabel == null,
+              isEmpty: false,
               decoration: InputDecoration(
                 labelText: label,
                 errorText: field.errorText,

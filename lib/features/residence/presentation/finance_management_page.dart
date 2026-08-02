@@ -489,7 +489,8 @@ class _TransactionFormSheetState extends ConsumerState<_TransactionFormSheet> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     return Material(
-      color: AppColors.canvas,
+      key: const Key('finance-transaction-sheet'),
+      color: AppColors.surface,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
