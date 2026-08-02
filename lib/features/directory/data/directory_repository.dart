@@ -27,7 +27,7 @@ class DirectoryEntry {
     required this.id,
     required this.name,
     required this.categoryId,
-    required this.subcategoryId,
+    required this.subcategoryIds,
     required this.profession,
     required this.phone,
     required this.score,
@@ -41,7 +41,7 @@ class DirectoryEntry {
   final String id;
   final String name;
   final String categoryId;
-  final String subcategoryId;
+  final List<String> subcategoryIds;
   final String profession;
   final String phone;
   final double score;
@@ -61,7 +61,7 @@ class DirectoryEntry {
       id: id,
       name: name,
       categoryId: categoryId,
-      subcategoryId: subcategoryId,
+      subcategoryIds: subcategoryIds,
       profession: profession,
       phone: phone,
       score: score,
@@ -244,14 +244,14 @@ class MockDirectoryRecommendationsRepository
 }
 
 abstract interface class DirectoryRepository {
-  Stream<List<DirectoryEntry>> watchEntries();
+  Stream<List<DirectoryEntry>> watchEntries({required int limit});
 
   Future<String> createService({
     required String residenceId,
     required String userId,
     required String name,
     required String categoryId,
-    required String subcategoryId,
+    required List<String> subcategoryIds,
     required String profession,
     required String phone,
     required String neighborhood,
@@ -271,16 +271,17 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
   final FirebaseFirestore _firestore;
 
   @override
-  Stream<List<DirectoryEntry>> watchEntries() {
+  Stream<List<DirectoryEntry>> watchEntries({required int limit}) {
     return _firestore
         .collection('services')
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) {
           final entries = snapshot.docs
               .where((document) => document.data()['status'] == 'active')
               .map(_fromDocument)
               .toList();
-          entries.sort((a, b) => a.name.compareTo(b.name));
           return entries;
         })
         .handleError((Object error) => throw _failure(error));
@@ -292,7 +293,7 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
     required String userId,
     required String name,
     required String categoryId,
-    required String subcategoryId,
+    required List<String> subcategoryIds,
     required String profession,
     required String phone,
     required String neighborhood,
@@ -304,11 +305,12 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
     if (normalizedName.isEmpty ||
         normalizedName.length > 120 ||
         categoryId.isEmpty ||
-        subcategoryId.isEmpty ||
+        subcategoryIds.isEmpty ||
+        subcategoryIds.length > 8 ||
+        subcategoryIds.toSet().length != subcategoryIds.length ||
         normalizedProfession.isEmpty ||
-        normalizedProfession.length > 500 ||
+        normalizedProfession.length > 160 ||
         !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(normalizedPhone) ||
-        normalizedNeighborhood.isEmpty ||
         normalizedNeighborhood.length > 120) {
       throw const DirectoryFailure('invalid-service');
     }
@@ -322,20 +324,21 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
       final residenceData = results[0].data();
       final memberData = results[1].data();
       final categoryData = results[2].data();
-      final subcategoryIds = List<String>.from(
+      final validSubcategoryIds = List<String>.from(
         categoryData?['subcategoryIds'] as List? ?? const [],
       );
       if (!results[1].exists || memberData?['status'] != 'active') {
         throw const DirectoryFailure('not-a-member');
       }
-      if (!results[2].exists || !subcategoryIds.contains(subcategoryId)) {
+      if (!results[2].exists ||
+          !subcategoryIds.every(validSubcategoryIds.contains)) {
         throw const DirectoryFailure('invalid-category');
       }
       final service = _firestore.collection('services').doc();
       await service.set({
         'name': normalizedName,
         'categoryId': categoryId,
-        'subcategoryId': subcategoryId,
+        'subcategoryIds': subcategoryIds,
         'profession': normalizedProfession,
         'phone': normalizedPhone,
         'neighborhood': normalizedNeighborhood,
@@ -360,7 +363,9 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
       id: document.id,
       name: data['name'] as String? ?? '',
       categoryId: data['categoryId'] as String? ?? '',
-      subcategoryId: data['subcategoryId'] as String? ?? '',
+      subcategoryIds: data['subcategoryIds'] is List
+          ? List<String>.from(data['subcategoryIds'] as List)
+          : [if (data['subcategoryId'] case final String legacyId) legacyId],
       profession: data['profession'] as String? ?? '',
       phone: data['phone'] as String? ?? '',
       score: 0,
@@ -399,12 +404,20 @@ final directoryEntriesProvider =
     );
 
 class DirectoryController extends Notifier<List<DirectoryEntry>> {
+  static const pageSize = 20;
+
   StreamSubscription<List<DirectoryEntry>>? _entriesSubscription;
   StreamSubscription<List<DirectoryRecommendation>>?
   _recommendationsSubscription;
   List<DirectoryEntry> _baseEntries = const [];
   List<DirectoryRecommendation> _recommendations = const [];
   String? _activeResidenceId;
+  int _entryLimit = pageSize;
+  bool _hasMore = true;
+  bool _loadingMore = false;
+
+  bool get hasMore => _hasMore;
+  bool get loadingMore => _loadingMore;
 
   @override
   List<DirectoryEntry> build() {
@@ -412,13 +425,7 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
       _entriesSubscription?.cancel();
       _recommendationsSubscription?.cancel();
     });
-    _entriesSubscription = ref
-        .read(directoryRepositoryProvider)
-        .watchEntries()
-        .listen((entries) {
-          _baseEntries = entries;
-          _rebuild();
-        });
+    unawaited(_bindEntries());
     unawaited(_bindRecommendations());
     return const [];
   }
@@ -450,7 +457,7 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
   Future<String> createService({
     required String name,
     required String categoryId,
-    required String subcategoryId,
+    required List<String> subcategoryIds,
     required String profession,
     required String phone,
     required String neighborhood,
@@ -468,11 +475,40 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
           userId: user.uid,
           name: name,
           categoryId: categoryId,
-          subcategoryId: subcategoryId,
+          subcategoryIds: subcategoryIds,
           profession: profession,
           phone: phone,
           neighborhood: neighborhood,
         );
+  }
+
+  Future<void> loadMore() async {
+    if (_loadingMore || !_hasMore) return;
+    _loadingMore = true;
+    _entryLimit += pageSize;
+    await _bindEntries();
+  }
+
+  Future<void> _bindEntries() async {
+    await _entriesSubscription?.cancel();
+    final firstSnapshot = Completer<void>();
+    _entriesSubscription = ref
+        .read(directoryRepositoryProvider)
+        .watchEntries(limit: _entryLimit)
+        .listen(
+          (entries) {
+            _baseEntries = entries;
+            _hasMore = entries.length == _entryLimit;
+            _loadingMore = false;
+            _rebuild();
+            if (!firstSnapshot.isCompleted) firstSnapshot.complete();
+          },
+          onError: (Object error) {
+            _loadingMore = false;
+            if (!firstSnapshot.isCompleted) firstSnapshot.complete();
+          },
+        );
+    await firstSnapshot.future;
   }
 
   Future<void> _bindRecommendations() async {

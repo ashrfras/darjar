@@ -1188,8 +1188,8 @@ List<_ShellDestination> _destinations(AppLocalizations localizations) {
     _ShellDestination(
       label: localizations.directory,
       path: AppRoutes.directory,
-      icon: Icons.location_on_outlined,
-      selectedIcon: Icons.location_on_rounded,
+      icon: Icons.home_repair_service_outlined,
+      selectedIcon: Icons.home_repair_service_rounded,
       color: AppColors.directory,
     ),
     _ShellDestination(

@@ -447,6 +447,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get selectServiceSubcategory => 'اختر نوع الخدمة';
 
   @override
+  String get selectServiceTypesHint => 'يمكنك اختيار أكثر من نوع خدمة.';
+
+  @override
+  String get selectServiceCategoryFirst => 'اختر الصنف الرئيسي أولاً.';
+
+  @override
   String get serviceDescription => 'وصف الخدمة';
 
   @override
@@ -459,6 +465,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get serviceNeighborhood => 'الحي أو منطقة العمل';
 
   @override
+  String get serviceNeighborhoodOptional => 'الحي أو منطقة العمل (اختياري)';
+
+  @override
   String get serviceNeighborhoodHint => 'مثال: المعاريف';
 
   @override
@@ -469,7 +478,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get completeServiceFields =>
-      'أكمل جميع معلومات الخدمة وأدخل رقم هاتف صالحًا.';
+      'أكمل معلومات الخدمة المطلوبة وأدخل رقم هاتف صالحًا.';
 
   @override
   String get serviceCreated => 'تمت إضافة الخدمة بنجاح.';
@@ -481,6 +490,17 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get noServicesYet =>
       'لا توجد خدمات مضافة بعد. كن أول من يضيف خدمة موثوقة لجيرانه.';
+
+  @override
+  String get recommendedServicesEmptyHint =>
+      'ستظهر هنا الخدمات الأكثر توصية من سكان إقامتك بعد مشاركة تجاربهم.';
+
+  @override
+  String get topServicesEmptyHint =>
+      'ستظهر هنا الخدمات التي جُرّبت في الإقامات وحصلت على توصيات.';
+
+  @override
+  String get callFailed => 'تعذر بدء الاتصال على هذا الجهاز.';
 
   @override
   String get nearby => 'قريب';

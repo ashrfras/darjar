@@ -3,13 +3,15 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
-import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
+import 'package:darjar/features/directory/data/service_categories_repository.dart';
+import 'package:darjar/features/directory/presentation/service_category_icon.dart';
+import 'package:darjar/features/directory/presentation/service_phone_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -34,6 +36,16 @@ class DirectoryProfilePage extends ConsumerWidget {
       );
     }
 
+    final categories =
+        ref.watch(serviceCategoriesProvider).value ?? const <ServiceCategory>[];
+    final category = categories
+        .where((category) => category.id == entry.categoryId)
+        .firstOrNull;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final serviceTypes = category?.subcategories
+        .where((subcategory) => entry.subcategoryIds.contains(subcategory.id))
+        .map((subcategory) => subcategory.localizedName(languageCode))
+        .toList();
     final compact = MediaQuery.sizeOf(context).width < 600;
     return SingleChildScrollView(
       key: const Key('directory-profile-page'),
@@ -59,7 +71,10 @@ class DirectoryProfilePage extends ConsumerWidget {
                       radius: 54,
                       backgroundColor: AppColors.primarySoft,
                       foregroundColor: AppColors.primary,
-                      child: const Icon(Icons.storefront_rounded, size: 58),
+                      child: Icon(
+                        serviceCategoryIcon(entry.categoryId),
+                        size: 58,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.medium),
                     Text(
@@ -67,15 +82,21 @@ class DirectoryProfilePage extends ConsumerWidget {
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 4),
+                    if (serviceTypes?.isNotEmpty ?? false) ...[
+                      Text(
+                        serviceTypes!.join(' · '),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: AppColors.primary),
+                      ),
+                      const SizedBox(height: AppSpacing.small),
+                    ],
                     Text(
                       entry.profession,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: AppSpacing.medium),
-                    DarJarBadge(
-                      label: localizations.recommendedFromResidence,
-                      tone: DarJarBadgeTone.success,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.inkMuted,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.large),
                     Wrap(
@@ -107,7 +128,7 @@ class DirectoryProfilePage extends ConsumerWidget {
                           child: DarJarButton(
                             label: localizations.call,
                             icon: Icons.call_outlined,
-                            onPressed: () {},
+                            onPressed: () => _call(context, ref, entry.phone),
                             expanded: true,
                           ),
                         ),
@@ -157,7 +178,9 @@ class DirectoryProfilePage extends ConsumerWidget {
                             size: 18,
                             color: AppColors.primary,
                           ),
-                          label: Text(residence),
+                          label: Text(
+                            _residenceLabel(localizations, residence),
+                          ),
                           backgroundColor: AppColors.primarySoft,
                           side: BorderSide.none,
                         ),
@@ -287,6 +310,31 @@ class DirectoryProfilePage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _call(BuildContext context, WidgetRef ref, String phone) async {
+    try {
+      final launched = await ref.read(servicePhoneLauncherProvider)(phone);
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).callFailed)),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).callFailed)),
+        );
+      }
+    }
+  }
+
+  String _residenceLabel(AppLocalizations localizations, String residenceName) {
+    final normalized = residenceName.trim();
+    if (normalized.startsWith('إقامة ') || normalized.endsWith(' Residence')) {
+      return normalized;
+    }
+    return localizations.residenceDisplayName(normalized);
   }
 }
 

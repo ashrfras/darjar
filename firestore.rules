@@ -314,7 +314,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           'name',
           'categoryId',
-          'subcategoryId',
+          'subcategoryIds',
           'profession',
           'phone',
           'neighborhood',
@@ -328,20 +328,19 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 120
         && request.resource.data.categoryId is string
-        && request.resource.data.subcategoryId is string
+        && request.resource.data.subcategoryIds is list
+        && request.resource.data.subcategoryIds.size() > 0
+        && request.resource.data.subcategoryIds.size() <= 8
         && exists(serviceCategoryPath(request.resource.data.categoryId))
         && get(
           serviceCategoryPath(request.resource.data.categoryId)
-        ).data.subcategoryIds.hasAny([
-          request.resource.data.subcategoryId
-        ])
+        ).data.subcategoryIds.hasAll(request.resource.data.subcategoryIds)
         && request.resource.data.profession is string
         && request.resource.data.profession.size() > 0
-        && request.resource.data.profession.size() <= 500
+        && request.resource.data.profession.size() <= 160
         && request.resource.data.phone is string
         && request.resource.data.phone.matches('^[+][1-9][0-9]{7,14}$')
         && request.resource.data.neighborhood is string
-        && request.resource.data.neighborhood.size() > 0
         && request.resource.data.neighborhood.size() <= 120
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.createdFromResidenceName

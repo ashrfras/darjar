@@ -21,6 +21,7 @@ import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/directory/data/service_categories_repository.dart';
+import 'package:darjar/features/directory/presentation/service_phone_launcher.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
 import 'package:darjar/features/documents/presentation/residence_documents_management_page.dart';
@@ -351,7 +352,7 @@ void main() {
         userId: 'test-user',
         name: 'خدمة جديدة',
         categoryId: 'home-maintenance',
-        subcategoryId: 'electrician',
+        subcategoryIds: const ['electrician'],
         profession: 'إصلاح الأعطال',
         phone: '+212612345678',
         neighborhood: 'المعاريف',
@@ -1854,7 +1855,15 @@ void main() {
   testWidgets('resident can browse a service profile and recommend it', (
     tester,
   ) async {
-    await _pumpApp(tester, size: const Size(390, 844));
+    String? calledPhone;
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      servicePhoneLauncher: (phone) async {
+        calledPhone = phone;
+        return true;
+      },
+    );
     await _enterResidence(tester);
 
     await tester.tap(find.text('الخدمات'));
@@ -1863,6 +1872,11 @@ void main() {
 
     expect(find.byKey(const Key('add-service-fab')), findsOneWidget);
     expect(find.text('الصيانة'), findsOneWidget);
+    expect(
+      find.textContaining('ستظهر هنا الخدمات الأكثر توصية'),
+      findsOneWidget,
+    );
+    expect(find.text('عرض الكل'), findsNothing);
 
     final service = find.byKey(
       const ValueKey('directory-entry-mohamed-electrician'),
@@ -1872,8 +1886,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
     expect(find.text('محمد الكهربائي'), findsOneWidget);
+    expect(find.text('كهربائي · سباك'), findsOneWidget);
+    expect(find.byIcon(Icons.handyman_rounded), findsWidgets);
     expect(find.byType(BackButtonIcon), findsOneWidget);
     expect(find.byKey(const Key('subpage-title')), findsNothing);
+
+    await tester.tap(find.text('اتصال'));
+    await tester.pump();
+    expect(calledPhone, '+212612345678');
 
     await tester.tap(find.byKey(const Key('recommend-entry-button')));
     await tester.pumpAndSettle();
@@ -1905,11 +1925,9 @@ void main() {
     await tester.tap(find.text('صيانة المنزل').last);
     await tester.pumpAndSettle();
     await tester.tap(
-      find.byKey(const ValueKey('service-subcategory-home-maintenance')),
+      find.byKey(const ValueKey('service-subcategory-electrician')),
     );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('كهربائي').last);
-    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('service-subcategory-plumber')));
     await tester.enterText(
       find.byKey(const Key('service-description-field')),
       'إصلاح الأعطال والتركيبات الكهربائية',
@@ -1928,6 +1946,7 @@ void main() {
 
     expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
     expect(find.text('شركة النور'), findsOneWidget);
+    expect(find.text('كهربائي · سباك'), findsOneWidget);
   });
 
   testWidgets('residence exposes account, finances, and management routes', (
@@ -3768,6 +3787,7 @@ const _testServiceCategories = <ServiceCategory>[
         nameAr: 'كهربائي',
         nameEn: 'Electrician',
       ),
+      ServiceSubcategory(id: 'plumber', nameAr: 'سباك', nameEn: 'Plumber'),
     ],
   ),
 ];
@@ -3788,7 +3808,7 @@ class _TestDirectoryRepository implements DirectoryRepository {
       id: 'mohamed-electrician',
       name: 'محمد الكهربائي',
       categoryId: 'home-maintenance',
-      subcategoryId: 'electrician',
+      subcategoryIds: ['electrician', 'plumber'],
       profession: 'كهربائي · إصلاح الأعطال والتركيبات',
       phone: '+212612345678',
       score: 0,
@@ -3800,8 +3820,8 @@ class _TestDirectoryRepository implements DirectoryRepository {
   ];
 
   @override
-  Stream<List<DirectoryEntry>> watchEntries() async* {
-    yield List.unmodifiable(entries);
+  Stream<List<DirectoryEntry>> watchEntries({required int limit}) async* {
+    yield List.unmodifiable(entries.take(limit));
     yield* _changes.stream;
   }
 
@@ -3811,7 +3831,7 @@ class _TestDirectoryRepository implements DirectoryRepository {
     required String userId,
     required String name,
     required String categoryId,
-    required String subcategoryId,
+    required List<String> subcategoryIds,
     required String profession,
     required String phone,
     required String neighborhood,
@@ -3823,7 +3843,7 @@ class _TestDirectoryRepository implements DirectoryRepository {
         id: id,
         name: name,
         categoryId: categoryId,
-        subcategoryId: subcategoryId,
+        subcategoryIds: subcategoryIds,
         profession: profession,
         phone: phone,
         score: 0,
@@ -3862,6 +3882,7 @@ Future<void> _pumpApp(
   CommunityRepository? communityRepository,
   DirectoryRepository? directoryRepository,
   ServiceCategoriesRepository? serviceCategoriesRepository,
+  ServicePhoneLauncher? servicePhoneLauncher,
   DirectoryRecommendationsRepository? directoryRecommendationsRepository,
   ProfileRepository? profileRepository,
   NotificationsRepository? notificationsRepository,
@@ -3965,6 +3986,8 @@ Future<void> _pumpApp(
         serviceCategoriesRepositoryProvider.overrideWithValue(
           currentServiceCategoriesRepository,
         ),
+        if (servicePhoneLauncher != null)
+          servicePhoneLauncherProvider.overrideWithValue(servicePhoneLauncher),
         directoryRecommendationsRepositoryProvider.overrideWithValue(
           currentDirectoryRecommendationsRepository,
         ),

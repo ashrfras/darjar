@@ -456,6 +456,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectServiceSubcategory => 'Select a service type';
 
   @override
+  String get selectServiceTypesHint =>
+      'You can select more than one service type.';
+
+  @override
+  String get selectServiceCategoryFirst => 'Select the main category first.';
+
+  @override
   String get serviceDescription => 'Service description';
 
   @override
@@ -469,6 +476,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get serviceNeighborhood => 'Neighborhood or service area';
 
   @override
+  String get serviceNeighborhoodOptional =>
+      'Neighborhood or service area (optional)';
+
+  @override
   String get serviceNeighborhoodHint => 'Example: Maarif';
 
   @override
@@ -479,7 +490,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get completeServiceFields =>
-      'Complete all service details and enter a valid phone number.';
+      'Complete the required service details and enter a valid phone number.';
 
   @override
   String get serviceCreated => 'Service added successfully.';
@@ -491,6 +502,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noServicesYet =>
       'No services have been added yet. Be the first to add a trusted service for neighbors.';
+
+  @override
+  String get recommendedServicesEmptyHint =>
+      'Services most recommended by your residence neighbors will appear here after they share their experiences.';
+
+  @override
+  String get topServicesEmptyHint =>
+      'Services tried in residences and supported by recommendations will appear here.';
+
+  @override
+  String get callFailed => 'A phone call could not be started on this device.';
 
   @override
   String get nearby => 'Nearby';

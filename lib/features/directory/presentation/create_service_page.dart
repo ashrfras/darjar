@@ -27,7 +27,7 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
   final _neighborhoodController = TextEditingController();
   String _countryCode = '+212';
   String? _categoryId;
-  String? _subcategoryId;
+  final Set<String> _subcategoryIds = {};
   bool _saving = false;
 
   @override
@@ -115,49 +115,61 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
                               ? null
                               : (value) => setState(() {
                                   _categoryId = value;
-                                  _subcategoryId = null;
+                                  _subcategoryIds.clear();
                                 }),
                         ),
                         const SizedBox(height: AppSpacing.large),
-                        DropdownButtonFormField<String>(
-                          key: ValueKey(
-                            'service-subcategory-${_categoryId ?? 'none'}',
-                          ),
-                          initialValue: _subcategoryId,
-                          isExpanded: true,
+                        InputDecorator(
                           decoration: InputDecoration(
                             labelText: localizations.serviceSubcategory,
+                            helperText: localizations.selectServiceTypesHint,
                             prefixIcon: const Icon(
                               Icons.miscellaneous_services_outlined,
                             ),
                           ),
-                          hint: Text(localizations.selectServiceSubcategory),
-                          items: [
-                            for (final subcategory
-                                in selectedCategory?.subcategories ??
-                                    const <ServiceSubcategory>[])
-                              DropdownMenuItem(
-                                value: subcategory.id,
-                                child: Text(
-                                  subcategory.localizedName(languageCode),
+                          child: selectedCategory == null
+                              ? Text(
+                                  localizations.selectServiceCategoryFirst,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                )
+                              : Wrap(
+                                  spacing: AppSpacing.small,
+                                  runSpacing: AppSpacing.small,
+                                  children: [
+                                    for (final subcategory
+                                        in selectedCategory.subcategories)
+                                      FilterChip(
+                                        key: ValueKey(
+                                          'service-subcategory-${subcategory.id}',
+                                        ),
+                                        label: Text(
+                                          subcategory.localizedName(
+                                            languageCode,
+                                          ),
+                                        ),
+                                        selected: _subcategoryIds.contains(
+                                          subcategory.id,
+                                        ),
+                                        onSelected: (selected) => setState(() {
+                                          if (selected) {
+                                            _subcategoryIds.add(subcategory.id);
+                                          } else {
+                                            _subcategoryIds.remove(
+                                              subcategory.id,
+                                            );
+                                          }
+                                        }),
+                                      ),
+                                  ],
                                 ),
-                              ),
-                          ],
-                          validator: (value) => value == null
-                              ? localizations.setupFieldRequired
-                              : null,
-                          onChanged: selectedCategory == null
-                              ? null
-                              : (value) =>
-                                    setState(() => _subcategoryId = value),
                         ),
                         const SizedBox(height: AppSpacing.large),
                         TextField(
                           key: const Key('service-description-field'),
                           controller: _professionController,
-                          minLines: 3,
-                          maxLines: 6,
-                          maxLength: 500,
+                          minLines: 2,
+                          maxLines: 3,
+                          maxLength: 160,
                           decoration: InputDecoration(
                             labelText: localizations.serviceDescription,
                             hintText: localizations.serviceDescriptionHint,
@@ -181,7 +193,7 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
                         DarJarTextField(
                           key: const Key('service-neighborhood-field'),
                           controller: _neighborhoodController,
-                          label: localizations.serviceNeighborhood,
+                          label: localizations.serviceNeighborhoodOptional,
                           hint: localizations.serviceNeighborhoodHint,
                           prefixIcon: Icons.location_on_outlined,
                         ),
@@ -231,8 +243,9 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
     final phone = '$_countryCode$nationalNumber';
     if (!(_formKey.currentState?.validate() ?? false) ||
         _categoryId == null ||
-        _subcategoryId == null ||
+        _subcategoryIds.isEmpty ||
         _professionController.text.trim().isEmpty ||
+        _professionController.text.trim().length > 160 ||
         !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(phone)) {
       _showMessage(localizations.completeServiceFields);
       return;
@@ -245,7 +258,7 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
           .createService(
             name: _nameController.text,
             categoryId: _categoryId!,
-            subcategoryId: _subcategoryId!,
+            subcategoryIds: _subcategoryIds.toList(),
             profession: _professionController.text,
             phone: phone,
             neighborhood: _neighborhoodController.text,

@@ -7,6 +7,8 @@ import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/directory/data/service_categories_repository.dart';
+import 'package:darjar/features/directory/presentation/service_category_icon.dart';
+import 'package:darjar/features/directory/presentation/service_phone_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,8 +21,35 @@ class DirectoryPage extends ConsumerStatefulWidget {
 }
 
 class _DirectoryPageState extends ConsumerState<DirectoryPage> {
+  final _scrollController = ScrollController();
   String? _categoryId;
   String _query = '';
+  bool _loadingMore = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_loadMoreNearBottom);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadMoreNearBottom() async {
+    if (_loadingMore ||
+        !_scrollController.hasClients ||
+        _scrollController.position.extentAfter > 320) {
+      return;
+    }
+    final controller = ref.read(directoryEntriesProvider.notifier);
+    if (!controller.hasMore) return;
+    setState(() => _loadingMore = true);
+    await controller.loadMore();
+    if (mounted) setState(() => _loadingMore = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +66,9 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
       final category = categories
           .where((category) => category.id == entry.categoryId)
           .firstOrNull;
-      final subcategory = category?.subcategories
-          .where((subcategory) => subcategory.id == entry.subcategoryId)
-          .firstOrNull;
+      final subcategories = category?.subcategories.where(
+        (subcategory) => entry.subcategoryIds.contains(subcategory.id),
+      );
       final matchesQuery =
           normalized.isEmpty ||
           entry.name.toLowerCase().contains(normalized) ||
@@ -50,10 +79,12 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
                   .toLowerCase()
                   .contains(normalized) ??
               false) ||
-          (subcategory
-                  ?.localizedName(languageCode)
-                  .toLowerCase()
-                  .contains(normalized) ??
+          (subcategories?.any(
+                (subcategory) => subcategory
+                    .localizedName(languageCode)
+                    .toLowerCase()
+                    .contains(normalized),
+              ) ??
               false);
       return matchesCategory && matchesQuery;
     }).toList();
@@ -61,13 +92,14 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
         .where((entry) => entry.localRecommendationCount >= 18)
         .take(3)
         .toList();
-    final topServices =
+    final rankedServices =
         filtered.where((entry) => entry.workedResidences.isNotEmpty).toList()
           ..sort(
             (a, b) => b.localRecommendationCount.compareTo(
               a.localRecommendationCount,
             ),
           );
+    final topServices = rankedServices.take(4).toList();
     final highlightedServiceIds = topServices.map((entry) => entry.id).toSet();
     final otherServices = entries
         .where((entry) => !highlightedServiceIds.contains(entry.id))
@@ -83,6 +115,7 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
             )
           : null,
       body: SingleChildScrollView(
+        controller: _scrollController,
         padding: EdgeInsets.fromLTRB(
           compact ? 12 : AppSpacing.xLarge,
           compact ? 8 : AppSpacing.xLarge,
@@ -153,39 +186,50 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
                     icon: Icons.verified_outlined,
                   ),
                   const SizedBox(height: AppSpacing.medium),
-                  SizedBox(
-                    height: compact ? 248 : 272,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: localFavorites.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 10),
-                      itemBuilder: (context, index) => SizedBox(
-                        width: compact ? 190 : 250,
-                        child: _FeaturedCard(entry: localFavorites[index]),
+                  if (localFavorites.isEmpty)
+                    _EmptySectionHint(
+                      message: localizations.recommendedServicesEmptyHint,
+                    )
+                  else
+                    SizedBox(
+                      height: compact ? 248 : 272,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: localFavorites.length,
+                        separatorBuilder: (_, _) => const SizedBox(width: 10),
+                        itemBuilder: (context, index) => SizedBox(
+                          width: compact ? 190 : 250,
+                          child: _FeaturedCard(entry: localFavorites[index]),
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: AppSpacing.xLarge),
                   _SectionTitle(
                     title: localizations.topRatedServices,
                     icon: Icons.stars_rounded,
                   ),
                   const SizedBox(height: AppSpacing.medium),
-                  DarJarCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Column(
-                      children: [
-                        for (
-                          var index = 0;
-                          index < topServices.length;
-                          index++
-                        ) ...[
-                          _CraftsmanRow(entry: topServices[index]),
-                          if (index != topServices.length - 1) const Divider(),
+                  if (topServices.isEmpty)
+                    _EmptySectionHint(
+                      message: localizations.topServicesEmptyHint,
+                    )
+                  else
+                    DarJarCard(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Column(
+                        children: [
+                          for (
+                            var index = 0;
+                            index < topServices.length;
+                            index++
+                          ) ...[
+                            _CraftsmanRow(entry: topServices[index]),
+                            if (index != topServices.length - 1)
+                              const Divider(),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
                   const SizedBox(height: AppSpacing.xLarge),
                   _SectionTitle(
                     title: localizations.exploreOtherServices,
@@ -193,6 +237,10 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
                   ),
                   const SizedBox(height: AppSpacing.medium),
                   _EntryGrid(entries: otherServices),
+                ],
+                if (_loadingMore) ...[
+                  const SizedBox(height: AppSpacing.large),
+                  const Center(child: CircularProgressIndicator()),
                 ],
               ],
             ),
@@ -261,7 +309,7 @@ class _CategoryStrip extends StatelessWidget {
         (
           category.id,
           category.localizedShortName(languageCode),
-          _categoryIcon(category.id),
+          serviceCategoryIcon(category.id),
         ),
     ];
     return SizedBox(
@@ -326,12 +374,6 @@ class _SectionTitle extends StatelessWidget {
         Expanded(
           child: Text(title, style: Theme.of(context).textTheme.titleLarge),
         ),
-        Text(
-          AppLocalizations.of(context).viewAll,
-          style: Theme.of(
-            context,
-          ).textTheme.labelLarge?.copyWith(color: AppColors.primary),
-        ),
       ],
     );
   }
@@ -361,7 +403,7 @@ class _FeaturedCard extends StatelessWidget {
                 children: [
                   Center(
                     child: Icon(
-                      _categoryIcon(entry.categoryId),
+                      serviceCategoryIcon(entry.categoryId),
                       size: 68,
                       color: AppColors.primary,
                     ),
@@ -436,7 +478,7 @@ class _CraftsmanRow extends StatelessWidget {
               radius: 29,
               backgroundColor: AppColors.primarySoft,
               foregroundColor: AppColors.primary,
-              child: const Icon(Icons.person_rounded, size: 32),
+              child: Icon(serviceCategoryIcon(entry.categoryId), size: 30),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -460,7 +502,7 @@ class _CraftsmanRow extends StatelessWidget {
             ),
             IconButton.outlined(
               tooltip: AppLocalizations.of(context).phone,
-              onPressed: () {},
+              onPressed: () => _callService(context, entry.phone),
               color: AppColors.primary,
               icon: const Icon(Icons.call_outlined),
             ),
@@ -468,6 +510,26 @@ class _CraftsmanRow extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _callService(BuildContext context, String phone) async {
+    final container = ProviderScope.containerOf(context);
+    try {
+      final launched = await container.read(servicePhoneLauncherProvider)(
+        phone,
+      );
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).callFailed)),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).callFailed)),
+        );
+      }
+    }
   }
 }
 
@@ -535,7 +597,7 @@ class _EntryGrid extends StatelessWidget {
                       CircleAvatar(
                         backgroundColor: AppColors.primarySoft,
                         foregroundColor: AppColors.primary,
-                        child: Icon(_categoryIcon(entry.categoryId)),
+                        child: Icon(serviceCategoryIcon(entry.categoryId)),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -548,11 +610,13 @@ class _EntryGrid extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
-                            Text(
-                              entry.neighborhood,
-                              style: Theme.of(context).textTheme.labelMedium,
-                            ),
-                            const SizedBox(height: 4),
+                            if (entry.neighborhood.isNotEmpty) ...[
+                              Text(
+                                entry.neighborhood,
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                              const SizedBox(height: 4),
+                            ],
                             _TrustLine(entry: entry),
                           ],
                         ),
@@ -594,14 +658,21 @@ class _EmptyResults extends StatelessWidget {
   }
 }
 
-IconData _categoryIcon(String categoryId) {
-  return switch (categoryId) {
-    'home-maintenance' => Icons.handyman_rounded,
-    'appliances-equipment' => Icons.home_repair_service_rounded,
-    'cleaning-care' => Icons.cleaning_services_rounded,
-    'transport-delivery' => Icons.local_shipping_rounded,
-    'personal-family' => Icons.family_restroom_rounded,
-    'other-services' => Icons.more_horiz_rounded,
-    _ => Icons.miscellaneous_services_rounded,
-  };
+class _EmptySectionHint extends StatelessWidget {
+  const _EmptySectionHint({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return DarJarCard(
+      child: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(color: AppColors.inkMuted),
+      ),
+    );
+  }
 }

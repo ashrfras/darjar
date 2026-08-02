@@ -920,6 +920,18 @@ abstract class AppLocalizations {
   /// **'اختر نوع الخدمة'**
   String get selectServiceSubcategory;
 
+  /// No description provided for @selectServiceTypesHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكنك اختيار أكثر من نوع خدمة.'**
+  String get selectServiceTypesHint;
+
+  /// No description provided for @selectServiceCategoryFirst.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر الصنف الرئيسي أولاً.'**
+  String get selectServiceCategoryFirst;
+
   /// No description provided for @serviceDescription.
   ///
   /// In ar, this message translates to:
@@ -944,6 +956,12 @@ abstract class AppLocalizations {
   /// **'الحي أو منطقة العمل'**
   String get serviceNeighborhood;
 
+  /// No description provided for @serviceNeighborhoodOptional.
+  ///
+  /// In ar, this message translates to:
+  /// **'الحي أو منطقة العمل (اختياري)'**
+  String get serviceNeighborhoodOptional;
+
   /// No description provided for @serviceNeighborhoodHint.
   ///
   /// In ar, this message translates to:
@@ -965,7 +983,7 @@ abstract class AppLocalizations {
   /// No description provided for @completeServiceFields.
   ///
   /// In ar, this message translates to:
-  /// **'أكمل جميع معلومات الخدمة وأدخل رقم هاتف صالحًا.'**
+  /// **'أكمل معلومات الخدمة المطلوبة وأدخل رقم هاتف صالحًا.'**
   String get completeServiceFields;
 
   /// No description provided for @serviceCreated.
@@ -985,6 +1003,24 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'لا توجد خدمات مضافة بعد. كن أول من يضيف خدمة موثوقة لجيرانه.'**
   String get noServicesYet;
+
+  /// No description provided for @recommendedServicesEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'ستظهر هنا الخدمات الأكثر توصية من سكان إقامتك بعد مشاركة تجاربهم.'**
+  String get recommendedServicesEmptyHint;
+
+  /// No description provided for @topServicesEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'ستظهر هنا الخدمات التي جُرّبت في الإقامات وحصلت على توصيات.'**
+  String get topServicesEmptyHint;
+
+  /// No description provided for @callFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر بدء الاتصال على هذا الجهاز.'**
+  String get callFailed;
 
   /// No description provided for @nearby.
   ///
