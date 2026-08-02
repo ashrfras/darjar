@@ -1,0 +1,106 @@
+[
+  {
+    "id": "home-maintenance",
+    "order": 1,
+    "shortNameAr": "الصيانة",
+    "longNameAr": "صيانة المنزل",
+    "shortNameEn": "Maintenance",
+    "longNameEn": "Home maintenance",
+    "subcategoryIds": ["plumber", "electrician", "painter", "carpenter", "plasterer", "aluminum-glass", "lock-repair", "curtain-installation"],
+    "subcategories": [
+      {"id": "plumber", "nameAr": "سباك", "nameEn": "Plumber"},
+      {"id": "electrician", "nameAr": "كهربائي", "nameEn": "Electrician"},
+      {"id": "painter", "nameAr": "صباغ", "nameEn": "Painter"},
+      {"id": "carpenter", "nameAr": "نجار", "nameEn": "Carpenter"},
+      {"id": "plasterer", "nameAr": "جبّاص", "nameEn": "Plasterer"},
+      {"id": "aluminum-glass", "nameAr": "ألمنيوم وزجاج", "nameEn": "Aluminum and glass"},
+      {"id": "lock-repair", "nameAr": "إصلاح الأقفال", "nameEn": "Lock repair"},
+      {"id": "curtain-installation", "nameAr": "تركيب الستائر", "nameEn": "Curtain installation"}
+    ]
+  },
+  {
+    "id": "appliances-equipment",
+    "order": 2,
+    "shortNameAr": "التجهيزات",
+    "longNameAr": "الأجهزة والتجهيزات",
+    "shortNameEn": "Equipment",
+    "longNameEn": "Appliances and equipment",
+    "subcategoryIds": ["home-appliance-repair", "cooling-air-conditioning", "tv-repair", "internet-networks", "security-cameras", "satellite-dish-installation"],
+    "subcategories": [
+      {"id": "home-appliance-repair", "nameAr": "إصلاح الأجهزة المنزلية", "nameEn": "Home appliance repair"},
+      {"id": "cooling-air-conditioning", "nameAr": "التبريد والتكييف", "nameEn": "Cooling and air conditioning"},
+      {"id": "tv-repair", "nameAr": "إصلاح التلفاز", "nameEn": "TV repair"},
+      {"id": "internet-networks", "nameAr": "الإنترنت والشبكات", "nameEn": "Internet and networks"},
+      {"id": "security-cameras", "nameAr": "كاميرات المراقبة", "nameEn": "Security cameras"},
+      {"id": "satellite-dish-installation", "nameAr": "تركيب الصحون الهوائية", "nameEn": "Satellite dish installation"}
+    ]
+  },
+  {
+    "id": "cleaning-care",
+    "order": 3,
+    "shortNameAr": "النظافة",
+    "longNameAr": "النظافة والعناية",
+    "shortNameEn": "Cleaning",
+    "longNameEn": "Cleaning and care",
+    "subcategoryIds": ["home-cleaning", "building-cleaning", "carpet-upholstery-cleaning", "pest-control", "gardening", "pool-care"],
+    "subcategories": [
+      {"id": "home-cleaning", "nameAr": "تنظيف المنازل", "nameEn": "Home cleaning"},
+      {"id": "building-cleaning", "nameAr": "تنظيف العمارات", "nameEn": "Building cleaning"},
+      {"id": "carpet-upholstery-cleaning", "nameAr": "تنظيف الزرابي والأفرشة", "nameEn": "Carpet and upholstery cleaning"},
+      {"id": "pest-control", "nameAr": "مكافحة الحشرات", "nameEn": "Pest control"},
+      {"id": "gardening", "nameAr": "البستنة", "nameEn": "Gardening"},
+      {"id": "pool-care", "nameAr": "رعاية المسابح", "nameEn": "Pool care"}
+    ]
+  },
+  {
+    "id": "transport-delivery",
+    "order": 4,
+    "shortNameAr": "النقل",
+    "longNameAr": "النقل والتوصيل",
+    "shortNameEn": "Transport",
+    "longNameEn": "Transport and delivery",
+    "subcategoryIds": ["furniture-moving", "goods-transport", "order-delivery", "transport-vehicle-rental", "moving-assistance"],
+    "subcategories": [
+      {"id": "furniture-moving", "nameAr": "نقل الأثاث", "nameEn": "Furniture moving"},
+      {"id": "goods-transport", "nameAr": "نقل البضائع", "nameEn": "Goods transport"},
+      {"id": "order-delivery", "nameAr": "توصيل الطلبات", "nameEn": "Order delivery"},
+      {"id": "transport-vehicle-rental", "nameAr": "كراء سيارات النقل", "nameEn": "Transport vehicle rental"},
+      {"id": "moving-assistance", "nameAr": "المساعدة على الانتقال", "nameEn": "Moving assistance"}
+    ]
+  },
+  {
+    "id": "personal-family",
+    "order": 5,
+    "shortNameAr": "الأسرة",
+    "longNameAr": "خدمات شخصية وعائلية",
+    "shortNameEn": "Family",
+    "longNameEn": "Personal and family services",
+    "subcategoryIds": ["babysitter", "home-nurse", "domestic-helper", "elderly-care", "private-tutor", "school-transport"],
+    "subcategories": [
+      {"id": "babysitter", "nameAr": "مربية أطفال", "nameEn": "Babysitter"},
+      {"id": "home-nurse", "nameAr": "ممرضة منزلية", "nameEn": "Home nurse"},
+      {"id": "domestic-helper", "nameAr": "مساعدة منزلية", "nameEn": "Domestic helper"},
+      {"id": "elderly-care", "nameAr": "رعاية المسنين", "nameEn": "Elderly care"},
+      {"id": "private-tutor", "nameAr": "مدرس خصوصي", "nameEn": "Private tutor"},
+      {"id": "school-transport", "nameAr": "نقل مدرسي", "nameEn": "School transport"}
+    ]
+  },
+  {
+    "id": "other-services",
+    "order": 6,
+    "shortNameAr": "خدمات أخرى",
+    "longNameAr": "خدمات أخرى",
+    "shortNameEn": "Other services",
+    "longNameEn": "Other services",
+    "subcategoryIds": ["syndic-office", "security-guard", "accountant", "photographer", "lawyer-notary", "design-printing", "it-services"],
+    "subcategories": [
+      {"id": "syndic-office", "nameAr": "مكتب سنديك", "nameEn": "Syndic office"},
+      {"id": "security-guard", "nameAr": "حارس أمن", "nameEn": "Security guard"},
+      {"id": "accountant", "nameAr": "محاسب", "nameEn": "Accountant"},
+      {"id": "photographer", "nameAr": "مصور", "nameEn": "Photographer"},
+      {"id": "lawyer-notary", "nameAr": "محام أو موثق", "nameEn": "Lawyer or notary"},
+      {"id": "design-printing", "nameAr": "تصميم وطباعة", "nameEn": "Design and printing"},
+      {"id": "it-services", "nameAr": "خدمات معلوماتية", "nameEn": "IT services"}
+    ]
+  }
+]

@@ -7,6 +7,7 @@ import 'package:darjar/features/community/presentation/community_post_detail_pag
 import 'package:darjar/features/component_gallery/presentation/component_gallery_page.dart';
 import 'package:darjar/features/directory/presentation/directory_page.dart';
 import 'package:darjar/features/directory/presentation/directory_profile_page.dart';
+import 'package:darjar/features/directory/presentation/create_service_page.dart';
 import 'package:darjar/features/documents/presentation/residence_documents_management_page.dart';
 import 'package:darjar/features/documents/presentation/residence_documents_page.dart';
 import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
@@ -39,6 +40,7 @@ abstract final class AppRoutes {
   static const community = '/community';
   static const createPost = '/community/create';
   static const directory = '/directory';
+  static const createService = '/directory/create';
   static const residence = '/residence';
   static const residenceResidents = '/residence/residents';
   static const documents = '/residence/documents';
@@ -162,6 +164,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.directory,
             builder: (context, state) => const DirectoryPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.createService,
+            builder: (context, state) => const CreateServicePage(),
           ),
           GoRoute(
             path: '/directory/:entryId',

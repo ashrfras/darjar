@@ -21,7 +21,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get community => 'Community';
 
   @override
-  String get directory => 'Directory';
+  String get directory => 'Services';
 
   @override
   String get demoResidence => 'Yasmeen Residence';
@@ -421,10 +421,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get directoryPageDescription =>
-      'Your trusted local guide to services and places recommended by neighbors.';
+      'Local services added and recommended by residence members.';
 
   @override
-  String get directorySearchHint => 'Search for a service or place...';
+  String get directorySearchHint => 'Search for a service...';
+
+  @override
+  String get addService => 'Add service';
+
+  @override
+  String get createService => 'Add a new service';
+
+  @override
+  String get createServiceDescription =>
+      'Add the provider details so residence members can find the service.';
+
+  @override
+  String get serviceName => 'Service provider name';
+
+  @override
+  String get serviceNameHint =>
+      'Example: Mohamed Electrician or Al Aman Company';
+
+  @override
+  String get serviceCategory => 'Main category';
+
+  @override
+  String get selectServiceCategory => 'Select a main category';
+
+  @override
+  String get serviceSubcategory => 'Service type';
+
+  @override
+  String get selectServiceSubcategory => 'Select a service type';
+
+  @override
+  String get serviceDescription => 'Service description';
+
+  @override
+  String get serviceDescriptionHint =>
+      'Describe the specialty and services provided';
+
+  @override
+  String get servicePhone => 'Service phone number';
+
+  @override
+  String get serviceNeighborhood => 'Neighborhood or service area';
+
+  @override
+  String get serviceNeighborhoodHint => 'Example: Maarif';
+
+  @override
+  String get saveService => 'Add service';
+
+  @override
+  String get savingService => 'Adding service…';
+
+  @override
+  String get completeServiceFields =>
+      'Complete all service details and enter a valid phone number.';
+
+  @override
+  String get serviceCreated => 'Service added successfully.';
+
+  @override
+  String get serviceCreateFailed =>
+      'Could not add the service. Check the details and try again.';
+
+  @override
+  String get noServicesYet =>
+      'No services have been added yet. Be the first to add a trusted service for neighbors.';
 
   @override
   String get nearby => 'Nearby';
@@ -452,6 +518,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exploreNearby => 'Explore nearby';
+
+  @override
+  String get topRatedServices => 'Most recommended services';
+
+  @override
+  String get exploreOtherServices => 'Explore other services';
 
   @override
   String get viewAll => 'View all';

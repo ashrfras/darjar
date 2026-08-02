@@ -59,12 +59,7 @@ class DirectoryProfilePage extends ConsumerWidget {
                       radius: 54,
                       backgroundColor: AppColors.primarySoft,
                       foregroundColor: AppColors.primary,
-                      child: Icon(
-                        entry.category == DirectoryCategory.craftsman
-                            ? Icons.person_rounded
-                            : Icons.storefront_rounded,
-                        size: 58,
-                      ),
+                      child: const Icon(Icons.storefront_rounded, size: 58),
                     ),
                     const SizedBox(height: AppSpacing.medium),
                     Text(

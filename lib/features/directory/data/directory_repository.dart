@@ -6,8 +6,6 @@ import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum DirectoryCategory { all, craftsman, restaurant, cafe, pharmacy, facility }
-
 class DirectoryReview {
   const DirectoryReview({
     required this.author,
@@ -28,7 +26,8 @@ class DirectoryEntry {
   const DirectoryEntry({
     required this.id,
     required this.name,
-    required this.category,
+    required this.categoryId,
+    required this.subcategoryId,
     required this.profession,
     required this.phone,
     required this.score,
@@ -41,7 +40,8 @@ class DirectoryEntry {
 
   final String id;
   final String name;
-  final DirectoryCategory category;
+  final String categoryId;
+  final String subcategoryId;
   final String profession;
   final String phone;
   final double score;
@@ -54,19 +54,21 @@ class DirectoryEntry {
   DirectoryEntry copyWith({
     int? recommendationCount,
     int? localRecommendationCount,
+    List<String>? workedResidences,
     List<DirectoryReview>? reviews,
   }) {
     return DirectoryEntry(
       id: id,
       name: name,
-      category: category,
+      categoryId: categoryId,
+      subcategoryId: subcategoryId,
       profession: profession,
       phone: phone,
       score: score,
       recommendationCount: recommendationCount ?? this.recommendationCount,
       localRecommendationCount:
           localRecommendationCount ?? this.localRecommendationCount,
-      workedResidences: workedResidences,
+      workedResidences: workedResidences ?? this.workedResidences,
       reviews: reviews ?? this.reviews,
       neighborhood: neighborhood,
     );
@@ -242,187 +244,146 @@ class MockDirectoryRecommendationsRepository
 }
 
 abstract interface class DirectoryRepository {
-  List<DirectoryEntry> getEntries();
+  Stream<List<DirectoryEntry>> watchEntries();
 
-  DirectoryEntry? getEntry(String id);
-
-  DirectoryEntry recommend({required String id, required String comment});
+  Future<String> createService({
+    required String residenceId,
+    required String userId,
+    required String name,
+    required String categoryId,
+    required String subcategoryId,
+    required String profession,
+    required String phone,
+    required String neighborhood,
+  });
 }
 
-class MockDirectoryRepository implements DirectoryRepository {
-  final List<DirectoryEntry> _entries = [
-    const DirectoryEntry(
-      id: 'mohamed-electrician',
-      name: 'محمد الكهربائي',
-      category: DirectoryCategory.craftsman,
-      profession: 'كهربائي · إصلاح الأعطال والتركيبات',
-      phone: '06 12 34 56 78',
-      score: 4.8,
-      recommendationCount: 19,
-      localRecommendationCount: 12,
-      workedResidences: ['إقامة الياسمين', 'إقامة النخيل', 'إقامة الأندلس'],
-      reviews: [
-        DirectoryReview(
-          author: 'سارة ب.',
-          residence: 'إقامة الياسمين',
-          comment: 'دقيق في الموعد وعالج عطل الكهرباء بسرعة.',
-          timeLabel: 'منذ أسبوع',
-        ),
-        DirectoryReview(
-          author: 'أمين ر.',
-          residence: 'إقامة النخيل',
-          comment: 'عمل نظيف وشرح المشكلة قبل البدء بالإصلاح.',
-          timeLabel: 'منذ شهر',
-        ),
-      ],
-    ),
-    const DirectoryEntry(
-      id: 'ahmed-plumber',
-      name: 'أحمد السباك',
-      category: DirectoryCategory.craftsman,
-      profession: 'سباكة · تسربات وسخانات',
-      phone: '06 23 45 67 89',
-      score: 4.9,
-      recommendationCount: 28,
-      localRecommendationCount: 18,
-      workedResidences: ['إقامة الياسمين', 'إقامة الزهراء'],
-      reviews: [
-        DirectoryReview(
-          author: 'ليلى م.',
-          residence: 'إقامة الياسمين',
-          comment: 'أنهى إصلاح التسرب في نفس اليوم وبسعر واضح.',
-          timeLabel: 'منذ 3 أيام',
-        ),
-      ],
-    ),
-    const DirectoryEntry(
-      id: 'yassine-ac',
-      name: 'ياسين للتكييف',
-      category: DirectoryCategory.craftsman,
-      profession: 'تكييف وتبريد',
-      phone: '06 34 56 78 90',
-      score: 4.9,
-      recommendationCount: 32,
-      localRecommendationCount: 25,
-      workedResidences: ['إقامة الياسمين', 'إقامة الهدى', 'إقامة الفردوس'],
-      reviews: [
-        DirectoryReview(
-          author: 'يوسف ك.',
-          residence: 'إقامة الياسمين',
-          comment: 'خدمة ممتازة والتكييف يعمل بكفاءة منذ الزيارة.',
-          timeLabel: 'منذ أسبوعين',
-        ),
-      ],
-    ),
-    const DirectoryEntry(
-      id: 'noura-cleaning',
-      name: 'نورا للتنظيف',
-      category: DirectoryCategory.craftsman,
-      profession: 'تنظيف منازل ومكاتب',
-      phone: '06 45 67 89 01',
-      score: 4.8,
-      recommendationCount: 27,
-      localRecommendationCount: 21,
-      workedResidences: ['إقامة الياسمين', 'إقامة النخيل'],
-      reviews: [],
-    ),
-    const DirectoryEntry(
-      id: 'dar-restaurant',
-      name: 'مطعم الدار',
-      category: DirectoryCategory.restaurant,
-      profession: 'مطبخ مغربي وعائلي',
-      phone: '05 22 33 44 55',
-      score: 4.7,
-      recommendationCount: 42,
-      localRecommendationCount: 36,
-      workedResidences: [],
-      reviews: [
-        DirectoryReview(
-          author: 'مريم أ.',
-          residence: 'إقامة الياسمين',
-          comment: 'قريب ومناسب للعائلات، والطاجين ممتاز.',
-          timeLabel: 'منذ 5 أيام',
-        ),
-      ],
-      neighborhood: 'بوركون',
-    ),
-    const DirectoryEntry(
-      id: 'olive-cafe',
-      name: 'مقهى الزيتون',
-      category: DirectoryCategory.cafe,
-      profession: 'قهوة وفطور',
-      phone: '05 22 44 55 66',
-      score: 4.6,
-      recommendationCount: 24,
-      localRecommendationCount: 16,
-      workedResidences: [],
-      reviews: [],
-      neighborhood: 'المعاريف',
-    ),
-    const DirectoryEntry(
-      id: 'chifae-pharmacy',
-      name: 'صيدلية الشفاء',
-      category: DirectoryCategory.pharmacy,
-      profession: 'صيدلية مناوبة وخدمة الحي',
-      phone: '05 22 55 66 77',
-      score: 4.8,
-      recommendationCount: 31,
-      localRecommendationCount: 20,
-      workedResidences: [],
-      reviews: [],
-      neighborhood: 'الوازيس',
-    ),
-    const DirectoryEntry(
-      id: 'sports-center',
-      name: 'المركب الرياضي للقرب',
-      category: DirectoryCategory.facility,
-      profession: 'ملاعب وأنشطة للأطفال',
-      phone: '05 22 66 77 88',
-      score: 4.5,
-      recommendationCount: 18,
-      localRecommendationCount: 11,
-      workedResidences: [],
-      reviews: [],
-      neighborhood: 'الحي الحسني',
-    ),
-  ];
+class DirectoryFailure implements Exception {
+  const DirectoryFailure(this.code, [this.details]);
+
+  final String code;
+  final String? details;
+}
+
+class FirestoreDirectoryRepository implements DirectoryRepository {
+  FirestoreDirectoryRepository(this._firestore);
+
+  final FirebaseFirestore _firestore;
 
   @override
-  List<DirectoryEntry> getEntries() => List.unmodifiable(_entries);
+  Stream<List<DirectoryEntry>> watchEntries() {
+    return _firestore
+        .collection('services')
+        .snapshots()
+        .map((snapshot) {
+          final entries = snapshot.docs
+              .where((document) => document.data()['status'] == 'active')
+              .map(_fromDocument)
+              .toList();
+          entries.sort((a, b) => a.name.compareTo(b.name));
+          return entries;
+        })
+        .handleError((Object error) => throw _failure(error));
+  }
 
   @override
-  DirectoryEntry? getEntry(String id) {
-    for (final entry in _entries) {
-      if (entry.id == id) return entry;
+  Future<String> createService({
+    required String residenceId,
+    required String userId,
+    required String name,
+    required String categoryId,
+    required String subcategoryId,
+    required String profession,
+    required String phone,
+    required String neighborhood,
+  }) async {
+    final normalizedName = name.trim();
+    final normalizedProfession = profession.trim();
+    final normalizedPhone = phone.trim();
+    final normalizedNeighborhood = neighborhood.trim();
+    if (normalizedName.isEmpty ||
+        normalizedName.length > 120 ||
+        categoryId.isEmpty ||
+        subcategoryId.isEmpty ||
+        normalizedProfession.isEmpty ||
+        normalizedProfession.length > 500 ||
+        !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(normalizedPhone) ||
+        normalizedNeighborhood.isEmpty ||
+        normalizedNeighborhood.length > 120) {
+      throw const DirectoryFailure('invalid-service');
     }
-    return null;
+    try {
+      final residence = _firestore.collection('residences').doc(residenceId);
+      final results = await Future.wait([
+        residence.get(),
+        residence.collection('members').doc(userId).get(),
+        _firestore.collection('serviceCategories').doc(categoryId).get(),
+      ]);
+      final residenceData = results[0].data();
+      final memberData = results[1].data();
+      final categoryData = results[2].data();
+      final subcategoryIds = List<String>.from(
+        categoryData?['subcategoryIds'] as List? ?? const [],
+      );
+      if (!results[1].exists || memberData?['status'] != 'active') {
+        throw const DirectoryFailure('not-a-member');
+      }
+      if (!results[2].exists || !subcategoryIds.contains(subcategoryId)) {
+        throw const DirectoryFailure('invalid-category');
+      }
+      final service = _firestore.collection('services').doc();
+      await service.set({
+        'name': normalizedName,
+        'categoryId': categoryId,
+        'subcategoryId': subcategoryId,
+        'profession': normalizedProfession,
+        'phone': normalizedPhone,
+        'neighborhood': normalizedNeighborhood,
+        'createdBy': userId,
+        'createdFromResidenceId': residenceId,
+        'createdFromResidenceName':
+            residenceData?['name'] as String? ?? residenceId,
+        'status': 'active',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      return service.id;
+    } catch (error) {
+      throw _failure(error);
+    }
   }
 
-  @override
-  DirectoryEntry recommend({required String id, required String comment}) {
-    final index = _entries.indexWhere((entry) => entry.id == id);
-    if (index < 0) throw StateError('Directory entry not found: $id');
-    final current = _entries[index];
-    final updated = current.copyWith(
-      recommendationCount: current.recommendationCount + 1,
-      localRecommendationCount: current.localRecommendationCount + 1,
-      reviews: [
-        DirectoryReview(
-          author: 'أنت',
-          residence: 'إقامة الياسمين',
-          comment: comment,
-          timeLabel: 'الآن',
-        ),
-        ...current.reviews,
-      ],
+  DirectoryEntry _fromDocument(
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
+  ) {
+    final data = document.data();
+    return DirectoryEntry(
+      id: document.id,
+      name: data['name'] as String? ?? '',
+      categoryId: data['categoryId'] as String? ?? '',
+      subcategoryId: data['subcategoryId'] as String? ?? '',
+      profession: data['profession'] as String? ?? '',
+      phone: data['phone'] as String? ?? '',
+      score: 0,
+      recommendationCount: 0,
+      localRecommendationCount: 0,
+      workedResidences: const [],
+      reviews: const [],
+      neighborhood: data['neighborhood'] as String? ?? '',
     );
-    _entries[index] = updated;
-    return updated;
   }
+
+  DirectoryFailure _failure(Object error) => switch (error) {
+    DirectoryFailure failure => failure,
+    FirebaseException(:final code, :final message) => DirectoryFailure(
+      code,
+      message,
+    ),
+    _ => DirectoryFailure('unknown', error.toString()),
+  };
 }
 
 final directoryRepositoryProvider = Provider<DirectoryRepository>(
-  (ref) => MockDirectoryRepository(),
+  (ref) => FirestoreDirectoryRepository(ref.watch(firebaseFirestoreProvider)),
 );
 
 final directoryRecommendationsRepositoryProvider =
@@ -438,16 +399,28 @@ final directoryEntriesProvider =
     );
 
 class DirectoryController extends Notifier<List<DirectoryEntry>> {
-  StreamSubscription<List<DirectoryRecommendation>>? _subscription;
-  late List<DirectoryEntry> _baseEntries;
+  StreamSubscription<List<DirectoryEntry>>? _entriesSubscription;
+  StreamSubscription<List<DirectoryRecommendation>>?
+  _recommendationsSubscription;
+  List<DirectoryEntry> _baseEntries = const [];
+  List<DirectoryRecommendation> _recommendations = const [];
   String? _activeResidenceId;
 
   @override
   List<DirectoryEntry> build() {
-    _baseEntries = ref.read(directoryRepositoryProvider).getEntries();
-    ref.onDispose(() => _subscription?.cancel());
+    ref.onDispose(() {
+      _entriesSubscription?.cancel();
+      _recommendationsSubscription?.cancel();
+    });
+    _entriesSubscription = ref
+        .read(directoryRepositoryProvider)
+        .watchEntries()
+        .listen((entries) {
+          _baseEntries = entries;
+          _rebuild();
+        });
     unawaited(_bindRecommendations());
-    return _baseEntries;
+    return const [];
   }
 
   DirectoryEntry? find(String id) {
@@ -474,22 +447,53 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
         );
   }
 
+  Future<String> createService({
+    required String name,
+    required String categoryId,
+    required String subcategoryId,
+    required String profession,
+    required String phone,
+    required String neighborhood,
+  }) async {
+    final context = await ref.read(residenceContextProvider.future);
+    final residence = context.activeResidence;
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (residence == null || user == null) {
+      throw const DirectoryFailure('missing-residence');
+    }
+    return ref
+        .read(directoryRepositoryProvider)
+        .createService(
+          residenceId: residence.id,
+          userId: user.uid,
+          name: name,
+          categoryId: categoryId,
+          subcategoryId: subcategoryId,
+          profession: profession,
+          phone: phone,
+          neighborhood: neighborhood,
+        );
+  }
+
   Future<void> _bindRecommendations() async {
     final context = await ref.read(residenceContextProvider.future);
     _activeResidenceId = context.activeResidence?.id;
-    await _subscription?.cancel();
-    _subscription = ref
+    await _recommendationsSubscription?.cancel();
+    _recommendationsSubscription = ref
         .read(directoryRecommendationsRepositoryProvider)
         .watch()
-        .listen(_applyRecommendations);
+        .listen((recommendations) {
+          _recommendations = recommendations;
+          _rebuild();
+        });
   }
 
-  void _applyRecommendations(List<DirectoryRecommendation> recommendations) {
+  void _rebuild() {
     state = [
       for (final entry in _baseEntries)
         _mergeEntry(
           entry,
-          recommendations
+          _recommendations
               .where((recommendation) => recommendation.entryId == entry.id)
               .toList(growable: false),
         ),
@@ -508,6 +512,10 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
     return entry.copyWith(
       recommendationCount: entry.recommendationCount + recommendations.length,
       localRecommendationCount: entry.localRecommendationCount + localCount,
+      workedResidences: {
+        ...entry.workedResidences,
+        ...recommendations.map((recommendation) => recommendation.residence),
+      }.toList(),
       reviews: [
         for (final recommendation in recommendations)
           DirectoryReview(

@@ -21,7 +21,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get community => 'المجتمع';
 
   @override
-  String get directory => 'الدليل';
+  String get directory => 'الخدمات';
 
   @override
   String get demoResidence => 'إقامة الياسمين';
@@ -413,10 +413,74 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get directoryPageDescription =>
-      'دليلك المحلي الموثوق لخدمات ومرافق أوصى بها جيرانك.';
+      'دليل الخدمات المحلية التي يضيفها ويوصي بها سكان الإقامات.';
 
   @override
-  String get directorySearchHint => 'ابحث عن خدمة أو مكان...';
+  String get directorySearchHint => 'ابحث عن خدمة...';
+
+  @override
+  String get addService => 'إضافة خدمة';
+
+  @override
+  String get createService => 'إضافة خدمة جديدة';
+
+  @override
+  String get createServiceDescription =>
+      'أضف معلومات مقدم الخدمة لتصبح متاحة لسكان الإقامات.';
+
+  @override
+  String get serviceName => 'اسم مقدم الخدمة';
+
+  @override
+  String get serviceNameHint => 'مثال: محمد الكهربائي أو شركة الأمان';
+
+  @override
+  String get serviceCategory => 'الصنف الرئيسي';
+
+  @override
+  String get selectServiceCategory => 'اختر الصنف الرئيسي';
+
+  @override
+  String get serviceSubcategory => 'نوع الخدمة';
+
+  @override
+  String get selectServiceSubcategory => 'اختر نوع الخدمة';
+
+  @override
+  String get serviceDescription => 'وصف الخدمة';
+
+  @override
+  String get serviceDescriptionHint => 'اذكر التخصص والخدمات التي يقدمها';
+
+  @override
+  String get servicePhone => 'رقم هاتف الخدمة';
+
+  @override
+  String get serviceNeighborhood => 'الحي أو منطقة العمل';
+
+  @override
+  String get serviceNeighborhoodHint => 'مثال: المعاريف';
+
+  @override
+  String get saveService => 'إضافة الخدمة';
+
+  @override
+  String get savingService => 'جارٍ إضافة الخدمة…';
+
+  @override
+  String get completeServiceFields =>
+      'أكمل جميع معلومات الخدمة وأدخل رقم هاتف صالحًا.';
+
+  @override
+  String get serviceCreated => 'تمت إضافة الخدمة بنجاح.';
+
+  @override
+  String get serviceCreateFailed =>
+      'تعذرت إضافة الخدمة. تحقق من المعلومات وحاول مجددًا.';
+
+  @override
+  String get noServicesYet =>
+      'لا توجد خدمات مضافة بعد. كن أول من يضيف خدمة موثوقة لجيرانه.';
 
   @override
   String get nearby => 'قريب';
@@ -444,6 +508,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get exploreNearby => 'اكتشف ما حولك';
+
+  @override
+  String get topRatedServices => 'الخدمات الأعلى توصية';
+
+  @override
+  String get exploreOtherServices => 'استكشف خدمات أخرى';
 
   @override
   String get viewAll => 'عرض الكل';

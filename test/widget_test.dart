@@ -20,6 +20,7 @@ import 'package:darjar/features/account/data/account_onboarding_repository.dart'
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
+import 'package:darjar/features/directory/data/service_categories_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
 import 'package:darjar/features/documents/presentation/residence_documents_management_page.dart';
@@ -340,18 +341,25 @@ void main() {
       expect(moroccanCities.any((city) => city.nameAr == 'الحسيمة'), isTrue);
     });
 
-    test('create community posts and recommendations', () async {
+    test('create community posts and directory services', () async {
       final community = MockCommunityRepository();
-      final directory = MockDirectoryRepository();
+      final directory = _TestDirectoryRepository();
 
       await community.createPost(title: 'عنوان', body: 'تفاصيل');
-      directory.recommend(id: 'mohamed-electrician', comment: 'خدمة ممتازة');
+      await directory.createService(
+        residenceId: 'test-residence',
+        userId: 'test-user',
+        name: 'خدمة جديدة',
+        categoryId: 'home-maintenance',
+        subcategoryId: 'electrician',
+        profession: 'إصلاح الأعطال',
+        phone: '+212612345678',
+        neighborhood: 'المعاريف',
+      );
 
       expect(community.getPosts().first.title, 'عنوان');
-      expect(
-        directory.getEntry('mohamed-electrician')!.reviews.first.comment,
-        'خدمة ممتازة',
-      );
+      expect(directory.entries.first.name, 'خدمة جديدة');
+      await directory.dispose();
     });
 
     test(
@@ -1307,7 +1315,7 @@ void main() {
     await _pumpApp(tester, size: const Size(390, 844));
     await _enterResidence(tester);
 
-    await tester.tap(find.text('الدليل'));
+    await tester.tap(find.text('الخدمات'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('directory-page')), findsOneWidget);
 
@@ -1701,7 +1709,10 @@ void main() {
       findsNothing,
     );
     expect(find.textContaining('المجتمع: تواصل مع جيرانك'), findsOneWidget);
-    expect(find.textContaining('الدليل: اعثر على الحرفيين'), findsOneWidget);
+    expect(
+      find.textContaining('الخدمات: اعثر على مقدمي الخدمات'),
+      findsOneWidget,
+    );
     expect(find.textContaining('الإقامة: تابع اشتراكاتك'), findsOneWidget);
     final welcomeImage = tester.widget<Image>(
       find.descendant(
@@ -1840,21 +1851,24 @@ void main() {
     );
   });
 
-  testWidgets('resident can browse a craftsman profile and recommend it', (
+  testWidgets('resident can browse a service profile and recommend it', (
     tester,
   ) async {
     await _pumpApp(tester, size: const Size(390, 844));
     await _enterResidence(tester);
 
-    await tester.tap(find.text('الدليل'));
+    await tester.tap(find.text('الخدمات'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('directory-page')), findsOneWidget);
 
-    final craftsman = find.byKey(
+    expect(find.byKey(const Key('add-service-fab')), findsOneWidget);
+    expect(find.text('الصيانة'), findsOneWidget);
+
+    final service = find.byKey(
       const ValueKey('directory-entry-mohamed-electrician'),
     );
-    await tester.ensureVisible(craftsman);
-    await tester.tap(craftsman);
+    await tester.ensureVisible(service);
+    await tester.tap(service);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
     expect(find.text('محمد الكهربائي'), findsOneWidget);
@@ -1870,6 +1884,50 @@ void main() {
     await tester.tap(find.byKey(const Key('submit-recommendation-button')));
     await tester.pumpAndSettle();
     expect(find.text('خدمة سريعة وموثوقة'), findsOneWidget);
+  });
+
+  testWidgets('resident can add a directory service', (tester) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+
+    await tester.tap(find.text('الخدمات'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('add-service-fab')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('create-service-page')), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const Key('service-name-field')),
+      'شركة النور',
+    );
+    await tester.tap(find.byKey(const Key('service-category-field')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('صيانة المنزل').last);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('service-subcategory-home-maintenance')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('كهربائي').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('service-description-field')),
+      'إصلاح الأعطال والتركيبات الكهربائية',
+    );
+    await tester.enterText(
+      find.byKey(const Key('service-phone-field')),
+      '6 12 34 56 78',
+    );
+    await tester.enterText(
+      find.byKey(const Key('service-neighborhood-field')),
+      'المعاريف',
+    );
+    await tester.ensureVisible(find.byKey(const Key('save-service-button')));
+    await tester.tap(find.byKey(const Key('save-service-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
+    expect(find.text('شركة النور'), findsOneWidget);
   });
 
   testWidgets('residence exposes account, finances, and management routes', (
@@ -3696,6 +3754,93 @@ void main() {
   });
 }
 
+const _testServiceCategories = <ServiceCategory>[
+  ServiceCategory(
+    id: 'home-maintenance',
+    shortNameAr: 'الصيانة',
+    longNameAr: 'صيانة المنزل',
+    shortNameEn: 'Maintenance',
+    longNameEn: 'Home maintenance',
+    order: 1,
+    subcategories: [
+      ServiceSubcategory(
+        id: 'electrician',
+        nameAr: 'كهربائي',
+        nameEn: 'Electrician',
+      ),
+    ],
+  ),
+];
+
+class _TestServiceCategoriesRepository implements ServiceCategoriesRepository {
+  const _TestServiceCategoriesRepository();
+
+  @override
+  Stream<List<ServiceCategory>> watchCategories() async* {
+    yield _testServiceCategories;
+  }
+}
+
+class _TestDirectoryRepository implements DirectoryRepository {
+  final _changes = StreamController<List<DirectoryEntry>>.broadcast();
+  final entries = <DirectoryEntry>[
+    const DirectoryEntry(
+      id: 'mohamed-electrician',
+      name: 'محمد الكهربائي',
+      categoryId: 'home-maintenance',
+      subcategoryId: 'electrician',
+      profession: 'كهربائي · إصلاح الأعطال والتركيبات',
+      phone: '+212612345678',
+      score: 0,
+      recommendationCount: 0,
+      localRecommendationCount: 0,
+      workedResidences: ['إقامة الياسمين'],
+      reviews: [],
+    ),
+  ];
+
+  @override
+  Stream<List<DirectoryEntry>> watchEntries() async* {
+    yield List.unmodifiable(entries);
+    yield* _changes.stream;
+  }
+
+  @override
+  Future<String> createService({
+    required String residenceId,
+    required String userId,
+    required String name,
+    required String categoryId,
+    required String subcategoryId,
+    required String profession,
+    required String phone,
+    required String neighborhood,
+  }) async {
+    const id = 'created-service';
+    entries.insert(
+      0,
+      DirectoryEntry(
+        id: id,
+        name: name,
+        categoryId: categoryId,
+        subcategoryId: subcategoryId,
+        profession: profession,
+        phone: phone,
+        score: 0,
+        recommendationCount: 0,
+        localRecommendationCount: 0,
+        workedResidences: const [],
+        reviews: const [],
+        neighborhood: neighborhood,
+      ),
+    );
+    _changes.add(List.unmodifiable(entries));
+    return id;
+  }
+
+  Future<void> dispose() => _changes.close();
+}
+
 Future<void> _pumpApp(
   WidgetTester tester, {
   required Size size,
@@ -3715,6 +3860,8 @@ Future<void> _pumpApp(
   ResidenceDocumentsRepository? residenceDocumentsRepository,
   ResidenceDocumentPicker? residenceDocumentPicker,
   CommunityRepository? communityRepository,
+  DirectoryRepository? directoryRepository,
+  ServiceCategoriesRepository? serviceCategoriesRepository,
   DirectoryRecommendationsRepository? directoryRecommendationsRepository,
   ProfileRepository? profileRepository,
   NotificationsRepository? notificationsRepository,
@@ -3747,6 +3894,10 @@ Future<void> _pumpApp(
       residenceDocumentsRepository ?? _FakeResidenceDocumentsRepository();
   final currentCommunityRepository =
       communityRepository ?? MockCommunityRepository();
+  final currentDirectoryRepository =
+      directoryRepository ?? _TestDirectoryRepository();
+  final currentServiceCategoriesRepository =
+      serviceCategoriesRepository ?? const _TestServiceCategoriesRepository();
   final currentDirectoryRecommendationsRepository =
       directoryRecommendationsRepository ??
       MockDirectoryRecommendationsRepository();
@@ -3760,6 +3911,9 @@ Future<void> _pumpApp(
   }
   if (currentCommunityRepository is MockCommunityRepository) {
     addTearDown(currentCommunityRepository.dispose);
+  }
+  if (currentDirectoryRepository is _TestDirectoryRepository) {
+    addTearDown(currentDirectoryRepository.dispose);
   }
   if (currentDirectoryRecommendationsRepository
       is MockDirectoryRecommendationsRepository) {
@@ -3804,6 +3958,12 @@ Future<void> _pumpApp(
         ),
         communityRepositoryProvider.overrideWithValue(
           currentCommunityRepository,
+        ),
+        directoryRepositoryProvider.overrideWithValue(
+          currentDirectoryRepository,
+        ),
+        serviceCategoriesRepositoryProvider.overrideWithValue(
+          currentServiceCategoriesRepository,
         ),
         directoryRecommendationsRepositoryProvider.overrideWithValue(
           currentDirectoryRecommendationsRepository,

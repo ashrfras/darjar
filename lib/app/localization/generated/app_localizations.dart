@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @directory.
   ///
   /// In ar, this message translates to:
-  /// **'الدليل'**
+  /// **'الخدمات'**
   String get directory;
 
   /// No description provided for @demoResidence.
@@ -857,14 +857,134 @@ abstract class AppLocalizations {
   /// No description provided for @directoryPageDescription.
   ///
   /// In ar, this message translates to:
-  /// **'دليلك المحلي الموثوق لخدمات ومرافق أوصى بها جيرانك.'**
+  /// **'دليل الخدمات المحلية التي يضيفها ويوصي بها سكان الإقامات.'**
   String get directoryPageDescription;
 
   /// No description provided for @directorySearchHint.
   ///
   /// In ar, this message translates to:
-  /// **'ابحث عن خدمة أو مكان...'**
+  /// **'ابحث عن خدمة...'**
   String get directorySearchHint;
+
+  /// No description provided for @addService.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة خدمة'**
+  String get addService;
+
+  /// No description provided for @createService.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة خدمة جديدة'**
+  String get createService;
+
+  /// No description provided for @createServiceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف معلومات مقدم الخدمة لتصبح متاحة لسكان الإقامات.'**
+  String get createServiceDescription;
+
+  /// No description provided for @serviceName.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم مقدم الخدمة'**
+  String get serviceName;
+
+  /// No description provided for @serviceNameHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'مثال: محمد الكهربائي أو شركة الأمان'**
+  String get serviceNameHint;
+
+  /// No description provided for @serviceCategory.
+  ///
+  /// In ar, this message translates to:
+  /// **'الصنف الرئيسي'**
+  String get serviceCategory;
+
+  /// No description provided for @selectServiceCategory.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر الصنف الرئيسي'**
+  String get selectServiceCategory;
+
+  /// No description provided for @serviceSubcategory.
+  ///
+  /// In ar, this message translates to:
+  /// **'نوع الخدمة'**
+  String get serviceSubcategory;
+
+  /// No description provided for @selectServiceSubcategory.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر نوع الخدمة'**
+  String get selectServiceSubcategory;
+
+  /// No description provided for @serviceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصف الخدمة'**
+  String get serviceDescription;
+
+  /// No description provided for @serviceDescriptionHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اذكر التخصص والخدمات التي يقدمها'**
+  String get serviceDescriptionHint;
+
+  /// No description provided for @servicePhone.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم هاتف الخدمة'**
+  String get servicePhone;
+
+  /// No description provided for @serviceNeighborhood.
+  ///
+  /// In ar, this message translates to:
+  /// **'الحي أو منطقة العمل'**
+  String get serviceNeighborhood;
+
+  /// No description provided for @serviceNeighborhoodHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'مثال: المعاريف'**
+  String get serviceNeighborhoodHint;
+
+  /// No description provided for @saveService.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة الخدمة'**
+  String get saveService;
+
+  /// No description provided for @savingService.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ إضافة الخدمة…'**
+  String get savingService;
+
+  /// No description provided for @completeServiceFields.
+  ///
+  /// In ar, this message translates to:
+  /// **'أكمل جميع معلومات الخدمة وأدخل رقم هاتف صالحًا.'**
+  String get completeServiceFields;
+
+  /// No description provided for @serviceCreated.
+  ///
+  /// In ar, this message translates to:
+  /// **'تمت إضافة الخدمة بنجاح.'**
+  String get serviceCreated;
+
+  /// No description provided for @serviceCreateFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذرت إضافة الخدمة. تحقق من المعلومات وحاول مجددًا.'**
+  String get serviceCreateFailed;
+
+  /// No description provided for @noServicesYet.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد خدمات مضافة بعد. كن أول من يضيف خدمة موثوقة لجيرانه.'**
+  String get noServicesYet;
 
   /// No description provided for @nearby.
   ///
@@ -919,6 +1039,18 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'اكتشف ما حولك'**
   String get exploreNearby;
+
+  /// No description provided for @topRatedServices.
+  ///
+  /// In ar, this message translates to:
+  /// **'الخدمات الأعلى توصية'**
+  String get topRatedServices;
+
+  /// No description provided for @exploreOtherServices.
+  ///
+  /// In ar, this message translates to:
+  /// **'استكشف خدمات أخرى'**
+  String get exploreOtherServices;
 
   /// No description provided for @viewAll.
   ///

@@ -38,6 +38,14 @@ service cloud.firestore {
       return /databases/$(database)/documents/residences/$(residenceId)/members/$(memberId);
     }
 
+    function servicePath(serviceId) {
+      return /databases/$(database)/documents/services/$(serviceId);
+    }
+
+    function serviceCategoryPath(categoryId) {
+      return /databases/$(database)/documents/serviceCategories/$(categoryId);
+    }
+
     function privateSettingsPath(residenceId) {
       return /databases/$(database)/documents/residences/$(residenceId)/settings/private;
     }
@@ -292,6 +300,60 @@ service cloud.firestore {
         && request.resource.data.readAt == request.time;
     }
 
+    match /serviceCategories/{categoryId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /services/{serviceId} {
+      allow read: if signedIn();
+
+      allow create: if isResidenceMember(
+          request.resource.data.createdFromResidenceId
+        )
+        && request.resource.data.keys().hasOnly([
+          'name',
+          'categoryId',
+          'subcategoryId',
+          'profession',
+          'phone',
+          'neighborhood',
+          'createdBy',
+          'createdFromResidenceId',
+          'createdFromResidenceName',
+          'status',
+          'createdAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.categoryId is string
+        && request.resource.data.subcategoryId is string
+        && exists(serviceCategoryPath(request.resource.data.categoryId))
+        && get(
+          serviceCategoryPath(request.resource.data.categoryId)
+        ).data.subcategoryIds.hasAny([
+          request.resource.data.subcategoryId
+        ])
+        && request.resource.data.profession is string
+        && request.resource.data.profession.size() > 0
+        && request.resource.data.profession.size() <= 500
+        && request.resource.data.phone is string
+        && request.resource.data.phone.matches('^[+][1-9][0-9]{7,14}$')
+        && request.resource.data.neighborhood is string
+        && request.resource.data.neighborhood.size() > 0
+        && request.resource.data.neighborhood.size() <= 120
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdFromResidenceName
+          == get(
+            residencePath(request.resource.data.createdFromResidenceId)
+          ).data.name
+        && request.resource.data.status == 'active'
+        && request.resource.data.createdAt == request.time;
+
+      allow update, delete: if false;
+    }
+
     match /directoryRecommendations/{recommendationId} {
       allow read: if signedIn();
 
@@ -309,6 +371,7 @@ service cloud.firestore {
         ])
         && request.resource.data.entryId is string
         && request.resource.data.entryId.size() > 0
+        && exists(servicePath(request.resource.data.entryId))
         && request.resource.data.residenceId is string
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.authorName is string
