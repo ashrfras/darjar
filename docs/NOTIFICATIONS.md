@@ -1,9 +1,12 @@
 # DarJar notifications
 
-DarJar has three notification types:
+DarJar has six notification types:
 
 - `postCreated`: a resident created a post.
+- `postLiked`: a resident liked another resident's post.
+- `postCommented`: a resident commented on another resident's post.
 - `duesOverdue`: a resident's dues became overdue.
+- `duesMarkedPaid`: management recorded a resident's dues as fully paid.
 - `budgetChanged`: a manual finance transaction changed the residence budget.
 
 Posts remain the source of important news and alerts. A post notification only
@@ -24,7 +27,7 @@ users/{recipientUserId}/notifications/{notificationId}
 Required fields:
 
 ```text
-type: postCreated | duesOverdue | budgetChanged
+type: postCreated | postLiked | postCommented | duesOverdue | duesMarkedPaid | budgetChanged
 residenceId: string
 recipientUserId: string
 occurredAt: timestamp
@@ -67,6 +70,10 @@ payload is used only for navigation when the notification is opened.
 ## Event rules
 
 - Do not notify the author of their own post.
+- Send like and comment notifications only to the post author, and do not
+  notify users about their own interactions.
+- Send `duesMarkedPaid` only when a due transitions to `paid`, and only to
+  active members assigned to that due's apartment.
 - Create `duesOverdue` once when a due changes from payable to overdue.
 - Create `budgetChanged` only for an added, edited, or deleted manual finance
   transaction. Do not emit it for a balance recalculation.

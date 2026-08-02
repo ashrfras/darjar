@@ -65,6 +65,100 @@ class NotificationDispatcher {
     }
   }
 
+  Future<void> postLiked({
+    required String documentPath,
+    required String eventId,
+    required Iterable<String> addedUserIds,
+  }) async {
+    final path = _parseDocumentPath(documentPath, collection: 'communityPosts');
+    final post = await _backend.getDocument(path.fullPath);
+    if (post == null) return;
+    final authorId = _string(post.data['authorId']);
+    if (authorId.isEmpty) return;
+    final members = await _activeMembers(path.residenceId);
+    final membersById = {for (final member in members) member.id: member};
+
+    for (final actorId in addedUserIds.toSet()) {
+      if (actorId.isEmpty || actorId == authorId) continue;
+      final actor = membersById[actorId];
+      if (actor == null) continue;
+      final actorName = _memberName(actor);
+      await _deliver(
+        NotificationPayload(
+          id: _safeId('post-liked-${path.documentId}-$eventId-$actorId'),
+          type: 'postLiked',
+          residenceId: path.residenceId,
+          recipientUserId: authorId,
+          targetId: path.documentId,
+          actorName: actorName,
+          title: 'إعجاب جديد',
+          body: 'أُعجب $actorName بمنشورك.',
+          occurredAt: _now().toUtc(),
+        ),
+      );
+    }
+  }
+
+  Future<void> commentCreated({
+    required String documentPath,
+    required String eventId,
+  }) async {
+    final path = _parseCommentPath(documentPath);
+    final comment = await _backend.getDocument(path.fullPath);
+    final post = await _backend.getDocument(path.postPath);
+    if (comment == null || post == null) return;
+    final actorId = _string(comment.data['authorId']);
+    final authorId = _string(post.data['authorId']);
+    if (actorId.isEmpty || authorId.isEmpty || actorId == authorId) return;
+    final actorName = _abbreviatedPersonName(
+      _string(comment.data['authorName'], fallback: actorId),
+    );
+    await _deliver(
+      NotificationPayload(
+        id: _safeId('post-commented-${path.commentId}'),
+        type: 'postCommented',
+        residenceId: path.residenceId,
+        recipientUserId: authorId,
+        targetId: path.postId,
+        actorName: actorName,
+        title: 'تعليق جديد',
+        body: 'علّق $actorName على منشورك.',
+        occurredAt: _now().toUtc(),
+      ),
+    );
+  }
+
+  Future<void> duesMarkedPaid({
+    required String documentPath,
+    required String eventId,
+    required bool becamePaid,
+  }) async {
+    if (!becamePaid) return;
+    final path = _parseDocumentPath(documentPath, collection: 'dues');
+    final due = await _backend.getDocument(path.fullPath);
+    if (due == null) return;
+    final apartmentId = _string(due.data['apartmentId']);
+    final periodKey = _string(due.data['periodKey']);
+    if (apartmentId.isEmpty || periodKey.isEmpty) return;
+    final members = await _activeMembers(path.residenceId);
+    for (final member in members) {
+      if (_string(member.data['apartmentId']) != apartmentId) continue;
+      await _deliver(
+        NotificationPayload(
+          id: _safeId('dues-paid-${path.documentId}'),
+          type: 'duesMarkedPaid',
+          residenceId: path.residenceId,
+          recipientUserId: member.id,
+          targetId: path.documentId,
+          periodKey: periodKey,
+          title: 'تم تسجيل أداء اشتراكك',
+          body: 'تم تسجيل اشتراكك عن الفترة $periodKey كمؤدى.',
+          occurredAt: _now().toUtc(),
+        ),
+      );
+    }
+  }
+
   Future<void> notifyOverdueDues() async {
     final currentPeriod = _periodKey(_now().toUtc());
     final residences = await _backend.listDocuments('residences');
@@ -144,6 +238,14 @@ class NotificationDispatcher {
       }
     }
   }
+
+  String _memberName(BackendDocument member) {
+    final fullName =
+        '${_string(member.data['firstName'])} '
+                '${_string(member.data['lastName'])}'
+            .trim();
+    return _abbreviatedPersonName(fullName.isEmpty ? member.id : fullName);
+  }
 }
 
 String _abbreviatedPersonName(String fullName) {
@@ -188,6 +290,42 @@ class InvalidPushToken implements Exception {
     residenceId: segments[1],
     documentId: segments[3],
   );
+}
+
+({
+  String fullPath,
+  String residenceId,
+  String postId,
+  String postPath,
+  String commentId,
+})
+_parseCommentPath(String value) {
+  final segments = _pathSegments(value);
+  if (segments.length != 6 ||
+      segments[0] != 'residences' ||
+      segments[2] != 'communityPosts' ||
+      segments[4] != 'comments') {
+    throw FormatException('Unexpected Firestore comment path: $value');
+  }
+  return (
+    fullPath: segments.join('/'),
+    residenceId: segments[1],
+    postId: segments[3],
+    postPath: segments.take(4).join('/'),
+    commentId: segments[5],
+  );
+}
+
+List<String> _pathSegments(String value) {
+  var path = value;
+  final marker = '/documents/';
+  final markerIndex = path.indexOf(marker);
+  if (markerIndex >= 0) path = path.substring(markerIndex + marker.length);
+  if (path.startsWith('documents/')) path = path.substring('documents/'.length);
+  return path
+      .split('/')
+      .where((segment) => segment.isNotEmpty)
+      .toList(growable: false);
 }
 
 String _safeId(String value) {

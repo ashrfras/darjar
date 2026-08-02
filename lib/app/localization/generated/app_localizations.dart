@@ -2280,6 +2280,30 @@ abstract class AppLocalizations {
   /// **'أضاف {author} منشورًا جديدًا.'**
   String newPostNotificationBody(String author);
 
+  /// No description provided for @postLikedNotificationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعجاب جديد'**
+  String get postLikedNotificationTitle;
+
+  /// No description provided for @postLikedNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'أُعجب {actor} بمنشورك.'**
+  String postLikedNotificationBody(String actor);
+
+  /// No description provided for @postCommentedNotificationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعليق جديد'**
+  String get postCommentedNotificationTitle;
+
+  /// No description provided for @postCommentedNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'علّق {actor} على منشورك.'**
+  String postCommentedNotificationBody(String actor);
+
   /// No description provided for @duesOverdueNotificationTitle.
   ///
   /// In ar, this message translates to:
@@ -2303,6 +2327,18 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تم تحديث ميزانية الإقامة.'**
   String get budgetChangedNotificationBody;
+
+  /// No description provided for @duesMarkedPaidNotificationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تسجيل أداء اشتراكك'**
+  String get duesMarkedPaidNotificationTitle;
+
+  /// No description provided for @duesMarkedPaidNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تسجيل اشتراكك عن الفترة {period} كمؤدى.'**
+  String duesMarkedPaidNotificationBody(String period);
 
   /// No description provided for @waterInterruptionNotificationTitle.
   ///

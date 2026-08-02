@@ -232,6 +232,34 @@ void main() {
       expect(updated.single.isRead, isTrue);
     });
 
+    test('interaction and payment notifications open their relevant pages', () {
+      DarJarNotification notification(DarJarNotificationType type) {
+        return DarJarNotification(
+          id: type.name,
+          residenceId: 'residence-a',
+          recipientUserId: 'user-a',
+          type: type,
+          occurredAt: DateTime(2026, 8, 2),
+          targetId: type == DarJarNotificationType.duesMarkedPaid
+              ? '2026-08_apartment-a'
+              : 'post-a',
+        );
+      }
+
+      expect(
+        notificationRoute(notification(DarJarNotificationType.postLiked)),
+        AppRoutes.communityPost('post-a'),
+      );
+      expect(
+        notificationRoute(notification(DarJarNotificationType.postCommented)),
+        AppRoutes.communityPost('post-a'),
+      );
+      expect(
+        notificationRoute(notification(DarJarNotificationType.duesMarkedPaid)),
+        AppRoutes.dues,
+      );
+    });
+
     test('dues overview exposes debit, credit, and grouped payment totals', () {
       final now = DateTime.now();
       final currentPeriod = residenceDuesPeriodKey(now);

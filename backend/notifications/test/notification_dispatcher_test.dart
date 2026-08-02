@@ -34,33 +34,32 @@ void main() {
     expect(backend.notifications.single.type, 'postCreated');
     expect(backend.notifications.single.targetId, 'post-1');
     expect(backend.notifications.single.actorName, 'أمينة م.');
-    expect(
-      backend.notifications.single.body,
-      'أضاف أمينة م. منشورًا جديدًا.',
-    );
+    expect(backend.notifications.single.body, 'أضاف أمينة م. منشورًا جديدًا.');
     expect(backend.pushes.single.token, 'neighbor-token');
   });
 
-  test('post notifications ignore the Arabic article in surname initials',
-      () async {
-    final backend = _FakeBackend()
-      ..document('residences/home/communityPosts/post-1', {
-        'authorId': 'author',
-        'authorName': 'كريم المنيعي',
-      })
-      ..collection('residences/home/members', [
-        _document('author', {'status': 'active'}),
-        _document('neighbor', {'status': 'active'}),
-      ]);
-    final dispatcher = NotificationDispatcher(backend);
+  test(
+    'post notifications ignore the Arabic article in surname initials',
+    () async {
+      final backend = _FakeBackend()
+        ..document('residences/home/communityPosts/post-1', {
+          'authorId': 'author',
+          'authorName': 'كريم المنيعي',
+        })
+        ..collection('residences/home/members', [
+          _document('author', {'status': 'active'}),
+          _document('neighbor', {'status': 'active'}),
+        ]);
+      final dispatcher = NotificationDispatcher(backend);
 
-    await dispatcher.postCreated(
-      documentPath: 'residences/home/communityPosts/post-1',
-      eventId: 'event-1',
-    );
+      await dispatcher.postCreated(
+        documentPath: 'residences/home/communityPosts/post-1',
+        eventId: 'event-1',
+      );
 
-    expect(backend.notifications.single.actorName, 'كريم م.');
-  });
+      expect(backend.notifications.single.actorName, 'كريم م.');
+    },
+  );
 
   test('duplicate events do not send duplicate pushes', () async {
     final backend = _FakeBackend()
@@ -111,6 +110,104 @@ void main() {
       ),
       isTrue,
     );
+  });
+
+  test('a new like notifies only the post author', () async {
+    final backend = _FakeBackend()
+      ..document('residences/home/communityPosts/post-1', {
+        'authorId': 'author',
+      })
+      ..collection('residences/home/members', [
+        _document('author', {'status': 'active'}),
+        _document('neighbor', {
+          'status': 'active',
+          'firstName': 'أمينة',
+          'lastName': 'المريني',
+        }),
+      ]);
+    final dispatcher = NotificationDispatcher(backend);
+
+    await dispatcher.postLiked(
+      documentPath: 'residences/home/communityPosts/post-1',
+      eventId: 'like-event-1',
+      addedUserIds: const ['neighbor'],
+    );
+
+    expect(backend.notifications, hasLength(1));
+    expect(backend.notifications.single.recipientUserId, 'author');
+    expect(backend.notifications.single.type, 'postLiked');
+    expect(backend.notifications.single.targetId, 'post-1');
+    expect(backend.notifications.single.actorName, 'أمينة م.');
+  });
+
+  test('liking your own post does not create a notification', () async {
+    final backend = _FakeBackend()
+      ..document('residences/home/communityPosts/post-1', {
+        'authorId': 'author',
+      })
+      ..collection('residences/home/members', [
+        _document('author', {'status': 'active'}),
+      ]);
+
+    await NotificationDispatcher(backend).postLiked(
+      documentPath: 'residences/home/communityPosts/post-1',
+      eventId: 'like-event-1',
+      addedUserIds: const ['author'],
+    );
+
+    expect(backend.notifications, isEmpty);
+  });
+
+  test('a new comment notifies the post author', () async {
+    final backend = _FakeBackend()
+      ..document('residences/home/communityPosts/post-1', {
+        'authorId': 'author',
+      })
+      ..document('residences/home/communityPosts/post-1/comments/comment-1', {
+        'authorId': 'neighbor',
+        'authorName': 'كريم المنيعي',
+      });
+
+    await NotificationDispatcher(backend).commentCreated(
+      documentPath: 'residences/home/communityPosts/post-1/comments/comment-1',
+      eventId: 'comment-event-1',
+    );
+
+    expect(backend.notifications, hasLength(1));
+    expect(backend.notifications.single.recipientUserId, 'author');
+    expect(backend.notifications.single.type, 'postCommented');
+    expect(backend.notifications.single.targetId, 'post-1');
+    expect(backend.notifications.single.actorName, 'كريم م.');
+  });
+
+  test('paid dues notify active residents assigned to the apartment', () async {
+    final backend = _FakeBackend()
+      ..document('residences/home/dues/2026-07_apartment-a', {
+        'apartmentId': 'apartment-a',
+        'periodKey': '2026-07',
+      })
+      ..collection('residences/home/members', [
+        _document('resident-a', {
+          'status': 'active',
+          'apartmentId': 'apartment-a',
+        }),
+        _document('resident-b', {
+          'status': 'active',
+          'apartmentId': 'apartment-b',
+        }),
+      ]);
+    final dispatcher = NotificationDispatcher(backend);
+
+    await dispatcher.duesMarkedPaid(
+      documentPath: 'residences/home/dues/2026-07_apartment-a',
+      eventId: 'due-event-1',
+      becamePaid: true,
+    );
+
+    expect(backend.notifications, hasLength(1));
+    expect(backend.notifications.single.recipientUserId, 'resident-a');
+    expect(backend.notifications.single.type, 'duesMarkedPaid');
+    expect(backend.notifications.single.periodKey, '2026-07');
   });
 
   test(

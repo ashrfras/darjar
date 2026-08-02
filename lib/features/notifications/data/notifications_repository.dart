@@ -7,7 +7,14 @@ import 'package:darjar/features/residence/data/residence_context_repository.dart
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum DarJarNotificationType { postCreated, duesOverdue, budgetChanged }
+enum DarJarNotificationType {
+  postCreated,
+  postLiked,
+  postCommented,
+  duesOverdue,
+  duesMarkedPaid,
+  budgetChanged,
+}
 
 class DarJarNotification {
   const DarJarNotification({
@@ -250,7 +257,7 @@ class FirestoreNotificationsRepository implements NotificationsRepository {
       occurredAt:
           (data['occurredAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       targetId: data['targetId'] as String? ?? '',
-      actorName: type == DarJarNotificationType.postCreated
+      actorName: _isCommunityInteraction(type)
           ? abbreviatedPersonName(data['actorName'] as String? ?? '')
           : data['actorName'] as String? ?? '',
       periodKey: data['periodKey'] as String? ?? '',
@@ -272,6 +279,12 @@ class FirestoreNotificationsRepository implements NotificationsRepository {
         .doc(userId)
         .collection('notifications');
   }
+}
+
+bool _isCommunityInteraction(DarJarNotificationType type) {
+  return type == DarJarNotificationType.postCreated ||
+      type == DarJarNotificationType.postLiked ||
+      type == DarJarNotificationType.postCommented;
 }
 
 final notificationsRepositoryProvider = Provider<NotificationsRepository>(

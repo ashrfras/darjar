@@ -647,11 +647,33 @@ class _NotificationTile extends StatelessWidget {
           abbreviatedPersonName(notification.actorName),
         ),
       ),
+      DarJarNotificationType.postLiked => (
+        Icons.favorite_outline,
+        AppColors.warning,
+        localizations.postLikedNotificationTitle,
+        localizations.postLikedNotificationBody(
+          abbreviatedPersonName(notification.actorName),
+        ),
+      ),
+      DarJarNotificationType.postCommented => (
+        Icons.chat_bubble_outline_rounded,
+        AppColors.residence,
+        localizations.postCommentedNotificationTitle,
+        localizations.postCommentedNotificationBody(
+          abbreviatedPersonName(notification.actorName),
+        ),
+      ),
       DarJarNotificationType.duesOverdue => (
         Icons.receipt_long_outlined,
         AppColors.warning,
         localizations.duesOverdueNotificationTitle,
         localizations.duesOverdueNotificationBody(notification.periodKey),
+      ),
+      DarJarNotificationType.duesMarkedPaid => (
+        Icons.check_circle_outline_rounded,
+        AppColors.primary,
+        localizations.duesMarkedPaidNotificationTitle,
+        localizations.duesMarkedPaidNotificationBody(notification.periodKey),
       ),
       DarJarNotificationType.budgetChanged => (
         Icons.account_balance_wallet_outlined,

@@ -164,7 +164,10 @@ class NotificationPushService {
       type: type,
       occurredAt: message.sentTime ?? DateTime.now(),
       targetId: data['targetId'] ?? '',
-      actorName: type == DarJarNotificationType.postCreated
+      actorName:
+          type == DarJarNotificationType.postCreated ||
+              type == DarJarNotificationType.postLiked ||
+              type == DarJarNotificationType.postCommented
           ? abbreviatedPersonName(data['actorName'] ?? '')
           : data['actorName'] ?? '',
       periodKey: data['periodKey'] ?? '',
@@ -183,7 +186,13 @@ String notificationRoute(DarJarNotification notification) {
     DarJarNotificationType.postCreated when notification.targetId.isNotEmpty =>
       AppRoutes.communityPost(notification.targetId),
     DarJarNotificationType.postCreated => AppRoutes.community,
+    DarJarNotificationType.postLiked || DarJarNotificationType.postCommented
+        when notification.targetId.isNotEmpty =>
+      AppRoutes.communityPost(notification.targetId),
+    DarJarNotificationType.postLiked ||
+    DarJarNotificationType.postCommented => AppRoutes.community,
     DarJarNotificationType.duesOverdue => AppRoutes.dues,
+    DarJarNotificationType.duesMarkedPaid => AppRoutes.dues,
     DarJarNotificationType.budgetChanged => AppRoutes.residenceFinances,
   };
 }

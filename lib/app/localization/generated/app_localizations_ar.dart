@@ -1208,6 +1208,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get postLikedNotificationTitle => 'إعجاب جديد';
+
+  @override
+  String postLikedNotificationBody(String actor) {
+    return 'أُعجب $actor بمنشورك.';
+  }
+
+  @override
+  String get postCommentedNotificationTitle => 'تعليق جديد';
+
+  @override
+  String postCommentedNotificationBody(String actor) {
+    return 'علّق $actor على منشورك.';
+  }
+
+  @override
   String get duesOverdueNotificationTitle => 'تأخر الأداء';
 
   @override
@@ -1220,6 +1236,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get budgetChangedNotificationBody => 'تم تحديث ميزانية الإقامة.';
+
+  @override
+  String get duesMarkedPaidNotificationTitle => 'تم تسجيل أداء اشتراكك';
+
+  @override
+  String duesMarkedPaidNotificationBody(String period) {
+    return 'تم تسجيل اشتراكك عن الفترة $period كمؤدى.';
+  }
 
   @override
   String get waterInterruptionNotificationTitle => 'انقطاع مبرمج للماء';

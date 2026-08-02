@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:darjar_notifications/src/firestore_event_data.dart';
 import 'package:darjar_notifications/src/google_cloud_backend.dart';
 import 'package:darjar_notifications/src/notification_dispatcher.dart';
 import 'package:shelf/shelf.dart';
@@ -24,15 +26,47 @@ Future<void> main() async {
       '/events/post-created',
       (request) => _event(
         request,
-        (path, eventId) =>
+        (path, eventId, data) =>
             dispatcher.postCreated(documentPath: path, eventId: eventId),
       ),
+    )
+    ..post(
+      '/events/post-written',
+      (request) => _event(request, (path, eventId, data) {
+        final before = _stringList(data.oldValue['likedBy']);
+        final after = _stringList(data.value['likedBy']);
+        return dispatcher.postLiked(
+          documentPath: path,
+          eventId: eventId,
+          addedUserIds: after.where((userId) => !before.contains(userId)),
+        );
+      }),
+    )
+    ..post(
+      '/events/comment-created',
+      (request) => _event(
+        request,
+        (path, eventId, data) =>
+            dispatcher.commentCreated(documentPath: path, eventId: eventId),
+      ),
+    )
+    ..post(
+      '/events/due-written',
+      (request) => _event(request, (path, eventId, data) {
+        final previousStatus = data.oldValue['status'];
+        final currentStatus = data.value['status'];
+        return dispatcher.duesMarkedPaid(
+          documentPath: path,
+          eventId: eventId,
+          becamePaid: previousStatus != 'paid' && currentStatus == 'paid',
+        );
+      }),
     )
     ..post(
       '/events/budget-written',
       (request) => _event(
         request,
-        (path, eventId) =>
+        (path, eventId, data) =>
             dispatcher.budgetChanged(documentPath: path, eventId: eventId),
       ),
     )
@@ -57,19 +91,37 @@ Future<void> main() async {
 
 Future<Response> _event(
   Request request,
-  Future<void> Function(String path, String eventId) dispatch,
+  Future<void> Function(
+    String path,
+    String eventId,
+    FirestoreDocumentChange data,
+  )
+  dispatch,
 ) async {
-  await request.read().drain<void>();
+  final body = BytesBuilder(copy: false);
+  await for (final chunk in request.read()) {
+    body.add(chunk);
+  }
   final subject = request.headers['ce-subject'];
   final eventId = request.headers['ce-id'];
   if (subject == null || eventId == null) {
     return Response.badRequest(body: 'Missing CloudEvent headers');
   }
   try {
-    await dispatch(subject, eventId);
+    final bytes = body.takeBytes();
+    final decoded = bytes.isEmpty
+        ? const FirestoreDocumentChange.empty()
+        : FirestoreDocumentChange.fromBuffer(bytes);
+    await dispatch(subject, eventId, decoded);
     return Response.ok('processed');
   } catch (error, stackTrace) {
     stderr.writeln('$error\n$stackTrace');
     return Response.internalServerError(body: 'processing failed');
   }
+}
+
+List<String> _stringList(Object? value) {
+  return value is List
+      ? value.whereType<String>().toList(growable: false)
+      : const [];
 }

@@ -1,7 +1,7 @@
 # تشغيل خدمة إشعارات DarJar
 
 الخدمة موجودة في `backend/notifications` وتعمل على Cloud Run باستخدام Dart.
-تستقبل حدثين من Firestore عبر Eventarc، وتشغّل فحص الواجبات المتأخرة يوميًا
+تستقبل خمسة أنواع من أحداث Firestore عبر Eventarc، وتشغّل فحص الواجبات المتأخرة يوميًا
 عبر Cloud Scheduler.
 
 لا تنشئ أو تنزّل مفتاح service account. تستخدم الخدمة Application Default
@@ -126,7 +126,57 @@ gcloud eventarc triggers create darjar-post-created \
   --destination-run-path /events/post-created \
   --event-filters="type=google.cloud.firestore.document.v1.created" \
   --event-filters="database=(default)" \
+  --event-filters="namespace=(default)" \
   --event-filters-path-pattern="document=residences/{residenceId}/communityPosts/{postId}" \
+  --event-data-content-type="application/protobuf" \
+  --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
+```
+
+إشعارات الإعجاب بالمنشورات:
+
+```bash
+gcloud eventarc triggers create darjar-post-written \
+  --location FIRESTORE_LOCATION \
+  --destination-run-service darjar-notifications \
+  --destination-run-region RUN_REGION \
+  --destination-run-path /events/post-written \
+  --event-filters="type=google.cloud.firestore.document.v1.updated" \
+  --event-filters="database=(default)" \
+  --event-filters="namespace=(default)" \
+  --event-filters-path-pattern="document=residences/{residenceId}/communityPosts/{postId}" \
+  --event-data-content-type="application/protobuf" \
+  --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
+```
+
+إشعارات التعليق على المنشورات:
+
+```bash
+gcloud eventarc triggers create darjar-comment-created \
+  --location FIRESTORE_LOCATION \
+  --destination-run-service darjar-notifications \
+  --destination-run-region RUN_REGION \
+  --destination-run-path /events/comment-created \
+  --event-filters="type=google.cloud.firestore.document.v1.created" \
+  --event-filters="database=(default)" \
+  --event-filters="namespace=(default)" \
+  --event-filters-path-pattern="document=residences/{residenceId}/communityPosts/{postId}/comments/{commentId}" \
+  --event-data-content-type="application/protobuf" \
+  --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
+```
+
+إشعار المستخدم عند انتقال اشتراك شقته إلى حالة مؤدى:
+
+```bash
+gcloud eventarc triggers create darjar-due-written \
+  --location FIRESTORE_LOCATION \
+  --destination-run-service darjar-notifications \
+  --destination-run-region RUN_REGION \
+  --destination-run-path /events/due-written \
+  --event-filters="type=google.cloud.firestore.document.v1.written" \
+  --event-filters="database=(default)" \
+  --event-filters="namespace=(default)" \
+  --event-filters-path-pattern="document=residences/{residenceId}/dues/{dueId}" \
+  --event-data-content-type="application/protobuf" \
   --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
 ```
 
@@ -140,7 +190,9 @@ gcloud eventarc triggers create darjar-budget-written \
   --destination-run-path /events/budget-written \
   --event-filters="type=google.cloud.firestore.document.v1.written" \
   --event-filters="database=(default)" \
+  --event-filters="namespace=(default)" \
   --event-filters-path-pattern="document=residences/{residenceId}/financeTransactions/{transactionId}" \
+  --event-data-content-type="application/protobuf" \
   --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
 ```
 

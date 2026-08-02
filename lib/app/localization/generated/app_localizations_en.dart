@@ -1227,6 +1227,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get postLikedNotificationTitle => 'New like';
+
+  @override
+  String postLikedNotificationBody(String actor) {
+    return '$actor liked your post.';
+  }
+
+  @override
+  String get postCommentedNotificationTitle => 'New comment';
+
+  @override
+  String postCommentedNotificationBody(String actor) {
+    return '$actor commented on your post.';
+  }
+
+  @override
   String get duesOverdueNotificationTitle => 'Overdue dues';
 
   @override
@@ -1240,6 +1256,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get budgetChangedNotificationBody =>
       'The residence budget was updated.';
+
+  @override
+  String get duesMarkedPaidNotificationTitle =>
+      'Your dues payment was recorded';
+
+  @override
+  String duesMarkedPaidNotificationBody(String period) {
+    return 'Your dues for $period were recorded as paid.';
+  }
 
   @override
   String get waterInterruptionNotificationTitle =>
