@@ -6,14 +6,14 @@ import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/residence/data/residence_invitation_repository.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/presentation/invitation_share_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 
 class GroupInvitationPage extends ConsumerWidget {
   const GroupInvitationPage({super.key});
@@ -73,8 +73,8 @@ class GroupInvitationPage extends ConsumerWidget {
                     final details = _InvitationDetails(
                       url: invitation.url,
                       copy: copy,
-                      onCopy: () => _copyLink(context, invitation.url),
-                      onShare: () => _shareLink(context, invitation.url, copy),
+                      onShare: () =>
+                          _showShareDialog(context, ref, invitation.url),
                       onPrintQr: () => _printQr(invitation.url, copy),
                     );
 
@@ -122,27 +122,21 @@ class GroupInvitationPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _copyLink(BuildContext context, String url) async {
-    final copy = _InvitationCopy.of(context);
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(copy.linkCopied)));
-    await Clipboard.setData(ClipboardData(text: url));
-  }
-
-  Future<void> _shareLink(
+  Future<void> _showShareDialog(
     BuildContext context,
+    WidgetRef ref,
     String url,
-    _InvitationCopy copy,
   ) async {
-    final box = context.findRenderObject() as RenderBox?;
-    await SharePlus.instance.share(
-      ShareParams(
-        text: '${copy.shareMessage}\n$url',
-        subject: copy.title,
-        sharePositionOrigin: box == null
-            ? null
-            : box.localToGlobal(Offset.zero) & box.size,
+    final copy = _InvitationCopy.of(context);
+    final residenceName =
+        ref.read(residenceContextProvider).value?.activeResidence?.name ??
+        copy.residenceFallbackName;
+    await showInvitationShareDialog(
+      context,
+      invitationUrl: url,
+      initialMessage: groupInvitationMessage(
+        context,
+        residenceName: residenceName,
       ),
     );
   }
@@ -233,14 +227,12 @@ class _InvitationDetails extends StatelessWidget {
   const _InvitationDetails({
     required this.url,
     required this.copy,
-    required this.onCopy,
     required this.onShare,
     required this.onPrintQr,
   });
 
   final String url;
   final _InvitationCopy copy;
-  final VoidCallback onCopy;
   final VoidCallback onShare;
   final VoidCallback onPrintQr;
 
@@ -282,13 +274,6 @@ class _InvitationDetails extends StatelessWidget {
           runSpacing: AppSpacing.small,
           children: [
             DarJarButton(
-              key: const Key('copy-group-invitation-link-button'),
-              label: copy.copyLink,
-              icon: Icons.content_copy_rounded,
-              variant: DarJarButtonVariant.secondary,
-              onPressed: onCopy,
-            ),
-            DarJarButton(
               key: const Key('share-group-invitation-link-button'),
               label: copy.shareLink,
               icon: Icons.ios_share_rounded,
@@ -327,7 +312,6 @@ class _InvitationCopy {
       : 'Share the permanent invitation link and control join requests.';
   String get permanentLink =>
       arabic ? 'رابط الدعوة العام الدائم' : 'Permanent public invitation link';
-  String get copyLink => arabic ? 'نسخ الرابط' : 'Copy link';
   String get shareLink => arabic ? 'مشاركة الرابط' : 'Share link';
   String get printQr => arabic ? 'تنزيل أو طباعة QR' : 'Download or print QR';
   String get scanToJoin => arabic
@@ -341,9 +325,6 @@ class _InvitationCopy {
   String get joiningDisabled => arabic
       ? 'الرابط ظاهر، لكن إرسال طلبات الانضمام متوقف.'
       : 'The link remains visible, but join requests are paused.';
-  String get linkCopied =>
-      arabic ? 'تم نسخ رابط الدعوة.' : 'Invitation link copied.';
-  String get shareMessage =>
-      arabic ? 'انضم إلى إقامتنا على DarJar:' : 'Join our residence on DarJar:';
+  String get residenceFallbackName => arabic ? 'الإقامة' : 'the residence';
   String get qrFileName => arabic ? 'دعوة-DarJar' : 'DarJar-invitation';
 }

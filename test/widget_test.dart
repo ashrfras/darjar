@@ -3461,6 +3461,21 @@ void main() {
     await tester.ensureVisible(actions);
     await tester.tap(actions);
     await tester.pumpAndSettle();
+    expect(find.text('إرسال دعوة'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('send-resident-invitation-action')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('invitation-share-dialog')), findsOneWidget);
+    expect(
+      find.textContaining(
+        'مرحباً كريم، لقد تمت إضافتك إلى إقامة الاختبار على تطبيق دارجار',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('close-invitation-share-dialog')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(actions);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('تعيين الشقة'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('الشقة 22'));
@@ -3621,6 +3636,20 @@ void main() {
     expect(membersRepository.createdInvitations, hasLength(1));
     expect(membersRepository.createdInvitations.single.firstName, 'مريم');
     expect(find.text('تم إنشاء دعوة الساكن.'), findsOneWidget);
+    expect(find.byKey(const Key('invitation-share-dialog')), findsOneWidget);
+    expect(
+      find.textContaining(
+        'مرحباً مريم، لقد تمت إضافتك إلى إقامة الاختبار على تطبيق دارجار',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('invitation-message-field')), findsOneWidget);
+    expect(
+      find.byKey(const Key('confirm-share-invitation-button')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('close-invitation-share-dialog')));
+    await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('pending-invitation-+212698765432')),
       findsOneWidget,
@@ -3638,10 +3667,7 @@ void main() {
     expect(find.byKey(const Key('public-invitation-link')), findsOneWidget);
     expect(find.byKey(const Key('group-invitation-qr-code')), findsOneWidget);
     expect(find.text('السماح بالانضمام عبر الرابط'), findsOneWidget);
-    expect(
-      find.byKey(const Key('copy-group-invitation-link-button')),
-      findsOneWidget,
-    );
+    expect(find.text('نسخ الرابط'), findsNothing);
     expect(
       find.byKey(const Key('share-group-invitation-link-button')),
       findsOneWidget,
@@ -3650,6 +3676,23 @@ void main() {
       find.byKey(const Key('print-group-invitation-qr-button')),
       findsOneWidget,
     );
+
+    await tester.tap(
+      find.byKey(const Key('share-group-invitation-link-button')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('invitation-share-dialog')), findsOneWidget);
+    expect(
+      find.textContaining(
+        'أدعوك للانضمام إلى إقامة الاختبار على تطبيق دارجار، لتتبّع ميزانية الإقامة',
+      ),
+      findsOneWidget,
+    );
+    await tester.enterText(
+      find.byKey(const Key('invitation-message-field')),
+      'نص دعوة جماعية معدل',
+    );
+    expect(find.text('نص دعوة جماعية معدل'), findsOneWidget);
   });
 }
 

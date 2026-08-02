@@ -11,7 +11,10 @@ import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_invitation_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
+import 'package:darjar/features/residence/presentation/invitation_share_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -142,6 +145,7 @@ class _ApartmentsResidentsPageState
                           onGroupInvitation: () =>
                               context.push(AppRoutes.groupInvitation),
                           onAssign: _showApartmentDialog,
+                          onSendInvitation: _showResidentInvitationDialog,
                           currentMember: currentMember,
                           onChangeRole: (member) =>
                               _showRoleDialog(member, currentMember),
@@ -253,7 +257,10 @@ class _ApartmentsResidentsPageState
             phoneNumber: result.phone,
             apartmentId: result.apartmentId,
           );
-      if (mounted) _showSavedMessage(copy.invitationCreated);
+      if (mounted) {
+        _showSavedMessage(copy.invitationCreated);
+        await _showInvitationDialog(residentName: result.firstName.trim());
+      }
     } on ResidenceMembersFailure catch (error) {
       if (!mounted) return;
       _showSavedMessage(
@@ -261,6 +268,36 @@ class _ApartmentsResidentsPageState
             ? copy.invitationAlreadyPending
             : copy.saveFailed,
       );
+    }
+  }
+
+  Future<void> _showResidentInvitationDialog(ResidenceMember member) {
+    return _showInvitationDialog(residentName: _firstName(member.name));
+  }
+
+  String _firstName(String fullName) {
+    final parts = fullName.trim().split(RegExp(r'\s+'));
+    return parts.firstOrNull ?? fullName.trim();
+  }
+
+  Future<void> _showInvitationDialog({required String residentName}) async {
+    try {
+      final invitation = await ref.read(residenceInvitationProvider.future);
+      if (!mounted) return;
+      final residenceName =
+          ref.read(residenceContextProvider).value?.activeResidence?.name ??
+          _Copy.of(context).residenceFallbackName;
+      await showInvitationShareDialog(
+        context,
+        invitationUrl: invitation.url,
+        initialMessage: residentInvitationMessage(
+          context,
+          residentName: residentName,
+          residenceName: residenceName,
+        ),
+      );
+    } catch (_) {
+      if (mounted) _showSavedMessage(_Copy.of(context).invitationLoadFailed);
     }
   }
 
@@ -1175,6 +1212,7 @@ class _ResidentsView extends StatelessWidget {
     required this.onAddResident,
     required this.onGroupInvitation,
     required this.onAssign,
+    required this.onSendInvitation,
     required this.currentMember,
     required this.onChangeRole,
     required this.onTogglePresidentPermissions,
@@ -1189,6 +1227,7 @@ class _ResidentsView extends StatelessWidget {
   final VoidCallback onAddResident;
   final VoidCallback onGroupInvitation;
   final ValueChanged<ResidenceMember> onAssign;
+  final ValueChanged<ResidenceMember> onSendInvitation;
   final ResidenceMember? currentMember;
   final ValueChanged<ResidenceMember> onChangeRole;
   final ValueChanged<ResidenceMember> onTogglePresidentPermissions;
@@ -1278,6 +1317,7 @@ class _ResidentsView extends StatelessWidget {
               apartmentLabel: _apartmentLabel(data, member.apartmentId),
               copy: copy,
               onAssign: () => onAssign(member),
+              onSendInvitation: () => onSendInvitation(member),
               canChangeRole:
                   currentMember?.canManageResidence == true &&
                   member.role != ResidenceMemberRole.president,
@@ -1414,6 +1454,7 @@ class _ResidentCard extends StatelessWidget {
     required this.apartmentLabel,
     required this.copy,
     required this.onAssign,
+    required this.onSendInvitation,
     required this.canChangeRole,
     required this.canTogglePresidentPermissions,
     required this.canRemove,
@@ -1426,6 +1467,7 @@ class _ResidentCard extends StatelessWidget {
   final String? apartmentLabel;
   final _Copy copy;
   final VoidCallback onAssign;
+  final VoidCallback onSendInvitation;
   final bool canChangeRole;
   final bool canTogglePresidentPermissions;
   final bool canRemove;
@@ -1522,6 +1564,9 @@ class _ResidentCard extends StatelessWidget {
                 case _ResidentAction.assign:
                   onAssign();
                   break;
+                case _ResidentAction.sendInvitation:
+                  onSendInvitation();
+                  break;
                 case _ResidentAction.role:
                   onChangeRole();
                   break;
@@ -1540,7 +1585,13 @@ class _ResidentCard extends StatelessWidget {
   }
 }
 
-enum _ResidentAction { assign, role, presidentPermissions, remove }
+enum _ResidentAction {
+  assign,
+  sendInvitation,
+  role,
+  presidentPermissions,
+  remove,
+}
 
 class _DarJarActionsButton extends StatelessWidget {
   const _DarJarActionsButton({
@@ -1581,7 +1632,12 @@ class _DarJarActionsButton extends StatelessWidget {
             as RenderBox;
     final topLeft = buttonBox.localToGlobal(Offset.zero, ancestor: overlayBox);
     final menuWidth = 238.0;
-    final menuHeight = 164.0;
+    final actionCount =
+        2 +
+        (canChangeRole ? 1 : 0) +
+        (canTogglePresidentPermissions ? 1 : 0) +
+        (canRemove ? 1 : 0);
+    final menuHeight = actionCount * 50.0 + AppSpacing.small;
     final overlaySize = overlayBox.size;
     final left = (topLeft.dx + buttonBox.size.width - menuWidth)
         .clamp(
@@ -1677,6 +1733,13 @@ class _DarJarActionsMenu extends StatelessWidget {
                 label: copy.assignApartment,
                 onTap: () => Navigator.pop(context, _ResidentAction.assign),
               ),
+              _DarJarMenuItem(
+                key: const Key('send-resident-invitation-action'),
+                icon: Icons.send_outlined,
+                label: copy.sendInvitation,
+                onTap: () =>
+                    Navigator.pop(context, _ResidentAction.sendInvitation),
+              ),
               if (canChangeRole)
                 _DarJarMenuItem(
                   icon: Icons.badge_outlined,
@@ -1715,6 +1778,7 @@ class _DarJarMenuItem extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.danger = false,
+    super.key,
   });
 
   final IconData icon;
@@ -1867,6 +1931,7 @@ class _Copy {
   String get manage => arabic ? 'إدارة الساكن' : 'Manage resident';
   String get closeMenu => arabic ? 'إغلاق القائمة' : 'Close menu';
   String get assignApartment => arabic ? 'تعيين الشقة' : 'Assign apartment';
+  String get sendInvitation => arabic ? 'إرسال دعوة' : 'Send invitation';
   String get changeRole => arabic ? 'تغيير الدور' : 'Change role';
   String get presidentPermissions =>
       arabic ? 'صلاحيات الرئيس' : 'President permissions';
@@ -1901,6 +1966,10 @@ class _Copy {
   String get presidencyTransferred =>
       arabic ? 'تم نقل صفة الرئيس.' : 'Presidency transferred.';
   String get groupInvitation => arabic ? 'الدعوة الجماعية' : 'Group invitation';
+  String get residenceFallbackName => arabic ? 'الإقامة' : 'the residence';
+  String get invitationLoadFailed => arabic
+      ? 'تعذر تحميل رابط الدعوة. حاول مجددًا.'
+      : 'Could not load the invitation link. Try again.';
 
   String buildingName(ResidenceBuilding building) =>
       arabic ? building.nameAr : building.nameEn;
