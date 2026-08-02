@@ -433,6 +433,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createService => 'Add a new service';
 
   @override
+  String get editService => 'Edit service';
+
+  @override
+  String get editServiceDescription =>
+      'Update the service information you added.';
+
+  @override
   String get createServiceDescription =>
       'Add the provider details so residence members can find the service.';
 
@@ -486,7 +493,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveService => 'Add service';
 
   @override
+  String get updateService => 'Save changes';
+
+  @override
   String get savingService => 'Adding service…';
+
+  @override
+  String get updatingService => 'Saving changes…';
 
   @override
   String get completeServiceFields =>
@@ -494,6 +507,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get serviceCreated => 'Service added successfully.';
+
+  @override
+  String get serviceUpdated => 'Service updated successfully.';
+
+  @override
+  String get serviceUpdateFailed =>
+      'Could not update the service. Please try again.';
 
   @override
   String get serviceCreateFailed =>

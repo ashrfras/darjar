@@ -30,6 +30,11 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_loadMoreNearBottom);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(directoryEntriesProvider.notifier).refresh();
+      }
+    });
   }
 
   @override

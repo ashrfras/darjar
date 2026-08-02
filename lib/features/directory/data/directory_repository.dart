@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DirectoryReview {
@@ -36,6 +37,8 @@ class DirectoryEntry {
     required this.workedResidences,
     required this.reviews,
     this.neighborhood = 'المعاريف',
+    this.createdBy = '',
+    this.city = '',
   });
 
   final String id;
@@ -50,6 +53,8 @@ class DirectoryEntry {
   final List<String> workedResidences;
   final List<DirectoryReview> reviews;
   final String neighborhood;
+  final String createdBy;
+  final String city;
 
   DirectoryEntry copyWith({
     int? recommendationCount,
@@ -71,6 +76,8 @@ class DirectoryEntry {
       workedResidences: workedResidences ?? this.workedResidences,
       reviews: reviews ?? this.reviews,
       neighborhood: neighborhood,
+      createdBy: createdBy,
+      city: city,
     );
   }
 }
@@ -244,10 +251,24 @@ class MockDirectoryRecommendationsRepository
 }
 
 abstract interface class DirectoryRepository {
-  Stream<List<DirectoryEntry>> watchEntries({required int limit});
+  Stream<List<DirectoryEntry>> watchEntries({
+    required String city,
+    required int limit,
+  });
 
   Future<String> createService({
     required String residenceId,
+    required String userId,
+    required String name,
+    required String categoryId,
+    required List<String> subcategoryIds,
+    required String profession,
+    required String phone,
+    required String neighborhood,
+  });
+
+  Future<void> updateService({
+    required String serviceId,
     required String userId,
     required String name,
     required String categoryId,
@@ -271,9 +292,13 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
   final FirebaseFirestore _firestore;
 
   @override
-  Stream<List<DirectoryEntry>> watchEntries({required int limit}) {
+  Stream<List<DirectoryEntry>> watchEntries({
+    required String city,
+    required int limit,
+  }) {
     return _firestore
         .collection('services')
+        .where('city', isEqualTo: city)
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()
@@ -327,8 +352,12 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
       final validSubcategoryIds = List<String>.from(
         categoryData?['subcategoryIds'] as List? ?? const [],
       );
+      final city = residenceData?['city'] as String? ?? '';
       if (!results[1].exists || memberData?['status'] != 'active') {
         throw const DirectoryFailure('not-a-member');
+      }
+      if (!RegExp(r'^[0-9]{7,10}$').hasMatch(city)) {
+        throw const DirectoryFailure('invalid-city');
       }
       if (!results[2].exists ||
           !subcategoryIds.every(validSubcategoryIds.contains)) {
@@ -342,6 +371,7 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
         'profession': normalizedProfession,
         'phone': normalizedPhone,
         'neighborhood': normalizedNeighborhood,
+        'city': city,
         'createdBy': userId,
         'createdFromResidenceId': residenceId,
         'createdFromResidenceName':
@@ -350,6 +380,66 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
         'createdAt': FieldValue.serverTimestamp(),
       });
       return service.id;
+    } catch (error) {
+      throw _failure(error);
+    }
+  }
+
+  @override
+  Future<void> updateService({
+    required String serviceId,
+    required String userId,
+    required String name,
+    required String categoryId,
+    required List<String> subcategoryIds,
+    required String profession,
+    required String phone,
+    required String neighborhood,
+  }) async {
+    final normalizedName = name.trim();
+    final normalizedProfession = profession.trim();
+    final normalizedPhone = phone.trim();
+    final normalizedNeighborhood = neighborhood.trim();
+    if (serviceId.isEmpty ||
+        normalizedName.isEmpty ||
+        normalizedName.length > 120 ||
+        categoryId.isEmpty ||
+        subcategoryIds.isEmpty ||
+        subcategoryIds.length > 8 ||
+        subcategoryIds.toSet().length != subcategoryIds.length ||
+        normalizedProfession.isEmpty ||
+        normalizedProfession.length > 160 ||
+        !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(normalizedPhone) ||
+        normalizedNeighborhood.length > 120) {
+      throw const DirectoryFailure('invalid-service');
+    }
+    try {
+      final service = _firestore.collection('services').doc(serviceId);
+      final results = await Future.wait([
+        service.get(),
+        _firestore.collection('serviceCategories').doc(categoryId).get(),
+      ]);
+      final serviceData = results[0].data();
+      final categoryData = results[1].data();
+      final validSubcategoryIds = List<String>.from(
+        categoryData?['subcategoryIds'] as List? ?? const [],
+      );
+      if (!results[0].exists || serviceData?['createdBy'] != userId) {
+        throw const DirectoryFailure('not-service-owner');
+      }
+      if (!results[1].exists ||
+          !subcategoryIds.every(validSubcategoryIds.contains)) {
+        throw const DirectoryFailure('invalid-category');
+      }
+      await service.update({
+        'name': normalizedName,
+        'categoryId': categoryId,
+        'subcategoryIds': subcategoryIds,
+        'profession': normalizedProfession,
+        'phone': normalizedPhone,
+        'neighborhood': normalizedNeighborhood,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     } catch (error) {
       throw _failure(error);
     }
@@ -374,6 +464,8 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
       workedResidences: const [],
       reviews: const [],
       neighborhood: data['neighborhood'] as String? ?? '',
+      createdBy: data['createdBy'] as String? ?? '',
+      city: data['city'] as String? ?? '',
     );
   }
 
@@ -409,9 +501,11 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
   StreamSubscription<List<DirectoryEntry>>? _entriesSubscription;
   StreamSubscription<List<DirectoryRecommendation>>?
   _recommendationsSubscription;
+  Timer? _entriesRetryTimer;
   List<DirectoryEntry> _baseEntries = const [];
   List<DirectoryRecommendation> _recommendations = const [];
   String? _activeResidenceId;
+  String? _activeCity;
   int _entryLimit = pageSize;
   bool _hasMore = true;
   bool _loadingMore = false;
@@ -421,11 +515,17 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
 
   @override
   List<DirectoryEntry> build() {
+    final activeCity = ref.watch(
+      residenceContextProvider.select(
+        (state) => state.value?.activeResidence?.city,
+      ),
+    );
     ref.onDispose(() {
+      _entriesRetryTimer?.cancel();
       _entriesSubscription?.cancel();
       _recommendationsSubscription?.cancel();
     });
-    unawaited(_bindEntries());
+    unawaited(_bindEntries(activeCity));
     unawaited(_bindRecommendations());
     return const [];
   }
@@ -468,10 +568,60 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
     if (residence == null || user == null) {
       throw const DirectoryFailure('missing-residence');
     }
-    return ref
+    final id = await ref
         .read(directoryRepositoryProvider)
         .createService(
           residenceId: residence.id,
+          userId: user.uid,
+          name: name,
+          categoryId: categoryId,
+          subcategoryIds: subcategoryIds,
+          profession: profession,
+          phone: phone,
+          neighborhood: neighborhood,
+        );
+    if (!_baseEntries.any((entry) => entry.id == id)) {
+      _baseEntries = [
+        DirectoryEntry(
+          id: id,
+          name: name.trim(),
+          categoryId: categoryId,
+          subcategoryIds: List.unmodifiable(subcategoryIds),
+          profession: profession.trim(),
+          phone: phone.trim(),
+          score: 0,
+          recommendationCount: 0,
+          localRecommendationCount: 0,
+          workedResidences: const [],
+          reviews: const [],
+          neighborhood: neighborhood.trim(),
+          createdBy: user.uid,
+          city: residence.city,
+        ),
+        ..._baseEntries,
+      ];
+      _rebuild();
+    }
+    return id;
+  }
+
+  Future<void> updateService({
+    required String id,
+    required String name,
+    required String categoryId,
+    required List<String> subcategoryIds,
+    required String profession,
+    required String phone,
+    required String neighborhood,
+  }) async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user == null) {
+      throw const DirectoryFailure('missing-user');
+    }
+    await ref
+        .read(directoryRepositoryProvider)
+        .updateService(
+          serviceId: id,
           userId: user.uid,
           name: name,
           categoryId: categoryId,
@@ -486,17 +636,33 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
     if (_loadingMore || !_hasMore) return;
     _loadingMore = true;
     _entryLimit += pageSize;
-    await _bindEntries();
+    await _bindEntries(_activeCity);
   }
 
-  Future<void> _bindEntries() async {
+  Future<void> refresh() async {
+    final context = await ref.read(residenceContextProvider.future);
+    await _bindEntries(context.activeResidence?.city);
+  }
+
+  Future<void> _bindEntries(String? city) async {
+    _entriesRetryTimer?.cancel();
     await _entriesSubscription?.cancel();
+    if (_activeCity != city) _entryLimit = pageSize;
+    _activeCity = city;
+    if (city == null || city.isEmpty) {
+      _baseEntries = const [];
+      _hasMore = false;
+      _loadingMore = false;
+      _rebuild();
+      return;
+    }
     final firstSnapshot = Completer<void>();
     _entriesSubscription = ref
         .read(directoryRepositoryProvider)
-        .watchEntries(limit: _entryLimit)
+        .watchEntries(city: city, limit: _entryLimit)
         .listen(
           (entries) {
+            if (_activeCity != city) return;
             _baseEntries = entries;
             _hasMore = entries.length == _entryLimit;
             _loadingMore = false;
@@ -505,7 +671,16 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
           },
           onError: (Object error) {
             _loadingMore = false;
+            if (kDebugMode) {
+              debugPrint('DarJar directory services: $error');
+            }
             if (!firstSnapshot.isCompleted) firstSnapshot.complete();
+            if (_activeCity == city) {
+              _entriesRetryTimer = Timer(
+                const Duration(seconds: 2),
+                () => unawaited(_bindEntries(city)),
+              );
+            }
           },
         );
     await firstSnapshot.future;

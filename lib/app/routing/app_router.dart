@@ -60,6 +60,7 @@ abstract final class AppRoutes {
   static const gallery = '/gallery';
 
   static String directoryProfile(String id) => '/directory/$id';
+  static String editService(String id) => '/directory/$id/edit';
   static String communityPost(String id) => '/community/post/$id';
   static String residenceInvitation(String code) => '/join/$code';
 }
@@ -168,6 +169,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.createService,
             builder: (context, state) => const CreateServicePage(),
+          ),
+          GoRoute(
+            path: '/directory/:entryId/edit',
+            builder: (context, state) =>
+                CreateServicePage(entryId: state.pathParameters['entryId']!),
           ),
           GoRoute(
             path: '/directory/:entryId',

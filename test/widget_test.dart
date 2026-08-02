@@ -21,6 +21,7 @@ import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/directory/data/service_categories_repository.dart';
+import 'package:darjar/features/directory/presentation/service_category_icon.dart';
 import 'package:darjar/features/directory/presentation/service_phone_launcher.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
@@ -361,6 +362,42 @@ void main() {
       expect(community.getPosts().first.title, 'عنوان');
       expect(directory.entries.first.name, 'خدمة جديدة');
       await directory.dispose();
+    });
+
+    test('directory exposes only services from the selected city', () async {
+      final directory = _TestDirectoryRepository();
+      directory.entries.add(
+        const DirectoryEntry(
+          id: 'rabat-service',
+          name: 'خدمة الرباط',
+          categoryId: 'cleaning-care',
+          subcategoryIds: ['home-cleaning'],
+          profession: 'تنظيف المنازل',
+          phone: '+212612345679',
+          score: 0,
+          recommendationCount: 0,
+          localRecommendationCount: 0,
+          workedResidences: [],
+          reviews: [],
+          city: '4010100',
+        ),
+      );
+
+      final casablancaServices = await directory
+          .watchEntries(city: '6141010', limit: 20)
+          .first;
+
+      expect(casablancaServices.map((entry) => entry.id), [
+        'mohamed-electrician',
+      ]);
+      await directory.dispose();
+    });
+
+    test('equipment category uses a devices icon', () {
+      expect(
+        serviceCategoryIcon('appliances-equipment'),
+        Icons.devices_other_rounded,
+      );
     });
 
     test(
@@ -1887,6 +1924,7 @@ void main() {
     expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
     expect(find.text('محمد الكهربائي'), findsOneWidget);
     expect(find.text('كهربائي · سباك'), findsOneWidget);
+    expect(find.text('المعاريف'), findsOneWidget);
     expect(find.byIcon(Icons.handyman_rounded), findsWidgets);
     expect(find.byType(BackButtonIcon), findsOneWidget);
     expect(find.byKey(const Key('subpage-title')), findsNothing);
@@ -1907,7 +1945,11 @@ void main() {
   });
 
   testWidgets('resident can add a directory service', (tester) async {
-    await _pumpApp(tester, size: const Size(390, 844));
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      directoryRepository: _TestDirectoryRepository(emitCreateChange: false),
+    );
     await _enterResidence(tester);
 
     await tester.tap(find.text('الخدمات'));
@@ -1947,6 +1989,62 @@ void main() {
     expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
     expect(find.text('شركة النور'), findsOneWidget);
     expect(find.text('كهربائي · سباك'), findsOneWidget);
+  });
+
+  testWidgets('service creator can edit their service from its profile', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+
+    await tester.tap(find.text('الخدمات'));
+    await tester.pumpAndSettle();
+    final service = find.byKey(
+      const ValueKey('directory-entry-mohamed-electrician'),
+    );
+    await tester.ensureVisible(service);
+    await tester.tap(service);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('edit-service-button')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('edit-service-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('edit-service-page')), findsOneWidget);
+    expect(find.text('محمد الكهربائي'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const Key('service-description-field')),
+      'وصف محدث لخدمة الكهرباء',
+    );
+    await tester.ensureVisible(find.byKey(const Key('save-service-button')));
+    await tester.tap(find.byKey(const Key('save-service-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
+    expect(find.text('وصف محدث لخدمة الكهرباء'), findsOneWidget);
+  });
+
+  testWidgets('service edit action is hidden from non-creators', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      directoryRepository: _TestDirectoryRepository(ownerId: 'another-user'),
+    );
+    await _enterResidence(tester);
+
+    await tester.tap(find.text('الخدمات'));
+    await tester.pumpAndSettle();
+    final service = find.byKey(
+      const ValueKey('directory-entry-mohamed-electrician'),
+    );
+    await tester.ensureVisible(service);
+    await tester.tap(service);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
+    expect(find.byKey(const Key('edit-service-button')), findsNothing);
   });
 
   testWidgets('residence exposes account, finances, and management routes', (
@@ -3802,9 +3900,16 @@ class _TestServiceCategoriesRepository implements ServiceCategoriesRepository {
 }
 
 class _TestDirectoryRepository implements DirectoryRepository {
+  _TestDirectoryRepository({
+    this.ownerId = 'test-user',
+    this.emitCreateChange = true,
+  });
+
+  final String ownerId;
+  final bool emitCreateChange;
   final _changes = StreamController<List<DirectoryEntry>>.broadcast();
-  final entries = <DirectoryEntry>[
-    const DirectoryEntry(
+  late final entries = <DirectoryEntry>[
+    DirectoryEntry(
       id: 'mohamed-electrician',
       name: 'محمد الكهربائي',
       categoryId: 'home-maintenance',
@@ -3816,13 +3921,25 @@ class _TestDirectoryRepository implements DirectoryRepository {
       localRecommendationCount: 0,
       workedResidences: ['إقامة الياسمين'],
       reviews: [],
+      createdBy: ownerId,
+      city: '6141010',
     ),
   ];
 
   @override
-  Stream<List<DirectoryEntry>> watchEntries({required int limit}) async* {
-    yield List.unmodifiable(entries.take(limit));
-    yield* _changes.stream;
+  Stream<List<DirectoryEntry>> watchEntries({
+    required String city,
+    required int limit,
+  }) async* {
+    List<DirectoryEntry> visibleEntries() => entries
+        .where((entry) => entry.city == city)
+        .take(limit)
+        .toList(growable: false);
+
+    yield List.unmodifiable(visibleEntries());
+    yield* _changes.stream.map(
+      (_) => List<DirectoryEntry>.unmodifiable(visibleEntries()),
+    );
   }
 
   @override
@@ -3852,10 +3969,47 @@ class _TestDirectoryRepository implements DirectoryRepository {
         workedResidences: const [],
         reviews: const [],
         neighborhood: neighborhood,
+        createdBy: userId,
+        city: '6141010',
       ),
     );
-    _changes.add(List.unmodifiable(entries));
+    if (emitCreateChange) _changes.add(List.unmodifiable(entries));
     return id;
+  }
+
+  @override
+  Future<void> updateService({
+    required String serviceId,
+    required String userId,
+    required String name,
+    required String categoryId,
+    required List<String> subcategoryIds,
+    required String profession,
+    required String phone,
+    required String neighborhood,
+  }) async {
+    final index = entries.indexWhere((entry) => entry.id == serviceId);
+    if (index == -1 || entries[index].createdBy != userId) {
+      throw const DirectoryFailure('not-service-owner');
+    }
+    final previous = entries[index];
+    entries[index] = DirectoryEntry(
+      id: previous.id,
+      name: name.trim(),
+      categoryId: categoryId,
+      subcategoryIds: List.unmodifiable(subcategoryIds),
+      profession: profession.trim(),
+      phone: phone.trim(),
+      score: previous.score,
+      recommendationCount: previous.recommendationCount,
+      localRecommendationCount: previous.localRecommendationCount,
+      workedResidences: previous.workedResidences,
+      reviews: previous.reviews,
+      neighborhood: neighborhood.trim(),
+      createdBy: previous.createdBy,
+      city: previous.city,
+    );
+    _changes.add(List.unmodifiable(entries));
   }
 
   Future<void> dispose() => _changes.close();

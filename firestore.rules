@@ -318,6 +318,7 @@ service cloud.firestore {
           'profession',
           'phone',
           'neighborhood',
+          'city',
           'createdBy',
           'createdFromResidenceId',
           'createdFromResidenceName',
@@ -342,6 +343,11 @@ service cloud.firestore {
         && request.resource.data.phone.matches('^[+][1-9][0-9]{7,14}$')
         && request.resource.data.neighborhood is string
         && request.resource.data.neighborhood.size() <= 120
+        && validMoroccanCity(request.resource.data.city)
+        && request.resource.data.city
+          == get(
+            residencePath(request.resource.data.createdFromResidenceId)
+          ).data.city
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.createdFromResidenceName
           == get(
@@ -350,7 +356,38 @@ service cloud.firestore {
         && request.resource.data.status == 'active'
         && request.resource.data.createdAt == request.time;
 
-      allow update, delete: if false;
+      allow update: if signedIn()
+        && resource.data.createdBy == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name',
+          'categoryId',
+          'subcategoryIds',
+          'profession',
+          'phone',
+          'neighborhood',
+          'updatedAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.categoryId is string
+        && request.resource.data.subcategoryIds is list
+        && request.resource.data.subcategoryIds.size() > 0
+        && request.resource.data.subcategoryIds.size() <= 8
+        && exists(serviceCategoryPath(request.resource.data.categoryId))
+        && get(
+          serviceCategoryPath(request.resource.data.categoryId)
+        ).data.subcategoryIds.hasAll(request.resource.data.subcategoryIds)
+        && request.resource.data.profession is string
+        && request.resource.data.profession.size() > 0
+        && request.resource.data.profession.size() <= 160
+        && request.resource.data.phone is string
+        && request.resource.data.phone.matches('^[+][1-9][0-9]{7,14}$')
+        && request.resource.data.neighborhood is string
+        && request.resource.data.neighborhood.size() <= 120
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if false;
     }
 
     match /directoryRecommendations/{recommendationId} {

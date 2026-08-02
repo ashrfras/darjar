@@ -8,12 +8,14 @@ import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/directory/data/service_categories_repository.dart';
 import 'package:darjar/features/directory/presentation/service_category_icon.dart';
 import 'package:darjar/features/directory/presentation/service_phone_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class DirectoryProfilePage extends ConsumerWidget {
   const DirectoryProfilePage({required this.entryId, super.key});
@@ -47,6 +49,9 @@ class DirectoryProfilePage extends ConsumerWidget {
         .map((subcategory) => subcategory.localizedName(languageCode))
         .toList();
     final compact = MediaQuery.sizeOf(context).width < 600;
+    final currentUser = ref.watch(authRepositoryProvider).currentUser;
+    final canEdit =
+        entry.createdBy.isNotEmpty && entry.createdBy == currentUser?.uid;
     return SingleChildScrollView(
       key: const Key('directory-profile-page'),
       padding: EdgeInsets.fromLTRB(
@@ -65,100 +70,142 @@ class DirectoryProfilePage extends ConsumerWidget {
               DarJarSubpageHeader(fallbackLocation: AppRoutes.directory),
               const SizedBox(height: AppSpacing.small),
               DarJarCard(
-                child: Column(
+                child: Stack(
                   children: [
-                    CircleAvatar(
-                      radius: 54,
-                      backgroundColor: AppColors.primarySoft,
-                      foregroundColor: AppColors.primary,
-                      child: Icon(
-                        serviceCategoryIcon(entry.categoryId),
-                        size: 58,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.medium),
-                    Text(
-                      entry.name,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    if (serviceTypes?.isNotEmpty ?? false) ...[
-                      Text(
-                        serviceTypes!.join(' · '),
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(color: AppColors.primary),
-                      ),
-                      const SizedBox(height: AppSpacing.small),
-                    ],
-                    Text(
-                      entry.profession,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.inkMuted,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.large),
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: AppSpacing.xLarge,
-                      runSpacing: AppSpacing.medium,
+                    Column(
                       children: [
-                        _Metric(
-                          value: entry.score.toStringAsFixed(1),
-                          label: localizations.recommendationScore,
-                          icon: Icons.star_rounded,
-                        ),
-                        _Metric(
-                          value: '${entry.recommendationCount}',
-                          label: localizations.recommendations,
-                          icon: Icons.thumb_up_alt_rounded,
-                        ),
-                        _Metric(
-                          value: '${entry.localRecommendationCount}',
-                          label: localizations.fromYourResidence,
-                          icon: Icons.apartment_rounded,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xLarge),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DarJarButton(
-                            label: localizations.call,
-                            icon: Icons.call_outlined,
-                            onPressed: () => _call(context, ref, entry.phone),
-                            expanded: true,
+                        CircleAvatar(
+                          radius: 54,
+                          backgroundColor: AppColors.primarySoft,
+                          foregroundColor: AppColors.primary,
+                          child: Icon(
+                            serviceCategoryIcon(entry.categoryId),
+                            size: 58,
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.small),
-                        Expanded(
-                          child: DarJarButton(
-                            key: const Key('recommend-entry-button'),
-                            label: localizations.recommend,
-                            icon: Icons.thumb_up_alt_outlined,
-                            variant: DarJarButtonVariant.secondary,
-                            onPressed: () =>
-                                _showRecommendationSheet(context, ref, entry),
-                            expanded: true,
+                        const SizedBox(height: AppSpacing.medium),
+                        Text(
+                          entry.name,
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        if (serviceTypes?.isNotEmpty ?? false) ...[
+                          Text(
+                            serviceTypes!.join(' · '),
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(color: AppColors.primary),
                           ),
+                          const SizedBox(height: AppSpacing.small),
+                        ],
+                        Text(
+                          entry.profession,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.inkMuted),
                         ),
+                        const SizedBox(height: AppSpacing.large),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: AppSpacing.xLarge,
+                          runSpacing: AppSpacing.medium,
+                          children: [
+                            _Metric(
+                              value: entry.score.toStringAsFixed(1),
+                              label: localizations.recommendationScore,
+                              icon: Icons.star_rounded,
+                            ),
+                            _Metric(
+                              value: '${entry.recommendationCount}',
+                              label: localizations.recommendations,
+                              icon: Icons.thumb_up_alt_rounded,
+                            ),
+                            _Metric(
+                              value: '${entry.localRecommendationCount}',
+                              label: localizations.fromYourResidence,
+                              icon: Icons.apartment_rounded,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.xLarge),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: DarJarButton(
+                                label: localizations.call,
+                                icon: Icons.call_outlined,
+                                onPressed: () =>
+                                    _call(context, ref, entry.phone),
+                                expanded: true,
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.small),
+                            Expanded(
+                              child: DarJarButton(
+                                key: const Key('recommend-entry-button'),
+                                label: localizations.recommend,
+                                icon: Icons.thumb_up_alt_outlined,
+                                variant: DarJarButtonVariant.secondary,
+                                onPressed: () => _showRecommendationSheet(
+                                  context,
+                                  ref,
+                                  entry,
+                                ),
+                                expanded: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.medium),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.phone_outlined,
+                              size: 18,
+                              color: AppColors.inkMuted,
+                            ),
+                            const SizedBox(width: 6),
+                            DarJarPhoneNumber(entry.phone),
+                          ],
+                        ),
+                        if (entry.neighborhood.trim().isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.small),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.location_on_outlined,
+                                size: 17,
+                                color: AppColors.inkMuted,
+                              ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  entry.neighborhood,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: AppColors.inkMuted),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.medium),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.phone_outlined,
-                          size: 18,
-                          color: AppColors.inkMuted,
+                    if (canEdit)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: IconButton(
+                          key: const Key('edit-service-button'),
+                          tooltip: localizations.editService,
+                          visualDensity: VisualDensity.compact,
+                          icon: const Icon(Icons.edit_outlined, size: 20),
+                          onPressed: () =>
+                              context.go(AppRoutes.editService(entry.id)),
                         ),
-                        const SizedBox(width: 6),
-                        DarJarPhoneNumber(entry.phone),
-                      ],
-                    ),
+                      ),
                   ],
                 ),
               ),

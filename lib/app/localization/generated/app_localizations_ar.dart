@@ -425,6 +425,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get createService => 'إضافة خدمة جديدة';
 
   @override
+  String get editService => 'تعديل الخدمة';
+
+  @override
+  String get editServiceDescription => 'حدّث معلومات الخدمة التي أضفتها.';
+
+  @override
   String get createServiceDescription =>
       'أضف معلومات مقدم الخدمة لتصبح متاحة لسكان الإقامات.';
 
@@ -474,7 +480,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get saveService => 'إضافة الخدمة';
 
   @override
+  String get updateService => 'حفظ التعديلات';
+
+  @override
   String get savingService => 'جارٍ إضافة الخدمة…';
+
+  @override
+  String get updatingService => 'جارٍ حفظ التعديلات…';
 
   @override
   String get completeServiceFields =>
@@ -482,6 +494,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get serviceCreated => 'تمت إضافة الخدمة بنجاح.';
+
+  @override
+  String get serviceUpdated => 'تم تحديث الخدمة بنجاح.';
+
+  @override
+  String get serviceUpdateFailed => 'تعذّر تحديث الخدمة. حاول مرة أخرى.';
 
   @override
   String get serviceCreateFailed =>

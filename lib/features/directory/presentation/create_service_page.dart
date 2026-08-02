@@ -6,6 +6,8 @@ import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_international_phone_field.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
+import 'package:darjar/core/utils/phone_number.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/directory/data/service_categories_repository.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +15,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class CreateServicePage extends ConsumerStatefulWidget {
-  const CreateServicePage({super.key});
+  const CreateServicePage({this.entryId, super.key});
+
+  final String? entryId;
 
   @override
   ConsumerState<CreateServicePage> createState() => _CreateServicePageState();
@@ -29,6 +33,7 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
   String? _categoryId;
   final Set<String> _subcategoryIds = {};
   bool _saving = false;
+  bool _initializedFromEntry = false;
 
   @override
   void dispose() {
@@ -42,6 +47,16 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final editing = widget.entryId != null;
+    DirectoryEntry? entry;
+    if (editing) {
+      ref.watch(directoryEntriesProvider);
+      entry = ref.read(directoryEntriesProvider.notifier).find(widget.entryId!);
+      if (entry != null && !_initializedFromEntry) {
+        _populateFrom(entry);
+      }
+    }
+    final currentUser = ref.watch(authRepositoryProvider).currentUser;
     final categoriesState = ref.watch(serviceCategoriesProvider);
     final categories = categoriesState.value ?? const <ServiceCategory>[];
     final languageCode = Localizations.localeOf(context).languageCode;
@@ -50,8 +65,25 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
         .firstOrNull;
     final compact = MediaQuery.sizeOf(context).width < 600;
 
+    if (editing &&
+        (entry == null ||
+            entry.createdBy.isEmpty ||
+            entry.createdBy != currentUser?.uid)) {
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: ListView(
+          padding: const EdgeInsets.all(AppSpacing.xLarge),
+          children: [
+            DarJarSubpageHeader(fallbackLocation: AppRoutes.directory),
+            const SizedBox(height: AppSpacing.large),
+            Center(child: Text(localizations.directoryProfileNotFound)),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
-      key: const Key('create-service-page'),
+      key: Key(editing ? 'edit-service-page' : 'create-service-page'),
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
@@ -68,12 +100,18 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 DarJarSubpageHeader(
-                  title: localizations.createService,
-                  fallbackLocation: AppRoutes.directory,
+                  title: editing
+                      ? localizations.editService
+                      : localizations.createService,
+                  fallbackLocation: editing
+                      ? AppRoutes.directoryProfile(widget.entryId!)
+                      : AppRoutes.directory,
                 ),
                 const SizedBox(height: AppSpacing.xLarge),
                 Text(
-                  localizations.createServiceDescription,
+                  editing
+                      ? localizations.editServiceDescription
+                      : localizations.createServiceDescription,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 const SizedBox(height: AppSpacing.large),
@@ -199,7 +237,11 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
                         ),
                         if (_saving) ...[
                           const SizedBox(height: AppSpacing.large),
-                          Text(localizations.savingService),
+                          Text(
+                            editing
+                                ? localizations.updatingService
+                                : localizations.savingService,
+                          ),
                           const SizedBox(height: AppSpacing.small),
                           const LinearProgressIndicator(),
                         ],
@@ -208,18 +250,40 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _SaveButton(saving: _saving, onPressed: _save),
+                              _SaveButton(
+                                saving: _saving,
+                                editing: editing,
+                                onPressed: _save,
+                              ),
                               const SizedBox(height: AppSpacing.small),
-                              _CancelButton(saving: _saving),
+                              _CancelButton(
+                                saving: _saving,
+                                fallbackLocation: editing
+                                    ? AppRoutes.directoryProfile(
+                                        widget.entryId!,
+                                      )
+                                    : AppRoutes.directory,
+                              ),
                             ],
                           )
                         else
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              _CancelButton(saving: _saving),
+                              _CancelButton(
+                                saving: _saving,
+                                fallbackLocation: editing
+                                    ? AppRoutes.directoryProfile(
+                                        widget.entryId!,
+                                      )
+                                    : AppRoutes.directory,
+                              ),
                               const SizedBox(width: AppSpacing.medium),
-                              _SaveButton(saving: _saving, onPressed: _save),
+                              _SaveButton(
+                                saving: _saving,
+                                editing: editing,
+                                onPressed: _save,
+                              ),
                             ],
                           ),
                       ],
@@ -253,26 +317,63 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
 
     setState(() => _saving = true);
     try {
-      final id = await ref
-          .read(directoryEntriesProvider.notifier)
-          .createService(
-            name: _nameController.text,
-            categoryId: _categoryId!,
-            subcategoryIds: _subcategoryIds.toList(),
-            profession: _professionController.text,
-            phone: phone,
-            neighborhood: _neighborhoodController.text,
-          );
-      if (!mounted) return;
-      context.go(AppRoutes.directoryProfile(id));
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(localizations.serviceCreated)));
+      final controller = ref.read(directoryEntriesProvider.notifier);
+      final id = widget.entryId;
+      if (id == null) {
+        final createdId = await controller.createService(
+          name: _nameController.text,
+          categoryId: _categoryId!,
+          subcategoryIds: _subcategoryIds.toList(),
+          profession: _professionController.text,
+          phone: phone,
+          neighborhood: _neighborhoodController.text,
+        );
+        if (!mounted) return;
+        context.go(AppRoutes.directoryProfile(createdId));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(localizations.serviceCreated)));
+      } else {
+        await controller.updateService(
+          id: id,
+          name: _nameController.text,
+          categoryId: _categoryId!,
+          subcategoryIds: _subcategoryIds.toList(),
+          profession: _professionController.text,
+          phone: phone,
+          neighborhood: _neighborhoodController.text,
+        );
+        if (!mounted) return;
+        context.go(AppRoutes.directoryProfile(id));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(localizations.serviceUpdated)));
+      }
     } on DirectoryFailure {
-      if (mounted) _showMessage(localizations.serviceCreateFailed);
+      if (mounted) {
+        _showMessage(
+          widget.entryId == null
+              ? localizations.serviceCreateFailed
+              : localizations.serviceUpdateFailed,
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  void _populateFrom(DirectoryEntry entry) {
+    _initializedFromEntry = true;
+    _nameController.text = entry.name;
+    _professionController.text = entry.profession;
+    _neighborhoodController.text = entry.neighborhood;
+    _categoryId = entry.categoryId;
+    _subcategoryIds
+      ..clear()
+      ..addAll(entry.subcategoryIds);
+    final phoneParts = splitInternationalPhoneNumber(entry.phone);
+    _countryCode = phoneParts.countryCode;
+    _phoneController.text = phoneParts.nationalNumber;
   }
 
   void _showMessage(String message) {
@@ -283,33 +384,41 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
 }
 
 class _SaveButton extends StatelessWidget {
-  const _SaveButton({required this.saving, required this.onPressed});
+  const _SaveButton({
+    required this.saving,
+    required this.editing,
+    required this.onPressed,
+  });
 
   final bool saving;
+  final bool editing;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     return DarJarButton(
       key: const Key('save-service-button'),
-      label: AppLocalizations.of(context).saveService,
-      icon: Icons.add_rounded,
+      label: editing
+          ? AppLocalizations.of(context).updateService
+          : AppLocalizations.of(context).saveService,
+      icon: editing ? Icons.save_outlined : Icons.add_rounded,
       onPressed: saving ? null : onPressed,
     );
   }
 }
 
 class _CancelButton extends StatelessWidget {
-  const _CancelButton({required this.saving});
+  const _CancelButton({required this.saving, required this.fallbackLocation});
 
   final bool saving;
+  final String fallbackLocation;
 
   @override
   Widget build(BuildContext context) {
     return DarJarButton(
       label: AppLocalizations.of(context).cancel,
       variant: DarJarButtonVariant.secondary,
-      onPressed: saving ? null : () => context.go(AppRoutes.directory),
+      onPressed: saving ? null : () => context.go(fallbackLocation),
     );
   }
 }

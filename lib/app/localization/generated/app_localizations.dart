@@ -878,6 +878,18 @@ abstract class AppLocalizations {
   /// **'إضافة خدمة جديدة'**
   String get createService;
 
+  /// No description provided for @editService.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل الخدمة'**
+  String get editService;
+
+  /// No description provided for @editServiceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدّث معلومات الخدمة التي أضفتها.'**
+  String get editServiceDescription;
+
   /// No description provided for @createServiceDescription.
   ///
   /// In ar, this message translates to:
@@ -974,11 +986,23 @@ abstract class AppLocalizations {
   /// **'إضافة الخدمة'**
   String get saveService;
 
+  /// No description provided for @updateService.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظ التعديلات'**
+  String get updateService;
+
   /// No description provided for @savingService.
   ///
   /// In ar, this message translates to:
   /// **'جارٍ إضافة الخدمة…'**
   String get savingService;
+
+  /// No description provided for @updatingService.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ حفظ التعديلات…'**
+  String get updatingService;
 
   /// No description provided for @completeServiceFields.
   ///
@@ -991,6 +1015,18 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تمت إضافة الخدمة بنجاح.'**
   String get serviceCreated;
+
+  /// No description provided for @serviceUpdated.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تحديث الخدمة بنجاح.'**
+  String get serviceUpdated;
+
+  /// No description provided for @serviceUpdateFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحديث الخدمة. حاول مرة أخرى.'**
+  String get serviceUpdateFailed;
 
   /// No description provided for @serviceCreateFailed.
   ///
