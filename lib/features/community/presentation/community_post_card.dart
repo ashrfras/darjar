@@ -5,6 +5,7 @@ import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
+import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -46,7 +47,7 @@ extension CommunityPostKindUi on CommunityPostKind {
   };
 }
 
-class CommunityPostCard extends StatelessWidget {
+class CommunityPostCard extends ConsumerWidget {
   const CommunityPostCard({
     required this.post,
     required this.onOpen,
@@ -67,9 +68,15 @@ class CommunityPostCard extends StatelessWidget {
   final bool expanded;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final compact = MediaQuery.sizeOf(context).width < 600;
     final color = post.kind.color;
+    final residenceDirectory = ref.watch(residenceDirectoryProvider).value;
+    final apartmentLabel = _communityApartmentLabel(
+      context,
+      post,
+      residenceDirectory,
+    );
 
     return DarJarCard(
       key: ValueKey('community-post-${post.id}'),
@@ -84,7 +91,11 @@ class CommunityPostCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _PostHeader(post: post, onArchive: onArchive),
+                _PostHeader(
+                  post: post,
+                  apartmentLabel: apartmentLabel,
+                  onArchive: onArchive,
+                ),
                 const SizedBox(height: AppSpacing.medium),
                 _KindLabel(post: post),
                 const SizedBox(height: AppSpacing.small),
@@ -151,14 +162,21 @@ class CommunityPostCard extends StatelessWidget {
 }
 
 class _PostHeader extends StatelessWidget {
-  const _PostHeader({required this.post, required this.onArchive});
+  const _PostHeader({
+    required this.post,
+    required this.apartmentLabel,
+    required this.onArchive,
+  });
 
   final CommunityPost post;
+  final String? apartmentLabel;
   final VoidCallback? onArchive;
 
   @override
   Widget build(BuildContext context) {
     final color = post.kind.color;
+    final showRoleBadge =
+        !post.isSystem && _showsCommunityRoleBadge(post.authorRole);
     return Row(
       children: [
         if (post.isSystem)
@@ -199,7 +217,29 @@ class _PostHeader extends StatelessWidget {
                       ).textTheme.labelLarge?.copyWith(color: AppColors.ink),
                     ),
                   ),
-                  if (post.isOfficial) ...[
+                  if (showRoleBadge) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      key: ValueKey('post-author-role-${post.id}'),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primarySoft,
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                      ),
+                      child: Text(
+                        communityMemberRoleLabel(context, post.authorRole),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.primary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (post.isSystem) ...[
                     const SizedBox(width: 5),
                     const Icon(
                       Icons.verified_rounded,
@@ -211,7 +251,10 @@ class _PostHeader extends StatelessWidget {
               ),
               Text(
                 [
-                  communityMemberRoleLabel(context, post.authorRole),
+                  if (post.isSystem)
+                    communityMemberRoleLabel(context, post.authorRole)
+                  else if (apartmentLabel != null)
+                    apartmentLabel,
                   post.timeLabel,
                 ].join(' · '),
                 maxLines: 1,
@@ -227,6 +270,13 @@ class _PostHeader extends StatelessWidget {
           PopupMenuButton<String>(
             key: ValueKey('post-menu-${post.id}'),
             tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
+            color: AppColors.surface,
+            surfaceTintColor: Colors.transparent,
+            elevation: 8,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+              side: const BorderSide(color: AppColors.outline),
+            ),
             onSelected: (value) {
               if (value == 'archive') _confirmArchive(context);
             },
@@ -277,6 +327,59 @@ class _PostHeader extends StatelessWidget {
     );
     if (confirmed == true) onArchive?.call();
   }
+}
+
+bool _showsCommunityRoleBadge(String role) => const {
+  'president',
+  'owner',
+  'deputy',
+  'manager',
+  'treasurer',
+  'moderator',
+  'platformAdmin',
+}.contains(role);
+
+String? _communityApartmentLabel(
+  BuildContext context,
+  CommunityPost post,
+  ResidenceMembersData? directory,
+) {
+  final ar = Localizations.localeOf(context).languageCode == 'ar';
+  if (post.authorId.isNotEmpty && directory != null) {
+    String? apartmentId;
+    for (final member in directory.members) {
+      if (member.id == post.authorId) {
+        apartmentId = member.apartmentId;
+        break;
+      }
+    }
+    if (apartmentId != null) {
+      for (final apartment in directory.apartments) {
+        if (apartment.id == apartmentId) {
+          return ar
+              ? 'شقة ${apartment.number}'
+              : 'Apartment ${apartment.number}';
+        }
+      }
+    }
+  }
+
+  final unit = post.authorUnit?.trim();
+  if (unit == null || unit.isEmpty) return null;
+  final apartmentMatch = RegExp(
+    r'(?:شقة|Apartment)\s*([^·،,]+)',
+    caseSensitive: false,
+  ).firstMatch(unit);
+  if (apartmentMatch != null) {
+    final number = apartmentMatch.group(1)?.trim();
+    if (number != null && number.isNotEmpty) {
+      return ar ? 'شقة $number' : 'Apartment $number';
+    }
+  }
+  if (unit.contains('إدارة') || unit.toLowerCase().contains('management')) {
+    return unit;
+  }
+  return null;
 }
 
 String communityMemberRoleLabel(BuildContext context, String role) {

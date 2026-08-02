@@ -1638,6 +1638,40 @@ void main() {
     );
     expect(find.text('أهلاً بك في إقامتك الرقمية'), findsOneWidget);
     expect(find.byKey(const Key('darjar-post-avatar')), findsOneWidget);
+    final welcomePost = find.byKey(
+      const ValueKey('community-post-darjar-welcome'),
+    );
+    expect(
+      find.byKey(const ValueKey('post-author-role-darjar-welcome')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(
+        of: welcomePost,
+        matching: find.byIcon(Icons.verified_rounded),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('فريق دارجار · مرحباً بك'), findsOneWidget);
+    final presidentPost = find.byKey(
+      const ValueKey('community-post-announcement-elevator'),
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(
+          const ValueKey('post-author-role-announcement-elevator'),
+        ),
+        matching: find.text('رئيس'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: presidentPost,
+        matching: find.byIcon(Icons.verified_rounded),
+      ),
+      findsNothing,
+    );
     expect(find.textContaining('المجتمع: تواصل مع جيرانك'), findsOneWidget);
     expect(find.textContaining('الدليل: اعثر على الحرفيين'), findsOneWidget);
     expect(find.textContaining('الإقامة: تابع اشتراكاتك'), findsOneWidget);
@@ -1742,9 +1776,20 @@ void main() {
 
     await tester.tap(find.byKey(const Key('community-filter-mine')));
     await tester.pumpAndSettle();
-    expect(find.text('ساكن · منذ ساعة'), findsOneWidget);
+    expect(find.text('شقة 12 · منذ ساعة'), findsOneWidget);
+    final roleBadge = find.byKey(
+      const ValueKey('post-author-role-question-plumber'),
+    );
+    expect(roleBadge, findsNothing);
 
     final menu = find.byKey(const ValueKey('post-menu-question-plumber'));
+    final popupMenu = tester.widget<PopupMenuButton<String>>(menu);
+    expect(popupMenu.color, AppColors.surface);
+    expect(popupMenu.surfaceTintColor, Colors.transparent);
+    expect(
+      (popupMenu.shape as RoundedRectangleBorder).side.color,
+      AppColors.outline,
+    );
     await tester.ensureVisible(menu);
     await tester.pumpAndSettle();
     await tester.tap(menu);
