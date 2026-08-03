@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,9 +13,10 @@ class AuthUser {
 }
 
 class AuthFailure implements Exception {
-  const AuthFailure(this.code);
+  const AuthFailure(this.code, {this.message});
 
   final String code;
+  final String? message;
 }
 
 abstract interface class AuthRepository {
@@ -48,52 +50,56 @@ class FirebaseAuthRepository implements AuthRepository {
   Future<void> sendVerificationCode(String phoneNumber) async {
     try {
       if (kIsWeb) {
-        _webConfirmationResult = await _firebaseAuth.signInWithPhoneNumber(
-          phoneNumber,
-        );
+        await _sendWebVerificationCode(phoneNumber);
         return;
       }
 
       final codeSent = Completer<void>();
-      await _firebaseAuth.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationCompleted: (credential) async {
-          try {
-            await _firebaseAuth.signInWithCredential(credential);
+      final verification = () async {
+        await _firebaseAuth.verifyPhoneNumber(
+          phoneNumber: phoneNumber,
+          verificationCompleted: (credential) async {
+            try {
+              await _firebaseAuth.signInWithCredential(credential);
+              if (!codeSent.isCompleted) {
+                codeSent.complete();
+              }
+            } on FirebaseException catch (error) {
+              if (!codeSent.isCompleted) {
+                codeSent.completeError(_authFailureFromFirebase(error));
+              }
+            }
+          },
+          verificationFailed: (error) {
+            if (!codeSent.isCompleted) {
+              codeSent.completeError(_authFailureFromFirebase(error));
+            }
+          },
+          codeSent: (verificationId, resendToken) {
+            _nativeVerificationId = verificationId;
             if (!codeSent.isCompleted) {
               codeSent.complete();
             }
-          } on FirebaseException catch (error) {
+          },
+          codeAutoRetrievalTimeout: (verificationId) {
+            _nativeVerificationId = verificationId;
             if (!codeSent.isCompleted) {
-              codeSent.completeError(AuthFailure(error.code));
+              codeSent.complete();
             }
-          }
-        },
-        verificationFailed: (error) {
-          if (!codeSent.isCompleted) {
-            codeSent.completeError(AuthFailure(error.code));
-          }
-        },
-        codeSent: (verificationId, resendToken) {
-          _nativeVerificationId = verificationId;
-          if (!codeSent.isCompleted) {
-            codeSent.complete();
-          }
-        },
-        codeAutoRetrievalTimeout: (verificationId) {
-          _nativeVerificationId = verificationId;
-          if (!codeSent.isCompleted) {
-            codeSent.complete();
-          }
-        },
+          },
+        );
+        await codeSent.future;
+      }();
+      await verification.timeout(
+        const Duration(minutes: 2),
+        onTimeout: () => throw const AuthFailure('verification-timeout'),
       );
-      await codeSent.future;
     } on AuthFailure {
       rethrow;
     } on FirebaseException catch (error) {
-      throw AuthFailure(error.code);
+      throw _authFailureFromFirebase(error);
     } catch (error) {
-      throw AuthFailure(_firebaseAuthErrorCode(error));
+      throw _authFailureFromUnknown(error);
     }
   }
 
@@ -123,14 +129,34 @@ class FirebaseAuthRepository implements AuthRepository {
     } on AuthFailure {
       rethrow;
     } on FirebaseException catch (error) {
-      throw AuthFailure(error.code);
+      throw _authFailureFromFirebase(error);
     } catch (error) {
-      throw AuthFailure(_firebaseAuthErrorCode(error));
+      throw _authFailureFromUnknown(error);
     }
   }
 
   @override
   Future<void> signOut() => _firebaseAuth.signOut();
+
+  Future<void> _sendWebVerificationCode(String phoneNumber) async {
+    // FlutterFire only clears its implicit verifier after a successful request.
+    // Supplying and clearing our own verifier prevents an expired reCAPTCHA
+    // instance from leaking into the next attempt after Firebase rejects it.
+    final verifier = RecaptchaVerifier(
+      auth: FirebaseAuthPlatform.instanceFor(
+        app: _firebaseAuth.app,
+        pluginConstants: _firebaseAuth.pluginConstants,
+      ),
+    );
+    try {
+      _webConfirmationResult = await _firebaseAuth.signInWithPhoneNumber(
+        phoneNumber,
+        verifier,
+      );
+    } finally {
+      verifier.clear();
+    }
+  }
 
   AuthUser? _toAuthUser(User? user) {
     if (user == null) {
@@ -142,9 +168,27 @@ class FirebaseAuthRepository implements AuthRepository {
 
 String _firebaseAuthErrorCode(Object error) {
   final match = RegExp(
-    r'(?:firebase_auth/|auth/)([a-z0-9-]+)',
+    r'(?:firebase_auth/|auth/)([a-z0-9_-]+)',
+    caseSensitive: false,
   ).firstMatch(error.toString());
-  return match?.group(1) ?? 'unknown';
+  return match?.group(1)?.toLowerCase().replaceAll('_', '-') ?? 'unknown';
+}
+
+AuthFailure _authFailureFromFirebase(FirebaseException error) {
+  final message = error.message?.trim();
+  final parsedCode = _firebaseAuthErrorCode('$message\n$error');
+  final reportedCode = error.code.toLowerCase().replaceAll('_', '-');
+  final code = parsedCode != 'unknown'
+      ? parsedCode
+      : reportedCode.isEmpty
+      ? 'unknown'
+      : reportedCode;
+  return AuthFailure(code, message: message ?? error.toString());
+}
+
+AuthFailure _authFailureFromUnknown(Object error) {
+  final message = error.toString();
+  return AuthFailure(_firebaseAuthErrorCode(message), message: message);
 }
 
 String normalizeMoroccanPhoneNumber(String input) {

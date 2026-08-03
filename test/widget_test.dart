@@ -901,6 +901,40 @@ void main() {
       expect(find.byKey(const Key('residence-setup-page')), findsOneWidget);
     });
 
+    testWidgets('phone auth exposes safe Firebase diagnostics', (tester) async {
+      final authRepository = _FakeAuthRepository(
+        signedIn: false,
+        sendFailure: const AuthFailure(
+          'unknown',
+          message:
+              'An unknown error occurred for +212600000001: '
+              'FirebaseError (auth/billing-not-enabled).',
+        ),
+      );
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        authRepository: authRepository,
+      );
+
+      await tester.tap(find.byKey(const Key('start-button')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('auth-phone-field')),
+        '0600000001',
+      );
+      await tester.tap(find.byKey(const Key('send-verification-code-button')));
+      await tester.pumpAndSettle();
+
+      final details = tester.widget<SelectableText>(
+        find.byKey(const Key('auth-error-technical-details')),
+      );
+      expect(details.data, contains('Firebase code: unknown'));
+      expect(details.data, contains('auth/billing-not-enabled'));
+      expect(details.data, contains('[phone redacted]'));
+      expect(details.data, isNot(contains('+212600000001')));
+    });
+
     testWidgets('resident accepts selected invitations from multiple homes', (
       tester,
     ) async {
@@ -4287,7 +4321,7 @@ Future<void> _enterResidence(WidgetTester tester) async {
 }
 
 class _FakeAuthRepository implements AuthRepository {
-  _FakeAuthRepository({bool signedIn = true})
+  _FakeAuthRepository({bool signedIn = true, this.sendFailure})
     : _currentUser = signedIn
           ? const AuthUser(uid: 'test-user', phoneNumber: '+212600000001')
           : null;
@@ -4297,6 +4331,7 @@ class _FakeAuthRepository implements AuthRepository {
   AuthUser? _currentUser;
   String? requestedPhoneNumber;
   String? confirmedCode;
+  final AuthFailure? sendFailure;
 
   @override
   AuthUser? get currentUser => _currentUser;
@@ -4307,6 +4342,10 @@ class _FakeAuthRepository implements AuthRepository {
   @override
   Future<void> sendVerificationCode(String phoneNumber) async {
     requestedPhoneNumber = phoneNumber;
+    final failure = sendFailure;
+    if (failure != null) {
+      throw failure;
+    }
   }
 
   @override

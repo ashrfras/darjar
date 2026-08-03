@@ -28,6 +28,7 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
   bool _codeSent = false;
   bool _isSubmitting = false;
   String? _errorCode;
+  String? _technicalError;
 
   @override
   void dispose() {
@@ -186,12 +187,16 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
                                     _codeSent = false;
                                     _codeController.clear();
                                     _errorCode = null;
+                                    _technicalError = null;
                                   }),
                           ),
                         ],
                         if (_errorCode != null) ...[
                           const SizedBox(height: AppSpacing.large),
-                          _AuthError(message: _errorMessage(localizations)),
+                          _AuthError(
+                            message: _errorMessage(localizations),
+                            details: _technicalError,
+                          ),
                         ],
                       ],
                     ),
@@ -220,7 +225,10 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
         ? isValidMoroccanMobileNumber(phoneNumber)
         : nationalDigits.length >= 8 && nationalDigits.length <= 12;
     if (!validPhone) {
-      setState(() => _errorCode = 'invalid-phone-number');
+      setState(() {
+        _errorCode = 'invalid-phone-number';
+        _technicalError = null;
+      });
       return;
     }
 
@@ -228,6 +236,7 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
     setState(() {
       _isSubmitting = true;
       _errorCode = null;
+      _technicalError = null;
     });
     try {
       await ref.read(authRepositoryProvider).sendVerificationCode(phoneNumber);
@@ -236,11 +245,19 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
       }
     } on AuthFailure catch (error) {
       if (mounted) {
-        setState(() => _errorCode = error.code);
+        setState(() {
+          _errorCode = error.code;
+          _technicalError = _formatTechnicalError(error);
+        });
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
-        setState(() => _errorCode = 'unknown');
+        setState(() {
+          _errorCode = 'unknown';
+          _technicalError = _formatTechnicalError(
+            AuthFailure('unknown', message: error.toString()),
+          );
+        });
       }
     } finally {
       if (mounted) {
@@ -255,7 +272,10 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
 
   Future<void> _confirmCode() async {
     if (_codeController.text.length != 6) {
-      setState(() => _errorCode = 'invalid-verification-code');
+      setState(() {
+        _errorCode = 'invalid-verification-code';
+        _technicalError = null;
+      });
       return;
     }
 
@@ -263,6 +283,7 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
     setState(() {
       _isSubmitting = true;
       _errorCode = null;
+      _technicalError = null;
     });
     try {
       await ref
@@ -270,11 +291,19 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
           .confirmVerificationCode(_codeController.text);
     } on AuthFailure catch (error) {
       if (mounted) {
-        setState(() => _errorCode = error.code);
+        setState(() {
+          _errorCode = error.code;
+          _technicalError = _formatTechnicalError(error);
+        });
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
-        setState(() => _errorCode = 'unknown');
+        setState(() {
+          _errorCode = 'unknown';
+          _technicalError = _formatTechnicalError(
+            AuthFailure('unknown', message: error.toString()),
+          );
+        });
       }
     } finally {
       if (mounted) {
@@ -296,19 +325,36 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
       'unauthorized-domain' => localizations.authUnauthorizedDomain,
       'captcha-check-failed' ||
       'invalid-app-credential' ||
-      'missing-app-credential' => localizations.authCaptchaFailed,
+      'missing-app-credential' ||
+      'verification-timeout' => localizations.authCaptchaFailed,
       'operation-not-allowed' => localizations.authPhoneOperationNotAllowed,
       _ => localizations.authUnexpectedError,
     };
+  }
+
+  String _formatTechnicalError(AuthFailure error) {
+    final rawMessage = error.message?.trim();
+    if (rawMessage == null || rawMessage.isEmpty) {
+      return 'Firebase code: ${error.code}';
+    }
+    var safeMessage = rawMessage
+        .replaceAll(_phoneNumber, '[phone redacted]')
+        .replaceAll(RegExp(r'\+?[0-9][0-9 ()-]{7,}[0-9]'), '[phone redacted]')
+        .replaceAll(RegExp(r'AIza[A-Za-z0-9_-]{20,}'), '[API key redacted]');
+    if (safeMessage.length > 600) {
+      safeMessage = '${safeMessage.substring(0, 600)}…';
+    }
+    return 'Firebase code: ${error.code}\n$safeMessage';
   }
 }
 
 String _ltrIsolate(String value) => '\u2066$value\u2069';
 
 class _AuthError extends StatelessWidget {
-  const _AuthError({required this.message});
+  const _AuthError({required this.message, this.details});
 
   final String message;
+  final String? details;
 
   @override
   Widget build(BuildContext context) {
@@ -329,11 +375,31 @@ class _AuthError extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.small),
           Expanded(
-            child: Text(
-              message,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.danger),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  message,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.danger),
+                ),
+                if (details != null) ...[
+                  const SizedBox(height: AppSpacing.small),
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: SelectableText(
+                      details!,
+                      key: const Key('auth-error-technical-details'),
+                      textAlign: TextAlign.left,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.danger,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ],
