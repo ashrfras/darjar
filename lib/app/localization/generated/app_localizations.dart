@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'دارجار'**
   String get appName;
 
+  /// No description provided for @siteTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'دارجار - إقامتك الرقمية'**
+  String get siteTitle;
+
   /// No description provided for @dataLoading.
   ///
   /// In ar, this message translates to:
@@ -247,12 +253,6 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'مثال: النخيل'**
   String get residenceNameHint;
-
-  /// No description provided for @residenceNameGuidance.
-  ///
-  /// In ar, this message translates to:
-  /// **'أدخل اسم الإقامة مباشرة دون «إقامة» أو «Résidence».'**
-  String get residenceNameGuidance;
 
   /// No description provided for @chipsAndBadges.
   ///
@@ -2675,6 +2675,18 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'معرّف الإقامة'**
   String get residenceId;
+
+  /// No description provided for @copy.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسخ'**
+  String get copy;
+
+  /// No description provided for @residenceIdCopied.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم نسخ معرّف الإقامة.'**
+  String get residenceIdCopied;
 
   /// No description provided for @residenceImage.
   ///

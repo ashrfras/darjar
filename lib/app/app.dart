@@ -13,7 +13,13 @@ class DarJarApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
     ref.watch(notificationPushRegistrationProvider);
     return MaterialApp.router(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appName,
+      onGenerateTitle: (context) => AppLocalizations.of(context).siteTitle,
+      builder: (context, child) => Title(
+        key: const Key('app-browser-title'),
+        title: AppLocalizations.of(context).siteTitle,
+        color: Theme.of(context).colorScheme.primary,
+        child: child ?? const SizedBox.shrink(),
+      ),
       debugShowCheckedModeBanner: false,
       locale: const Locale('ar'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,

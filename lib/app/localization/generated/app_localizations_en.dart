@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'DarJar';
 
   @override
+  String get siteTitle => 'دارجار - إقامتك الرقمية';
+
+  @override
   String get dataLoading => 'Loading data…';
 
   @override
@@ -89,10 +92,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get residenceNameHint => 'Example: Yasmeen';
-
-  @override
-  String get residenceNameGuidance =>
-      'Enter the name directly without “إقامة” or “Résidence”.';
 
   @override
   String get chipsAndBadges => 'Chips and badges';
@@ -1462,6 +1461,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get residenceId => 'Residence ID';
+
+  @override
+  String get copy => 'Copy';
+
+  @override
+  String get residenceIdCopied => 'Residence ID copied.';
 
   @override
   String get residenceImage => 'Residence image or logo';

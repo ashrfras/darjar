@@ -150,7 +150,7 @@ class _CompactShell extends StatelessWidget {
       appBar: AppBar(
         toolbarHeight: 58,
         titleSpacing: 0,
-        leadingWidth: 218,
+        leadingWidth: 238,
         leading: _CompactIdentity(residenceContext),
         title: const SizedBox.shrink(),
         actions: [
@@ -829,6 +829,8 @@ class _ResidenceSelector extends ConsumerWidget {
       child: InkWell(
         onTap: () => _showResidenceSwitcher(context, ref),
         borderRadius: BorderRadius.circular(AppRadius.medium),
+        mouseCursor: SystemMouseCursors.click,
+        hoverColor: Colors.transparent,
         child: Container(
           padding: expanded
               ? const EdgeInsets.all(AppSpacing.large)

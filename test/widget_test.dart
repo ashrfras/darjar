@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:darjar/app/app.dart';
 import 'package:darjar/app/bootstrap.dart';
@@ -41,6 +40,7 @@ import 'package:darjar/features/residence/data/residence_settings_repository.dar
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:darjar/features/shell/presentation/darjar_shell.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:file_selector/file_selector.dart';
@@ -1316,13 +1316,14 @@ void main() {
     final profile = find.byKey(const Key('profile-button'));
 
     expect(tester.getCenter(brand).dx, greaterThan(195));
-    expect(tester.getCenter(residence).dx, greaterThan(195));
+    expect(tester.getTopRight(residence).dx, greaterThan(195));
     expect(tester.getCenter(notification).dx, lessThan(195));
     expect(tester.getCenter(profile).dx, lessThan(195));
 
     final appBar = tester.widget<AppBar>(find.byType(AppBar));
     final notificationButton = tester.widget<IconButton>(notification);
     expect(appBar.toolbarHeight, 58);
+    expect(appBar.leadingWidth, 238);
     expect(notificationButton.iconSize, 21);
     final badgePosition = tester.widget<PositionedDirectional>(
       find.byKey(const Key('notifications-unread-badge-position')),
@@ -1559,8 +1560,20 @@ void main() {
   testWidgets('medium and expanded shells remain available', (tester) async {
     await _pumpApp(tester, size: const Size(800, 1000));
     await _enterResidence(tester);
+    expect(
+      tester.widget<Title>(find.byKey(const Key('app-browser-title'))).title,
+      'دارجار - إقامتك الرقمية',
+    );
     expect(find.byKey(const Key('medium-shell')), findsOneWidget);
     expect(find.byType(NavigationRail), findsOneWidget);
+    final residenceSelectorInkWell = tester.widget<InkWell>(
+      find.descendant(
+        of: find.byKey(const Key('residence-selector')),
+        matching: find.byType(InkWell),
+      ),
+    );
+    expect(residenceSelectorInkWell.hoverColor, Colors.transparent);
+    expect(residenceSelectorInkWell.mouseCursor, SystemMouseCursors.click);
     expect(
       find.descendant(
         of: find.byKey(const Key('residence-selector')),
@@ -3310,16 +3323,48 @@ void main() {
         find.byKey(const Key('residence-information-section')),
         findsOneWidget,
       );
-      final residenceIdField = find.descendant(
-        of: find.byKey(const Key('residence-id-field')),
-        matching: find.byType(TextField),
-      );
-      expect(residenceIdField, findsOneWidget);
-      expect(tester.widget<TextField>(residenceIdField).readOnly, isTrue);
+      final residenceIdValue = find.byKey(const Key('residence-id-field'));
+      expect(residenceIdValue, findsOneWidget);
       expect(
-        tester.widget<TextField>(residenceIdField).controller?.text,
-        '48273165',
+        find.descendant(of: residenceIdValue, matching: find.byType(TextField)),
+        findsNothing,
       );
+      expect(find.text('معرّف الإقامة'), findsOneWidget);
+      expect(find.textContaining('للقراءة فقط'), findsNothing);
+      expect(find.text('48273165'), findsOneWidget);
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('residence-id-value')))
+            .textDirection,
+        TextDirection.rtl,
+      );
+      final copyResidenceIdButton = find.byKey(
+        const Key('copy-residence-id-button'),
+      );
+      expect(copyResidenceIdButton, findsOneWidget);
+      expect(
+        tester.getSize(copyResidenceIdButton).height,
+        tester.getSize(residenceIdValue).height,
+      );
+      String? copiedResidenceId;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            copiedResidenceId =
+                (call.arguments as Map<Object?, Object?>)['text'] as String?;
+          }
+          return null;
+        },
+      );
+      await tester.tap(copyResidenceIdButton);
+      await tester.pumpAndSettle();
+      expect(copiedResidenceId, '48273165');
+      expect(find.text('تم نسخ معرّف الإقامة.'), findsOneWidget);
+      ScaffoldMessenger.of(
+        tester.element(copyResidenceIdButton),
+      ).hideCurrentSnackBar();
+      await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('settings-residence-city-field')),
         findsOneWidget,

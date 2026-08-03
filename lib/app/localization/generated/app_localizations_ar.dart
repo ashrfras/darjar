@@ -12,6 +12,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appName => 'دارجار';
 
   @override
+  String get siteTitle => 'دارجار - إقامتك الرقمية';
+
+  @override
   String get dataLoading => 'جارٍ تحميل البيانات…';
 
   @override
@@ -88,10 +91,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get residenceNameHint => 'مثال: النخيل';
-
-  @override
-  String get residenceNameGuidance =>
-      'أدخل اسم الإقامة مباشرة دون «إقامة» أو «Résidence».';
 
   @override
   String get chipsAndBadges => 'الشرائح والشارات';
@@ -1434,6 +1433,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get residenceId => 'معرّف الإقامة';
+
+  @override
+  String get copy => 'نسخ';
+
+  @override
+  String get residenceIdCopied => 'تم نسخ معرّف الإقامة.';
 
   @override
   String get residenceImage => 'صورة أو شعار الإقامة';

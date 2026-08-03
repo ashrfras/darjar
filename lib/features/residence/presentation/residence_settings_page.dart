@@ -846,13 +846,64 @@ class _ResidenceInformationSection extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.large),
-          DarJarTextField(
-            key: const Key('residence-id-field'),
-            controller: residenceIdController,
-            label: localizations.residenceId,
-            prefixIcon: Icons.numbers_rounded,
-            keyboardType: TextInputType.number,
-            readOnly: true,
+          Text(
+            localizations.residenceId,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+          ),
+          const SizedBox(height: AppSpacing.xSmall),
+          Row(
+            children: [
+              Expanded(
+                child: Semantics(
+                  key: const Key('residence-id-field'),
+                  readOnly: true,
+                  label: localizations.residenceId,
+                  value: residenceIdController.text,
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 52),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.medium,
+                      vertical: AppSpacing.small,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.canvas,
+                      border: Border.all(color: AppColors.outline),
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.numbers_rounded,
+                          color: AppColors.inkMuted,
+                        ),
+                        const SizedBox(width: AppSpacing.medium),
+                        Expanded(
+                          child: Text(
+                            residenceIdController.text,
+                            key: const Key('residence-id-value'),
+                            textDirection: TextDirection.rtl,
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(color: AppColors.inkMuted),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.small),
+              SizedBox(
+                height: 52,
+                child: OutlinedButton.icon(
+                  key: const Key('copy-residence-id-button'),
+                  onPressed: () => _copyResidenceId(context),
+                  icon: const Icon(Icons.copy_rounded, size: 18),
+                  label: Text(localizations.copy),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.large),
           DarJarTextField(
@@ -889,6 +940,15 @@ class _ResidenceInformationSection extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _copyResidenceId(BuildContext context) async {
+    final localizations = AppLocalizations.of(context);
+    await Clipboard.setData(ClipboardData(text: residenceIdController.text));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(localizations.residenceIdCopied)));
   }
 }
 

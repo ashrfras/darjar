@@ -263,7 +263,6 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
                   controller: _nameController,
                   label: localizations.residenceName,
                   hint: localizations.residenceNameHint,
-                  helper: localizations.residenceNameGuidance,
                   prefixIcon: Icons.apartment_rounded,
                   textInputAction: TextInputAction.next,
                 ),
