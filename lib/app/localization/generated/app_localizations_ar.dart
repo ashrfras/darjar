@@ -393,16 +393,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'شارك سؤالاً أو خبراً مع جيرانك داخل الإقامة.';
 
   @override
-  String get postTitle => 'عنوان المنشور';
-
-  @override
-  String get postTitleHint => 'اكتب عنواناً واضحاً';
-
-  @override
-  String get postBody => 'التفاصيل';
-
-  @override
-  String get postBodyHint => 'ماذا تريد أن تشارك مع جيرانك؟';
+  String get postContent => 'محتوى المنشور';
 
   @override
   String get publish => 'نشر';
@@ -1213,6 +1204,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileSaving => 'جارٍ الحفظ…';
+
+  @override
+  String get signOut => 'تسجيل الخروج';
+
+  @override
+  String get signOutConfirmationTitle => 'تسجيل الخروج؟';
+
+  @override
+  String get signOutConfirmationDescription =>
+      'ستحتاج إلى تسجيل الدخول مجدداً للوصول إلى حسابك وإقاماتك.';
+
+  @override
+  String get signingOut => 'جارٍ تسجيل الخروج…';
+
+  @override
+  String get signOutFailed => 'تعذّر تسجيل الخروج. حاول مجدداً.';
 
   @override
   String get edit => 'تعديل';

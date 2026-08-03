@@ -6,7 +6,6 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
-import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
 import 'package:file_selector/file_selector.dart';
@@ -23,8 +22,7 @@ class CreatePostPage extends ConsumerStatefulWidget {
 }
 
 class _CreatePostPageState extends ConsumerState<CreatePostPage> {
-  final _titleController = TextEditingController();
-  final _bodyController = TextEditingController();
+  final _contentController = TextEditingController();
   final _eventDateController = TextEditingController();
   final _eventLocationController = TextEditingController();
   final _pollControllers = [TextEditingController(), TextEditingController()];
@@ -35,8 +33,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _bodyController.dispose();
+    _contentController.dispose();
     _eventDateController.dispose();
     _eventLocationController.dispose();
     for (final controller in _pollControllers) {
@@ -98,20 +95,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         ],
                       ),
                       const SizedBox(height: AppSpacing.large),
-                      DarJarTextField(
-                        label: localizations.postTitle,
-                        hint: _titleHint(ar),
-                        controller: _titleController,
-                      ),
-                      const SizedBox(height: AppSpacing.large),
                       TextField(
-                        controller: _bodyController,
+                        key: const Key('post-content-field'),
+                        controller: _contentController,
                         minLines: 5,
                         maxLines: 9,
                         decoration: InputDecoration(
-                          labelText:
-                              '${localizations.postBody} (${ar ? 'اختياري' : 'optional'})',
-                          hintText: _bodyHint(ar),
+                          labelText: localizations.postContent,
+                          hintText: _contentHint(ar),
                           alignLabelWithHint: true,
                         ),
                       ),
@@ -225,7 +216,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     );
   }
 
-  String _titleHint(bool ar) => switch (_kind) {
+  String _contentHint(bool ar) => switch (_kind) {
     CommunityPostKind.question =>
       ar ? 'ما السؤال الذي تريد طرحه؟' : 'What would you like to ask?',
     CommunityPostKind.complaint =>
@@ -240,12 +231,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           : 'What should the residence vote on?',
     CommunityPostKind.event =>
       ar ? 'اسم المناسبة أو النشاط' : 'Event or activity name',
-    _ => ar ? 'اكتب عنواناً واضحاً' : 'Write a clear title',
+    _ =>
+      ar
+          ? 'ماذا تريد أن تشارك مع جيرانك؟'
+          : 'What would you like to share with your neighbors?',
   };
-
-  String _bodyHint(bool ar) => ar
-      ? 'أضف سياقاً مفيداً وواضحاً لسكان الإقامة...'
-      : 'Add clear, useful context for residents…';
 
   void _addPollOption() {
     if (_pollControllers.length >= 5) return;
@@ -253,16 +243,15 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   }
 
   Future<void> _publish() async {
-    final title = _titleController.text.trim();
-    final body = _bodyController.text.trim();
+    final content = _contentController.text.trim();
     final pollOptions = _pollControllers
         .map((controller) => controller.text.trim())
         .where((value) => value.isNotEmpty)
         .toList();
     final ar = Localizations.localeOf(context).languageCode == 'ar';
 
-    if (title.isEmpty) {
-      _showError(ar ? 'أضف عنواناً للمنشور.' : 'Add a post title.');
+    if (content.isEmpty) {
+      _showError(ar ? 'أضف محتوى المنشور.' : 'Add post content.');
       return;
     }
     if (_kind == CommunityPostKind.poll && pollOptions.length < 2) {
@@ -287,8 +276,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       await ref
           .read(communityActionsProvider)
           .createPost(
-            title: title,
-            body: body,
+            content: content,
             kind: _kind,
             pollOptions: pollOptions,
             images: _selectedImages,

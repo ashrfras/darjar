@@ -1046,8 +1046,7 @@ service cloud.firestore {
             'authorName',
             'authorUnit',
             'authorRole',
-            'title',
-            'body',
+            'content',
             'kind',
             'isOfficial',
             'imagePaths',
@@ -1072,11 +1071,9 @@ service cloud.firestore {
             == get(
               memberPath(residenceId, request.auth.uid)
             ).data.role
-          && request.resource.data.title is string
-          && request.resource.data.title.size() > 0
-          && request.resource.data.title.size() <= 160
-          && request.resource.data.body is string
-          && request.resource.data.body.size() <= 5000
+          && request.resource.data.content is string
+          && request.resource.data.content.size() > 0
+          && request.resource.data.content.size() <= 5000
           && request.resource.data.kind in [
             'question',
             'complaint',

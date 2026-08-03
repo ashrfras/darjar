@@ -347,7 +347,7 @@ void main() {
       final community = MockCommunityRepository();
       final directory = _TestDirectoryRepository();
 
-      await community.createPost(title: 'عنوان', body: 'تفاصيل');
+      await community.createPost(content: 'عنوان وتفاصيل');
       await directory.createService(
         residenceId: 'test-residence',
         userId: 'test-user',
@@ -359,7 +359,7 @@ void main() {
         neighborhood: 'المعاريف',
       );
 
-      expect(community.getPosts().first.title, 'عنوان');
+      expect(community.getPosts().first.content, 'عنوان وتفاصيل');
       expect(directory.entries.first.name, 'خدمة جديدة');
       await directory.dispose();
     });
@@ -428,8 +428,7 @@ void main() {
         expect(updated.comments.last.body, 'سأشارك بالتأكيد');
 
         final createdId = await community.createPost(
-          title: 'صور الإقامة',
-          body: 'أربع صور كحد أقصى',
+          content: 'صور الإقامة: أربع صور كحد أقصى',
           imagePaths: const ['1', '2', '3', '4', '5'],
         );
         final created = community.getPost(createdId)!;
@@ -1733,7 +1732,8 @@ void main() {
     expect(find.textContaining('سيظهر هذا المنشور'), findsNothing);
 
     final fields = find.byType(TextField);
-    expect(fields, findsNWidgets(2));
+    expect(find.byKey(const Key('post-content-field')), findsOneWidget);
+    expect(fields, findsOneWidget);
     await tester.enterText(fields.at(0), 'لقاء الجيران');
     await tester.ensureVisible(find.byKey(const Key('publish-post-button')));
     await tester.tap(find.byKey(const Key('publish-post-button')));
@@ -1744,6 +1744,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('لقاء الجيران'), findsOneWidget);
+    final shortContent = tester.widget<Text>(find.text('لقاء الجيران'));
+    expect(shortContent.style?.fontSize, 21);
+  });
+
+  testWidgets('long community content uses a smaller post font', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+
+    final longContent = tester.widget<Text>(
+      find.byKey(const ValueKey('post-content-$communityWelcomePostId')),
+    );
+    expect(longContent.data, communityWelcomePost.content);
+    expect(longContent.style?.fontSize, lessThan(21));
   });
 
   testWidgets('community filters posts and opens details with local comments', (
@@ -1757,7 +1772,7 @@ void main() {
       find.byKey(const ValueKey('community-post-darjar-welcome')),
       findsOneWidget,
     );
-    expect(find.text('أهلاً بك في إقامتك الرقمية'), findsOneWidget);
+    expect(find.textContaining('أهلاً بك في إقامتك الرقمية'), findsOneWidget);
     expect(find.byKey(const Key('darjar-post-avatar')), findsOneWidget);
     final welcomePost = find.byKey(
       const ValueKey('community-post-darjar-welcome'),
@@ -2429,6 +2444,38 @@ void main() {
     expect(find.text('تم حفظ معلومات الحساب.'), findsOneWidget);
   });
 
+  testWidgets('profile signs out through a DarJar confirmation dialog', (
+    tester,
+  ) async {
+    final authRepository = _FakeAuthRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      authRepository: authRepository,
+    );
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+
+    final signOutButton = find.byKey(const Key('sign-out-button'));
+    await tester.ensureVisible(signOutButton);
+    await tester.tap(signOutButton);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('sign-out-confirmation-dialog')),
+      findsOneWidget,
+    );
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('تسجيل الخروج؟'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('confirm-sign-out-button')));
+    await tester.pumpAndSettle();
+
+    expect(authRepository.currentUser, isNull);
+    expect(find.byKey(const Key('phone-auth-page')), findsOneWidget);
+  });
+
   testWidgets('resident sees stored dues without creating records while opening', (
     tester,
   ) async {
@@ -3018,7 +3065,10 @@ void main() {
       lessThan(tester.getTopLeft(apartmentsLink).dy),
     );
 
-    final chevrons = find.byIcon(Icons.chevron_left_rounded);
+    final chevrons = find.descendant(
+      of: find.byKey(const Key('residence-management-section')),
+      matching: find.byIcon(Icons.chevron_left_rounded),
+    );
     expect(chevrons, findsNWidgets(5));
     for (final icon in tester.widgetList<Icon>(chevrons)) {
       expect(icon.textDirection, TextDirection.ltr);

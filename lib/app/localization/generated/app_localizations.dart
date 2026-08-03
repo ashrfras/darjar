@@ -818,29 +818,11 @@ abstract class AppLocalizations {
   /// **'شارك سؤالاً أو خبراً مع جيرانك داخل الإقامة.'**
   String get createPostDescription;
 
-  /// No description provided for @postTitle.
+  /// No description provided for @postContent.
   ///
   /// In ar, this message translates to:
-  /// **'عنوان المنشور'**
-  String get postTitle;
-
-  /// No description provided for @postTitleHint.
-  ///
-  /// In ar, this message translates to:
-  /// **'اكتب عنواناً واضحاً'**
-  String get postTitleHint;
-
-  /// No description provided for @postBody.
-  ///
-  /// In ar, this message translates to:
-  /// **'التفاصيل'**
-  String get postBody;
-
-  /// No description provided for @postBodyHint.
-  ///
-  /// In ar, this message translates to:
-  /// **'ماذا تريد أن تشارك مع جيرانك؟'**
-  String get postBodyHint;
+  /// **'محتوى المنشور'**
+  String get postContent;
 
   /// No description provided for @publish.
   ///
@@ -2297,6 +2279,36 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'جارٍ الحفظ…'**
   String get profileSaving;
+
+  /// No description provided for @signOut.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسجيل الخروج'**
+  String get signOut;
+
+  /// No description provided for @signOutConfirmationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسجيل الخروج؟'**
+  String get signOutConfirmationTitle;
+
+  /// No description provided for @signOutConfirmationDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'ستحتاج إلى تسجيل الدخول مجدداً للوصول إلى حسابك وإقاماتك.'**
+  String get signOutConfirmationDescription;
+
+  /// No description provided for @signingOut.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تسجيل الخروج…'**
+  String get signingOut;
+
+  /// No description provided for @signOutFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تسجيل الخروج. حاول مجدداً.'**
+  String get signOutFailed;
 
   /// No description provided for @edit.
   ///

@@ -24,8 +24,8 @@ const communityWelcomePost = CommunityPost(
   author: 'دارجار',
   authorRole: 'platformAdmin',
   timeLabel: 'مرحباً بك',
-  title: 'أهلاً بك في إقامتك الرقمية',
-  body:
+  content:
+      'أهلاً بك في إقامتك الرقمية\n\n'
       'المجتمع: تواصل مع جيرانك وتابع أخبار وإعلانات الإقامة.\n'
       'الخدمات: اعثر على مقدمي الخدمات الموصى بهم من السكان.\n'
       'الإقامة: تابع اشتراكاتك ووثائقك واطّلع على ميزانية الإقامة.',
@@ -94,8 +94,7 @@ class CommunityPost {
     required this.id,
     required this.author,
     required this.timeLabel,
-    required this.title,
-    required this.body,
+    required this.content,
     required this.kind,
     required this.likes,
     required this.comments,
@@ -121,8 +120,7 @@ class CommunityPost {
   final String? authorUnit;
   final String authorRole;
   final String timeLabel;
-  final String title;
-  final String body;
+  final String content;
   final CommunityPostKind kind;
   final int likes;
   final List<CommunityComment> comments;
@@ -155,8 +153,7 @@ class CommunityPost {
       authorUnit: authorUnit,
       authorRole: authorRole,
       timeLabel: timeLabel,
-      title: title,
-      body: body,
+      content: content,
       kind: kind,
       likes: likes ?? this.likes,
       comments: comments ?? this.comments,
@@ -210,8 +207,7 @@ abstract interface class CommunityRepository {
   Future<String> createPost({
     required String residenceId,
     required String userId,
-    required String title,
-    required String body,
+    required String content,
     CommunityPostKind kind,
     List<String> pollOptions,
     List<CommunityPostImageUpload> images,
@@ -265,9 +261,8 @@ class MockCommunityRepository implements CommunityRepository {
       authorUnit: 'إدارة الإقامة',
       authorRole: 'president',
       timeLabel: 'منذ 30 دقيقة',
-      title: 'صيانة المصاعد يوم الخميس القادم',
-      body:
-          'سيتم إجراء صيانة دورية للمصاعد يوم الخميس 25 يوليو من الساعة 9 صباحاً إلى 1 ظهراً. يرجى استعمال الدرج خلال هذه الفترة.',
+      content:
+          'صيانة المصاعد يوم الخميس القادم\n\nسيتم إجراء صيانة دورية للمصاعد يوم الخميس 25 يوليو من الساعة 9 صباحاً إلى 1 ظهراً. يرجى استعمال الدرج خلال هذه الفترة.',
       kind: CommunityPostKind.announcement,
       likes: 12,
       isOfficial: true,
@@ -297,9 +292,8 @@ class MockCommunityRepository implements CommunityRepository {
       author: 'أحمد م.',
       authorUnit: 'العمارة أ · شقة 12',
       timeLabel: 'منذ ساعة',
-      title: 'هل أحد لديه رقم سبّاك موثوق؟',
-      body:
-          'عندي تسرّب في المطبخ وأبحث عن سبّاك موثوق وبسعر مناسب. يفضّل أن يكون متاحاً اليوم.',
+      content:
+          'هل أحد لديه رقم سبّاك موثوق؟\n\nعندي تسرّب في المطبخ وأبحث عن سبّاك موثوق وبسعر مناسب. يفضّل أن يكون متاحاً اليوم.',
       kind: CommunityPostKind.question,
       likes: 4,
       isCurrentUser: true,
@@ -318,9 +312,8 @@ class MockCommunityRepository implements CommunityRepository {
       author: 'نورة س.',
       authorUnit: 'العمارة ج · الطابق 2',
       timeLabel: 'منذ ساعتين',
-      title: 'ضجيج في الحديقة ليلاً',
-      body:
-          'الرجاء من الجميع مراعاة الهدوء بعد الساعة 11 ليلاً في الحديقة، خصوصاً خلال أيام الأسبوع.',
+      content:
+          'ضجيج في الحديقة ليلاً\n\nالرجاء من الجميع مراعاة الهدوء بعد الساعة 11 ليلاً في الحديقة، خصوصاً خلال أيام الأسبوع.',
       kind: CommunityPostKind.complaint,
       likes: 5,
       imagePaths: const ['assets/images/community/garden-night.jpg'],
@@ -344,9 +337,8 @@ class MockCommunityRepository implements CommunityRepository {
       author: 'محمد ك.',
       authorUnit: 'العمارة ب · شقة 7',
       timeLabel: 'منذ 3 ساعات',
-      title: 'زراعة المزيد من الأشجار',
-      body:
-          'أقترح على السانديك زراعة المزيد من الأشجار في المنطقة الشرقية للحديقة وتخصيص يوم تطوعي للسكان.',
+      content:
+          'زراعة المزيد من الأشجار\n\nأقترح على السانديك زراعة المزيد من الأشجار في المنطقة الشرقية للحديقة وتخصيص يوم تطوعي للسكان.',
       kind: CommunityPostKind.suggestion,
       likes: 15,
       isSaved: true,
@@ -359,9 +351,8 @@ class MockCommunityRepository implements CommunityRepository {
       authorUnit: 'إدارة الإقامة',
       authorRole: 'president',
       timeLabel: 'منذ 4 ساعات',
-      title: 'انقطاع الماء غداً صباحاً',
-      body:
-          'حسب إشعار الشركة، سيكون هناك انقطاع للماء غداً من 6 صباحاً إلى 10 صباحاً بسبب أشغال في الحي.',
+      content:
+          'انقطاع الماء غداً صباحاً\n\nحسب إشعار الشركة، سيكون هناك انقطاع للماء غداً من 6 صباحاً إلى 10 صباحاً بسبب أشغال في الحي.',
       kind: CommunityPostKind.alert,
       likes: 18,
       isOfficial: true,
@@ -372,8 +363,8 @@ class MockCommunityRepository implements CommunityRepository {
       author: 'سلمى الإدريسي',
       authorUnit: 'العمارة أ · شقة 5',
       timeLabel: 'أمس',
-      title: 'ما الموعد الأنسب ليوم نظافة الحديقة؟',
-      body: 'نريد تنظيم مبادرة خفيفة بمشاركة الجيران. اختاروا الموعد الأنسب.',
+      content:
+          'ما الموعد الأنسب ليوم نظافة الحديقة؟\n\nنريد تنظيم مبادرة خفيفة بمشاركة الجيران. اختاروا الموعد الأنسب.',
       kind: CommunityPostKind.poll,
       likes: 9,
       comments: const [],
@@ -388,9 +379,8 @@ class MockCommunityRepository implements CommunityRepository {
       author: 'أيوب بناني',
       authorUnit: 'العمارة د · شقة 3',
       timeLabel: 'أمس',
-      title: 'مباراة ودّية بين سكان الإقامة',
-      body:
-          'موعدنا نهاية الأسبوع لمباراة ودية. الجميع مرحب به، وسنكوّن الفرق في عين المكان.',
+      content:
+          'مباراة ودّية بين سكان الإقامة\n\nموعدنا نهاية الأسبوع لمباراة ودية. الجميع مرحب به، وسنكوّن الفرق في عين المكان.',
       kind: CommunityPostKind.event,
       likes: 21,
       comments: [],
@@ -402,9 +392,8 @@ class MockCommunityRepository implements CommunityRepository {
       author: 'مريم الزهراء',
       authorUnit: 'العمارة ب · شقة 16',
       timeLabel: 'منذ يومين',
-      title: 'كتب أطفال للمشاركة',
-      body:
-          'لدي مجموعة قصص مناسبة للأطفال بين 6 و10 سنوات. يسعدني إعارتها للعائلات المهتمة داخل الإقامة.',
+      content:
+          'كتب أطفال للمشاركة\n\nلدي مجموعة قصص مناسبة للأطفال بين 6 و10 سنوات. يسعدني إعارتها للعائلات المهتمة داخل الإقامة.',
       kind: CommunityPostKind.general,
       likes: 11,
       comments: [],
@@ -448,8 +437,7 @@ class MockCommunityRepository implements CommunityRepository {
   Future<String> createPost({
     String residenceId = 'mock-residence',
     String userId = 'mock-user',
-    required String title,
-    required String body,
+    required String content,
     CommunityPostKind kind = CommunityPostKind.general,
     List<String> pollOptions = const [],
     List<CommunityPostImageUpload> images = const [],
@@ -463,8 +451,7 @@ class MockCommunityRepository implements CommunityRepository {
       author: 'أحمد من العمارة',
       authorUnit: 'العمارة أ · شقة 12',
       timeLabel: 'الآن',
-      title: title,
-      body: body,
+      content: content,
       kind: kind,
       likes: 0,
       comments: const [],
@@ -633,23 +620,19 @@ class FirebaseCommunityRepository implements CommunityRepository {
   Future<String> createPost({
     required String residenceId,
     required String userId,
-    required String title,
-    required String body,
+    required String content,
     CommunityPostKind kind = CommunityPostKind.general,
     List<String> pollOptions = const [],
     List<CommunityPostImageUpload> images = const [],
     String? eventDate,
     String? eventLocation,
   }) async {
-    final normalizedTitle = title.trim();
-    final normalizedBody = body.trim();
+    final normalizedContent = content.trim();
     final normalizedPollOptions = pollOptions
         .map((option) => option.trim())
         .where((option) => option.isNotEmpty)
         .toList(growable: false);
-    if (normalizedTitle.isEmpty ||
-        normalizedTitle.length > 160 ||
-        normalizedBody.length > 5000) {
+    if (normalizedContent.isEmpty || normalizedContent.length > 5000) {
       throw const CommunityFailure('invalid-post');
     }
     if (kind == CommunityPostKind.announcement) {
@@ -716,8 +699,7 @@ class FirebaseCommunityRepository implements CommunityRepository {
         'authorName': authorName.isEmpty ? userId : authorName,
         'authorUnit': apartmentId,
         'authorRole': authorRole,
-        'title': normalizedTitle,
-        'body': normalizedBody,
+        'content': normalizedContent,
         'kind': kind.name,
         'isOfficial': isOfficial,
         'imagePaths': uploadedPaths,
@@ -918,6 +900,7 @@ class FirebaseCommunityRepository implements CommunityRepository {
     for (final optionId in pollVotes.values) {
       voteCounts[optionId] = (voteCounts[optionId] ?? 0) + 1;
     }
+    final content = _postContentFromData(data);
     return CommunityPost(
       id: document.id,
       author: data['authorName'] as String? ?? '',
@@ -925,8 +908,7 @@ class FirebaseCommunityRepository implements CommunityRepository {
       authorUnit: _nullableString(data['authorUnit']),
       authorRole: authorRole,
       timeLabel: _relativeTime(data['createdAt']),
-      title: data['title'] as String? ?? '',
-      body: data['body'] as String? ?? '',
+      content: content,
       kind: _kindFrom(data['kind']),
       likes: likedBy.length,
       comments: [
@@ -983,6 +965,18 @@ class FirebaseCommunityRepository implements CommunityRepository {
         (kind) => kind.name == value,
         orElse: () => CommunityPostKind.general,
       );
+
+  String _postContentFromData(Map<String, dynamic> data) {
+    final content = (data['content'] as String? ?? '').trim();
+    if (content.isNotEmpty) return content;
+
+    // Posts created before the single-content model used a required title and
+    // an optional body. Keep them readable while new posts store one field.
+    return [
+      data['title'] as String? ?? '',
+      data['body'] as String? ?? '',
+    ].map((part) => part.trim()).where((part) => part.isNotEmpty).join('\n\n');
+  }
 
   String? _nullableString(Object? value) {
     final text = value as String?;
@@ -1107,8 +1101,7 @@ class CommunityActions {
   }
 
   Future<String> createPost({
-    required String title,
-    required String body,
+    required String content,
     CommunityPostKind kind = CommunityPostKind.general,
     List<String> pollOptions = const [],
     List<CommunityPostImageUpload> images = const [],
@@ -1121,8 +1114,7 @@ class CommunityActions {
         .createPost(
           residenceId: residenceId,
           userId: userId,
-          title: title,
-          body: body,
+          content: content,
           kind: kind,
           pollOptions: pollOptions,
           images: images,

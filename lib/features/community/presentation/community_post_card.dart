@@ -100,26 +100,14 @@ class CommunityPostCard extends ConsumerWidget {
                 _KindLabel(post: post),
                 const SizedBox(height: AppSpacing.small),
                 Text(
-                  post.title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    height: 1.35,
-                  ),
+                  post.content,
+                  key: ValueKey('post-content-${post.id}'),
+                  maxLines: expanded || post.isSystem ? null : 5,
+                  overflow: expanded || post.isSystem
+                      ? null
+                      : TextOverflow.ellipsis,
+                  style: _postContentStyle(context, post.content),
                 ),
-                if (post.body.trim().isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    post.body,
-                    maxLines: expanded || post.isSystem ? null : 3,
-                    overflow: expanded || post.isSystem
-                        ? null
-                        : TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.inkMuted,
-                      height: 1.65,
-                    ),
-                  ),
-                ],
                 if (post.imagePaths.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.medium),
                   if (post.isSystem)
@@ -159,6 +147,21 @@ class CommunityPostCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+TextStyle? _postContentStyle(BuildContext context, String content) {
+  final length = content.trim().length;
+  if (length <= 80) {
+    return Theme.of(context).textTheme.headlineSmall?.copyWith(height: 1.45);
+  }
+  if (length <= 240) {
+    return Theme.of(
+      context,
+    ).textTheme.bodyLarge?.copyWith(color: AppColors.ink, height: 1.6);
+  }
+  return Theme.of(
+    context,
+  ).textTheme.bodyMedium?.copyWith(color: AppColors.inkMuted, height: 1.65);
 }
 
 class _PostHeader extends StatelessWidget {

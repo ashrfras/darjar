@@ -56,6 +56,7 @@ class _ProfileContent extends ConsumerStatefulWidget {
 
 class _ProfileContentState extends ConsumerState<_ProfileContent> {
   bool _processingImage = false;
+  bool _signingOut = false;
 
   @override
   Widget build(BuildContext context) {
@@ -234,6 +235,38 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                   ),
                 ),
               ],
+              const SizedBox(height: AppSpacing.large),
+              DarJarCard(
+                key: const Key('account-actions-card'),
+                padding: EdgeInsets.zero,
+                child: ListTile(
+                  key: const Key('sign-out-button'),
+                  enabled: !_signingOut,
+                  leading: const Icon(
+                    Icons.logout_rounded,
+                    color: AppColors.danger,
+                  ),
+                  title: Text(
+                    _signingOut
+                        ? localizations.signingOut
+                        : localizations.signOut,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: AppColors.danger),
+                  ),
+                  trailing: _signingOut
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(
+                          Icons.chevron_left_rounded,
+                          color: AppColors.inkMuted,
+                          textDirection: TextDirection.ltr,
+                        ),
+                  onTap: _signingOut ? null : _confirmSignOut,
+                ),
+              ),
             ],
           ),
         ),
@@ -251,6 +284,29 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
       constraints: const BoxConstraints(maxWidth: 560),
       builder: (context) => _EditProfileNameSheet(profile: widget.profile),
     );
+  }
+
+  Future<void> _confirmSignOut() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: AppColors.ink.withValues(alpha: 0.42),
+      builder: (context) => const _SignOutConfirmationDialog(),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _signingOut = true);
+    try {
+      await ref.read(authRepositoryProvider).signOut();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _signingOut = false);
+      final messenger = ScaffoldMessenger.of(context);
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).signOutFailed)),
+        );
+    }
   }
 
   Future<void> _selectProfileImage() async {
@@ -420,6 +476,96 @@ class _EditableProfileAvatar extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SignOutConfirmationDialog extends StatelessWidget {
+  const _SignOutConfirmationDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return Dialog(
+      key: const Key('sign-out-confirmation-dialog'),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.all(AppSpacing.large),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            border: Border.all(color: AppColors.outline),
+            borderRadius: BorderRadius.circular(AppRadius.large),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x2917151D),
+                blurRadius: 36,
+                offset: Offset(0, 16),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xLarge),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.danger.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
+                    ),
+                    child: const Icon(
+                      Icons.logout_rounded,
+                      color: AppColors.danger,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.large),
+                Text(
+                  localizations.signOutConfirmationTitle,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: AppSpacing.small),
+                Text(
+                  localizations.signOutConfirmationDescription,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.inkMuted),
+                ),
+                const SizedBox(height: AppSpacing.xLarge),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DarJarButton(
+                        key: const Key('cancel-sign-out-button'),
+                        label: localizations.cancel,
+                        variant: DarJarButtonVariant.secondary,
+                        onPressed: () => Navigator.of(context).pop(false),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.medium),
+                    Expanded(
+                      child: DarJarButton(
+                        key: const Key('confirm-sign-out-button'),
+                        label: localizations.signOut,
+                        icon: Icons.logout_rounded,
+                        onPressed: () => Navigator.of(context).pop(true),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

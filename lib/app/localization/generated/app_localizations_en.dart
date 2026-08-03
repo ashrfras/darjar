@@ -400,17 +400,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Share a question or update with neighbors in your residence.';
 
   @override
-  String get postTitle => 'Post title';
-
-  @override
-  String get postTitleHint => 'Write a clear title';
-
-  @override
-  String get postBody => 'Details';
-
-  @override
-  String get postBodyHint =>
-      'What would you like to share with your neighbors?';
+  String get postContent => 'Post content';
 
   @override
   String get publish => 'Publish';
@@ -1238,6 +1228,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSaving => 'Saving…';
+
+  @override
+  String get signOut => 'Sign out';
+
+  @override
+  String get signOutConfirmationTitle => 'Sign out?';
+
+  @override
+  String get signOutConfirmationDescription =>
+      'You will need to sign in again to access your account and residences.';
+
+  @override
+  String get signingOut => 'Signing out…';
+
+  @override
+  String get signOutFailed => 'Could not sign out. Try again.';
 
   @override
   String get edit => 'Edit';
