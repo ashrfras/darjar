@@ -46,6 +46,10 @@
     ],
     "rewrites": [
       {
+        "source": "/join/**",
+        "destination": "/join/index.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

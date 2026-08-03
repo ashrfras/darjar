@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="انضم إلى إقامتك على دارجار وتابع شؤونها بسهولة.">
+
+  <!-- Invitation link preview metadata. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="دارجار">
+  <meta property="og:locale" content="ar_MA">
+  <meta property="og:title" content="دعوة للانضمام إلى تطبيق دارجار">
+  <meta property="og:description" content="انضم إلى إقامتك على دارجار وتابع شؤونها بسهولة.">
+  <meta property="og:image" content="https://darjar.app/invitation-preview.png">
+  <meta property="og:image:secure_url" content="https://darjar.app/invitation-preview.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="شعار دارجار">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="دعوة للانضمام إلى تطبيق دارجار">
+  <meta name="twitter:description" content="انضم إلى إقامتك على دارجار وتابع شؤونها بسهولة.">
+  <meta name="twitter:image" content="https://darjar.app/invitation-preview.png">
+
+  <!-- iOS meta tags & icons. -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="دارجار">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <link rel="icon" type="image/png" href="favicon.png">
+  <title>دعوة للانضمام إلى تطبيق دارجار</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body {
+      background: #f8f6f2;
+      height: 100%;
+      margin: 0;
+    }
+
+    #darjar-loading {
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+      inset: 0;
+      justify-content: center;
+      position: fixed;
+    }
+
+    #darjar-loading img {
+      height: 84px;
+      margin-bottom: 24px;
+      object-fit: contain;
+      width: 84px;
+    }
+
+    #darjar-loading .darjar-progress {
+      background: #d5e9e6;
+      border-radius: 2px;
+      height: 4px;
+      overflow: hidden;
+      position: relative;
+      width: min(240px, calc(100vw - 64px));
+    }
+
+    #darjar-loading .darjar-progress::after {
+      animation: darjar-progress 1.2s ease-in-out infinite;
+      background: #0f766e;
+      border-radius: inherit;
+      content: '';
+      inset: 0;
+      position: absolute;
+      transform: translateX(-100%);
+      width: 45%;
+    }
+
+    @keyframes darjar-progress {
+      to { transform: translateX(225%); }
+    }
+  </style>
+</head>
+<body>
+  <div id="darjar-loading" role="status" aria-live="polite">
+    <img
+      src="assets/assets/images/branding/darjar-logo.png"
+      alt="شعار دارجار"
+    >
+    <div class="darjar-progress" aria-hidden="true"></div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register(
+          'firebase-messaging-sw.js',
+          {scope: '/firebase-cloud-messaging-push-scope'},
+        );
+      });
+    }
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

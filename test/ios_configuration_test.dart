@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -39,5 +40,35 @@ void main() {
     final indexHtml = File('web/index.html').readAsStringSync();
 
     expect(indexHtml, contains('<title>دارجار - إقامتك الرقمية</title>'));
+    expect(indexHtml, isNot(contains('دعوة للانضمام إلى تطبيق دارجار')));
+  });
+
+  test('web invitation links use their own social preview metadata', () {
+    final invitationHtml = File('web/join/index.html').readAsStringSync();
+    final hostingConfig =
+        jsonDecode(File('firebase.json').readAsStringSync())
+            as Map<String, dynamic>;
+    final hosting = hostingConfig['hosting'] as Map<String, dynamic>;
+    final rewrites = hosting['rewrites'] as List<dynamic>;
+
+    expect(
+      invitationHtml,
+      contains(
+        '<meta property="og:title" '
+        'content="دعوة للانضمام إلى تطبيق دارجار">',
+      ),
+    );
+    expect(
+      invitationHtml,
+      contains(
+        '<meta property="og:image" '
+        'content="https://darjar.app/invitation-preview.png">',
+      ),
+    );
+    expect(File('web/invitation-preview.png').existsSync(), isTrue);
+    expect(
+      rewrites.first,
+      equals({'source': '/join/**', 'destination': '/join/index.html'}),
+    );
   });
 }
