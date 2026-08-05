@@ -1679,6 +1679,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authVerifying => 'Verifying…';
 
   @override
+  String get authResendCode => 'Resend code';
+
+  @override
+  String authResendCodeIn(int seconds) {
+    return 'Resend code in $seconds seconds';
+  }
+
+  @override
   String get authChangePhone => 'Change phone number';
 
   @override

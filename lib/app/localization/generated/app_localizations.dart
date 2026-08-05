@@ -3066,6 +3066,18 @@ abstract class AppLocalizations {
   /// **'جارٍ التحقق…'**
   String get authVerifying;
 
+  /// No description provided for @authResendCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة إرسال الرمز'**
+  String get authResendCode;
+
+  /// No description provided for @authResendCodeIn.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة إرسال الرمز بعد {seconds} ثانية'**
+  String authResendCodeIn(int seconds);
+
   /// No description provided for @authChangePhone.
   ///
   /// In ar, this message translates to:

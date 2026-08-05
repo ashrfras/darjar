@@ -723,6 +723,68 @@ void main() {
   });
 
   group('authentication foundation', () {
+    test('limits simulated authentication to web loopback hosts', () {
+      expect(
+        isLocalhostAuthSimulation(
+          isWeb: true,
+          uri: Uri.parse('http://localhost:8080/auth/phone'),
+        ),
+        isTrue,
+      );
+      expect(
+        isLocalhostAuthSimulation(
+          isWeb: true,
+          uri: Uri.parse('http://127.0.0.1:8080/auth/phone'),
+        ),
+        isTrue,
+      );
+      expect(
+        isLocalhostAuthSimulation(
+          isWeb: true,
+          uri: Uri.parse('http://[::1]:8080/auth/phone'),
+        ),
+        isTrue,
+      );
+      expect(
+        isLocalhostAuthSimulation(
+          isWeb: true,
+          uri: Uri.parse('https://localhost.example.com/auth/phone'),
+        ),
+        isFalse,
+      );
+      expect(
+        isLocalhostAuthSimulation(
+          isWeb: false,
+          uri: Uri.parse('http://localhost:8080/auth/phone'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('localhost repository authenticates without the SMS API', () async {
+      final container = ProviderContainer(
+        overrides: [
+          localhostAuthSimulationProvider.overrideWithValue(true),
+          phoneVerificationApiProvider.overrideWith(
+            (ref) => throw StateError('SMS API must not be created'),
+          ),
+          firebaseAuthProvider.overrideWith(
+            (ref) => throw StateError('Firebase Auth must not be created'),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final repository = container.read(authRepositoryProvider);
+      expect(repository, isA<LocalhostAuthRepository>());
+
+      await repository.sendVerificationCode('+2121', languageCode: 'ar');
+      await repository.confirmVerificationCode('7');
+
+      expect(repository.currentUser?.phoneNumber, '+2121');
+      expect(repository.currentUser?.uid, 'localhost-2121');
+    });
+
     test('normalizes equivalent international phone formats', () {
       expect(normalizePhoneNumber('+212 6 12-34-56-78'), '+212612345678');
       expect(normalizePhoneNumber('00212 6 12 34 56 78'), '+212612345678');
@@ -935,6 +997,81 @@ void main() {
       expect(details.data, contains('verification/billing-not-enabled'));
       expect(details.data, contains('[phone redacted]'));
       expect(details.data, isNot(contains('+212600000001')));
+    });
+
+    testWidgets('phone auth enables resending after a visible countdown', (
+      tester,
+    ) async {
+      final authRepository = _FakeAuthRepository(signedIn: false);
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        authRepository: authRepository,
+      );
+
+      await tester.tap(find.byKey(const Key('start-button')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('auth-phone-field')),
+        '0600000001',
+      );
+      await tester.tap(find.byKey(const Key('send-verification-code-button')));
+      await tester.pump();
+
+      final resendButton = find.byKey(
+        const Key('resend-verification-code-button'),
+      );
+      expect(find.text('إعادة إرسال الرمز بعد 60 ثانية'), findsOneWidget);
+      expect(tester.widget<DarJarButton>(resendButton).onPressed, isNull);
+
+      await tester.pump(const Duration(seconds: 30));
+      expect(find.text('إعادة إرسال الرمز بعد 30 ثانية'), findsOneWidget);
+      expect(tester.widget<DarJarButton>(resendButton).onPressed, isNull);
+
+      await tester.pump(const Duration(seconds: 30));
+      expect(find.text('إعادة إرسال الرمز'), findsOneWidget);
+      expect(tester.widget<DarJarButton>(resendButton).onPressed, isNotNull);
+
+      await tester.tap(resendButton);
+      await tester.pump();
+      expect(authRepository.sendVerificationCodeCallCount, 2);
+      expect(find.text('إعادة إرسال الرمز بعد 60 ثانية'), findsOneWidget);
+    });
+
+    testWidgets('localhost auth accepts any non-empty phone and code', (
+      tester,
+    ) async {
+      final authRepository = _FakeAuthRepository(signedIn: false);
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        authRepository: authRepository,
+        localhostAuthSimulation: true,
+      );
+
+      await tester.tap(find.byKey(const Key('start-button')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('auth-phone-field')), '1');
+      await tester.tap(find.byKey(const Key('send-verification-code-button')));
+      await tester.pumpAndSettle();
+
+      expect(authRepository.requestedPhoneNumber, '+2121');
+      expect(
+        find.byKey(const Key('auth-verification-code-field')),
+        findsOneWidget,
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('auth-verification-code-field')),
+        '7local-test',
+      );
+      await tester.tap(
+        find.byKey(const Key('confirm-verification-code-button')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(authRepository.confirmedCode, '7');
+      expect(find.byKey(const Key('residence-setup-page')), findsOneWidget);
     });
 
     testWidgets('resident accepts selected invitations from multiple homes', (
@@ -4154,6 +4291,7 @@ Future<void> _pumpApp(
   String? platformInitialLocation,
   bool useBootstrap = false,
   DateTime? notificationNow,
+  bool localhostAuthSimulation = false,
   AuthRepository? authRepository,
   AccountOnboardingRepository? accountRepository,
   ResidenceSetupRepository? residenceSetupRepository,
@@ -4234,6 +4372,9 @@ Future<void> _pumpApp(
     ProviderScope(
       overrides: [
         authRepositoryProvider.overrideWithValue(repository),
+        localhostAuthSimulationProvider.overrideWithValue(
+          localhostAuthSimulation,
+        ),
         if (initialLocation != null)
           appInitialLocationProvider.overrideWithValue(initialLocation),
         if (platformInitialLocation != null)
@@ -4430,6 +4571,7 @@ class _FakeAuthRepository implements AuthRepository {
   String? requestedPhoneNumber;
   String? requestedLanguageCode;
   String? confirmedCode;
+  int sendVerificationCodeCallCount = 0;
   final AuthFailure? sendFailure;
 
   @override
@@ -4443,6 +4585,7 @@ class _FakeAuthRepository implements AuthRepository {
     String phoneNumber, {
     required String languageCode,
   }) async {
+    sendVerificationCodeCallCount++;
     requestedPhoneNumber = phoneNumber;
     requestedLanguageCode = languageCode;
     final failure = sendFailure;

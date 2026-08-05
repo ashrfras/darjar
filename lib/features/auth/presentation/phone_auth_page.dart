@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
@@ -22,16 +24,21 @@ class PhoneAuthPage extends ConsumerStatefulWidget {
 }
 
 class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
+  static const _resendDelay = Duration(seconds: 60);
+
   final _phoneController = TextEditingController();
   final _codeController = TextEditingController();
+  Timer? _resendTimer;
   String _countryCode = '+212';
   bool _codeSent = false;
   bool _isSubmitting = false;
+  int _resendSecondsRemaining = 0;
   String? _errorCode;
   String? _technicalError;
 
   @override
   void dispose() {
+    _resendTimer?.cancel();
     _phoneController.dispose();
     _codeController.dispose();
     super.dispose();
@@ -40,6 +47,7 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final usesLocalAuthSimulation = ref.watch(localhostAuthSimulationProvider);
 
     return Scaffold(
       key: const Key('phone-auth-page'),
@@ -161,10 +169,15 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
                             keyboardType: TextInputType.number,
                             textDirection: TextDirection.ltr,
                             textInputAction: TextInputAction.done,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(6),
-                            ],
+                            inputFormatters: usesLocalAuthSimulation
+                                ? [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(32),
+                                  ]
+                                : [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(6),
+                                  ],
                           ),
                           const SizedBox(height: AppSpacing.xLarge),
                           DarJarButton(
@@ -177,6 +190,22 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
                           ),
                           const SizedBox(height: AppSpacing.small),
                           DarJarButton(
+                            key: const Key('resend-verification-code-button'),
+                            label: _resendSecondsRemaining > 0
+                                ? localizations.authResendCodeIn(
+                                    _resendSecondsRemaining,
+                                  )
+                                : localizations.authResendCode,
+                            icon: Icons.refresh_rounded,
+                            variant: DarJarButtonVariant.tertiary,
+                            expanded: true,
+                            onPressed:
+                                _isSubmitting || _resendSecondsRemaining > 0
+                                ? null
+                                : _sendCode,
+                          ),
+                          const SizedBox(height: AppSpacing.small),
+                          DarJarButton(
                             key: const Key('change-phone-number-button'),
                             label: localizations.authChangePhone,
                             variant: DarJarButtonVariant.tertiary,
@@ -184,7 +213,9 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
                             onPressed: _isSubmitting
                                 ? null
                                 : () => setState(() {
+                                    _resendTimer?.cancel();
                                     _codeSent = false;
+                                    _resendSecondsRemaining = 0;
                                     _codeController.clear();
                                     _errorCode = null;
                                     _technicalError = null;
@@ -221,7 +252,10 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
   Future<void> _sendCode() async {
     final phoneNumber = _phoneNumber;
     final nationalDigits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
-    final validPhone = _countryCode == '+212'
+    final usesLocalAuthSimulation = ref.read(localhostAuthSimulationProvider);
+    final validPhone = usesLocalAuthSimulation
+        ? nationalDigits.isNotEmpty
+        : _countryCode == '+212'
         ? isValidMoroccanMobileNumber(phoneNumber)
         : nationalDigits.length >= 8 && nationalDigits.length <= 12;
     if (!validPhone) {
@@ -246,7 +280,11 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
             languageCode: Localizations.localeOf(context).languageCode,
           );
       if (mounted && ref.read(authRepositoryProvider).currentUser == null) {
-        setState(() => _codeSent = true);
+        setState(() {
+          _codeSent = true;
+          _codeController.clear();
+        });
+        _startResendCountdown();
       }
     } on AuthFailure catch (error) {
       if (mounted) {
@@ -271,12 +309,31 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
     }
   }
 
+  void _startResendCountdown() {
+    _resendTimer?.cancel();
+    setState(() => _resendSecondsRemaining = _resendDelay.inSeconds);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _resendSecondsRemaining--;
+        if (_resendSecondsRemaining == 0) timer.cancel();
+      });
+    });
+  }
+
   String get _phoneNumber => normalizePhoneNumber(
     formatInternationalPhoneNumber(_countryCode, _phoneController.text),
   );
 
   Future<void> _confirmCode() async {
-    if (_codeController.text.length != 6) {
+    final usesLocalAuthSimulation = ref.read(localhostAuthSimulationProvider);
+    final validCode = usesLocalAuthSimulation
+        ? _codeController.text.isNotEmpty
+        : _codeController.text.length == 6;
+    if (!validCode) {
       setState(() {
         _errorCode = 'invalid-verification-code';
         _technicalError = null;

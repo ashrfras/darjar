@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:darjar/features/auth/data/auth_failure.dart';
 import 'package:darjar/features/auth/data/phone_verification_api.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
@@ -93,6 +96,51 @@ class BackendAuthRepository implements AuthRepository {
   }
 }
 
+class LocalhostAuthRepository implements AuthRepository {
+  final _authStateController = StreamController<AuthUser?>.broadcast(
+    sync: true,
+  );
+  AuthUser? _currentUser;
+  String? _pendingPhoneNumber;
+
+  @override
+  AuthUser? get currentUser => _currentUser;
+
+  @override
+  Stream<AuthUser?> authStateChanges() => _authStateController.stream;
+
+  @override
+  Future<void> sendVerificationCode(
+    String phoneNumber, {
+    required String languageCode,
+  }) async {
+    _pendingPhoneNumber = phoneNumber;
+  }
+
+  @override
+  Future<void> confirmVerificationCode(String code) async {
+    final phoneNumber = _pendingPhoneNumber;
+    if (phoneNumber == null) {
+      throw const AuthFailure('missing-verification-session');
+    }
+    _currentUser = AuthUser(
+      uid: 'localhost-${phoneNumber.replaceAll(RegExp(r'\D'), '')}',
+      phoneNumber: phoneNumber,
+    );
+    _pendingPhoneNumber = null;
+    _authStateController.add(_currentUser);
+  }
+
+  @override
+  Future<void> signOut() async {
+    _currentUser = null;
+    _pendingPhoneNumber = null;
+    _authStateController.add(null);
+  }
+
+  Future<void> dispose() => _authStateController.close();
+}
+
 String _firebaseAuthErrorCode(Object error) {
   final match = RegExp(
     r'(?:firebase_auth/|auth/)([a-z0-9_-]+)',
@@ -156,12 +204,27 @@ final phoneVerificationApiProvider = Provider<PhoneVerificationApi>(
   ),
 );
 
-final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => BackendAuthRepository(
+bool isLocalhostAuthSimulation({bool isWeb = kIsWeb, Uri? uri}) {
+  if (!isWeb) return false;
+  final host = (uri ?? Uri.base).host.toLowerCase();
+  return host == 'localhost' || host == '127.0.0.1' || host == '::1';
+}
+
+final localhostAuthSimulationProvider = Provider<bool>(
+  (ref) => isLocalhostAuthSimulation(),
+);
+
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  if (ref.watch(localhostAuthSimulationProvider)) {
+    final repository = LocalhostAuthRepository();
+    ref.onDispose(repository.dispose);
+    return repository;
+  }
+  return BackendAuthRepository(
     ref.watch(firebaseAuthProvider),
     ref.watch(phoneVerificationApiProvider),
-  ),
-);
+  );
+});
 
 final authStateProvider = StreamProvider<AuthUser?>(
   (ref) => ref.watch(authRepositoryProvider).authStateChanges(),

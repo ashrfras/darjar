@@ -1651,6 +1651,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authVerifying => 'جارٍ التحقق…';
 
   @override
+  String get authResendCode => 'إعادة إرسال الرمز';
+
+  @override
+  String authResendCodeIn(int seconds) {
+    return 'إعادة إرسال الرمز بعد $seconds ثانية';
+  }
+
+  @override
   String get authChangePhone => 'تغيير رقم الهاتف';
 
   @override
