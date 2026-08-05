@@ -239,7 +239,12 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
       _technicalError = null;
     });
     try {
-      await ref.read(authRepositoryProvider).sendVerificationCode(phoneNumber);
+      await ref
+          .read(authRepositoryProvider)
+          .sendVerificationCode(
+            phoneNumber,
+            languageCode: Localizations.localeOf(context).languageCode,
+          );
       if (mounted && ref.read(authRepositoryProvider).currentUser == null) {
         setState(() => _codeSent = true);
       }
@@ -322,12 +327,6 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
       'too-many-requests' ||
       'quota-exceeded' => localizations.authTooManyRequests,
       'network-request-failed' => localizations.authNetworkError,
-      'unauthorized-domain' => localizations.authUnauthorizedDomain,
-      'captcha-check-failed' ||
-      'invalid-app-credential' ||
-      'missing-app-credential' ||
-      'verification-timeout' => localizations.authCaptchaFailed,
-      'operation-not-allowed' => localizations.authPhoneOperationNotAllowed,
       _ => localizations.authUnexpectedError,
     };
   }
@@ -335,7 +334,7 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
   String _formatTechnicalError(AuthFailure error) {
     final rawMessage = error.message?.trim();
     if (rawMessage == null || rawMessage.isEmpty) {
-      return 'Firebase code: ${error.code}';
+      return 'Verification code: ${error.code}';
     }
     var safeMessage = rawMessage
         .replaceAll(_phoneNumber, '[phone redacted]')
@@ -344,7 +343,7 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
     if (safeMessage.length > 600) {
       safeMessage = '${safeMessage.substring(0, 600)}…';
     }
-    return 'Firebase code: ${error.code}\n$safeMessage';
+    return 'Verification code: ${error.code}\n$safeMessage';
   }
 }
 

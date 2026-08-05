@@ -1,9 +1,10 @@
-import 'dart:async';
-
+import 'package:darjar/features/auth/data/auth_failure.dart';
+import 'package:darjar/features/auth/data/phone_verification_api.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
+
+export 'auth_failure.dart';
 
 class AuthUser {
   const AuthUser({required this.uid, required this.phoneNumber});
@@ -12,31 +13,27 @@ class AuthUser {
   final String? phoneNumber;
 }
 
-class AuthFailure implements Exception {
-  const AuthFailure(this.code, {this.message});
-
-  final String code;
-  final String? message;
-}
-
 abstract interface class AuthRepository {
   AuthUser? get currentUser;
 
   Stream<AuthUser?> authStateChanges();
 
-  Future<void> sendVerificationCode(String phoneNumber);
+  Future<void> sendVerificationCode(
+    String phoneNumber, {
+    required String languageCode,
+  });
 
   Future<void> confirmVerificationCode(String code);
 
   Future<void> signOut();
 }
 
-class FirebaseAuthRepository implements AuthRepository {
-  FirebaseAuthRepository(this._firebaseAuth);
+class BackendAuthRepository implements AuthRepository {
+  BackendAuthRepository(this._firebaseAuth, this._verificationApi);
 
   final FirebaseAuth _firebaseAuth;
-  ConfirmationResult? _webConfirmationResult;
-  String? _nativeVerificationId;
+  final PhoneVerificationApi _verificationApi;
+  String? _verificationSessionId;
 
   @override
   AuthUser? get currentUser => _toAuthUser(_firebaseAuth.currentUser);
@@ -47,57 +44,17 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> sendVerificationCode(String phoneNumber) async {
+  Future<void> sendVerificationCode(
+    String phoneNumber, {
+    required String languageCode,
+  }) async {
     try {
-      if (kIsWeb) {
-        await _sendWebVerificationCode(phoneNumber);
-        return;
-      }
-
-      final codeSent = Completer<void>();
-      final verification = () async {
-        await _firebaseAuth.verifyPhoneNumber(
-          phoneNumber: phoneNumber,
-          verificationCompleted: (credential) async {
-            try {
-              await _firebaseAuth.signInWithCredential(credential);
-              if (!codeSent.isCompleted) {
-                codeSent.complete();
-              }
-            } on FirebaseException catch (error) {
-              if (!codeSent.isCompleted) {
-                codeSent.completeError(_authFailureFromFirebase(error));
-              }
-            }
-          },
-          verificationFailed: (error) {
-            if (!codeSent.isCompleted) {
-              codeSent.completeError(_authFailureFromFirebase(error));
-            }
-          },
-          codeSent: (verificationId, resendToken) {
-            _nativeVerificationId = verificationId;
-            if (!codeSent.isCompleted) {
-              codeSent.complete();
-            }
-          },
-          codeAutoRetrievalTimeout: (verificationId) {
-            _nativeVerificationId = verificationId;
-            if (!codeSent.isCompleted) {
-              codeSent.complete();
-            }
-          },
-        );
-        await codeSent.future;
-      }();
-      await verification.timeout(
-        const Duration(minutes: 2),
-        onTimeout: () => throw const AuthFailure('verification-timeout'),
+      _verificationSessionId = await _verificationApi.start(
+        phoneNumber,
+        languageCode: languageCode,
       );
     } on AuthFailure {
       rethrow;
-    } on FirebaseException catch (error) {
-      throw _authFailureFromFirebase(error);
     } catch (error) {
       throw _authFailureFromUnknown(error);
     }
@@ -106,26 +63,16 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<void> confirmVerificationCode(String code) async {
     try {
-      if (kIsWeb) {
-        final confirmationResult = _webConfirmationResult;
-        if (confirmationResult == null) {
-          throw const AuthFailure('missing-verification-session');
-        }
-        await confirmationResult.confirm(code);
-        _webConfirmationResult = null;
-        return;
-      }
-
-      final verificationId = _nativeVerificationId;
-      if (verificationId == null) {
+      final sessionId = _verificationSessionId;
+      if (sessionId == null) {
         throw const AuthFailure('missing-verification-session');
       }
-      final credential = PhoneAuthProvider.credential(
-        verificationId: verificationId,
-        smsCode: code,
+      final customToken = await _verificationApi.check(
+        sessionId: sessionId,
+        code: code,
       );
-      await _firebaseAuth.signInWithCredential(credential);
-      _nativeVerificationId = null;
+      await _firebaseAuth.signInWithCustomToken(customToken);
+      _verificationSessionId = null;
     } on AuthFailure {
       rethrow;
     } on FirebaseException catch (error) {
@@ -137,26 +84,6 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() => _firebaseAuth.signOut();
-
-  Future<void> _sendWebVerificationCode(String phoneNumber) async {
-    // FlutterFire only clears its implicit verifier after a successful request.
-    // Supplying and clearing our own verifier prevents an expired reCAPTCHA
-    // instance from leaking into the next attempt after Firebase rejects it.
-    final verifier = RecaptchaVerifier(
-      auth: FirebaseAuthPlatform.instanceFor(
-        app: _firebaseAuth.app,
-        pluginConstants: _firebaseAuth.pluginConstants,
-      ),
-    );
-    try {
-      _webConfirmationResult = await _firebaseAuth.signInWithPhoneNumber(
-        phoneNumber,
-        verifier,
-      );
-    } finally {
-      verifier.clear();
-    }
-  }
 
   AuthUser? _toAuthUser(User? user) {
     if (user == null) {
@@ -212,8 +139,28 @@ final firebaseAuthProvider = Provider<FirebaseAuth>(
   (ref) => FirebaseAuth.instance,
 );
 
+const phoneVerificationServiceUrl = String.fromEnvironment(
+  'DARJAR_PHONE_VERIFICATION_URL',
+);
+
+final phoneVerificationHttpClientProvider = Provider<http.Client>((ref) {
+  final client = http.Client();
+  ref.onDispose(client.close);
+  return client;
+});
+
+final phoneVerificationApiProvider = Provider<PhoneVerificationApi>(
+  (ref) => PhoneVerificationApi(
+    baseUrl: phoneVerificationServiceUrl,
+    client: ref.watch(phoneVerificationHttpClientProvider),
+  ),
+);
+
 final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => FirebaseAuthRepository(ref.watch(firebaseAuthProvider)),
+  (ref) => BackendAuthRepository(
+    ref.watch(firebaseAuthProvider),
+    ref.watch(phoneVerificationApiProvider),
+  ),
 );
 
 final authStateProvider = StreamProvider<AuthUser?>(

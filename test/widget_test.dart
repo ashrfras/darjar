@@ -877,6 +877,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(authRepository.requestedPhoneNumber, '+212600000001');
+      expect(authRepository.requestedLanguageCode, 'ar');
       expect(find.textContaining('(212)600000001'), findsOneWidget);
       final codeDescription = tester.widget<Text>(
         find.byKey(const Key('auth-step-description')),
@@ -900,14 +901,16 @@ void main() {
       expect(find.byKey(const Key('residence-setup-page')), findsOneWidget);
     });
 
-    testWidgets('phone auth exposes safe Firebase diagnostics', (tester) async {
+    testWidgets('phone auth exposes safe verification diagnostics', (
+      tester,
+    ) async {
       final authRepository = _FakeAuthRepository(
         signedIn: false,
         sendFailure: const AuthFailure(
           'unknown',
           message:
               'An unknown error occurred for +212600000001: '
-              'FirebaseError (auth/billing-not-enabled).',
+              'ProviderError (verification/billing-not-enabled).',
         ),
       );
       await _pumpApp(
@@ -928,8 +931,8 @@ void main() {
       final details = tester.widget<SelectableText>(
         find.byKey(const Key('auth-error-technical-details')),
       );
-      expect(details.data, contains('Firebase code: unknown'));
-      expect(details.data, contains('auth/billing-not-enabled'));
+      expect(details.data, contains('Verification code: unknown'));
+      expect(details.data, contains('verification/billing-not-enabled'));
       expect(details.data, contains('[phone redacted]'));
       expect(details.data, isNot(contains('+212600000001')));
     });
@@ -4425,6 +4428,7 @@ class _FakeAuthRepository implements AuthRepository {
       StreamController<AuthUser?>.broadcast(sync: true);
   AuthUser? _currentUser;
   String? requestedPhoneNumber;
+  String? requestedLanguageCode;
   String? confirmedCode;
   final AuthFailure? sendFailure;
 
@@ -4435,8 +4439,12 @@ class _FakeAuthRepository implements AuthRepository {
   Stream<AuthUser?> authStateChanges() => _authStateController.stream;
 
   @override
-  Future<void> sendVerificationCode(String phoneNumber) async {
+  Future<void> sendVerificationCode(
+    String phoneNumber, {
+    required String languageCode,
+  }) async {
     requestedPhoneNumber = phoneNumber;
+    requestedLanguageCode = languageCode;
     final failure = sendFailure;
     if (failure != null) {
       throw failure;

@@ -1,0 +1,181 @@
+import 'package:darjar_phone_verification/src/phone_verification_service.dart';
+import 'package:test/test.dart';
+
+void main() {
+  late _FakeSmsGateway sms;
+  late _MemorySessions sessions;
+  late _FakeIdentity identity;
+  late PhoneVerificationService service;
+
+  setUp(() {
+    sms = _FakeSmsGateway();
+    sessions = _MemorySessions();
+    identity = _FakeIdentity();
+    service = PhoneVerificationService(
+      sms: sms,
+      sessions: sessions,
+      firebaseIdentity: identity,
+      otpHashPepper: 'test-pepper-that-is-at-least-32-characters',
+      now: () => DateTime.utc(2026, 8, 4, 12),
+      newSessionId: () => 'A' * 43,
+      newCode: () => '123456',
+    );
+  });
+
+  test(
+    'stores only a hash and sends the code through the SMS gateway',
+    () async {
+      final sessionId = await service.start(
+        '+212600000001',
+        languageCode: 'ar',
+      );
+
+      expect(sessionId, 'A' * 43);
+      expect(sms.sentPhone, '+212600000001');
+      expect(sms.sentCode, '123456');
+      expect(sessions.values.values.single.codeHash, isNot(contains('123456')));
+      expect(sessions.values.values.single.phoneNumber, '+212600000001');
+    },
+  );
+
+  test('checks the code hash and returns a Firebase custom token', () async {
+    final sessionId = await service.start('+212600000001', languageCode: 'ar');
+
+    final token = await service.check(sessionId: sessionId, code: '123456');
+
+    expect(token, 'firebase-custom-token');
+    expect(identity.requestedPhone, '+212600000001');
+    expect(sessions.values, isEmpty);
+  });
+
+  test('decrements attempts when the code is wrong', () async {
+    final sessionId = await service.start('+212600000001', languageCode: 'ar');
+
+    await expectLater(
+      service.check(sessionId: sessionId, code: '654321'),
+      throwsA(
+        isA<VerificationFailure>().having(
+          (error) => error.code,
+          'code',
+          'invalid-verification-code',
+        ),
+      ),
+    );
+
+    expect(sessions.values[sessionId]!.attemptsRemaining, 4);
+    expect(identity.requestedPhone, isNull);
+  });
+
+  test('rejects repeated sends to the same number within a minute', () async {
+    await service.start('+212600000001', languageCode: 'ar');
+
+    await expectLater(
+      service.start('+212600000001', languageCode: 'ar'),
+      throwsA(
+        isA<VerificationFailure>().having(
+          (error) => error.code,
+          'code',
+          'too-many-requests',
+        ),
+      ),
+    );
+    expect(sms.sendCount, 1);
+  });
+
+  test('rejects an expired session before checking the code', () async {
+    sessions.values['B' * 43] = VerificationSession(
+      id: 'B' * 43,
+      phoneNumber: '+212600000001',
+      codeHash: 'expired-hash',
+      attemptsRemaining: 5,
+      expiresAt: DateTime.utc(2026, 8, 4, 11, 59),
+    );
+
+    await expectLater(
+      service.check(sessionId: 'B' * 43, code: '123456'),
+      throwsA(
+        isA<VerificationFailure>().having(
+          (error) => error.code,
+          'code',
+          'session-expired',
+        ),
+      ),
+    );
+    expect(sessions.values, isEmpty);
+  });
+}
+
+class _FakeSmsGateway implements VerificationSmsGateway {
+  String? sentPhone;
+  String? sentCode;
+  int sendCount = 0;
+
+  @override
+  Future<void> sendCode({
+    required String phoneNumber,
+    required String code,
+    required String idempotencyKey,
+    required String languageCode,
+  }) async {
+    sentPhone = phoneNumber;
+    sentCode = code;
+    sendCount += 1;
+  }
+}
+
+class _MemorySessions implements VerificationSessionStore {
+  final values = <String, VerificationSession>{};
+  final _sendReservations = <String>{};
+
+  @override
+  Future<void> reserveSend(String phoneNumber, DateTime requestedAt) async {
+    final key = '$phoneNumber:${requestedAt.millisecondsSinceEpoch ~/ 60000}';
+    if (!_sendReservations.add(key)) {
+      throw const VerificationFailure('too-many-requests');
+    }
+  }
+
+  @override
+  Future<void> releaseSend(String phoneNumber, DateTime requestedAt) async {
+    final key = '$phoneNumber:${requestedAt.millisecondsSinceEpoch ~/ 60000}';
+    _sendReservations.remove(key);
+  }
+
+  @override
+  Future<void> save(VerificationSession session) async {
+    values[session.id] = session;
+  }
+
+  @override
+  Future<void> update(VerificationSession session) async {
+    values[session.id] = session;
+  }
+
+  @override
+  Future<VerificationSession?> get(String id) async => values[id];
+
+  @override
+  Future<void> delete(String id) async {
+    values.remove(id);
+  }
+}
+
+class _FakeIdentity implements FirebaseIdentityGateway {
+  String? requestedPhone;
+
+  @override
+  Future<String> findOrCreateUser(String phoneNumber) async {
+    requestedPhone = phoneNumber;
+    return 'existing-firebase-uid';
+  }
+
+  @override
+  Future<String> createCustomToken({
+    required String uid,
+    required String phoneNumber,
+  }) async {
+    expect(uid, 'existing-firebase-uid');
+    expect(phoneNumber, requestedPhone);
+    return 'firebase-custom-token';
+  }
+}
