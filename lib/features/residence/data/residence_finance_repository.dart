@@ -17,7 +17,7 @@ enum ResidenceExpenseCategory {
 
 enum ResidenceTransactionType { income, expense }
 
-enum ResidenceTransactionSource { dues, manual }
+enum ResidenceTransactionSource { dues, manual, openingBalance }
 
 class ResidenceTransaction {
   const ResidenceTransaction({
@@ -57,6 +57,8 @@ class ResidenceTransaction {
   final String periodEndKey;
 
   bool get isManual => source == ResidenceTransactionSource.manual;
+  bool get isOpeningBalance =>
+      source == ResidenceTransactionSource.openingBalance;
   bool get hasAttachment =>
       supportingDocument.isNotEmpty && attachmentStoragePath.isNotEmpty;
   String get attachmentName => residenceTransactionAttachmentName(
@@ -98,6 +100,7 @@ class ResidenceFinances {
     required this.breakdown,
     required this.recentExpenses,
     required this.transactions,
+    required this.hasOpeningBalance,
   });
 
   static const empty = ResidenceFinances(
@@ -109,6 +112,7 @@ class ResidenceFinances {
     breakdown: [],
     recentExpenses: [],
     transactions: [],
+    hasOpeningBalance: false,
   );
 
   factory ResidenceFinances.fromTransactions({
@@ -125,7 +129,9 @@ class ResidenceFinances {
     );
     final totalIncome = currentYearTransactions
         .where(
-          (transaction) => transaction.type == ResidenceTransactionType.income,
+          (transaction) =>
+              transaction.type == ResidenceTransactionType.income &&
+              !transaction.isOpeningBalance,
         )
         .fold(0, (total, transaction) => total + transaction.amount);
     final totalExpenses = currentYearTransactions
@@ -135,13 +141,18 @@ class ResidenceFinances {
         .fold(0, (total, transaction) => total + transaction.amount);
     final allTimeIncome = orderedTransactions
         .where(
-          (transaction) => transaction.type == ResidenceTransactionType.income,
+          (transaction) =>
+              transaction.type == ResidenceTransactionType.income &&
+              !transaction.isOpeningBalance,
         )
         .fold(0, (total, transaction) => total + transaction.amount);
     final allTimeExpenses = orderedTransactions
         .where(
           (transaction) => transaction.type == ResidenceTransactionType.expense,
         )
+        .fold(0, (total, transaction) => total + transaction.amount);
+    final openingBalance = orderedTransactions
+        .where((transaction) => transaction.isOpeningBalance)
         .fold(0, (total, transaction) => total + transaction.amount);
     final breakdownAmounts = {
       for (final category in ResidenceExpenseCategory.values) category: 0,
@@ -171,12 +182,15 @@ class ResidenceFinances {
     return ResidenceFinances(
       totalIncome: totalIncome,
       totalExpenses: totalExpenses,
-      currentBalance: allTimeIncome - allTimeExpenses,
+      currentBalance: openingBalance + allTimeIncome - allTimeExpenses,
       paidResidents: paidResidents,
       totalResidents: totalResidents,
       breakdown: breakdown,
       recentExpenses: recentExpenses,
       transactions: orderedTransactions,
+      hasOpeningBalance: orderedTransactions.any(
+        (transaction) => transaction.isOpeningBalance,
+      ),
     );
   }
 
@@ -188,6 +202,7 @@ class ResidenceFinances {
   final List<ResidenceExpenseBreakdown> breakdown;
   final List<ResidenceTransaction> recentExpenses;
   final List<ResidenceTransaction> transactions;
+  final bool hasOpeningBalance;
 
   double get collectionRate {
     if (totalResidents == 0) return 0;
@@ -230,6 +245,13 @@ abstract interface class ResidenceFinanceRepository {
   Future<void> addManualTransaction({
     required String residenceId,
     required ResidenceFinanceInput input,
+    required String recordedBy,
+  });
+
+  Future<void> setOpeningBalance({
+    required String residenceId,
+    required int amount,
+    required DateTime date,
     required String recordedBy,
   });
 
@@ -351,7 +373,9 @@ class FirestoreResidenceFinanceRepository
       amount: data['amount'] as int,
       date: _dateFrom(data['date']),
       name: data['name'] as String,
-      source: ResidenceTransactionSource.manual,
+      source: data['source'] == ResidenceTransactionSource.openingBalance.name
+          ? ResidenceTransactionSource.openingBalance
+          : ResidenceTransactionSource.manual,
       expenseCategory: categoryName == null
           ? null
           : ResidenceExpenseCategory.values.byName(categoryName),
@@ -362,6 +386,40 @@ class FirestoreResidenceFinanceRepository
       attachmentSizeBytes: data['attachmentSizeBytes'] as int? ?? 0,
       recordedBy: data['recordedBy'] as String? ?? '',
     );
+  }
+
+  @override
+  Future<void> setOpeningBalance({
+    required String residenceId,
+    required int amount,
+    required DateTime date,
+    required String recordedBy,
+  }) async {
+    if (amount < 0 || date.isAfter(DateTime.now())) {
+      throw const ResidenceFinanceFailure('invalid-opening-balance');
+    }
+    final reference = _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('financeTransactions')
+        .doc('opening-balance');
+    try {
+      await reference.set({
+        'type': ResidenceTransactionType.income.name,
+        'source': ResidenceTransactionSource.openingBalance.name,
+        'amount': amount,
+        'date': Timestamp.fromDate(date),
+        'name': 'openingBalance',
+        'expenseCategory': null,
+        'note': '',
+        'supportingDocument': '',
+        'recordedBy': recordedBy,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (error) {
+      throw ResidenceFinanceFailure(error.code, error.message);
+    }
   }
 
   @override
@@ -581,6 +639,25 @@ class ResidenceFinanceController extends AsyncNotifier<ResidenceFinances> {
         .addManualTransaction(
           residenceId: residenceId,
           input: input,
+          recordedBy: user.uid,
+        );
+    await _reload();
+  }
+
+  Future<void> setOpeningBalance({
+    required int amount,
+    required DateTime date,
+  }) async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user == null) {
+      throw const ResidenceFinanceFailure('missing-user');
+    }
+    await ref
+        .read(residenceFinanceRepositoryProvider)
+        .setOpeningBalance(
+          residenceId: _requiredResidenceId(),
+          amount: amount,
+          date: date,
           recordedBy: user.uid,
         );
     await _reload();

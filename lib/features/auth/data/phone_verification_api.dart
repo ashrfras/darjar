@@ -5,6 +5,13 @@ import 'package:http/http.dart' as http;
 
 import 'auth_failure.dart';
 
+class PhoneVerificationStartResult {
+  const PhoneVerificationStartResult({this.sessionId, this.customToken});
+
+  final String? sessionId;
+  final String? customToken;
+}
+
 class PhoneVerificationApi {
   PhoneVerificationApi({required String baseUrl, http.Client? client})
     : _baseUri = Uri.parse(baseUrl),
@@ -13,19 +20,27 @@ class PhoneVerificationApi {
   final Uri _baseUri;
   final http.Client _client;
 
-  Future<String> start(
+  Future<PhoneVerificationStartResult> start(
     String phoneNumber, {
     required String languageCode,
+    String? localDevelopmentSecret,
   }) async {
-    final body = await _post('/v1/phone-verifications', {
-      'phoneNumber': phoneNumber,
-      'languageCode': languageCode,
-    }, expectedStatus: 201);
+    final body = await _post(
+      '/v1/phone-verifications',
+      {'phoneNumber': phoneNumber, 'languageCode': languageCode},
+      expectedStatus: 201,
+      localDevelopmentSecret: localDevelopmentSecret,
+    );
     final sessionId = body['sessionId'] as String?;
-    if (sessionId == null || sessionId.isEmpty) {
+    final customToken = body['customToken'] as String?;
+    if ((sessionId == null || sessionId.isEmpty) &&
+        (customToken == null || customToken.isEmpty)) {
       throw const AuthFailure('authentication-service-error');
     }
-    return sessionId;
+    return PhoneVerificationStartResult(
+      sessionId: sessionId,
+      customToken: customToken,
+    );
   }
 
   Future<String> check({
@@ -48,6 +63,7 @@ class PhoneVerificationApi {
     String path,
     Map<String, Object?> requestBody, {
     required int expectedStatus,
+    String? localDevelopmentSecret,
   }) async {
     if (!_baseUri.hasScheme || !_baseUri.hasAuthority) {
       throw const AuthFailure('verification-service-not-configured');
@@ -56,9 +72,12 @@ class PhoneVerificationApi {
       final response = await _client
           .post(
             _baseUri.resolve(path),
-            headers: const {
+            headers: {
               'content-type': 'application/json',
               'accept': 'application/json',
+              if (localDevelopmentSecret != null &&
+                  localDevelopmentSecret.isNotEmpty)
+                'x-darjar-local-auth': localDevelopmentSecret,
             },
             body: jsonEncode(requestBody),
           )

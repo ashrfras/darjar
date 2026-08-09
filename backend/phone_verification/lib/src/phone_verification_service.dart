@@ -184,6 +184,17 @@ class PhoneVerificationService {
     return token;
   }
 
+  Future<String> authenticateWithoutSms(String phoneNumber) async {
+    if (!RegExp(r'^\+[1-9]\d{7,14}$').hasMatch(phoneNumber)) {
+      throw const VerificationFailure('invalid-phone-number');
+    }
+    final uid = await _firebaseIdentity.findOrCreateUser(phoneNumber);
+    return _firebaseIdentity.createCustomToken(
+      uid: uid,
+      phoneNumber: phoneNumber,
+    );
+  }
+
   String _hashCode({required String sessionId, required String code}) {
     final hmac = Hmac(sha256, utf8.encode(_otpHashPepper));
     return hmac.convert(utf8.encode('$sessionId:$code')).toString();

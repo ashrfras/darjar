@@ -846,6 +846,43 @@ class AppLocalizationsEn extends AppLocalizations {
       'Subscription payments are added automatically from dues management and cannot be edited here.';
 
   @override
+  String get openingBalanceMissingTitle =>
+      'Opening balance has not been entered';
+
+  @override
+  String get openingBalanceMissingDescription =>
+      'Enter the funds held by the residence when DarJar tracking began so the current balance is accurate.';
+
+  @override
+  String get enterOpeningBalance => 'Enter opening balance';
+
+  @override
+  String get openingBalance => 'Opening balance';
+
+  @override
+  String get openingBalanceDescription =>
+      'This opening adjustment affects the current balance but is not counted as income.';
+
+  @override
+  String get openingBalanceAmount => 'Funds on hand';
+
+  @override
+  String get openingBalanceDate => 'Balance date';
+
+  @override
+  String get openingBalanceZeroHint =>
+      'Enter zero if the residence had no prior balance.';
+
+  @override
+  String get saveOpeningBalance => 'Save opening balance';
+
+  @override
+  String get openingBalanceSaved => 'Opening balance saved.';
+
+  @override
+  String get openingSettlement => 'Opening adjustment';
+
+  @override
   String get duesStatus => 'Dues status';
 
   @override
@@ -1710,6 +1747,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get authNetworkError =>
       'Could not connect. Check your internet connection and try again.';
+
+  @override
+  String get authLocalDevelopmentNotConfigured =>
+      'Run the local app with tool/run_web_local.sh to sign in without SMS.';
 
   @override
   String get authUnauthorizedDomain =>

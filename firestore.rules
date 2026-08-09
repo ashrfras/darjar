@@ -598,6 +598,9 @@ service cloud.firestore {
           && request.resource.data.status == 'accepted'
           && request.resource.data.acceptedBy == request.auth.uid
           && request.resource.data.acceptedAt == request.time;
+
+        allow delete: if canManageResidence(residenceId)
+          && resource.data.status == 'pending';
       }
 
       match /members/{memberId} {
@@ -856,6 +859,7 @@ service cloud.firestore {
         allow create: if canManageResidence(residenceId)
           && request.resource.data.keys().hasOnly([
             'type',
+            'source',
             'amount',
             'date',
             'name',
@@ -871,7 +875,21 @@ service cloud.firestore {
           ])
           && request.resource.data.type in ['income', 'expense']
           && request.resource.data.amount is int
-          && request.resource.data.amount > 0
+          && (
+            (
+              !request.resource.data.keys().hasAny(['source'])
+              && transactionId != 'opening-balance'
+              && request.resource.data.amount > 0
+            )
+            || (
+              request.resource.data.source == 'openingBalance'
+              && transactionId == 'opening-balance'
+              && request.resource.data.type == 'income'
+              && request.resource.data.amount >= 0
+              && request.resource.data.expenseCategory == null
+              && request.resource.data.supportingDocument == ''
+            )
+          )
           && request.resource.data.date is timestamp
           && request.resource.data.date <= request.time
           && request.resource.data.name is string
@@ -922,6 +940,7 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time;
 
         allow update: if canManageResidence(residenceId)
+          && transactionId != 'opening-balance'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'type',
             'amount',
@@ -985,7 +1004,8 @@ service cloud.firestore {
           )
           && request.resource.data.updatedAt == request.time;
 
-        allow delete: if canManageResidence(residenceId);
+        allow delete: if canManageResidence(residenceId)
+          && transactionId != 'opening-balance';
       }
 
       match /documents/{documentId} {
@@ -1226,13 +1246,47 @@ service cloud.firestore {
             allow read: if isResidenceMember(residenceId)
               || canExploreJoinableResidence(residenceId);
             allow create: if canManageResidence(residenceId)
-              && request.resource.data.keys().hasOnly([
-                'number',
-                'createdAt'
-              ])
               && request.resource.data.number is int
               && request.resource.data.number >= 0
-              && request.resource.data.createdAt == request.time;
+              && request.resource.data.createdAt == request.time
+              && (
+                request.resource.data.keys().hasOnly([
+                  'number',
+                  'createdAt'
+                ])
+                || (
+                  request.resource.data.keys().hasOnly([
+                    'number',
+                    'duesTrackingStatus',
+                    'duesTrackingStartPeriodKey',
+                    'openingPaidThroughPeriodKey',
+                    'createdAt',
+                    'updatedAt'
+                  ])
+                  && request.resource.data.duesTrackingStatus in [
+                    'active',
+                    'notStarted'
+                  ]
+                  && request.resource.data.duesTrackingStartPeriodKey is string
+                  && request.resource.data.openingPaidThroughPeriodKey is string
+                  && request.resource.data.updatedAt == request.time
+                )
+              );
+            allow update: if canManageResidence(residenceId)
+              && resource.data.duesTrackingStatus == 'notStarted'
+              && request.resource.data.duesTrackingStatus == 'active'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'duesTrackingStatus',
+                'duesTrackingStartPeriodKey',
+                'openingPaidThroughPeriodKey',
+                'duesTrackingStartedAt',
+                'updatedAt'
+              ])
+              && request.resource.data.duesTrackingStartPeriodKey is string
+              && request.resource.data.duesTrackingStartPeriodKey.size() == 7
+              && request.resource.data.openingPaidThroughPeriodKey is string
+              && request.resource.data.duesTrackingStartedAt == request.time
+              && request.resource.data.updatedAt == request.time;
             allow delete: if canManageResidence(residenceId);
           }
         }

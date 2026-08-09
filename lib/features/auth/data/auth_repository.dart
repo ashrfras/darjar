@@ -32,10 +32,17 @@ abstract interface class AuthRepository {
 }
 
 class BackendAuthRepository implements AuthRepository {
-  BackendAuthRepository(this._firebaseAuth, this._verificationApi);
+  BackendAuthRepository(
+    this._firebaseAuth,
+    this._verificationApi, {
+    this.localDevelopmentSecret = '',
+    this.isLoopback = false,
+  });
 
   final FirebaseAuth _firebaseAuth;
   final PhoneVerificationApi _verificationApi;
+  final String localDevelopmentSecret;
+  final bool isLoopback;
   String? _verificationSessionId;
 
   @override
@@ -52,10 +59,25 @@ class BackendAuthRepository implements AuthRepository {
     required String languageCode,
   }) async {
     try {
-      _verificationSessionId = await _verificationApi.start(
+      final usesLocalDevelopmentAuth =
+          isLoopback && phoneNumber == localDevelopmentPhoneNumber;
+      if (usesLocalDevelopmentAuth && localDevelopmentSecret.isEmpty) {
+        throw const AuthFailure('local-auth-not-configured');
+      }
+      final result = await _verificationApi.start(
         phoneNumber,
         languageCode: languageCode,
+        localDevelopmentSecret: usesLocalDevelopmentAuth
+            ? localDevelopmentSecret
+            : null,
       );
+      final customToken = result.customToken;
+      if (customToken != null && customToken.isNotEmpty) {
+        await _firebaseAuth.signInWithCustomToken(customToken);
+        _verificationSessionId = null;
+        return;
+      }
+      _verificationSessionId = result.sessionId;
     } on AuthFailure {
       rethrow;
     } catch (error) {
@@ -189,7 +211,24 @@ final firebaseAuthProvider = Provider<FirebaseAuth>(
 
 const phoneVerificationServiceUrl = String.fromEnvironment(
   'DARJAR_PHONE_VERIFICATION_URL',
+  defaultValue:
+      'https://darjar-phone-verification-1080325854470.europe-southwest1.run.app',
 );
+
+const localhostAuthSimulationEnabled = bool.fromEnvironment(
+  'DARJAR_LOCAL_AUTH_SIMULATION',
+  defaultValue: false,
+);
+
+const localDevelopmentPhoneNumber = '+212708708001';
+const localDevelopmentAuthSecret = String.fromEnvironment(
+  'DARJAR_LOCAL_AUTH_SECRET',
+);
+
+bool isLoopbackUri(Uri uri) {
+  final host = uri.host.toLowerCase();
+  return host == 'localhost' || host == '127.0.0.1' || host == '::1';
+}
 
 final phoneVerificationHttpClientProvider = Provider<http.Client>((ref) {
   final client = http.Client();
@@ -204,14 +243,17 @@ final phoneVerificationApiProvider = Provider<PhoneVerificationApi>(
   ),
 );
 
-bool isLocalhostAuthSimulation({bool isWeb = kIsWeb, Uri? uri}) {
-  if (!isWeb) return false;
-  final host = (uri ?? Uri.base).host.toLowerCase();
-  return host == 'localhost' || host == '127.0.0.1' || host == '::1';
+bool isLocalhostAuthSimulation({
+  bool isWeb = kIsWeb,
+  Uri? uri,
+  bool enabled = true,
+}) {
+  if (!enabled || !isWeb) return false;
+  return isLoopbackUri(uri ?? Uri.base);
 }
 
 final localhostAuthSimulationProvider = Provider<bool>(
-  (ref) => isLocalhostAuthSimulation(),
+  (ref) => isLocalhostAuthSimulation(enabled: localhostAuthSimulationEnabled),
 );
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -223,6 +265,8 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return BackendAuthRepository(
     ref.watch(firebaseAuthProvider),
     ref.watch(phoneVerificationApiProvider),
+    localDevelopmentSecret: localDevelopmentAuthSecret,
+    isLoopback: kIsWeb && isLoopbackUri(Uri.base),
   );
 });
 

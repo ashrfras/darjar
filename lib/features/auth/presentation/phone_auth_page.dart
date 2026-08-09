@@ -384,6 +384,10 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
       'too-many-requests' ||
       'quota-exceeded' => localizations.authTooManyRequests,
       'network-request-failed' => localizations.authNetworkError,
+      'local-auth-not-configured' =>
+        localizations.authLocalDevelopmentNotConfigured,
+      'local-auth-not-authorized' =>
+        localizations.authLocalDevelopmentNotConfigured,
       _ => localizations.authUnexpectedError,
     };
   }

@@ -83,6 +83,10 @@ gcloud secrets add-iam-policy-binding darjar-zavu-api-key \
 gcloud secrets add-iam-policy-binding darjar-otp-hash-pepper \
   --member="serviceAccount:${RUNTIME_SA}" \
   --role="roles/secretmanager.secretAccessor"
+
+gcloud secrets add-iam-policy-binding darjar-local-development-auth-secret \
+  --member="serviceAccount:${RUNTIME_SA}" \
+  --role="roles/secretmanager.secretAccessor"
 ```
 
 ## 4. نشر الخدمة
@@ -115,7 +119,7 @@ gcloud run deploy darjar-phone-verification \
   --region="${RUN_REGION}" \
   --service-account="${RUNTIME_SA}" \
   --allow-unauthenticated \
-  --set-secrets="ZAVU_API_KEY=darjar-zavu-api-key:${ZAVU_KEY_VERSION},OTP_HASH_PEPPER=darjar-otp-hash-pepper:${OTP_PEPPER_VERSION}" \
+  --set-secrets="ZAVU_API_KEY=darjar-zavu-api-key:${ZAVU_KEY_VERSION},OTP_HASH_PEPPER=darjar-otp-hash-pepper:${OTP_PEPPER_VERSION},LOCAL_DEVELOPMENT_AUTH_SECRET=darjar-local-development-auth-secret:1" \
   --set-env-vars="^~^GOOGLE_CLOUD_PROJECT=raq-darjar~FIREBASE_TOKEN_SIGNER_EMAIL=${RUNTIME_SA}~FIREBASE_API_KEY=${FIREBASE_API_KEY}~ALLOWED_ORIGINS=https://darjar.app,https://www.darjar.app,https://raq-darjar.web.app"
 ```
 
@@ -137,6 +141,20 @@ curl -f "${SERVICE_URL}/health"
 flutter build web \
   --dart-define="DARJAR_PHONE_VERIFICATION_URL=${SERVICE_URL}"
 ```
+
+أثناء التطوير على `localhost` شغّل الويب بالأمر التالي:
+
+```bash
+bash tool/run_web_local.sh
+```
+
+عند استعمال الرقم `0708708001` من `localhost` ينشئ الخادم جلسة Firebase
+حقيقية مباشرة، ولا يرسل رسالة SMS. يتطلب هذا المسار سرًا محفوظًا في Secret
+Manager، ولا يعمل من النطاق المنشور أو مع أي رقم آخر. بقية الأرقام تستعمل
+مسار SMS الحقيقي كالمعتاد.
+
+لا تفعّل `DARJAR_LOCAL_AUTH_SIMULATION` إلا في اختبارات الواجهات المعزولة؛
+فهو لا ينشئ جلسة Firebase ولا يصلح للعمل مع Firestore الحقيقي.
 
 ## 6. TTL
 

@@ -48,6 +48,18 @@ void main() {
     expect(sessions.values, isEmpty);
   });
 
+  test(
+    'local development authentication creates a token without SMS',
+    () async {
+      final token = await service.authenticateWithoutSms('+212708708001');
+
+      expect(token, 'firebase-custom-token');
+      expect(identity.requestedPhone, '+212708708001');
+      expect(sms.sendCount, 0);
+      expect(sessions.values, isEmpty);
+    },
+  );
+
   test('decrements attempts when the code is wrong', () async {
     final sessionId = await service.start('+212600000001', languageCode: 'ar');
 

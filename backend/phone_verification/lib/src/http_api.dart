@@ -10,12 +10,18 @@ class PhoneVerificationApi {
   PhoneVerificationApi({
     required PhoneVerificationService service,
     required Set<String> allowedOrigins,
-  }) : this._(service, allowedOrigins);
+    String? localDevelopmentSecret,
+  }) : this._(service, allowedOrigins, localDevelopmentSecret?.trim() ?? '');
 
-  PhoneVerificationApi._(this._service, this._allowedOrigins);
+  PhoneVerificationApi._(
+    this._service,
+    this._allowedOrigins,
+    this._localDevelopmentSecret,
+  );
 
   final PhoneVerificationService _service;
   final Set<String> _allowedOrigins;
+  final String _localDevelopmentSecret;
 
   Handler get handler {
     final router = Router()
@@ -35,6 +41,22 @@ class PhoneVerificationApi {
       final body = await _requestJson(request);
       final phoneNumber = body['phoneNumber'] as String? ?? '';
       final languageCode = body['languageCode'] as String? ?? 'ar';
+      final localDevelopmentRequest = isLocalDevelopmentAuthRequest(
+        origin: request.headers['origin'],
+        phoneNumber: phoneNumber,
+      );
+      if (localDevelopmentRequest) {
+        if (!canUseLocalDevelopmentAuth(
+          origin: request.headers['origin'],
+          phoneNumber: phoneNumber,
+          providedSecret: request.headers['x-darjar-local-auth'],
+          configuredSecret: _localDevelopmentSecret,
+        )) {
+          throw const VerificationFailure('local-auth-not-authorized');
+        }
+        final customToken = await _service.authenticateWithoutSms(phoneNumber);
+        return _jsonResponse(HttpStatus.created, {'customToken': customToken});
+      }
       final sessionId = await _service.start(
         phoneNumber,
         languageCode: languageCode,
@@ -89,6 +111,7 @@ class PhoneVerificationApi {
       'invalid-verification-code' ||
       'invalid-request' => HttpStatus.badRequest,
       'missing-verification-session' || 'session-expired' => HttpStatus.gone,
+      'local-auth-not-authorized' => HttpStatus.forbidden,
       'too-many-requests' => HttpStatus.tooManyRequests,
       _ => HttpStatus.badGateway,
     };
@@ -119,7 +142,7 @@ class PhoneVerificationApi {
       (innerHandler) => (request) async {
         final response = await innerHandler(request);
         final origin = request.headers['origin'];
-        if (origin == null || !_allowedOrigins.contains(origin)) {
+        if (!isAllowedPhoneVerificationOrigin(origin, _allowedOrigins)) {
           return response;
         }
         return response.change(
@@ -127,7 +150,7 @@ class PhoneVerificationApi {
             ...response.headers,
             'access-control-allow-origin': origin,
             'access-control-allow-methods': 'POST, OPTIONS',
-            'access-control-allow-headers': 'Content-Type',
+            'access-control-allow-headers': 'Content-Type, X-Darjar-Local-Auth',
             'access-control-max-age': '3600',
             'vary': 'Origin',
           },
@@ -154,4 +177,54 @@ class PhoneVerificationApi {
         }
         return innerHandler(request);
       };
+}
+
+const localDevelopmentPhoneNumber = '+212708708001';
+
+bool isLocalDevelopmentAuthRequest({
+  required String? origin,
+  required String phoneNumber,
+}) =>
+    isLoopbackPhoneVerificationOrigin(origin) &&
+    phoneNumber == localDevelopmentPhoneNumber;
+
+bool canUseLocalDevelopmentAuth({
+  required String? origin,
+  required String phoneNumber,
+  required String? providedSecret,
+  required String configuredSecret,
+}) {
+  if (!isLocalDevelopmentAuthRequest(
+        origin: origin,
+        phoneNumber: phoneNumber,
+      ) ||
+      configuredSecret.length < 32 ||
+      providedSecret == null ||
+      providedSecret.length != configuredSecret.length) {
+    return false;
+  }
+  var difference = 0;
+  for (var index = 0; index < configuredSecret.length; index += 1) {
+    difference |=
+        configuredSecret.codeUnitAt(index) ^ providedSecret.codeUnitAt(index);
+  }
+  return difference == 0;
+}
+
+bool isAllowedPhoneVerificationOrigin(
+  String? origin,
+  Set<String> configuredOrigins,
+) {
+  if (origin == null || origin.isEmpty) return false;
+  if (configuredOrigins.contains(origin)) return true;
+  return isLoopbackPhoneVerificationOrigin(origin);
+}
+
+bool isLoopbackPhoneVerificationOrigin(String? origin) {
+  if (origin == null || origin.isEmpty) return false;
+  final uri = Uri.tryParse(origin);
+  if (uri == null || uri.scheme != 'http') return false;
+  return uri.host == 'localhost' ||
+      uri.host == '127.0.0.1' ||
+      uri.host == '::1';
 }

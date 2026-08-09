@@ -826,6 +826,42 @@ class AppLocalizationsAr extends AppLocalizations {
       'تُضاف أداءات الاشتراكات تلقائياً من إدارة الاشتراكات ولا يمكن تعديلها هنا.';
 
   @override
+  String get openingBalanceMissingTitle => 'لم يتم إدخال الرصيد الافتتاحي';
+
+  @override
+  String get openingBalanceMissingDescription =>
+      'أدخل المبلغ الموجود لدى الإقامة عند بدء اعتماد دارجار حتى يكون الرصيد الحالي دقيقاً.';
+
+  @override
+  String get enterOpeningBalance => 'إدخال الرصيد الافتتاحي';
+
+  @override
+  String get openingBalance => 'الرصيد الافتتاحي';
+
+  @override
+  String get openingBalanceDescription =>
+      'هذه تسوية افتتاحية تُضاف إلى الرصيد الحالي ولا تُحتسب ضمن المداخيل.';
+
+  @override
+  String get openingBalanceAmount => 'المبلغ الموجود';
+
+  @override
+  String get openingBalanceDate => 'تاريخ الرصيد';
+
+  @override
+  String get openingBalanceZeroHint =>
+      'يمكن إدخال صفر إذا لم يكن لدى الإقامة رصيد سابق.';
+
+  @override
+  String get saveOpeningBalance => 'حفظ الرصيد الافتتاحي';
+
+  @override
+  String get openingBalanceSaved => 'تم حفظ الرصيد الافتتاحي.';
+
+  @override
+  String get openingSettlement => 'تسوية افتتاحية';
+
+  @override
   String get duesStatus => 'حالة الواجبات';
 
   @override
@@ -1680,6 +1716,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authNetworkError => 'تعذر الاتصال. تحقق من الإنترنت وحاول مجدداً.';
+
+  @override
+  String get authLocalDevelopmentNotConfigured =>
+      'شغّل النسخة المحلية عبر tool/run_web_local.sh لتسجيل الدخول دون SMS.';
 
   @override
   String get authUnauthorizedDomain =>

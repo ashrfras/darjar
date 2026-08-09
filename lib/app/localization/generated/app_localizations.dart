@@ -1614,6 +1614,72 @@ abstract class AppLocalizations {
   /// **'تُضاف أداءات الاشتراكات تلقائياً من إدارة الاشتراكات ولا يمكن تعديلها هنا.'**
   String get financeAutomaticDuesNotice;
 
+  /// No description provided for @openingBalanceMissingTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم إدخال الرصيد الافتتاحي'**
+  String get openingBalanceMissingTitle;
+
+  /// No description provided for @openingBalanceMissingDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل المبلغ الموجود لدى الإقامة عند بدء اعتماد دارجار حتى يكون الرصيد الحالي دقيقاً.'**
+  String get openingBalanceMissingDescription;
+
+  /// No description provided for @enterOpeningBalance.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدخال الرصيد الافتتاحي'**
+  String get enterOpeningBalance;
+
+  /// No description provided for @openingBalance.
+  ///
+  /// In ar, this message translates to:
+  /// **'الرصيد الافتتاحي'**
+  String get openingBalance;
+
+  /// No description provided for @openingBalanceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذه تسوية افتتاحية تُضاف إلى الرصيد الحالي ولا تُحتسب ضمن المداخيل.'**
+  String get openingBalanceDescription;
+
+  /// No description provided for @openingBalanceAmount.
+  ///
+  /// In ar, this message translates to:
+  /// **'المبلغ الموجود'**
+  String get openingBalanceAmount;
+
+  /// No description provided for @openingBalanceDate.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاريخ الرصيد'**
+  String get openingBalanceDate;
+
+  /// No description provided for @openingBalanceZeroHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكن إدخال صفر إذا لم يكن لدى الإقامة رصيد سابق.'**
+  String get openingBalanceZeroHint;
+
+  /// No description provided for @saveOpeningBalance.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظ الرصيد الافتتاحي'**
+  String get saveOpeningBalance;
+
+  /// No description provided for @openingBalanceSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حفظ الرصيد الافتتاحي.'**
+  String get openingBalanceSaved;
+
+  /// No description provided for @openingSettlement.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسوية افتتاحية'**
+  String get openingSettlement;
+
   /// No description provided for @duesStatus.
   ///
   /// In ar, this message translates to:
@@ -3119,6 +3185,12 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تعذر الاتصال. تحقق من الإنترنت وحاول مجدداً.'**
   String get authNetworkError;
+
+  /// No description provided for @authLocalDevelopmentNotConfigured.
+  ///
+  /// In ar, this message translates to:
+  /// **'شغّل النسخة المحلية عبر tool/run_web_local.sh لتسجيل الدخول دون SMS.'**
+  String get authLocalDevelopmentNotConfigured;
 
   /// No description provided for @authUnauthorizedDomain.
   ///

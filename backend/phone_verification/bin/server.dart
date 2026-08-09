@@ -55,6 +55,7 @@ Future<void> main() async {
   final handler = PhoneVerificationApi(
     service: service,
     allowedOrigins: allowedOrigins,
+    localDevelopmentSecret: environment['LOCAL_DEVELOPMENT_AUTH_SECRET'],
   ).handler;
   final port = int.tryParse(environment['PORT'] ?? '') ?? 8080;
   final server = await serve(handler, InternetAddress.anyIPv4, port);

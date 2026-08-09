@@ -645,6 +645,36 @@ void main() {
       expect(finances.recentExpenses, hasLength(2));
     });
 
+    test('opening balance affects balance without becoming income', () {
+      final finances = ResidenceFinances.fromTransactions(
+        now: DateTime(2026, 8, 6),
+        paidResidents: 0,
+        totalResidents: 0,
+        transactions: [
+          ResidenceTransaction(
+            id: 'opening-balance',
+            type: ResidenceTransactionType.income,
+            amount: 1000,
+            date: DateTime(2026, 8, 1),
+            name: 'openingBalance',
+            source: ResidenceTransactionSource.openingBalance,
+          ),
+          ResidenceTransaction(
+            id: 'income',
+            type: ResidenceTransactionType.income,
+            amount: 150,
+            date: DateTime(2026, 8, 2),
+            name: 'مدخول',
+            source: ResidenceTransactionSource.manual,
+          ),
+        ],
+      );
+
+      expect(finances.hasOpeningBalance, isTrue);
+      expect(finances.totalIncome, 150);
+      expect(finances.currentBalance, 1150);
+    });
+
     test('residence member assignments reference configured apartments', () {
       final data = _FakeResidenceMembersRepository.initialData;
       final apartmentIds = data.apartments
@@ -759,6 +789,14 @@ void main() {
         ),
         isFalse,
       );
+      expect(
+        isLocalhostAuthSimulation(
+          isWeb: true,
+          uri: Uri.parse('http://localhost:8080/auth/phone'),
+          enabled: false,
+        ),
+        isFalse,
+      );
     });
 
     test('localhost repository authenticates without the SMS API', () async {
@@ -783,6 +821,12 @@ void main() {
 
       expect(repository.currentUser?.phoneNumber, '+2121');
       expect(repository.currentUser?.uid, 'localhost-2121');
+    });
+
+    test('local real authentication is limited to the dedicated phone', () {
+      expect(localDevelopmentPhoneNumber, '+212708708001');
+      expect(isLoopbackUri(Uri.parse('http://localhost:8080')), isTrue);
+      expect(isLoopbackUri(Uri.parse('https://darjar.app')), isFalse);
     });
 
     test('normalizes equivalent international phone formats', () {
@@ -3488,6 +3532,44 @@ void main() {
     );
   });
 
+  testWidgets('management records an opening balance as an adjustment', (
+    tester,
+  ) async {
+    final financeRepository = _FakeResidenceFinanceRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceFinanceRepository: financeRepository,
+    );
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('manage-finances-link')));
+    await tester.tap(find.byKey(const Key('manage-finances-link')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('opening-balance-alert')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('enter-opening-balance-button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('opening-balance-amount-field')),
+      '1000',
+    );
+    await tester.tap(find.byKey(const Key('save-opening-balance-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('opening-balance-alert')), findsNothing);
+    expect(
+      financeRepository.transactions
+          .singleWhere((transaction) => transaction.isOpeningBalance)
+          .amount,
+      1000,
+    );
+    final finances = await financeRepository.load('test-residence');
+    expect(finances.totalIncome, 200);
+    expect(finances.currentBalance, 1120);
+  });
+
   testWidgets(
     'residence settings manage details, structure, and subscription',
     (tester) async {
@@ -3860,6 +3942,8 @@ void main() {
       find.byKey(const Key('new-apartment-number-field')),
       '03A',
     );
+    await tester.tap(find.text('يبدأ التتبّع لاحقًا'));
+    await tester.pumpAndSettle();
     expect(
       tester
           .widget<TextField>(
@@ -3880,6 +3964,25 @@ void main() {
       const ValueKey('apartment-apartment-ground-floor-3'),
     );
     expect(addedApartment, findsOneWidget);
+    expect(
+      find.byKey(
+        const ValueKey('start-dues-tracking-apartment-ground-floor-3'),
+      ),
+      findsOneWidget,
+    );
+    final startTracking = find.byKey(
+      const ValueKey('start-dues-tracking-apartment-ground-floor-3'),
+    );
+    await tester.ensureVisible(startTracking);
+    await tester.pumpAndSettle();
+    await tester.tap(startTracking);
+    await tester.pumpAndSettle();
+    final confirmTracking = find.byKey(
+      const Key('confirm-start-apartment-dues-tracking'),
+    );
+    tester.widget<FilledButton>(confirmTracking).onPressed!();
+    await tester.pumpAndSettle();
+    expect(find.text('التتبّع مفعّل'), findsWidgets);
 
     final deleteAddedApartment = find.byKey(
       const ValueKey('delete-apartment-apartment-ground-floor-3'),
@@ -4100,6 +4203,39 @@ void main() {
     );
     expect(find.text('الدعوة معلّقة'), findsOneWidget);
     expect(find.text('(212)698765432'), findsOneWidget);
+
+    final pendingInvitationMenu = find.byKey(
+      const ValueKey('pending-invitation-menu-+212698765432'),
+    );
+    await tester.tap(pendingInvitationMenu);
+    await tester.pumpAndSettle();
+    expect(find.text('إرسال دعوة'), findsWidgets);
+    expect(find.text('حذف الدعوة'), findsOneWidget);
+    await tester.tap(find.text('إرسال دعوة').last);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('invitation-share-dialog')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('close-invitation-share-dialog')));
+    await tester.pumpAndSettle();
+
+    final dynamic pendingMenuWidget = tester.widget(pendingInvitationMenu);
+    final dynamic pendingMenuItems = pendingMenuWidget.itemBuilder(
+      tester.element(pendingInvitationMenu),
+    );
+    pendingMenuWidget.onSelected(pendingMenuItems.last.value);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('delete-pending-invitation-dialog')),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.byKey(const Key('confirm-delete-pending-invitation')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('pending-invitation-+212698765432')),
+      findsNothing,
+    );
+    expect(find.text('تم حذف الدعوة.'), findsOneWidget);
 
     await tester.ensureVisible(groupInvitationButton);
     await tester.pumpAndSettle();
@@ -4870,6 +5006,20 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
   }
 
   @override
+  Future<void> deleteInvitation({
+    required String residenceId,
+    required String invitationId,
+  }) async {
+    data = ResidenceMembersData(
+      buildings: data.buildings,
+      members: data.members,
+      pendingInvitations: data.pendingInvitations
+          .where((invitation) => invitation.id != invitationId)
+          .toList(growable: false),
+    );
+  }
+
+  @override
   Future<void> assignApartment({
     required String residenceId,
     required String memberId,
@@ -4900,6 +5050,10 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
     required String buildingId,
     required String floorId,
     required String number,
+    required ResidenceDuesTrackingStatus duesTrackingStatus,
+    required String? openingPaidThroughPeriodKey,
+    required String currentPeriodKey,
+    required int defaultAmount,
   }) async {
     data = ResidenceMembersData(
       buildings: [
@@ -4922,7 +5076,58 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
                         number: number,
                         floorId: floorId,
                         buildingId: buildingId,
+                        duesTrackingStatus: duesTrackingStatus,
+                        duesTrackingStartPeriodKey: currentPeriodKey,
+                        openingPaidThroughPeriodKey:
+                            openingPaidThroughPeriodKey ?? '',
                       ),
+                  ],
+                ),
+            ],
+          ),
+      ],
+      members: data.members,
+      pendingInvitations: data.pendingInvitations,
+    );
+  }
+
+  @override
+  Future<void> startApartmentDuesTracking({
+    required String residenceId,
+    required ResidenceApartment apartment,
+    required String? openingPaidThroughPeriodKey,
+    required String currentPeriodKey,
+    required int defaultAmount,
+  }) async {
+    data = ResidenceMembersData(
+      buildings: [
+        for (final building in data.buildings)
+          ResidenceBuilding(
+            id: building.id,
+            nameAr: building.nameAr,
+            nameEn: building.nameEn,
+            floors: [
+              for (final floor in building.floors)
+                ResidenceFloor(
+                  id: floor.id,
+                  nameAr: floor.nameAr,
+                  nameEn: floor.nameEn,
+                  apartments: [
+                    for (final item in floor.apartments)
+                      item.id == apartment.id
+                          ? ResidenceApartment(
+                              id: item.id,
+                              number: item.number,
+                              floorId: item.floorId,
+                              buildingId: item.buildingId,
+                              createdAt: item.createdAt,
+                              duesTrackingStatus:
+                                  ResidenceDuesTrackingStatus.active,
+                              duesTrackingStartPeriodKey: currentPeriodKey,
+                              openingPaidThroughPeriodKey:
+                                  openingPaidThroughPeriodKey ?? '',
+                            )
+                          : item,
                   ],
                 ),
             ],
@@ -5121,6 +5326,28 @@ class _FakeResidenceFinanceRepository implements ResidenceFinanceRepository {
       _transactionFromInput(
         id: 'manual-${_nextId++}',
         input: input,
+        recordedBy: recordedBy,
+      ),
+    ];
+  }
+
+  @override
+  Future<void> setOpeningBalance({
+    required String residenceId,
+    required int amount,
+    required DateTime date,
+    required String recordedBy,
+  }) async {
+    transactions = [
+      for (final transaction in transactions)
+        if (!transaction.isOpeningBalance) transaction,
+      ResidenceTransaction(
+        id: 'opening-balance',
+        type: ResidenceTransactionType.income,
+        amount: amount,
+        date: date,
+        name: 'openingBalance',
+        source: ResidenceTransactionSource.openingBalance,
         recordedBy: recordedBy,
       ),
     ];

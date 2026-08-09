@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 enum _ManagementView { apartments, residents }
 
@@ -131,6 +132,7 @@ class _ApartmentsResidentsPageState
                             setState(() => _selectedBuildingId = id);
                           },
                           onAddApartment: _showAddApartmentSheet,
+                          onStartDuesTracking: _showStartDuesTrackingSheet,
                           onDeleteApartment: _showDeleteApartmentDialog,
                         )
                       : _ResidentsView(
@@ -146,6 +148,9 @@ class _ApartmentsResidentsPageState
                               context.push(AppRoutes.groupInvitation),
                           onAssign: _showApartmentDialog,
                           onSendInvitation: _showResidentInvitationDialog,
+                          onSendPendingInvitation: _showPendingInvitationDialog,
+                          onDeletePendingInvitation:
+                              _showDeleteInvitationDialog,
                           currentMember: currentMember,
                           onChangeRole: (member) =>
                               _showRoleDialog(member, currentMember),
@@ -266,13 +271,55 @@ class _ApartmentsResidentsPageState
       _showSavedMessage(
         error.code == 'invitation-already-exists'
             ? copy.invitationAlreadyPending
-            : copy.saveFailed,
+            : copy.saveFailedWithCode(error.code),
       );
     }
   }
 
   Future<void> _showResidentInvitationDialog(ResidenceMember member) {
     return _showInvitationDialog(residentName: _firstName(member.name));
+  }
+
+  Future<void> _showPendingInvitationDialog(
+    ResidencePendingInvitation invitation,
+  ) {
+    return _showInvitationDialog(residentName: _firstName(invitation.name));
+  }
+
+  Future<void> _showDeleteInvitationDialog(
+    ResidencePendingInvitation invitation,
+  ) async {
+    final copy = _Copy.of(context);
+    final delete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const Key('delete-pending-invitation-dialog'),
+        icon: const Icon(Icons.person_remove_outlined, color: AppColors.danger),
+        title: Text(copy.deleteInvitation),
+        content: Text(copy.deleteInvitationConfirmation(invitation.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(copy.cancel),
+          ),
+          FilledButton(
+            key: const Key('confirm-delete-pending-invitation'),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(copy.delete),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || delete != true) return;
+    try {
+      await ref
+          .read(residenceMembersProvider.notifier)
+          .deleteInvitation(invitation.id);
+      if (mounted) _showSavedMessage(copy.invitationDeleted);
+    } on ResidenceMembersFailure catch (error) {
+      if (mounted) _showSavedMessage(copy.saveFailedWithCode(error.code));
+    }
   }
 
   String _firstName(String fullName) {
@@ -333,8 +380,35 @@ class _ApartmentsResidentsPageState
             buildingId: building.id,
             floorId: result.floorId,
             number: result.number,
+            duesTrackingStatus: result.duesTrackingStatus,
+            openingPaidThroughPeriodKey: result.openingPaidThroughPeriodKey,
           );
       if (mounted) _showSavedMessage(copy.apartmentAdded);
+    } on ResidenceMembersFailure {
+      if (mounted) _showSavedMessage(copy.saveFailed);
+    }
+  }
+
+  Future<void> _showStartDuesTrackingSheet(ResidenceApartment apartment) async {
+    final copy = _Copy.of(context);
+    final result = await showModalBottomSheet<_OpeningDuesSelection>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(maxWidth: 620),
+      builder: (context) =>
+          _StartDuesTrackingSheet(apartment: apartment, copy: copy),
+    );
+    if (!mounted || result == null) return;
+    try {
+      await ref
+          .read(residenceMembersProvider.notifier)
+          .startApartmentDuesTracking(
+            apartment: apartment,
+            openingPaidThroughPeriodKey: result.periodKey,
+          );
+      if (mounted) _showSavedMessage(copy.duesTrackingStarted);
     } on ResidenceMembersFailure {
       if (mounted) _showSavedMessage(copy.saveFailed);
     }
@@ -512,10 +586,23 @@ class _ApartmentsResidentsPageState
 }
 
 class _NewApartment {
-  const _NewApartment({required this.floorId, required this.number});
+  const _NewApartment({
+    required this.floorId,
+    required this.number,
+    required this.duesTrackingStatus,
+    required this.openingPaidThroughPeriodKey,
+  });
 
   final String floorId;
   final String number;
+  final ResidenceDuesTrackingStatus duesTrackingStatus;
+  final String? openingPaidThroughPeriodKey;
+}
+
+class _OpeningDuesSelection {
+  const _OpeningDuesSelection(this.periodKey);
+
+  final String? periodKey;
 }
 
 class _NewResident {
@@ -734,6 +821,10 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
   final _numberController = TextEditingController();
   late String _floorId = widget.building.floors.first.id;
   bool _showNumberError = false;
+  ResidenceDuesTrackingStatus _trackingStatus =
+      ResidenceDuesTrackingStatus.active;
+  bool _hasPreviousPayment = true;
+  DateTime _paidThrough = DateTime.now();
 
   @override
   void dispose() {
@@ -744,89 +835,166 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.xLarge,
-        AppSpacing.medium,
-        AppSpacing.xLarge,
-        AppSpacing.xLarge + bottomInset,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              width: 42,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.outline,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.large),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  widget.copy.addApartment,
-                  style: Theme.of(context).textTheme.titleLarge,
+    return Material(
+      key: const Key('add-apartment-sheet'),
+      color: AppColors.surface,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.xLarge,
+          AppSpacing.large,
+          AppSpacing.xLarge,
+          AppSpacing.xLarge + bottomInset,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.outline,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
               ),
-              IconButton(
-                tooltip: widget.copy.cancel,
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded),
+            ),
+            const SizedBox(height: AppSpacing.large),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.copy.addApartment,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                IconButton(
+                  tooltip: widget.copy.cancel,
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xLarge),
+            Text(
+              widget.copy.chooseFloor,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.small),
+            Wrap(
+              spacing: AppSpacing.small,
+              runSpacing: AppSpacing.small,
+              children: [
+                for (final floor in widget.building.floors)
+                  ChoiceChip(
+                    key: ValueKey('new-apartment-floor-${floor.id}'),
+                    label: Text(widget.copy.floorName(floor)),
+                    selected: _floorId == floor.id,
+                    onSelected: (_) => setState(() => _floorId = floor.id),
+                  ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.large),
+            TextField(
+              key: const Key('new-apartment-number-field'),
+              controller: _numberController,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                labelText: widget.copy.apartmentNumberLabel,
+                hintText: widget.copy.apartmentNumberHint,
+                errorText: _showNumberError
+                    ? widget.copy.apartmentNumberRequired
+                    : null,
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xLarge),
-          Text(
-            widget.copy.chooseFloor,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: AppSpacing.small),
-          Wrap(
-            spacing: AppSpacing.small,
-            runSpacing: AppSpacing.small,
-            children: [
-              for (final floor in widget.building.floors)
-                ChoiceChip(
-                  key: ValueKey('new-apartment-floor-${floor.id}'),
-                  label: Text(widget.copy.floorName(floor)),
-                  selected: _floorId == floor.id,
-                  onSelected: (_) => setState(() => _floorId = floor.id),
+            ),
+            const SizedBox(height: AppSpacing.large),
+            Text(
+              widget.copy.duesTracking,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.small),
+            SegmentedButton<ResidenceDuesTrackingStatus>(
+              key: const Key('apartment-dues-tracking-field'),
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(
+                  value: ResidenceDuesTrackingStatus.active,
+                  icon: const Icon(Icons.playlist_add_check_rounded),
+                  label: Text(widget.copy.trackingActive),
+                ),
+                ButtonSegment(
+                  value: ResidenceDuesTrackingStatus.notStarted,
+                  icon: const Icon(Icons.pause_circle_outline_rounded),
+                  label: Text(widget.copy.trackingStartsLater),
+                ),
+              ],
+              selected: {_trackingStatus},
+              onSelectionChanged: (selection) {
+                setState(() => _trackingStatus = selection.first);
+              },
+            ),
+            const SizedBox(height: AppSpacing.small),
+            Text(
+              _trackingStatus == ResidenceDuesTrackingStatus.active
+                  ? widget.copy.trackingActiveHint
+                  : widget.copy.trackingLaterHint,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+            ),
+            if (_trackingStatus == ResidenceDuesTrackingStatus.active) ...[
+              const SizedBox(height: AppSpacing.medium),
+              CheckboxListTile(
+                key: const Key('apartment-no-previous-payment-field'),
+                contentPadding: EdgeInsets.zero,
+                value: !_hasPreviousPayment,
+                title: Text(widget.copy.noPreviousPayment),
+                controlAffinity: ListTileControlAffinity.leading,
+                onChanged: (value) {
+                  setState(() => _hasPreviousPayment = value != true);
+                },
+              ),
+              if (_hasPreviousPayment)
+                OutlinedButton.icon(
+                  key: const Key('apartment-last-paid-month-field'),
+                  onPressed: _selectPaidThroughMonth,
+                  icon: const Icon(Icons.calendar_month_outlined),
+                  label: Text(
+                    '${widget.copy.lastPaidMonth}: ${_formattedPaidThrough()}',
+                  ),
                 ),
             ],
-          ),
-          const SizedBox(height: AppSpacing.large),
-          TextField(
-            key: const Key('new-apartment-number-field'),
-            controller: _numberController,
-            autofocus: true,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              labelText: widget.copy.apartmentNumberLabel,
-              hintText: widget.copy.apartmentNumberHint,
-              errorText: _showNumberError
-                  ? widget.copy.apartmentNumberRequired
-                  : null,
+            const SizedBox(height: AppSpacing.xLarge),
+            FilledButton.icon(
+              key: const Key('confirm-add-apartment-button'),
+              onPressed: _submit,
+              icon: const Icon(Icons.add_rounded),
+              label: Text(widget.copy.add),
             ),
-            onSubmitted: (_) => _submit(),
-          ),
-          const SizedBox(height: AppSpacing.xLarge),
-          FilledButton.icon(
-            key: const Key('confirm-add-apartment-button'),
-            onPressed: _submit,
-            icon: const Icon(Icons.add_rounded),
-            label: Text(widget.copy.add),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
+  Future<void> _selectPaidThroughMonth() async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _paidThrough,
+      firstDate: DateTime(DateTime.now().year - 5),
+      lastDate: DateTime.now(),
+      helpText: widget.copy.lastPaidMonth,
+    );
+    if (selected != null && mounted) {
+      setState(() => _paidThrough = DateTime(selected.year, selected.month));
+    }
+  }
+
+  String _formattedPaidThrough() =>
+      DateFormat.yMMMM(widget.copy.arabic ? 'ar' : 'en').format(_paidThrough);
 
   void _submit() {
     final number = _numberController.text.trim();
@@ -837,8 +1005,123 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
     }
     Navigator.pop(
       context,
-      _NewApartment(floorId: _floorId, number: numericNumber.toString()),
+      _NewApartment(
+        floorId: _floorId,
+        number: numericNumber.toString(),
+        duesTrackingStatus: _trackingStatus,
+        openingPaidThroughPeriodKey:
+            _trackingStatus == ResidenceDuesTrackingStatus.active &&
+                _hasPreviousPayment
+            ? _periodKey(_paidThrough)
+            : null,
+      ),
     );
+  }
+}
+
+class _StartDuesTrackingSheet extends StatefulWidget {
+  const _StartDuesTrackingSheet({required this.apartment, required this.copy});
+
+  final ResidenceApartment apartment;
+  final _Copy copy;
+
+  @override
+  State<_StartDuesTrackingSheet> createState() =>
+      _StartDuesTrackingSheetState();
+}
+
+class _StartDuesTrackingSheetState extends State<_StartDuesTrackingSheet> {
+  bool _hasPreviousPayment = true;
+  DateTime _paidThrough = DateTime.now();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      key: const Key('start-apartment-dues-tracking-sheet'),
+      color: AppColors.surface,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.xLarge,
+          AppSpacing.xLarge,
+          AppSpacing.xLarge,
+          MediaQuery.viewInsetsOf(context).bottom + AppSpacing.xLarge,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.copy.startTrackingFor(widget.apartment.number),
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.small),
+            Text(
+              widget.copy.startTrackingHint,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+            ),
+            const SizedBox(height: AppSpacing.medium),
+            CheckboxListTile(
+              key: const Key('start-tracking-no-previous-payment-field'),
+              contentPadding: EdgeInsets.zero,
+              value: !_hasPreviousPayment,
+              title: Text(widget.copy.noPreviousPayment),
+              controlAffinity: ListTileControlAffinity.leading,
+              onChanged: (value) {
+                setState(() => _hasPreviousPayment = value != true);
+              },
+            ),
+            if (_hasPreviousPayment)
+              OutlinedButton.icon(
+                key: const Key('start-tracking-last-paid-month-field'),
+                onPressed: _selectPaidThroughMonth,
+                icon: const Icon(Icons.calendar_month_outlined),
+                label: Text(
+                  '${widget.copy.lastPaidMonth}: '
+                  '${DateFormat.yMMMM(widget.copy.arabic ? 'ar' : 'en').format(_paidThrough)}',
+                ),
+              ),
+            const SizedBox(height: AppSpacing.xLarge),
+            FilledButton.icon(
+              key: const Key('confirm-start-apartment-dues-tracking'),
+              onPressed: () => Navigator.pop(
+                context,
+                _OpeningDuesSelection(
+                  _hasPreviousPayment ? _periodKey(_paidThrough) : null,
+                ),
+              ),
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: Text(widget.copy.startTracking),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectPaidThroughMonth() async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _paidThrough,
+      firstDate: DateTime(DateTime.now().year - 5),
+      lastDate: DateTime.now(),
+      helpText: widget.copy.lastPaidMonth,
+    );
+    if (selected != null && mounted) {
+      setState(() => _paidThrough = DateTime(selected.year, selected.month));
+    }
   }
 }
 
@@ -934,6 +1217,7 @@ class _ApartmentsView extends StatelessWidget {
     required this.selectedBuildingId,
     required this.onBuildingSelected,
     required this.onAddApartment,
+    required this.onStartDuesTracking,
     required this.onDeleteApartment,
     super.key,
   });
@@ -943,6 +1227,7 @@ class _ApartmentsView extends StatelessWidget {
   final String? selectedBuildingId;
   final ValueChanged<String> onBuildingSelected;
   final ValueChanged<ResidenceBuilding> onAddApartment;
+  final ValueChanged<ResidenceApartment> onStartDuesTracking;
   final ValueChanged<ResidenceApartment> onDeleteApartment;
 
   @override
@@ -1008,6 +1293,7 @@ class _ApartmentsView extends StatelessWidget {
             floor: floor,
             members: data.members,
             copy: copy,
+            onStartDuesTracking: onStartDuesTracking,
             onDeleteApartment: onDeleteApartment,
           ),
           const SizedBox(height: AppSpacing.medium),
@@ -1041,12 +1327,14 @@ class _FloorCard extends StatelessWidget {
     required this.floor,
     required this.members,
     required this.copy,
+    required this.onStartDuesTracking,
     required this.onDeleteApartment,
   });
 
   final ResidenceFloor floor;
   final List<ResidenceMember> members;
   final _Copy copy;
+  final ValueChanged<ResidenceApartment> onStartDuesTracking;
   final ValueChanged<ResidenceApartment> onDeleteApartment;
 
   @override
@@ -1096,6 +1384,8 @@ class _FloorCard extends StatelessWidget {
                               )
                               .toList(growable: false),
                           copy: copy,
+                          onStartDuesTracking: () =>
+                              onStartDuesTracking(apartment),
                           onDelete: () => onDeleteApartment(apartment),
                         ),
                       ),
@@ -1115,12 +1405,14 @@ class _ApartmentTile extends StatelessWidget {
     required this.apartment,
     required this.members,
     required this.copy,
+    required this.onStartDuesTracking,
     required this.onDelete,
   });
 
   final ResidenceApartment apartment;
   final List<ResidenceMember> members;
   final _Copy copy;
+  final VoidCallback onStartDuesTracking;
   final VoidCallback onDelete;
 
   @override
@@ -1171,6 +1463,28 @@ class _ApartmentTile extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.medium),
+          Wrap(
+            spacing: AppSpacing.small,
+            runSpacing: AppSpacing.small,
+            children: [
+              DarJarBadge(
+                label: apartment.isDuesTrackingActive
+                    ? copy.trackingActive
+                    : copy.trackingNotStarted,
+                tone: apartment.isDuesTrackingActive
+                    ? DarJarBadgeTone.success
+                    : DarJarBadgeTone.warning,
+              ),
+              if (!apartment.isDuesTrackingActive)
+                TextButton.icon(
+                  key: ValueKey('start-dues-tracking-${apartment.id}'),
+                  onPressed: onStartDuesTracking,
+                  icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                  label: Text(copy.startTracking),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.small),
           if (members.isEmpty)
             Text(copy.noResidents, style: Theme.of(context).textTheme.bodySmall)
           else
@@ -1213,6 +1527,8 @@ class _ResidentsView extends StatelessWidget {
     required this.onGroupInvitation,
     required this.onAssign,
     required this.onSendInvitation,
+    required this.onSendPendingInvitation,
+    required this.onDeletePendingInvitation,
     required this.currentMember,
     required this.onChangeRole,
     required this.onTogglePresidentPermissions,
@@ -1228,6 +1544,8 @@ class _ResidentsView extends StatelessWidget {
   final VoidCallback onGroupInvitation;
   final ValueChanged<ResidenceMember> onAssign;
   final ValueChanged<ResidenceMember> onSendInvitation;
+  final ValueChanged<ResidencePendingInvitation> onSendPendingInvitation;
+  final ValueChanged<ResidencePendingInvitation> onDeletePendingInvitation;
   final ResidenceMember? currentMember;
   final ValueChanged<ResidenceMember> onChangeRole;
   final ValueChanged<ResidenceMember> onTogglePresidentPermissions;
@@ -1341,6 +1659,8 @@ class _ResidentsView extends StatelessWidget {
             invitation: invitation,
             apartmentLabel: _apartmentLabel(data, invitation.apartmentId),
             copy: copy,
+            onSend: () => onSendPendingInvitation(invitation),
+            onDelete: () => onDeletePendingInvitation(invitation),
           ),
           const SizedBox(height: AppSpacing.small),
         ],
@@ -1371,11 +1691,15 @@ class _PendingInvitationCard extends StatelessWidget {
     required this.invitation,
     required this.apartmentLabel,
     required this.copy,
+    required this.onSend,
+    required this.onDelete,
   });
 
   final ResidencePendingInvitation invitation;
   final String? apartmentLabel;
   final _Copy copy;
+  final VoidCallback onSend;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -1442,8 +1766,120 @@ class _PendingInvitationCard extends StatelessWidget {
               ],
             ),
           ),
+          _PendingInvitationActionsButton(
+            key: ValueKey('pending-invitation-menu-${invitation.id}'),
+            copy: copy,
+            onSelected: (action) {
+              switch (action) {
+                case _PendingInvitationAction.send:
+                  onSend();
+                  return;
+                case _PendingInvitationAction.delete:
+                  onDelete();
+                  return;
+              }
+            },
+          ),
         ],
       ),
+    );
+  }
+}
+
+enum _PendingInvitationAction { send, delete }
+
+class _PendingInvitationActionsButton extends StatelessWidget {
+  const _PendingInvitationActionsButton({
+    required this.copy,
+    required this.onSelected,
+    super.key,
+  });
+
+  final _Copy copy;
+  final ValueChanged<_PendingInvitationAction> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (buttonContext) => IconButton(
+        tooltip: copy.moreOptions,
+        onPressed: () async {
+          final action = await _showMenu(buttonContext);
+          if (action != null) onSelected(action);
+        },
+        icon: const Icon(Icons.more_horiz_rounded),
+      ),
+    );
+  }
+
+  Future<_PendingInvitationAction?> _showMenu(BuildContext buttonContext) {
+    final buttonBox = buttonContext.findRenderObject()! as RenderBox;
+    final overlayBox =
+        Navigator.of(buttonContext).overlay!.context.findRenderObject()!
+            as RenderBox;
+    final topLeft = buttonBox.localToGlobal(Offset.zero, ancestor: overlayBox);
+    const menuWidth = 238.0;
+    const menuHeight = 108.0;
+    final overlaySize = overlayBox.size;
+    final left = (topLeft.dx + buttonBox.size.width - menuWidth)
+        .clamp(
+          AppSpacing.medium,
+          overlaySize.width - menuWidth - AppSpacing.medium,
+        )
+        .toDouble();
+    final preferredTop = topLeft.dy + buttonBox.size.height + AppSpacing.xSmall;
+    final top = preferredTop + menuHeight < overlaySize.height
+        ? preferredTop
+        : topLeft.dy - menuHeight - AppSpacing.xSmall;
+
+    return showGeneralDialog<_PendingInvitationAction>(
+      context: buttonContext,
+      barrierDismissible: true,
+      barrierLabel: copy.closeMenu,
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 140),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+        return FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            alignment: Alignment.topRight,
+            scale: Tween<double>(begin: .96, end: 1).animate(curved),
+            child: child,
+          ),
+        );
+      },
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Stack(
+          children: [
+            Positioned(
+              left: left,
+              top: top,
+              width: menuWidth,
+              child: _DarJarMenuSurface(
+                children: [
+                  _DarJarMenuItem(
+                    icon: Icons.send_outlined,
+                    label: copy.sendInvitation,
+                    onTap: () =>
+                        Navigator.pop(context, _PendingInvitationAction.send),
+                  ),
+                  _DarJarMenuItem(
+                    icon: Icons.delete_outline_rounded,
+                    label: copy.deleteInvitation,
+                    danger: true,
+                    onTap: () =>
+                        Navigator.pop(context, _PendingInvitationAction.delete),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -1709,6 +2145,53 @@ class _DarJarActionsMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return _DarJarMenuSurface(
+      children: [
+        _DarJarMenuItem(
+          icon: Icons.door_front_door_outlined,
+          label: copy.assignApartment,
+          onTap: () => Navigator.pop(context, _ResidentAction.assign),
+        ),
+        _DarJarMenuItem(
+          key: const Key('send-resident-invitation-action'),
+          icon: Icons.send_outlined,
+          label: copy.sendInvitation,
+          onTap: () => Navigator.pop(context, _ResidentAction.sendInvitation),
+        ),
+        if (canChangeRole)
+          _DarJarMenuItem(
+            icon: Icons.badge_outlined,
+            label: copy.changeRole,
+            onTap: () => Navigator.pop(context, _ResidentAction.role),
+          ),
+        if (canTogglePresidentPermissions)
+          _DarJarMenuItem(
+            icon: Icons.admin_panel_settings_outlined,
+            label: member.hasPresidentPermissions
+                ? copy.removePresidentPermissions
+                : copy.grantPresidentPermissions,
+            onTap: () =>
+                Navigator.pop(context, _ResidentAction.presidentPermissions),
+          ),
+        if (canRemove)
+          _DarJarMenuItem(
+            icon: Icons.person_remove_outlined,
+            label: copy.removeFromResidence,
+            danger: true,
+            onTap: () => Navigator.pop(context, _ResidentAction.remove),
+          ),
+      ],
+    );
+  }
+}
+
+class _DarJarMenuSurface extends StatelessWidget {
+  const _DarJarMenuSurface({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: DecoratedBox(
@@ -1725,47 +2208,7 @@ class _DarJarActionsMenu extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xSmall),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _DarJarMenuItem(
-                icon: Icons.door_front_door_outlined,
-                label: copy.assignApartment,
-                onTap: () => Navigator.pop(context, _ResidentAction.assign),
-              ),
-              _DarJarMenuItem(
-                key: const Key('send-resident-invitation-action'),
-                icon: Icons.send_outlined,
-                label: copy.sendInvitation,
-                onTap: () =>
-                    Navigator.pop(context, _ResidentAction.sendInvitation),
-              ),
-              if (canChangeRole)
-                _DarJarMenuItem(
-                  icon: Icons.badge_outlined,
-                  label: copy.changeRole,
-                  onTap: () => Navigator.pop(context, _ResidentAction.role),
-                ),
-              if (canTogglePresidentPermissions)
-                _DarJarMenuItem(
-                  icon: Icons.admin_panel_settings_outlined,
-                  label: member.hasPresidentPermissions
-                      ? copy.removePresidentPermissions
-                      : copy.grantPresidentPermissions,
-                  onTap: () => Navigator.pop(
-                    context,
-                    _ResidentAction.presidentPermissions,
-                  ),
-                ),
-              if (canRemove)
-                _DarJarMenuItem(
-                  icon: Icons.person_remove_outlined,
-                  label: copy.removeFromResidence,
-                  danger: true,
-                  onTap: () => Navigator.pop(context, _ResidentAction.remove),
-                ),
-            ],
-          ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: children),
         ),
       ),
     );
@@ -1899,6 +2342,10 @@ class _Copy {
       : 'A pending invitation already exists for this number.';
   String get pendingInvitation =>
       arabic ? 'الدعوة معلّقة' : 'Invitation pending';
+  String get deleteInvitation => arabic ? 'حذف الدعوة' : 'Delete invitation';
+  String get invitationDeleted =>
+      arabic ? 'تم حذف الدعوة.' : 'Invitation deleted.';
+  String get moreOptions => arabic ? 'المزيد من الخيارات' : 'More options';
   String get phoneAlreadyRegistered => arabic
       ? 'رقم الهاتف مسجل لساكن آخر.'
       : 'This phone number is already registered.';
@@ -1911,6 +2358,27 @@ class _Copy {
   String get delete => arabic ? 'حذف' : 'Delete';
   String get deleteApartment => arabic ? 'حذف الشقة' : 'Delete apartment';
   String get apartmentAdded => arabic ? 'تمت إضافة الشقة.' : 'Apartment added.';
+  String get duesTracking => arabic ? 'تتبّع الاشتراك' : 'Dues tracking';
+  String get trackingActive => arabic ? 'التتبّع مفعّل' : 'Tracking active';
+  String get trackingStartsLater =>
+      arabic ? 'يبدأ التتبّع لاحقًا' : 'Start tracking later';
+  String get trackingNotStarted =>
+      arabic ? 'التتبّع لم يبدأ' : 'Tracking not started';
+  String get trackingActiveHint => arabic
+      ? 'ستدخل الشقة في الاستحقاقات الشهرية فور إضافتها.'
+      : 'The apartment will be included in monthly dues immediately.';
+  String get trackingLaterHint => arabic
+      ? 'لن تُنشأ استحقاقات أو تذكيرات حتى يبدأ التتبّع يدويًا.'
+      : 'No dues or reminders are created until tracking is started manually.';
+  String get lastPaidMonth => arabic ? 'آخر شهر مؤدى' : 'Last paid month';
+  String get noPreviousPayment =>
+      arabic ? 'لم يسبق أداء أي اشتراك' : 'No subscription has been paid yet';
+  String get startTracking => arabic ? 'بدء التتبّع' : 'Start tracking';
+  String get startTrackingHint => arabic
+      ? 'سيُنشئ دارجار الأشهر غير المؤداة إلى غاية الشهر الحالي.'
+      : 'DarJar will create unpaid months through the current month.';
+  String get duesTrackingStarted =>
+      arabic ? 'بدأ تتبّع اشتراك الشقة.' : 'Apartment dues tracking started.';
   String get apartmentDeleted =>
       arabic ? 'تم حذف الشقة.' : 'Apartment deleted.';
   String get apartmentAlreadyExists => arabic
@@ -1952,6 +2420,9 @@ class _Copy {
   String get saveFailed => arabic
       ? 'تعذر حفظ التغيير في Firestore.'
       : 'Could not save the change to Firestore.';
+  String saveFailedWithCode(String code) => arabic
+      ? 'تعذر حفظ التغيير في Firestore. رمز الخطأ: $code'
+      : 'Could not save the change to Firestore. Error code: $code';
   String get residentRemoved =>
       arabic ? 'تمت إزالة الساكن من الإقامة.' : 'Resident removed.';
   String get roleUpdated =>
@@ -1977,6 +2448,12 @@ class _Copy {
       arabic ? floor.nameAr : floor.nameEn;
   String apartmentNumber(String number) =>
       arabic ? 'الشقة $number' : 'Apartment $number';
+  String startTrackingFor(String number) => arabic
+      ? 'بدء تتبّع اشتراك الشقة $number'
+      : 'Start dues tracking for apartment $number';
+  String deleteInvitationConfirmation(String name) => arabic
+      ? 'هل تريد حذف دعوة $name؟ لن يتمكن من قبولها بعد ذلك.'
+      : 'Delete the invitation for $name? They will no longer be able to accept it.';
   String apartmentCount(int count) =>
       arabic ? '$count شقق' : '$count apartments';
   String residentCount(int count) =>
@@ -2015,3 +2492,6 @@ class _Copy {
     ResidenceMemberRole.resident => arabic ? 'ساكن' : 'Resident',
   };
 }
+
+String _periodKey(DateTime date) =>
+    '${date.year}-${date.month.toString().padLeft(2, '0')}';

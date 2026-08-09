@@ -267,7 +267,11 @@ class _TransactionRow extends StatelessWidget {
     final localizations = AppLocalizations.of(context);
     final isIncome = transaction.type == ResidenceTransactionType.income;
     final color = isIncome ? AppColors.residence : AppColors.warning;
-    final typeLabel = isIncome ? localizations.income : localizations.expense;
+    final typeLabel = transaction.isOpeningBalance
+        ? localizations.openingSettlement
+        : isIncome
+        ? localizations.income
+        : localizations.expense;
 
     return Padding(
       key: ValueKey('finance-transaction-${transaction.id}'),
@@ -296,7 +300,9 @@ class _TransactionRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction.source == ResidenceTransactionSource.dues
+                  transaction.isOpeningBalance
+                      ? localizations.openingBalance
+                      : transaction.source == ResidenceTransactionSource.dues
                       ? _duesIncomeLabel(context, transaction)
                       : transaction.type == ResidenceTransactionType.expense &&
                             transaction.expenseCategory != null &&
@@ -390,7 +396,11 @@ class _TransactionRow extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.small),
           Text(
-            '${isIncome ? '+' : '-'}${_amount(context, transaction.amount)}\n${localizations.currency}',
+            '${transaction.isOpeningBalance
+                ? ''
+                : isIncome
+                ? '+'
+                : '-'}${_amount(context, transaction.amount)}\n${localizations.currency}',
             textAlign: TextAlign.end,
             style: Theme.of(
               context,
@@ -436,7 +446,10 @@ int _totalFor(
   ResidenceTransactionType type,
 ) {
   return transactions
-      .where((transaction) => transaction.type == type)
+      .where(
+        (transaction) =>
+            transaction.type == type && !transaction.isOpeningBalance,
+      )
       .fold(0, (total, transaction) => total + transaction.amount);
 }
 

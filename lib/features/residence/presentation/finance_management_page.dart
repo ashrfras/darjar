@@ -116,6 +116,12 @@ class FinanceManagementPage extends ConsumerWidget {
                 data: (finances) => Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (!finances.hasOpeningBalance) ...[
+                      _OpeningBalanceAlert(
+                        onPressed: () => _addOpeningBalance(context, ref),
+                      ),
+                      const SizedBox(height: AppSpacing.large),
+                    ],
                     _ManagementSummary(finances: finances),
                     const SizedBox(height: AppSpacing.large),
                     DarJarCard(
@@ -185,6 +191,23 @@ class FinanceManagementPage extends ConsumerWidget {
           context,
           AppLocalizations.of(context).financeTransactionSaved,
         );
+      }
+    } on ResidenceFinanceFailure {
+      if (context.mounted) {
+        _showMessage(context, AppLocalizations.of(context).financeInvalidData);
+      }
+    }
+  }
+
+  Future<void> _addOpeningBalance(BuildContext context, WidgetRef ref) async {
+    final input = await _showOpeningBalanceSheet(context);
+    if (input == null || !context.mounted) return;
+    try {
+      await ref
+          .read(residenceFinancesProvider.notifier)
+          .setOpeningBalance(amount: input.amount, date: input.date);
+      if (context.mounted) {
+        _showMessage(context, AppLocalizations.of(context).openingBalanceSaved);
       }
     } on ResidenceFinanceFailure {
       if (context.mounted) {
@@ -307,6 +330,53 @@ class _ManagementSummary extends StatelessWidget {
   }
 }
 
+class _OpeningBalanceAlert extends StatelessWidget {
+  const _OpeningBalanceAlert({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return DarJarCard(
+      key: const Key('opening-balance-alert'),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.account_balance_wallet_outlined,
+            color: AppColors.warning,
+          ),
+          const SizedBox(width: AppSpacing.medium),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  localizations.openingBalanceMissingTitle,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: AppSpacing.xSmall),
+                Text(
+                  localizations.openingBalanceMissingDescription,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: AppSpacing.medium),
+                FilledButton.icon(
+                  key: const Key('enter-opening-balance-button'),
+                  onPressed: onPressed,
+                  icon: const Icon(Icons.add_card_rounded),
+                  label: Text(localizations.enterOpeningBalance),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SummaryValue extends StatelessWidget {
   const _SummaryValue({
     required this.label,
@@ -356,7 +426,9 @@ class _ManagementTransactionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final isIncome = transaction.type == ResidenceTransactionType.income;
-    final title = transaction.source == ResidenceTransactionSource.dues
+    final title = transaction.isOpeningBalance
+        ? localizations.openingBalance
+        : transaction.source == ResidenceTransactionSource.dues
         ? _duesIncomeLabel(context, transaction)
         : transaction.type == ResidenceTransactionType.expense &&
               transaction.expenseCategory != null &&
@@ -384,7 +456,11 @@ class _ManagementTransactionRow extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xSmall),
                 Text(
                   '${DateFormat.yMMMd(localizations.localeName).format(transaction.date)} · '
-                  '${transaction.isManual ? localizations.manualTransaction : localizations.duesIncome}',
+                  '${transaction.isOpeningBalance
+                      ? localizations.openingSettlement
+                      : transaction.isManual
+                      ? localizations.manualTransaction
+                      : localizations.duesIncome}',
                   style: Theme.of(context).textTheme.labelMedium,
                 ),
               ],
@@ -392,7 +468,11 @@ class _ManagementTransactionRow extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.small),
           Text(
-            '${isIncome ? '+' : '-'}${NumberFormat.decimalPattern(localizations.localeName).format(transaction.amount)}',
+            '${transaction.isOpeningBalance
+                ? ''
+                : isIncome
+                ? '+'
+                : '-'}${NumberFormat.decimalPattern(localizations.localeName).format(transaction.amount)}',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: isIncome ? AppColors.residence : AppColors.warning,
             ),
@@ -414,6 +494,152 @@ class _ManagementTransactionRow extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _OpeningBalanceInput {
+  const _OpeningBalanceInput({required this.amount, required this.date});
+
+  final int amount;
+  final DateTime date;
+}
+
+Future<_OpeningBalanceInput?> _showOpeningBalanceSheet(BuildContext context) {
+  return showModalBottomSheet<_OpeningBalanceInput>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    constraints: const BoxConstraints(maxWidth: 620),
+    builder: (context) => const _OpeningBalanceSheet(),
+  );
+}
+
+class _OpeningBalanceSheet extends StatefulWidget {
+  const _OpeningBalanceSheet();
+
+  @override
+  State<_OpeningBalanceSheet> createState() => _OpeningBalanceSheetState();
+}
+
+class _OpeningBalanceSheetState extends State<_OpeningBalanceSheet> {
+  final _amountController = TextEditingController();
+  DateTime _date = DateTime.now();
+  bool _showError = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return Material(
+      key: const Key('opening-balance-sheet'),
+      color: AppColors.surface,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.large,
+          AppSpacing.large,
+          AppSpacing.large,
+          MediaQuery.viewInsetsOf(context).bottom + AppSpacing.large,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      localizations.openingBalance,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.small),
+              Text(
+                localizations.openingBalanceDescription,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+              ),
+              const SizedBox(height: AppSpacing.large),
+              DarJarTextField(
+                key: const Key('opening-balance-amount-field'),
+                label: localizations.openingBalanceAmount,
+                controller: _amountController,
+                prefixIcon: Icons.payments_outlined,
+                suffixText: localizations.currency,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
+              const SizedBox(height: AppSpacing.xSmall),
+              Text(
+                localizations.openingBalanceZeroHint,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+              ),
+              const SizedBox(height: AppSpacing.medium),
+              OutlinedButton.icon(
+                key: const Key('opening-balance-date-field'),
+                onPressed: _selectDate,
+                icon: const Icon(Icons.calendar_today_outlined),
+                label: Text(
+                  '${localizations.openingBalanceDate}: '
+                  '${DateFormat.yMMMd(localizations.localeName).format(_date)}',
+                ),
+              ),
+              if (_showError) ...[
+                const SizedBox(height: AppSpacing.small),
+                Text(
+                  localizations.financeInvalidData,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.danger),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.large),
+              DarJarButton(
+                key: const Key('save-opening-balance-button'),
+                label: localizations.saveOpeningBalance,
+                icon: Icons.save_outlined,
+                expanded: true,
+                onPressed: _submit,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectDate() async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (selected != null && mounted) setState(() => _date = selected);
+  }
+
+  void _submit() {
+    final amount = int.tryParse(_amountController.text.trim());
+    if (amount == null || amount < 0) {
+      setState(() => _showError = true);
+      return;
+    }
+    Navigator.pop(context, _OpeningBalanceInput(amount: amount, date: _date));
   }
 }
 

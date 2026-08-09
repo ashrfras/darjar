@@ -3,9 +3,12 @@ import 'package:darjar/core/performance/data_load_timer.dart';
 import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum ResidenceMemberRole { president, deputy, treasurer, resident }
+
+enum ResidenceDuesTrackingStatus { active, notStarted }
 
 int residenceMemberRolePriority(ResidenceMemberRole role) => switch (role) {
   ResidenceMemberRole.president => 0,
@@ -70,6 +73,9 @@ class ResidenceApartment {
     required this.floorId,
     this.buildingId = '',
     this.createdAt,
+    this.duesTrackingStatus = ResidenceDuesTrackingStatus.active,
+    this.duesTrackingStartPeriodKey = '',
+    this.openingPaidThroughPeriodKey = '',
   });
 
   final String id;
@@ -77,6 +83,12 @@ class ResidenceApartment {
   final String floorId;
   final String buildingId;
   final DateTime? createdAt;
+  final ResidenceDuesTrackingStatus duesTrackingStatus;
+  final String duesTrackingStartPeriodKey;
+  final String openingPaidThroughPeriodKey;
+
+  bool get isDuesTrackingActive =>
+      duesTrackingStatus == ResidenceDuesTrackingStatus.active;
 }
 
 class ResidenceFloor {
@@ -157,6 +169,11 @@ abstract interface class ResidenceMembersRepository {
     required String apartmentId,
   });
 
+  Future<void> deleteInvitation({
+    required String residenceId,
+    required String invitationId,
+  });
+
   Future<void> assignApartment({
     required String residenceId,
     required String memberId,
@@ -168,6 +185,18 @@ abstract interface class ResidenceMembersRepository {
     required String buildingId,
     required String floorId,
     required String number,
+    required ResidenceDuesTrackingStatus duesTrackingStatus,
+    required String? openingPaidThroughPeriodKey,
+    required String currentPeriodKey,
+    required int defaultAmount,
+  });
+
+  Future<void> startApartmentDuesTracking({
+    required String residenceId,
+    required ResidenceApartment apartment,
+    required String? openingPaidThroughPeriodKey,
+    required String currentPeriodKey,
+    required int defaultAmount,
   });
 
   Future<void> deleteApartment({
@@ -285,6 +314,13 @@ class FirestoreResidenceMembersRepository
           floorId: floor.id,
           buildingId: floor.reference.parent.parent?.id ?? '',
           createdAt: (document.data()['createdAt'] as Timestamp?)?.toDate(),
+          duesTrackingStatus: _duesTrackingStatusFromValue(
+            document.data()['duesTrackingStatus'] as String?,
+          ),
+          duesTrackingStartPeriodKey:
+              document.data()['duesTrackingStartPeriodKey'] as String? ?? '',
+          openingPaidThroughPeriodKey:
+              document.data()['openingPaidThroughPeriodKey'] as String? ?? '',
         ),
     ]..sort((a, b) => a.number.compareTo(b.number));
     final data = floor.data();
@@ -360,13 +396,6 @@ class FirestoreResidenceMembersRepository
         .doc(residenceId)
         .collection('invitations');
     try {
-      final legacyInvitation = await invitations
-          .where('phoneNumber', isEqualTo: normalizedPhoneNumber)
-          .limit(1)
-          .get();
-      if (legacyInvitation.docs.isNotEmpty) {
-        throw const ResidenceMembersFailure('invitation-already-exists');
-      }
       final invitation = invitations.doc(normalizedPhoneNumber);
       await _firestore.runTransaction((transaction) async {
         final existingInvitation = await transaction.get(invitation);
@@ -392,6 +421,23 @@ class FirestoreResidenceMembersRepository
   }
 
   @override
+  Future<void> deleteInvitation({
+    required String residenceId,
+    required String invitationId,
+  }) async {
+    try {
+      await _firestore
+          .collection('residences')
+          .doc(residenceId)
+          .collection('invitations')
+          .doc(invitationId)
+          .delete();
+    } on FirebaseException catch (error) {
+      throw ResidenceMembersFailure(error.code, error.message);
+    }
+  }
+
+  @override
   Future<void> assignApartment({
     required String residenceId,
     required String memberId,
@@ -409,8 +455,12 @@ class FirestoreResidenceMembersRepository
     required String buildingId,
     required String floorId,
     required String number,
+    required ResidenceDuesTrackingStatus duesTrackingStatus,
+    required String? openingPaidThroughPeriodKey,
+    required String currentPeriodKey,
+    required int defaultAmount,
   }) async {
-    await _firestore
+    final apartment = _firestore
         .collection('residences')
         .doc(residenceId)
         .collection('buildings')
@@ -418,10 +468,114 @@ class FirestoreResidenceMembersRepository
         .collection('floors')
         .doc(floorId)
         .collection('apartments')
-        .add({
-          'number': int.parse(number.trim()),
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+        .doc();
+    final batch = _firestore.batch();
+    final trackingStartPeriodKey = _openingTrackingStartPeriodKey(
+      openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
+      currentPeriodKey: currentPeriodKey,
+    );
+    batch.set(apartment, {
+      'number': int.parse(number.trim()),
+      'duesTrackingStatus': duesTrackingStatus.name,
+      'duesTrackingStartPeriodKey':
+          duesTrackingStatus == ResidenceDuesTrackingStatus.active
+          ? trackingStartPeriodKey
+          : '',
+      'openingPaidThroughPeriodKey':
+          duesTrackingStatus == ResidenceDuesTrackingStatus.active
+          ? openingPaidThroughPeriodKey ?? ''
+          : '',
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    if (duesTrackingStatus == ResidenceDuesTrackingStatus.active) {
+      _addOpeningDuesToBatch(
+        batch: batch,
+        residenceId: residenceId,
+        apartmentId: apartment.id,
+        apartmentNumber: number.trim(),
+        openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
+        currentPeriodKey: currentPeriodKey,
+        defaultAmount: defaultAmount,
+      );
+    }
+    await batch.commit();
+  }
+
+  @override
+  Future<void> startApartmentDuesTracking({
+    required String residenceId,
+    required ResidenceApartment apartment,
+    required String? openingPaidThroughPeriodKey,
+    required String currentPeriodKey,
+    required int defaultAmount,
+  }) async {
+    if (apartment.isDuesTrackingActive) return;
+    final apartmentReference = _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('buildings')
+        .doc(apartment.buildingId)
+        .collection('floors')
+        .doc(apartment.floorId)
+        .collection('apartments')
+        .doc(apartment.id);
+    final batch = _firestore.batch();
+    batch.update(apartmentReference, {
+      'duesTrackingStatus': ResidenceDuesTrackingStatus.active.name,
+      'duesTrackingStartPeriodKey': _openingTrackingStartPeriodKey(
+        openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
+        currentPeriodKey: currentPeriodKey,
+      ),
+      'openingPaidThroughPeriodKey': openingPaidThroughPeriodKey ?? '',
+      'duesTrackingStartedAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    _addOpeningDuesToBatch(
+      batch: batch,
+      residenceId: residenceId,
+      apartmentId: apartment.id,
+      apartmentNumber: apartment.number,
+      openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
+      currentPeriodKey: currentPeriodKey,
+      defaultAmount: defaultAmount,
+    );
+    await batch.commit();
+  }
+
+  void _addOpeningDuesToBatch({
+    required WriteBatch batch,
+    required String residenceId,
+    required String apartmentId,
+    required String apartmentNumber,
+    required String? openingPaidThroughPeriodKey,
+    required String currentPeriodKey,
+    required int defaultAmount,
+  }) {
+    final dues = _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('dues');
+    final paidThroughCurrent =
+        openingPaidThroughPeriodKey != null &&
+        openingPaidThroughPeriodKey.compareTo(currentPeriodKey) >= 0;
+    final start = _openingTrackingStartPeriodKey(
+      openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
+      currentPeriodKey: currentPeriodKey,
+    );
+    for (final periodKey in _periodKeysThrough(start, currentPeriodKey)) {
+      final paid = paidThroughCurrent && periodKey == currentPeriodKey;
+      batch.set(dues.doc('${periodKey}_$apartmentId'), {
+        'apartmentId': apartmentId,
+        'apartmentNumber': apartmentNumber,
+        'periodKey': periodKey,
+        'amountDue': defaultAmount,
+        'amountPaid': paid ? defaultAmount : 0,
+        'status': paid || defaultAmount == 0 ? 'paid' : 'unpaid',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
   }
 
   @override
@@ -598,6 +752,16 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
     ref.invalidateSelf();
   }
 
+  Future<void> deleteInvitation(String invitationId) async {
+    await ref
+        .read(residenceMembersRepositoryProvider)
+        .deleteInvitation(
+          residenceId: _requiredResidenceId(),
+          invitationId: invitationId,
+        );
+    ref.invalidateSelf();
+  }
+
   Future<void> assignApartment(String memberId, String? apartmentId) async {
     await ref
         .read(residenceMembersRepositoryProvider)
@@ -613,7 +777,11 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
     required String buildingId,
     required String floorId,
     required String number,
+    required ResidenceDuesTrackingStatus duesTrackingStatus,
+    required String? openingPaidThroughPeriodKey,
   }) async {
+    final settings = await ref.read(residenceSettingsProvider.future);
+    final currentPeriodKey = _periodKey(DateTime.now());
     await measureDataLoad(
       'add apartment write',
       () => ref
@@ -623,8 +791,29 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
             buildingId: buildingId,
             floorId: floorId,
             number: number,
+            duesTrackingStatus: duesTrackingStatus,
+            openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
+            currentPeriodKey: currentPeriodKey,
+            defaultAmount: settings.defaultSubscriptionAmount,
           ),
     );
+    ref.invalidateSelf();
+  }
+
+  Future<void> startApartmentDuesTracking({
+    required ResidenceApartment apartment,
+    required String? openingPaidThroughPeriodKey,
+  }) async {
+    final settings = await ref.read(residenceSettingsProvider.future);
+    await ref
+        .read(residenceMembersRepositoryProvider)
+        .startApartmentDuesTracking(
+          residenceId: _requiredResidenceId(),
+          apartment: apartment,
+          openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
+          currentPeriodKey: _periodKey(DateTime.now()),
+          defaultAmount: settings.defaultSubscriptionAmount,
+        );
     ref.invalidateSelf();
   }
 
@@ -708,3 +897,38 @@ final residenceDirectoryProvider = FutureProvider<ResidenceMembersData>((ref) {
       .watch(residenceMembersRepositoryProvider)
       .load(residenceId, includeInvitations: false);
 });
+
+ResidenceDuesTrackingStatus _duesTrackingStatusFromValue(String? value) {
+  return value == ResidenceDuesTrackingStatus.notStarted.name
+      ? ResidenceDuesTrackingStatus.notStarted
+      : ResidenceDuesTrackingStatus.active;
+}
+
+String _openingTrackingStartPeriodKey({
+  required String? openingPaidThroughPeriodKey,
+  required String currentPeriodKey,
+}) {
+  if (openingPaidThroughPeriodKey == null ||
+      openingPaidThroughPeriodKey.compareTo(currentPeriodKey) >= 0) {
+    return currentPeriodKey;
+  }
+  final paidThrough = _periodDate(openingPaidThroughPeriodKey);
+  return _periodKey(DateTime(paidThrough.year, paidThrough.month + 1));
+}
+
+Iterable<String> _periodKeysThrough(String startKey, String endKey) sync* {
+  var period = _periodDate(startKey);
+  final end = _periodDate(endKey);
+  while (!period.isAfter(end)) {
+    yield _periodKey(period);
+    period = DateTime(period.year, period.month + 1);
+  }
+}
+
+DateTime _periodDate(String periodKey) {
+  final parts = periodKey.split('-');
+  return DateTime(int.parse(parts[0]), int.parse(parts[1]));
+}
+
+String _periodKey(DateTime date) =>
+    '${date.year}-${date.month.toString().padLeft(2, '0')}';

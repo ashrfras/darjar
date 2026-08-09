@@ -275,7 +275,10 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
       final seeds = <_DueSeed>[];
       final currentPeriod = _periodDate(periodKey);
       for (final apartment in apartments) {
-        final start = apartment.createdAt ?? currentPeriod;
+        if (!apartment.isDuesTrackingActive) continue;
+        final start = apartment.duesTrackingStartPeriodKey.isNotEmpty
+            ? _periodDate(apartment.duesTrackingStartPeriodKey)
+            : apartment.createdAt ?? currentPeriod;
         for (final missingPeriod in _periodKeys(start, currentPeriod)) {
           final id = '${missingPeriod}_${apartment.id}';
           if (existingIds.add(id)) {
