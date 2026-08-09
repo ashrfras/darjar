@@ -68,4 +68,28 @@ void main() {
       equals({'source': '/join/**', 'destination': '/join/index.html'}),
     );
   });
+
+  test('web public legal routes load the Flutter application directly', () {
+    final hostingConfig =
+        jsonDecode(File('firebase.json').readAsStringSync())
+            as Map<String, dynamic>;
+    final hosting = hostingConfig['hosting'] as Map<String, dynamic>;
+    final rewrites = hosting['rewrites'] as List<dynamic>;
+
+    expect(
+      rewrites,
+      containsAll([
+        {'source': '/privacy', 'destination': '/index.html'},
+        {'source': '/delete-account', 'destination': '/index.html'},
+      ]),
+    );
+    expect(
+      rewrites.first,
+      equals({'source': '/join/**', 'destination': '/join/index.html'}),
+    );
+    expect(
+      rewrites.last,
+      equals({'source': '**', 'destination': '/index.html'}),
+    );
+  });
 }

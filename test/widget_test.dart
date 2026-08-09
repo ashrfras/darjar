@@ -30,6 +30,7 @@ import 'package:darjar/features/notifications/data/notification_push_service.dar
 import 'package:darjar/features/notifications/data/notifications_repository.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/profile/data/app_package_info.dart';
+import 'package:darjar/features/profile/presentation/delete_account_page.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
@@ -158,6 +159,50 @@ void main() {
 
       expect(attempts, 2);
       expect(find.byKey(const Key('initialized-app')), findsOneWidget);
+    });
+  });
+
+  group('public web routes', () {
+    testWidgets('privacy opens directly without authentication', (
+      tester,
+    ) async {
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: null,
+        platformInitialLocation: AppRoutes.publicPrivacyPolicy,
+        authRepository: _FakeAuthRepository(signedIn: false),
+      );
+
+      expect(find.byKey(const Key('public-privacy-page')), findsOneWidget);
+      expect(find.byKey(const Key('privacy-policy-content')), findsOneWidget);
+      expect(find.text('البيانات التي نجمعها'), findsOneWidget);
+      expect(find.textContaining('support@raqmain.ma'), findsOneWidget);
+      expect(find.byKey(const Key('phone-auth-page')), findsNothing);
+      expect(find.byKey(const Key('onboarding-page')), findsNothing);
+      expect(find.byKey(const Key('subpage-back-button')), findsNothing);
+    });
+
+    testWidgets('account deletion opens directly without authentication', (
+      tester,
+    ) async {
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: null,
+        platformInitialLocation: AppRoutes.deleteAccount,
+        authRepository: _FakeAuthRepository(signedIn: false),
+      );
+
+      expect(find.byKey(const Key('delete-account-page')), findsOneWidget);
+      expect(find.byKey(const Key('delete-account-content')), findsOneWidget);
+      expect(find.textContaining(accountDeletionRequestEmail), findsOneWidget);
+      expect(
+        find.byKey(const Key('send-delete-account-request')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('phone-auth-page')), findsNothing);
+      expect(find.byKey(const Key('onboarding-page')), findsNothing);
     });
   });
 

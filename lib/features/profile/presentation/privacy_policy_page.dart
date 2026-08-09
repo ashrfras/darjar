@@ -4,10 +4,13 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/features/profile/presentation/public_legal_page.dart';
 import 'package:flutter/material.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
-  const PrivacyPolicyPage({super.key});
+  const PrivacyPolicyPage({this.isPublic = false, super.key});
+
+  final bool isPublic;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +51,45 @@ class PrivacyPolicyPage extends StatelessWidget {
       ),
     ];
 
+    final policy = DarJarCard(
+      key: const Key('privacy-policy-content'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            localizations.privacyPolicyIntroduction,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: AppSpacing.small),
+          Text(
+            localizations.privacyPolicyLastUpdated,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+          ),
+          for (final section in sections) ...[
+            const SizedBox(height: AppSpacing.xLarge),
+            Text(section.$1, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.small),
+            Text(
+              section.$2,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(height: 1.7),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (isPublic) {
+      return PublicLegalPage(
+        pageKey: const Key('public-privacy-page'),
+        title: localizations.privacyPolicy,
+        child: policy,
+      );
+    }
+
     return SingleChildScrollView(
       key: const Key('privacy-policy-page'),
       padding: const EdgeInsets.fromLTRB(
@@ -68,38 +110,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                 fallbackLocation: AppRoutes.profile,
               ),
               const SizedBox(height: AppSpacing.medium),
-              DarJarCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      localizations.privacyPolicyIntroduction,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: AppSpacing.small),
-                    Text(
-                      localizations.privacyPolicyLastUpdated,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.inkMuted,
-                      ),
-                    ),
-                    for (final section in sections) ...[
-                      const SizedBox(height: AppSpacing.xLarge),
-                      Text(
-                        section.$1,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: AppSpacing.small),
-                      Text(
-                        section.$2,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.copyWith(height: 1.7),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+              policy,
             ],
           ),
         ),

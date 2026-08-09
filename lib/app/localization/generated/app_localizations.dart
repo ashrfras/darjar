@@ -2541,8 +2541,68 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyContactBody.
   ///
   /// In ar, this message translates to:
-  /// **'للاستفسار عن الخصوصية أو ممارسة حقوقك، تواصل مع Raqmain عبر بيانات الاتصال الرسمية المنشورة في صفحة التطبيق على المتجر. سنراجع طلبك ونرد عليه خلال مدة معقولة ووفق القانون المطبق.'**
+  /// **'للاستفسار عن الخصوصية أو ممارسة حقوقك، تواصل مع Raqmain عبر support@raqmain.ma. سنراجع طلبك ونرد عليه خلال مدة معقولة ووفق القانون المطبق.'**
   String get privacyPolicyContactBody;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف حساب دارجار'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountIntroduction.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكنك طلب الحذف النهائي لحسابك في دارجار والبيانات الشخصية المرتبطة به، حتى إذا لم يعد التطبيق مثبتاً على جهازك.'**
+  String get deleteAccountIntroduction;
+
+  /// No description provided for @deleteAccountRequestTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كيفية طلب الحذف'**
+  String get deleteAccountRequestTitle;
+
+  /// No description provided for @deleteAccountRequestBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'راسل {email} واذكر اسمك الكامل ورقم الهاتف المسجل في دارجار مع رمز البلد. سنؤكد استلام الطلب، ونتحقق من ملكيتك للحساب، ونستكمل الحذف خلال 30 يوماً.'**
+  String deleteAccountRequestBody(String email);
+
+  /// No description provided for @deleteAccountRequestAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرسال طلب الحذف'**
+  String get deleteAccountRequestAction;
+
+  /// No description provided for @deleteAccountDeletedDataTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'البيانات التي يشملها الطلب'**
+  String get deleteAccountDeletedDataTitle;
+
+  /// No description provided for @deleteAccountDeletedDataBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'يشمل الطلب حساب المصادقة وملفك الشخصي وعضويات الإقامات ورموز الإشعارات والمحتوى الشخصي المرتبط بحسابك. وقد يُخفى ارتباط هويتك بالمحتوى الذي يلزم إبقاؤه مفهوماً لباقي أعضاء الإقامة بدلاً من الاحتفاظ بهويتك.'**
+  String get deleteAccountDeletedDataBody;
+
+  /// No description provided for @deleteAccountRetentionTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاحتفاظ المحدود'**
+  String get deleteAccountRetentionTitle;
+
+  /// No description provided for @deleteAccountRetentionBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'قد نحتفظ ببعض السجلات فقط إذا أوجب القانون ذلك، أو لأغراض الأمن ومنع الاحتيال وحل النزاعات وتطبيق الشروط. يقتصر الاحتفاظ على القدر الضروري، وتُحذف البيانات عند انتهاء المدة المعمول بها.'**
+  String get deleteAccountRetentionBody;
+
+  /// No description provided for @deleteAccountSafetyNotice.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا ترسل رمز تحقق أو كلمة مرور أو وثيقة هوية أو أي معلومة سرية في رسالتك الأولى. سنرسل إليك تعليمات تحقق آمنة عند الحاجة.'**
+  String get deleteAccountSafetyNotice;
 
   /// No description provided for @edit.
   ///

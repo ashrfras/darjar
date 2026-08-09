@@ -1375,7 +1375,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyPolicyContactBody =>
-      'For privacy questions or to exercise your rights, contact Raqmain using the official contact details published on the app\'s store listing. We will review and respond within a reasonable period under applicable law.';
+      'For privacy questions or to exercise your rights, contact Raqmain at support@raqmain.ma. We will review and respond within a reasonable period under applicable law.';
+
+  @override
+  String get deleteAccountTitle => 'Delete your DarJar account';
+
+  @override
+  String get deleteAccountIntroduction =>
+      'You can request permanent deletion of your DarJar account and the personal data associated with it, even if you no longer have the application installed.';
+
+  @override
+  String get deleteAccountRequestTitle => 'How to request deletion';
+
+  @override
+  String deleteAccountRequestBody(String email) {
+    return 'Email $email and include your full name and the phone number registered with DarJar, including the country code. We will acknowledge your request, verify that you own the account, and complete the deletion within 30 days.';
+  }
+
+  @override
+  String get deleteAccountRequestAction => 'Send deletion request';
+
+  @override
+  String get deleteAccountDeletedDataTitle => 'Data covered by the request';
+
+  @override
+  String get deleteAccountDeletedDataBody =>
+      'The request covers your authentication account, profile, residence memberships, notification tokens, and personal content associated with your account. Content that must remain understandable to other residence members may be anonymized instead of retaining your identity.';
+
+  @override
+  String get deleteAccountRetentionTitle => 'Limited retention';
+
+  @override
+  String get deleteAccountRetentionBody =>
+      'Some records may be retained only when required by law or for security, fraud prevention, dispute resolution, or enforcing our terms. Any retained data is limited to what is necessary and removed when the applicable retention period ends.';
+
+  @override
+  String get deleteAccountSafetyNotice =>
+      'Never send a verification code, password, identity document, or other secret in your first email. We will provide secure verification instructions if needed.';
 
   @override
   String get edit => 'Edit';

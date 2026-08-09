@@ -1350,7 +1350,43 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get privacyPolicyContactBody =>
-      'للاستفسار عن الخصوصية أو ممارسة حقوقك، تواصل مع Raqmain عبر بيانات الاتصال الرسمية المنشورة في صفحة التطبيق على المتجر. سنراجع طلبك ونرد عليه خلال مدة معقولة ووفق القانون المطبق.';
+      'للاستفسار عن الخصوصية أو ممارسة حقوقك، تواصل مع Raqmain عبر support@raqmain.ma. سنراجع طلبك ونرد عليه خلال مدة معقولة ووفق القانون المطبق.';
+
+  @override
+  String get deleteAccountTitle => 'حذف حساب دارجار';
+
+  @override
+  String get deleteAccountIntroduction =>
+      'يمكنك طلب الحذف النهائي لحسابك في دارجار والبيانات الشخصية المرتبطة به، حتى إذا لم يعد التطبيق مثبتاً على جهازك.';
+
+  @override
+  String get deleteAccountRequestTitle => 'كيفية طلب الحذف';
+
+  @override
+  String deleteAccountRequestBody(String email) {
+    return 'راسل $email واذكر اسمك الكامل ورقم الهاتف المسجل في دارجار مع رمز البلد. سنؤكد استلام الطلب، ونتحقق من ملكيتك للحساب، ونستكمل الحذف خلال 30 يوماً.';
+  }
+
+  @override
+  String get deleteAccountRequestAction => 'إرسال طلب الحذف';
+
+  @override
+  String get deleteAccountDeletedDataTitle => 'البيانات التي يشملها الطلب';
+
+  @override
+  String get deleteAccountDeletedDataBody =>
+      'يشمل الطلب حساب المصادقة وملفك الشخصي وعضويات الإقامات ورموز الإشعارات والمحتوى الشخصي المرتبط بحسابك. وقد يُخفى ارتباط هويتك بالمحتوى الذي يلزم إبقاؤه مفهوماً لباقي أعضاء الإقامة بدلاً من الاحتفاظ بهويتك.';
+
+  @override
+  String get deleteAccountRetentionTitle => 'الاحتفاظ المحدود';
+
+  @override
+  String get deleteAccountRetentionBody =>
+      'قد نحتفظ ببعض السجلات فقط إذا أوجب القانون ذلك، أو لأغراض الأمن ومنع الاحتيال وحل النزاعات وتطبيق الشروط. يقتصر الاحتفاظ على القدر الضروري، وتُحذف البيانات عند انتهاء المدة المعمول بها.';
+
+  @override
+  String get deleteAccountSafetyNotice =>
+      'لا ترسل رمز تحقق أو كلمة مرور أو وثيقة هوية أو أي معلومة سرية في رسالتك الأولى. سنرسل إليك تعليمات تحقق آمنة عند الحاجة.';
 
   @override
   String get edit => 'تعديل';

@@ -14,6 +14,7 @@ import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
 import 'package:darjar/features/profile/presentation/profile_page.dart';
 import 'package:darjar/features/profile/presentation/privacy_policy_page.dart';
 import 'package:darjar/features/profile/presentation/about_app_page.dart';
+import 'package:darjar/features/profile/presentation/delete_account_page.dart';
 import 'package:darjar/features/profile/presentation/settings_page.dart';
 import 'package:darjar/features/residence/presentation/dues_management_page.dart';
 import 'package:darjar/features/residence/presentation/dues_page.dart';
@@ -34,6 +35,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 abstract final class AppRoutes {
+  static const root = '/';
   static const auth = '/auth/phone';
   static const accountResolution = '/auth/resolve';
   static const onboarding = '/onboarding';
@@ -59,6 +61,8 @@ abstract final class AppRoutes {
   static const manageResidence = '/residence/admin/details';
   static const profile = '/profile';
   static const privacyPolicy = '/profile/privacy';
+  static const publicPrivacyPolicy = '/privacy';
+  static const deleteAccount = '/delete-account';
   static const aboutApp = '/profile/about';
   static const settings = '/settings';
   static const gallery = '/gallery';
@@ -99,7 +103,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = location == AppRoutes.auth;
       final isAccountResolutionRoute = location == AppRoutes.accountResolution;
       final isPublicRoute =
-          location == '/' || location == AppRoutes.onboarding || isAuthRoute;
+          location == AppRoutes.root ||
+          location == AppRoutes.onboarding ||
+          location == AppRoutes.publicPrivacyPolicy ||
+          location == AppRoutes.deleteAccount ||
+          isAuthRoute;
       final user = authRefresh.user;
 
       if (user == null && !isPublicRoute) {
@@ -125,7 +133,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(path: '/', redirect: (context, state) => AppRoutes.onboarding),
+      GoRoute(
+        path: AppRoutes.root,
+        redirect: (context, state) => AppRoutes.onboarding,
+      ),
+      GoRoute(
+        path: AppRoutes.publicPrivacyPolicy,
+        builder: (context, state) => const PrivacyPolicyPage(isPublic: true),
+      ),
+      GoRoute(
+        path: AppRoutes.deleteAccount,
+        builder: (context, state) => const DeleteAccountPage(),
+      ),
       GoRoute(
         path: AppRoutes.auth,
         builder: (context, state) => const PhoneAuthPage(),
