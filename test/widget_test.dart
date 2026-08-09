@@ -3931,6 +3931,27 @@ void main() {
       find.byKey(const ValueKey('apartment-apartment-12')),
       findsOneWidget,
     );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('apartment-apartment-12')),
+        matching: find.byIcon(Icons.chevron_right_rounded),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('التتبّع مفعّل'), findsNothing);
+    expect(find.text('عدد السكان'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('apartment-apartment-12')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('apartment-details-apartment-12')),
+      findsOneWidget,
+    );
+    expect(find.text('معلومات الشقة'), findsOneWidget);
+    expect(find.text('عدد السكان'), findsOneWidget);
+    expect(find.text('التتبّع مفعّل'), findsOneWidget);
+    expect(find.text('يوسف العلوي'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.close_rounded).last);
+    await tester.pumpAndSettle();
     expect(find.text('العمارة الرئيسية'), findsNothing);
     expect(find.text('إعدادات الإقامة'), findsNothing);
 
@@ -3968,6 +3989,15 @@ void main() {
       find.byKey(
         const ValueKey('start-dues-tracking-apartment-ground-floor-3'),
       ),
+      findsNothing,
+    );
+    await tester.tap(addedApartment);
+    await tester.pumpAndSettle();
+    expect(find.text('التتبّع لم يبدأ'), findsOneWidget);
+    expect(
+      find.byKey(
+        const ValueKey('start-dues-tracking-apartment-ground-floor-3'),
+      ),
       findsOneWidget,
     );
     final startTracking = find.byKey(
@@ -3982,14 +4012,25 @@ void main() {
     );
     tester.widget<FilledButton>(confirmTracking).onPressed!();
     await tester.pumpAndSettle();
-    expect(find.text('التتبّع مفعّل'), findsWidgets);
+    expect(find.text('التتبّع مفعّل'), findsNothing);
+
+    await tester.ensureVisible(addedApartment);
+    await tester.tap(addedApartment);
+    await tester.pumpAndSettle();
+    expect(find.text('التتبّع مفعّل'), findsOneWidget);
+    expect(
+      find.byKey(
+        const ValueKey('start-dues-tracking-apartment-ground-floor-3'),
+      ),
+      findsNothing,
+    );
 
     final deleteAddedApartment = find.byKey(
       const ValueKey('delete-apartment-apartment-ground-floor-3'),
     );
     await tester.ensureVisible(deleteAddedApartment);
     await tester.pumpAndSettle();
-    await tester.tap(deleteAddedApartment);
+    tester.widget<OutlinedButton>(deleteAddedApartment).onPressed!();
     await tester.pumpAndSettle();
     await tester.tap(find.text('حذف').last);
     await tester.pumpAndSettle();
@@ -4217,11 +4258,9 @@ void main() {
     await tester.tap(find.byKey(const Key('close-invitation-share-dialog')));
     await tester.pumpAndSettle();
 
-    final dynamic pendingMenuWidget = tester.widget(pendingInvitationMenu);
-    final dynamic pendingMenuItems = pendingMenuWidget.itemBuilder(
-      tester.element(pendingInvitationMenu),
-    );
-    pendingMenuWidget.onSelected(pendingMenuItems.last.value);
+    await tester.tap(pendingInvitationMenu);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('حذف الدعوة').last);
     await tester.pumpAndSettle();
     expect(
       find.byKey(const Key('delete-pending-invitation-dialog')),

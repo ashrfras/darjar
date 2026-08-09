@@ -23,6 +23,8 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 enum _ManagementView { apartments, residents }
 
+enum _ApartmentDetailsAction { startTracking, delete }
+
 class ApartmentsResidentsPage extends ConsumerStatefulWidget {
   const ApartmentsResidentsPage({super.key});
 
@@ -132,8 +134,7 @@ class _ApartmentsResidentsPageState
                             setState(() => _selectedBuildingId = id);
                           },
                           onAddApartment: _showAddApartmentSheet,
-                          onStartDuesTracking: _showStartDuesTrackingSheet,
-                          onDeleteApartment: _showDeleteApartmentDialog,
+                          onOpenApartment: _showApartmentDetails,
                         )
                       : _ResidentsView(
                           key: const Key('residents-view'),
@@ -411,6 +412,38 @@ class _ApartmentsResidentsPageState
       if (mounted) _showSavedMessage(copy.duesTrackingStarted);
     } on ResidenceMembersFailure {
       if (mounted) _showSavedMessage(copy.saveFailed);
+    }
+  }
+
+  Future<void> _showApartmentDetails(
+    ResidenceApartment apartment,
+    List<ResidenceMember> members,
+    ResidenceBuilding building,
+    ResidenceFloor floor,
+  ) async {
+    final copy = _Copy.of(context);
+    final action = await showModalBottomSheet<_ApartmentDetailsAction>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(maxWidth: 620),
+      builder: (context) => _ApartmentDetailsSheet(
+        apartment: apartment,
+        members: members,
+        building: building,
+        floor: floor,
+        copy: copy,
+      ),
+    );
+    if (!mounted || action == null) return;
+    switch (action) {
+      case _ApartmentDetailsAction.startTracking:
+        await _showStartDuesTrackingSheet(apartment);
+        return;
+      case _ApartmentDetailsAction.delete:
+        await _showDeleteApartmentDialog(apartment);
+        return;
     }
   }
 
@@ -1217,8 +1250,7 @@ class _ApartmentsView extends StatelessWidget {
     required this.selectedBuildingId,
     required this.onBuildingSelected,
     required this.onAddApartment,
-    required this.onStartDuesTracking,
-    required this.onDeleteApartment,
+    required this.onOpenApartment,
     super.key,
   });
 
@@ -1227,8 +1259,13 @@ class _ApartmentsView extends StatelessWidget {
   final String? selectedBuildingId;
   final ValueChanged<String> onBuildingSelected;
   final ValueChanged<ResidenceBuilding> onAddApartment;
-  final ValueChanged<ResidenceApartment> onStartDuesTracking;
-  final ValueChanged<ResidenceApartment> onDeleteApartment;
+  final void Function(
+    ResidenceApartment apartment,
+    List<ResidenceMember> members,
+    ResidenceBuilding building,
+    ResidenceFloor floor,
+  )
+  onOpenApartment;
 
   @override
   Widget build(BuildContext context) {
@@ -1290,11 +1327,11 @@ class _ApartmentsView extends StatelessWidget {
         ],
         for (final floor in selectedBuilding.floors) ...[
           _FloorCard(
+            building: selectedBuilding,
             floor: floor,
             members: data.members,
             copy: copy,
-            onStartDuesTracking: onStartDuesTracking,
-            onDeleteApartment: onDeleteApartment,
+            onOpenApartment: onOpenApartment,
           ),
           const SizedBox(height: AppSpacing.medium),
         ],
@@ -1324,18 +1361,24 @@ class _ApartmentsView extends StatelessWidget {
 
 class _FloorCard extends StatelessWidget {
   const _FloorCard({
+    required this.building,
     required this.floor,
     required this.members,
     required this.copy,
-    required this.onStartDuesTracking,
-    required this.onDeleteApartment,
+    required this.onOpenApartment,
   });
 
+  final ResidenceBuilding building;
   final ResidenceFloor floor;
   final List<ResidenceMember> members;
   final _Copy copy;
-  final ValueChanged<ResidenceApartment> onStartDuesTracking;
-  final ValueChanged<ResidenceApartment> onDeleteApartment;
+  final void Function(
+    ResidenceApartment apartment,
+    List<ResidenceMember> members,
+    ResidenceBuilding building,
+    ResidenceFloor floor,
+  )
+  onOpenApartment;
 
   @override
   Widget build(BuildContext context) {
@@ -1378,15 +1421,18 @@ class _FloorCard extends StatelessWidget {
                         width: width,
                         child: _ApartmentTile(
                           apartment: apartment,
-                          members: members
-                              .where(
-                                (member) => member.apartmentId == apartment.id,
-                              )
-                              .toList(growable: false),
                           copy: copy,
-                          onStartDuesTracking: () =>
-                              onStartDuesTracking(apartment),
-                          onDelete: () => onDeleteApartment(apartment),
+                          onTap: () => onOpenApartment(
+                            apartment,
+                            members
+                                .where(
+                                  (member) =>
+                                      member.apartmentId == apartment.id,
+                                )
+                                .toList(growable: false),
+                            building,
+                            floor,
+                          ),
                         ),
                       ),
                   ],
@@ -1403,116 +1449,251 @@ class _FloorCard extends StatelessWidget {
 class _ApartmentTile extends StatelessWidget {
   const _ApartmentTile({
     required this.apartment,
-    required this.members,
     required this.copy,
-    required this.onStartDuesTracking,
-    required this.onDelete,
+    required this.onTap,
+  });
+
+  final ResidenceApartment apartment;
+  final _Copy copy;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return DarJarCard(
+      key: ValueKey('apartment-${apartment.id}'),
+      padding: const EdgeInsets.all(AppSpacing.medium),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(AppRadius.small),
+            ),
+            child: const Icon(
+              Icons.door_front_door_outlined,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.medium),
+          Expanded(
+            child: Text(
+              copy.apartmentNumber(apartment.number),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          Icon(
+            Directionality.of(context) == TextDirection.rtl
+                ? Icons.chevron_right_rounded
+                : Icons.chevron_left_rounded,
+            color: AppColors.inkMuted,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ApartmentDetailsSheet extends StatelessWidget {
+  const _ApartmentDetailsSheet({
+    required this.apartment,
+    required this.members,
+    required this.building,
+    required this.floor,
+    required this.copy,
   });
 
   final ResidenceApartment apartment;
   final List<ResidenceMember> members;
+  final ResidenceBuilding building;
+  final ResidenceFloor floor;
   final _Copy copy;
-  final VoidCallback onStartDuesTracking;
-  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      key: ValueKey('apartment-${apartment.id}'),
-      padding: const EdgeInsets.all(AppSpacing.medium),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
+    return Material(
+      key: ValueKey('apartment-details-${apartment.id}'),
+      color: AppColors.surface,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      clipBehavior: Clip.antiAlias,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.large,
+          AppSpacing.medium,
+          AppSpacing.large,
+          AppSpacing.large + MediaQuery.viewPaddingOf(context).bottom,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 42,
+                height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.primarySoft,
-                  borderRadius: BorderRadius.circular(AppRadius.small),
-                ),
-                child: const Icon(
-                  Icons.door_front_door_outlined,
-                  color: AppColors.primary,
+                  color: AppColors.outline,
+                  borderRadius: BorderRadius.circular(99),
                 ),
               ),
-              const SizedBox(width: AppSpacing.medium),
-              Expanded(
-                child: Text(
-                  copy.apartmentNumber(apartment.number),
-                  style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.large),
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoft,
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
+                  ),
+                  child: const Icon(
+                    Icons.door_front_door_outlined,
+                    color: AppColors.primary,
+                  ),
                 ),
-              ),
-              DarJarBadge(
-                label: members.isEmpty
-                    ? copy.vacant
-                    : copy.residentCount(members.length),
-                tone: members.isEmpty
-                    ? DarJarBadgeTone.neutral
-                    : DarJarBadgeTone.success,
-              ),
-              IconButton(
-                key: ValueKey('delete-apartment-${apartment.id}'),
-                tooltip: copy.deleteApartment,
-                color: AppColors.inkMuted,
-                visualDensity: VisualDensity.compact,
-                onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline_rounded, size: 20),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.medium),
-          Wrap(
-            spacing: AppSpacing.small,
-            runSpacing: AppSpacing.small,
-            children: [
-              DarJarBadge(
-                label: apartment.isDuesTrackingActive
-                    ? copy.trackingActive
-                    : copy.trackingNotStarted,
-                tone: apartment.isDuesTrackingActive
-                    ? DarJarBadgeTone.success
-                    : DarJarBadgeTone.warning,
-              ),
-              if (!apartment.isDuesTrackingActive)
-                TextButton.icon(
-                  key: ValueKey('start-dues-tracking-${apartment.id}'),
-                  onPressed: onStartDuesTracking,
-                  icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                  label: Text(copy.startTracking),
-                ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.small),
-          if (members.isEmpty)
-            Text(copy.noResidents, style: Theme.of(context).textTheme.bodySmall)
-          else
-            for (final member in members)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.xSmall),
-                child: Row(
-                  children: [
-                    DarJarUserAvatar(
-                      userId: member.id,
-                      name: member.name,
-                      radius: 13,
-                      showImage: member.hasProfileImage,
-                    ),
-                    const SizedBox(width: AppSpacing.small),
-                    Expanded(
-                      child: Text(
-                        member.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                const SizedBox(width: AppSpacing.medium),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        copy.apartmentInformation,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
-                    ),
-                  ],
+                      Text(
+                        copy.apartmentNumber(apartment.number),
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                    ],
+                  ),
                 ),
+                IconButton(
+                  tooltip: copy.close,
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.large),
+            _ApartmentDetailRow(
+              icon: Icons.location_on_outlined,
+              label: copy.location,
+              value:
+                  '${copy.buildingName(building)} · ${copy.floorName(floor)}',
+            ),
+            const Divider(height: AppSpacing.large),
+            _ApartmentDetailRow(
+              icon: Icons.people_outline_rounded,
+              label: copy.residentCountLabel,
+              value: '${members.length}',
+            ),
+            const Divider(height: AppSpacing.large),
+            _ApartmentDetailRow(
+              icon: Icons.receipt_long_outlined,
+              label: copy.duesTracking,
+              value: apartment.isDuesTrackingActive
+                  ? copy.trackingActive
+                  : copy.trackingNotStarted,
+              valueColor: apartment.isDuesTrackingActive
+                  ? AppColors.primary
+                  : AppColors.warning,
+            ),
+            if (apartment.isDuesTrackingActive &&
+                apartment.duesTrackingStartPeriodKey.isNotEmpty) ...[
+              const Divider(height: AppSpacing.large),
+              _ApartmentDetailRow(
+                icon: Icons.calendar_month_outlined,
+                label: copy.trackingStartPeriod,
+                value: apartment.duesTrackingStartPeriodKey,
               ),
-        ],
+            ],
+            const SizedBox(height: AppSpacing.large),
+            Text(
+              copy.apartmentResidents,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.small),
+            if (members.isEmpty)
+              Text(
+                copy.noResidents,
+                style: Theme.of(context).textTheme.bodySmall,
+              )
+            else
+              for (final member in members)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: DarJarUserAvatar(
+                    userId: member.id,
+                    name: member.name,
+                    radius: 18,
+                    showImage: member.hasProfileImage,
+                  ),
+                  title: Text(member.name),
+                  subtitle: Text(copy.role(member.role)),
+                ),
+            const SizedBox(height: AppSpacing.large),
+            if (!apartment.isDuesTrackingActive) ...[
+              FilledButton.icon(
+                key: ValueKey('start-dues-tracking-${apartment.id}'),
+                onPressed: () => Navigator.pop(
+                  context,
+                  _ApartmentDetailsAction.startTracking,
+                ),
+                icon: const Icon(Icons.play_arrow_rounded),
+                label: Text(copy.startTracking),
+              ),
+              const SizedBox(height: AppSpacing.small),
+            ],
+            OutlinedButton.icon(
+              key: ValueKey('delete-apartment-${apartment.id}'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.danger,
+              ),
+              onPressed: () =>
+                  Navigator.pop(context, _ApartmentDetailsAction.delete),
+              icon: const Icon(Icons.delete_outline_rounded),
+              label: Text(copy.deleteApartment),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _ApartmentDetailRow extends StatelessWidget {
+  const _ApartmentDetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.inkMuted, size: 22),
+        const SizedBox(width: AppSpacing.medium),
+        Expanded(child: Text(label)),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: valueColor ?? AppColors.ink,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -2329,6 +2510,14 @@ class _Copy {
   String get countryCode => arabic ? 'رمز الدولة' : 'Country code';
   String get phoneHint => arabic ? '6 12 34 56 78' : '6 12 34 56 78';
   String get apartment => arabic ? 'الشقة' : 'Apartment';
+  String get apartmentInformation =>
+      arabic ? 'معلومات الشقة' : 'Apartment information';
+  String get location => arabic ? 'الموقع' : 'Location';
+  String get residentCountLabel => arabic ? 'عدد السكان' : 'Residents';
+  String get apartmentResidents => arabic ? 'السكان' : 'Residents';
+  String get trackingStartPeriod =>
+      arabic ? 'بداية التتبّع' : 'Tracking started';
+  String get close => arabic ? 'إغلاق' : 'Close';
   String get fieldRequired =>
       arabic ? 'هذا الحقل مطلوب.' : 'This field is required.';
   String get validPhoneRequired =>
