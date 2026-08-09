@@ -3959,10 +3959,42 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('رقم الشقة'), findsOneWidget);
     expect(find.text('رقم أو اسم الشقة'), findsNothing);
+    expect(find.byKey(const Key('apartment-advanced-options')), findsOneWidget);
+    expect(
+      find.byKey(const Key('apartment-dues-tracking-field')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const Key('apartment-last-paid-month-field')),
+      findsNothing,
+    );
     await tester.enterText(
       find.byKey(const Key('new-apartment-number-field')),
       '03A',
     );
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('apartment-advanced-options')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('apartment-dues-tracking-field')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('apartment-last-paid-month-field')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('apartment-last-paid-month-field')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('month-year-picker-dialog')), findsOneWidget);
+    expect(find.byType(CalendarDatePicker), findsNothing);
+    expect(find.byKey(const Key('month-year-picker-year')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('month-year-picker-month-1')),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('إلغاء').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('يبدأ التتبّع لاحقًا'));
     await tester.pumpAndSettle();
     expect(
@@ -3974,8 +4006,6 @@ void main() {
           ?.text,
       '03',
     );
-    tester.testTextInput.hide();
-    await tester.pumpAndSettle();
     await tester.ensureVisible(
       find.byKey(const Key('confirm-add-apartment-button')),
     );
@@ -4006,6 +4036,15 @@ void main() {
     await tester.ensureVisible(startTracking);
     await tester.pumpAndSettle();
     await tester.tap(startTracking);
+    await tester.pumpAndSettle();
+    final trackingLastPaidMonth = find.byKey(
+      const Key('start-tracking-last-paid-month-field'),
+    );
+    await tester.tap(trackingLastPaidMonth);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('month-year-picker-dialog')), findsOneWidget);
+    expect(find.byType(CalendarDatePicker), findsNothing);
+    await tester.tap(find.byKey(const Key('confirm-month-year-picker')));
     await tester.pumpAndSettle();
     final confirmTracking = find.byKey(
       const Key('confirm-start-apartment-dues-tracking'),

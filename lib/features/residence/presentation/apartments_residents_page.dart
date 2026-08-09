@@ -943,63 +943,86 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
                     : null,
               ),
             ),
-            const SizedBox(height: AppSpacing.large),
-            Text(
-              widget.copy.duesTracking,
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
-            const SizedBox(height: AppSpacing.small),
-            SegmentedButton<ResidenceDuesTrackingStatus>(
-              key: const Key('apartment-dues-tracking-field'),
-              showSelectedIcon: false,
-              segments: [
-                ButtonSegment(
-                  value: ResidenceDuesTrackingStatus.active,
-                  icon: const Icon(Icons.playlist_add_check_rounded),
-                  label: Text(widget.copy.trackingActive),
-                ),
-                ButtonSegment(
-                  value: ResidenceDuesTrackingStatus.notStarted,
-                  icon: const Icon(Icons.pause_circle_outline_rounded),
-                  label: Text(widget.copy.trackingStartsLater),
-                ),
-              ],
-              selected: {_trackingStatus},
-              onSelectionChanged: (selection) {
-                setState(() => _trackingStatus = selection.first);
-              },
-            ),
-            const SizedBox(height: AppSpacing.small),
-            Text(
-              _trackingStatus == ResidenceDuesTrackingStatus.active
-                  ? widget.copy.trackingActiveHint
-                  : widget.copy.trackingLaterHint,
-              style: Theme.of(
+            const SizedBox(height: AppSpacing.medium),
+            Theme(
+              data: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
-            ),
-            if (_trackingStatus == ResidenceDuesTrackingStatus.active) ...[
-              const SizedBox(height: AppSpacing.medium),
-              CheckboxListTile(
-                key: const Key('apartment-no-previous-payment-field'),
-                contentPadding: EdgeInsets.zero,
-                value: !_hasPreviousPayment,
-                title: Text(widget.copy.noPreviousPayment),
-                controlAffinity: ListTileControlAffinity.leading,
-                onChanged: (value) {
-                  setState(() => _hasPreviousPayment = value != true);
-                },
-              ),
-              if (_hasPreviousPayment)
-                OutlinedButton.icon(
-                  key: const Key('apartment-last-paid-month-field'),
-                  onPressed: _selectPaidThroughMonth,
-                  icon: const Icon(Icons.calendar_month_outlined),
-                  label: Text(
-                    '${widget.copy.lastPaidMonth}: ${_formattedPaidThrough()}',
-                  ),
+              ).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                key: const Key('apartment-advanced-options'),
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(
+                  bottom: AppSpacing.small,
                 ),
-            ],
+                title: Text(
+                  widget.copy.advancedOptions,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                children: [
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      widget.copy.duesTracking,
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.small),
+                  SegmentedButton<ResidenceDuesTrackingStatus>(
+                    key: const Key('apartment-dues-tracking-field'),
+                    showSelectedIcon: false,
+                    segments: [
+                      ButtonSegment(
+                        value: ResidenceDuesTrackingStatus.active,
+                        icon: const Icon(Icons.playlist_add_check_rounded),
+                        label: Text(widget.copy.trackingActive),
+                      ),
+                      ButtonSegment(
+                        value: ResidenceDuesTrackingStatus.notStarted,
+                        icon: const Icon(Icons.pause_circle_outline_rounded),
+                        label: Text(widget.copy.trackingStartsLater),
+                      ),
+                    ],
+                    selected: {_trackingStatus},
+                    onSelectionChanged: (selection) {
+                      setState(() => _trackingStatus = selection.first);
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.small),
+                  Text(
+                    _trackingStatus == ResidenceDuesTrackingStatus.active
+                        ? widget.copy.trackingActiveHint
+                        : widget.copy.trackingLaterHint,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+                  ),
+                  if (_trackingStatus ==
+                      ResidenceDuesTrackingStatus.active) ...[
+                    const SizedBox(height: AppSpacing.medium),
+                    CheckboxListTile(
+                      key: const Key('apartment-no-previous-payment-field'),
+                      contentPadding: EdgeInsets.zero,
+                      value: !_hasPreviousPayment,
+                      title: Text(widget.copy.noPreviousPayment),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      onChanged: (value) {
+                        setState(() => _hasPreviousPayment = value != true);
+                      },
+                    ),
+                    if (_hasPreviousPayment)
+                      OutlinedButton.icon(
+                        key: const Key('apartment-last-paid-month-field'),
+                        onPressed: _selectPaidThroughMonth,
+                        icon: const Icon(Icons.calendar_month_outlined),
+                        label: Text(
+                          '${widget.copy.lastPaidMonth}: '
+                          '${_formattedPaidThrough()}',
+                        ),
+                      ),
+                  ],
+                ],
+              ),
+            ),
             const SizedBox(height: AppSpacing.xLarge),
             FilledButton.icon(
               key: const Key('confirm-add-apartment-button'),
@@ -1014,12 +1037,12 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
   }
 
   Future<void> _selectPaidThroughMonth() async {
-    final selected = await showDatePicker(
+    final selected = await _showMonthYearPicker(
       context: context,
       initialDate: _paidThrough,
       firstDate: DateTime(DateTime.now().year - 5),
       lastDate: DateTime.now(),
-      helpText: widget.copy.lastPaidMonth,
+      copy: widget.copy,
     );
     if (selected != null && mounted) {
       setState(() => _paidThrough = DateTime(selected.year, selected.month));
@@ -1145,16 +1168,155 @@ class _StartDuesTrackingSheetState extends State<_StartDuesTrackingSheet> {
   }
 
   Future<void> _selectPaidThroughMonth() async {
-    final selected = await showDatePicker(
+    final selected = await _showMonthYearPicker(
       context: context,
       initialDate: _paidThrough,
       firstDate: DateTime(DateTime.now().year - 5),
       lastDate: DateTime.now(),
-      helpText: widget.copy.lastPaidMonth,
+      copy: widget.copy,
     );
     if (selected != null && mounted) {
       setState(() => _paidThrough = DateTime(selected.year, selected.month));
     }
+  }
+}
+
+Future<DateTime?> _showMonthYearPicker({
+  required BuildContext context,
+  required DateTime initialDate,
+  required DateTime firstDate,
+  required DateTime lastDate,
+  required _Copy copy,
+}) {
+  return showDialog<DateTime>(
+    context: context,
+    builder: (context) => _MonthYearPickerDialog(
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      copy: copy,
+    ),
+  );
+}
+
+class _MonthYearPickerDialog extends StatefulWidget {
+  const _MonthYearPickerDialog({
+    required this.initialDate,
+    required this.firstDate,
+    required this.lastDate,
+    required this.copy,
+  });
+
+  final DateTime initialDate;
+  final DateTime firstDate;
+  final DateTime lastDate;
+  final _Copy copy;
+
+  @override
+  State<_MonthYearPickerDialog> createState() => _MonthYearPickerDialogState();
+}
+
+class _MonthYearPickerDialogState extends State<_MonthYearPickerDialog> {
+  late int _year = widget.initialDate.year;
+  late int _month = widget.initialDate.month;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = widget.copy.arabic ? 'ar' : 'en';
+    return AlertDialog(
+      key: const Key('month-year-picker-dialog'),
+      title: Text(widget.copy.lastPaidMonth),
+      content: SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              widget.copy.year,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.small),
+            DropdownButton<int>(
+              key: const Key('month-year-picker-year'),
+              value: _year,
+              isExpanded: true,
+              items: [
+                for (
+                  var year = widget.firstDate.year;
+                  year <= widget.lastDate.year;
+                  year++
+                )
+                  DropdownMenuItem(value: year, child: Text('$year')),
+              ],
+              onChanged: (year) {
+                if (year == null) return;
+                setState(() {
+                  _year = year;
+                  if (!_isAllowed(_month)) {
+                    _month = _firstAllowedMonth(year);
+                  }
+                });
+              },
+            ),
+            const SizedBox(height: AppSpacing.large),
+            Text(
+              widget.copy.month,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.small),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                childAspectRatio: 2.2,
+                crossAxisSpacing: AppSpacing.small,
+                mainAxisSpacing: AppSpacing.small,
+              ),
+              itemCount: 12,
+              itemBuilder: (context, index) {
+                final month = index + 1;
+                return ChoiceChip(
+                  key: ValueKey('month-year-picker-month-$month'),
+                  label: Text(
+                    DateFormat.MMMM(locale).format(DateTime(2000, month)),
+                  ),
+                  selected: _month == month,
+                  onSelected: _isAllowed(month)
+                      ? (_) => setState(() => _month = month)
+                      : null,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(widget.copy.cancel),
+        ),
+        FilledButton(
+          key: const Key('confirm-month-year-picker'),
+          onPressed: () => Navigator.pop(context, DateTime(_year, _month)),
+          child: Text(widget.copy.confirm),
+        ),
+      ],
+    );
+  }
+
+  bool _isAllowed(int month) {
+    final candidate = DateTime(_year, month);
+    final firstMonth = DateTime(widget.firstDate.year, widget.firstDate.month);
+    final lastMonth = DateTime(widget.lastDate.year, widget.lastDate.month);
+    return !candidate.isBefore(firstMonth) && !candidate.isAfter(lastMonth);
+  }
+
+  int _firstAllowedMonth(int year) {
+    if (year == widget.firstDate.year) return widget.firstDate.month;
+    if (year == widget.lastDate.year) return widget.lastDate.month;
+    return 1;
   }
 }
 
@@ -2543,6 +2705,10 @@ class _Copy {
   String get apartmentNumberHint => arabic ? 'مثال: 24' : 'Example: 24';
   String get apartmentNumberRequired =>
       arabic ? 'أدخل رقم الشقة.' : 'Enter an apartment number.';
+  String get advancedOptions => arabic ? 'خيارات متقدمة' : 'Advanced options';
+  String get month => arabic ? 'الشهر' : 'Month';
+  String get year => arabic ? 'السنة' : 'Year';
+  String get confirm => arabic ? 'تأكيد' : 'Confirm';
   String get add => arabic ? 'إضافة' : 'Add';
   String get delete => arabic ? 'حذف' : 'Delete';
   String get deleteApartment => arabic ? 'حذف الشقة' : 'Delete apartment';
