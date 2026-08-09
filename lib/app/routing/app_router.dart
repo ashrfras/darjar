@@ -12,6 +12,8 @@ import 'package:darjar/features/documents/presentation/residence_documents_manag
 import 'package:darjar/features/documents/presentation/residence_documents_page.dart';
 import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
 import 'package:darjar/features/profile/presentation/profile_page.dart';
+import 'package:darjar/features/profile/presentation/privacy_policy_page.dart';
+import 'package:darjar/features/profile/presentation/about_app_page.dart';
 import 'package:darjar/features/profile/presentation/settings_page.dart';
 import 'package:darjar/features/residence/presentation/dues_management_page.dart';
 import 'package:darjar/features/residence/presentation/dues_page.dart';
@@ -56,6 +58,8 @@ abstract final class AppRoutes {
   static const manageProjects = '/residence/admin/projects';
   static const manageResidence = '/residence/admin/details';
   static const profile = '/profile';
+  static const privacyPolicy = '/profile/privacy';
+  static const aboutApp = '/profile/about';
   static const settings = '/settings';
   static const gallery = '/gallery';
 
@@ -240,6 +244,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.profile,
             builder: (context, state) => const ProfilePage(),
+          ),
+          GoRoute(
+            path: AppRoutes.privacyPolicy,
+            builder: (context, state) => const PrivacyPolicyPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.aboutApp,
+            builder: (context, state) => const AboutAppPage(),
           ),
           GoRoute(
             path: AppRoutes.settings,

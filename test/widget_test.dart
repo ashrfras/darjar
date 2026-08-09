@@ -12,6 +12,7 @@ import 'package:darjar/core/images/storage_image_provider.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_country_code_picker.dart';
+import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
@@ -28,6 +29,7 @@ import 'package:darjar/features/documents/presentation/residence_documents_manag
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
 import 'package:darjar/features/notifications/data/notifications_repository.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
+import 'package:darjar/features/profile/data/app_package_info.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
@@ -2643,6 +2645,7 @@ void main() {
 
     final signOutButton = find.byKey(const Key('sign-out-button'));
     await tester.ensureVisible(signOutButton);
+
     await tester.tap(signOutButton);
     await tester.pumpAndSettle();
 
@@ -2658,6 +2661,69 @@ void main() {
 
     expect(authRepository.currentUser, isNull);
     expect(find.byKey(const Key('phone-auth-page')), findsOneWidget);
+  });
+
+  testWidgets('profile opens privacy policy and about app before sign out', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+
+    final privacyLink = find.byKey(const Key('privacy-policy-link'));
+    final aboutLink = find.byKey(const Key('about-app-link'));
+    final signOutButton = find.byKey(const Key('sign-out-button'));
+    await tester.ensureVisible(signOutButton);
+
+    final informationCard = tester.widget<DarJarCard>(
+      find.ancestor(of: privacyLink, matching: find.byType(DarJarCard)),
+    );
+    final signOutCard = tester.widget<DarJarCard>(
+      find.ancestor(of: signOutButton, matching: find.byType(DarJarCard)),
+    );
+    expect(informationCard, isNot(same(signOutCard)));
+
+    expect(
+      tester.getTopLeft(privacyLink).dy,
+      lessThan(tester.getTopLeft(aboutLink).dy),
+    );
+    expect(
+      tester.getTopLeft(aboutLink).dy,
+      lessThan(tester.getTopLeft(signOutButton).dy),
+    );
+
+    await tester.tap(privacyLink);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('privacy-policy-page')), findsOneWidget);
+    expect(find.text('البيانات التي نجمعها'), findsOneWidget);
+    expect(find.text('مشاركة البيانات'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('subpage-back-button')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(aboutLink);
+    await tester.tap(aboutLink);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('about-app-page')), findsOneWidget);
+    expect(find.text('0.0.0'), findsOneWidget);
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Raqmain®'), findsOneWidget);
+    final detailsCard = tester.widget<DecoratedBox>(
+      find.byKey(const Key('about-details-card')),
+    );
+    expect((detailsCard.decoration as BoxDecoration).color, AppColors.surface);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const Key('app-publisher-value')))
+          .textDirection,
+      TextDirection.ltr,
+    );
+    expect(tester.widget<DarJarBrand>(find.byType(DarJarBrand)).logoSize, 44);
+    expect(
+      find.text('جميع الحقوق محفوظة © 2026 \u2066Raqmain®\u2069'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('resident sees stored dues without creating records while opening', (
@@ -4637,6 +4703,10 @@ Future<void> _pumpApp(
             residenceDocumentPicker,
           ),
         profileRepositoryProvider.overrideWithValue(currentProfileRepository),
+        appPackageInfoProvider.overrideWith(
+          (ref) async =>
+              const AppPackageInfo(version: '0.0.0', buildNumber: '1'),
+        ),
         residenceContextProvider.overrideWith((ref) async {
           if (residenceContextError != null) {
             throw residenceContextError;

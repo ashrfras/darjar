@@ -2376,6 +2376,174 @@ abstract class AppLocalizations {
   /// **'تعذّر تسجيل الخروج. حاول مجدداً.'**
   String get signOutFailed;
 
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In ar, this message translates to:
+  /// **'سياسة الخصوصية'**
+  String get privacyPolicy;
+
+  /// No description provided for @aboutApp.
+  ///
+  /// In ar, this message translates to:
+  /// **'عن التطبيق'**
+  String get aboutApp;
+
+  /// No description provided for @aboutAppDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'منصة رقمية تساعد سكان الإقامة على التواصل ومتابعة شؤون إقامتهم.'**
+  String get aboutAppDescription;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In ar, this message translates to:
+  /// **'النسخة'**
+  String get appVersion;
+
+  /// No description provided for @appRevision.
+  ///
+  /// In ar, this message translates to:
+  /// **'التصحيح'**
+  String get appRevision;
+
+  /// No description provided for @appPublisher.
+  ///
+  /// In ar, this message translates to:
+  /// **'الناشر'**
+  String get appPublisher;
+
+  /// No description provided for @appCopyright.
+  ///
+  /// In ar, this message translates to:
+  /// **'جميع الحقوق محفوظة © 2026 ⁦Raqmain®⁩'**
+  String get appCopyright;
+
+  /// No description provided for @notAvailable.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير متاح'**
+  String get notAvailable;
+
+  /// No description provided for @privacyPolicyIntroduction.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحترم Raqmain خصوصيتك. توضّح هذه السياسة كيف يجمع تطبيق دارجار بياناتك ويستخدمها ويحميها عند استعمال خدماته.'**
+  String get privacyPolicyIntroduction;
+
+  /// No description provided for @privacyPolicyLastUpdated.
+  ///
+  /// In ar, this message translates to:
+  /// **'آخر تحديث: 9 أغسطس 2026'**
+  String get privacyPolicyLastUpdated;
+
+  /// No description provided for @privacyPolicyDataTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'البيانات التي نجمعها'**
+  String get privacyPolicyDataTitle;
+
+  /// No description provided for @privacyPolicyDataBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'قد نجمع معلومات الحساب مثل الاسم ورقم الهاتف وصورة الملف الشخصي، ومعلومات الإقامة والشقة والعضوية، والمحتوى الذي تضيفه مثل المنشورات والوثائق والمعاملات المسجلة يدويًا، إضافة إلى بيانات تقنية ضرورية لتشغيل التطبيق وتشخيص الأعطال وإرسال الإشعارات. لا يحتفظ دارجار بأموالك ولا يعالج الدفعات.'**
+  String get privacyPolicyDataBody;
+
+  /// No description provided for @privacyPolicyUseTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'كيف نستخدم البيانات'**
+  String get privacyPolicyUseTitle;
+
+  /// No description provided for @privacyPolicyUseBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'نستخدم البيانات لإنشاء حسابك والتحقق منه، وربطك بإقامتك، وإتاحة خصائص التواصل والإدارة، وعرض المعلومات المسموح بها لأعضاء الإقامة، وإرسال التنبيهات، وحماية الخدمة ومنع إساءة الاستخدام، وتحسين الأداء وتجربة المستخدم.'**
+  String get privacyPolicyUseBody;
+
+  /// No description provided for @privacyPolicySharingTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشاركة البيانات'**
+  String get privacyPolicySharingTitle;
+
+  /// No description provided for @privacyPolicySharingBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تُشارك معلومات الإقامة فقط مع الأعضاء المخولين وفق دور كل مستخدم. وقد نستعين بمزودي خدمات موثوقين للاستضافة والمصادقة والتخزين والإشعارات والرسائل، بالقدر اللازم لتقديم الخدمة. لا نبيع بياناتك الشخصية ولا نشاركها لأغراض إعلانية، وقد نفصح عنها إذا أوجب القانون ذلك أو لحماية الحقوق والسلامة.'**
+  String get privacyPolicySharingBody;
+
+  /// No description provided for @privacyPolicyRetentionTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاحتفاظ بالبيانات'**
+  String get privacyPolicyRetentionTitle;
+
+  /// No description provided for @privacyPolicyRetentionBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'نحتفظ بالبيانات ما دام حسابك أو عضويتك فعالين، أو للمدة اللازمة لتقديم الخدمة والوفاء بالالتزامات القانونية وحل النزاعات. قد تبقى نسخ احتياطية لمدة محدودة قبل حذفها بصورة آمنة.'**
+  String get privacyPolicyRetentionBody;
+
+  /// No description provided for @privacyPolicySecurityTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'أمن البيانات'**
+  String get privacyPolicySecurityTitle;
+
+  /// No description provided for @privacyPolicySecurityBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'نطبّق إجراءات تقنية وتنظيمية معقولة لحماية البيانات من الوصول أو التغيير أو الفقد غير المصرح به. ومع ذلك، لا توجد وسيلة نقل أو تخزين إلكترونية تضمن أمانًا مطلقًا، لذلك ننصحك بحماية جهازك ورمز التحقق الخاص بك.'**
+  String get privacyPolicySecurityBody;
+
+  /// No description provided for @privacyPolicyRightsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حقوقك واختياراتك'**
+  String get privacyPolicyRightsTitle;
+
+  /// No description provided for @privacyPolicyRightsBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكنك مراجعة بيانات حسابك وتصحيحها، وطلب الوصول إلى بياناتك أو حذفها أو تقييد استخدامها أو الاعتراض عليه حيث يسمح القانون. يمكنك كذلك تعطيل الإشعارات من إعدادات جهازك. قد نطلب التحقق من هويتك قبل تنفيذ الطلب.'**
+  String get privacyPolicyRightsBody;
+
+  /// No description provided for @privacyPolicyChildrenTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'خصوصية الأطفال'**
+  String get privacyPolicyChildrenTitle;
+
+  /// No description provided for @privacyPolicyChildrenBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'دارجار غير موجّه للأطفال دون السن القانونية لاستعمال الخدمات الرقمية بصورة مستقلة، ولا نجمع بياناتهم عن قصد دون أساس قانوني أو موافقة ولي الأمر عند وجوبها. إذا اعتقدت أن طفلًا زوّدنا ببياناته على نحو غير مناسب، فتواصل معنا.'**
+  String get privacyPolicyChildrenBody;
+
+  /// No description provided for @privacyPolicyChangesTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغييرات هذه السياسة'**
+  String get privacyPolicyChangesTitle;
+
+  /// No description provided for @privacyPolicyChangesBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'قد نحدّث هذه السياسة عند تطوير الخدمة أو تغيّر المتطلبات القانونية. سنعرض النسخة المحدّثة وتاريخ سريانها داخل التطبيق، وسنبلغك بالتغييرات الجوهرية عند الحاجة.'**
+  String get privacyPolicyChangesBody;
+
+  /// No description provided for @privacyPolicyContactTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'التواصل معنا'**
+  String get privacyPolicyContactTitle;
+
+  /// No description provided for @privacyPolicyContactBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'للاستفسار عن الخصوصية أو ممارسة حقوقك، تواصل مع Raqmain عبر بيانات الاتصال الرسمية المنشورة في صفحة التطبيق على المتجر. سنراجع طلبك ونرد عليه خلال مدة معقولة ووفق القانون المطبق.'**
+  String get privacyPolicyContactBody;
+
   /// No description provided for @edit.
   ///
   /// In ar, this message translates to:

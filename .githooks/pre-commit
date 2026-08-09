@@ -1,0 +1,86 @@
+#!/usr/bin/env dart
+
+import 'dart:io';
+
+const _pubspecPath = 'pubspec.yaml';
+final _versionPattern = RegExp(
+  r'^version:\s*(\d+\.\d+\.\d+)\+(\d+)\s*$',
+  multiLine: true,
+);
+
+void main(List<String> arguments) {
+  final repositoryRoot = _runGit(['rev-parse', '--show-toplevel']);
+  if (repositoryRoot == null) {
+    _fail('تعذّر تحديد مجلد المستودع.');
+  }
+
+  Directory.current = repositoryRoot!;
+  final pubspec = File(_pubspecPath);
+  final contents = pubspec.readAsStringSync();
+  final currentVersion = _versionPattern.firstMatch(contents);
+  if (currentVersion == null) {
+    _fail('يجب أن تكون النسخة في pubspec.yaml بصيغة 0.0.0+1.');
+  }
+
+  if (arguments.contains('--check')) {
+    stdout.writeln(
+      'Git hook ready: ${currentVersion!.group(1)}+'
+      '${currentVersion.group(2)}',
+    );
+    return;
+  }
+
+  final unstagedChanges = Process.runSync('git', [
+    'diff',
+    '--quiet',
+    '--',
+    _pubspecPath,
+  ]);
+  if (unstagedChanges.exitCode == 1) {
+    _fail(
+      'يوجد تعديل غير مضاف في pubspec.yaml. '
+      'أضفه إلى Git ثم أعد الإيداع.',
+    );
+  }
+  if (unstagedChanges.exitCode != 0) {
+    _fail('تعذّر التحقق من حالة pubspec.yaml.');
+  }
+
+  final currentBuildNumber = int.parse(currentVersion!.group(2)!);
+  final headContents = _runGit(['show', 'HEAD:$_pubspecPath']);
+  final headVersion = headContents == null
+      ? null
+      : _versionPattern.firstMatch(headContents);
+  final headBuildNumber = headVersion == null
+      ? 0
+      : int.parse(headVersion.group(2)!);
+
+  // A higher staged number means a previous commit attempt already bumped it.
+  if (currentBuildNumber <= headBuildNumber) {
+    final nextBuildNumber = headBuildNumber + 1;
+    final updatedVersion = '${currentVersion.group(1)}+$nextBuildNumber';
+    final updatedContents = contents.replaceRange(
+      currentVersion.start,
+      currentVersion.end,
+      'version: $updatedVersion',
+    );
+    pubspec.writeAsStringSync(updatedContents);
+
+    final stageResult = Process.runSync('git', ['add', _pubspecPath]);
+    if (stageResult.exitCode != 0) {
+      _fail('تم تحديث النسخة، لكن تعذّرت إضافتها إلى الإيداع.');
+    }
+    stdout.writeln('DarJar build number: $nextBuildNumber');
+  }
+}
+
+String? _runGit(List<String> arguments) {
+  final result = Process.runSync('git', arguments);
+  if (result.exitCode != 0) return null;
+  return (result.stdout as String).trim();
+}
+
+Never _fail(String message) {
+  stderr.writeln('DarJar: $message');
+  exit(1);
+}

@@ -1283,6 +1283,101 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signOutFailed => 'Could not sign out. Try again.';
 
   @override
+  String get privacyPolicy => 'Privacy policy';
+
+  @override
+  String get aboutApp => 'About the app';
+
+  @override
+  String get aboutAppDescription =>
+      'A digital platform that helps residence neighbors connect and follow shared residence matters.';
+
+  @override
+  String get appVersion => 'Version';
+
+  @override
+  String get appRevision => 'Revision';
+
+  @override
+  String get appPublisher => 'Publisher';
+
+  @override
+  String get appCopyright => 'All rights reserved © 2026 Raqmain®';
+
+  @override
+  String get notAvailable => 'Not available';
+
+  @override
+  String get privacyPolicyIntroduction =>
+      'Raqmain respects your privacy. This policy explains how the DarJar application collects, uses, and protects your data when you use its services.';
+
+  @override
+  String get privacyPolicyLastUpdated => 'Last updated: August 9, 2026';
+
+  @override
+  String get privacyPolicyDataTitle => 'Data we collect';
+
+  @override
+  String get privacyPolicyDataBody =>
+      'We may collect account information such as your name, phone number, and profile photo; residence, apartment, and membership details; content you add such as posts, documents, and manually recorded transactions; and technical data needed to operate the app, diagnose errors, and deliver notifications. DarJar does not hold your money or process payments.';
+
+  @override
+  String get privacyPolicyUseTitle => 'How we use data';
+
+  @override
+  String get privacyPolicyUseBody =>
+      'We use data to create and verify your account, connect you to your residence, provide communication and management features, show authorized information to residence members, send alerts, protect the service and prevent misuse, and improve performance and user experience.';
+
+  @override
+  String get privacyPolicySharingTitle => 'Data sharing';
+
+  @override
+  String get privacyPolicySharingBody =>
+      'Residence information is shared only with authorized members according to each user\'s role. We may use trusted providers for hosting, authentication, storage, notifications, and messaging, to the extent needed to provide the service. We do not sell personal data or share it for advertising, and may disclose it when required by law or to protect rights and safety.';
+
+  @override
+  String get privacyPolicyRetentionTitle => 'Data retention';
+
+  @override
+  String get privacyPolicyRetentionBody =>
+      'We retain data while your account or membership is active, or as needed to provide the service, meet legal obligations, and resolve disputes. Backup copies may remain for a limited period before secure deletion.';
+
+  @override
+  String get privacyPolicySecurityTitle => 'Data security';
+
+  @override
+  String get privacyPolicySecurityBody =>
+      'We apply reasonable technical and organizational safeguards against unauthorized access, alteration, or loss. No electronic transmission or storage method is completely secure, so you should also protect your device and verification code.';
+
+  @override
+  String get privacyPolicyRightsTitle => 'Your rights and choices';
+
+  @override
+  String get privacyPolicyRightsBody =>
+      'You may review and correct account data and request access, deletion, restriction, or objection where the law permits. You can disable notifications in your device settings. We may verify your identity before fulfilling a request.';
+
+  @override
+  String get privacyPolicyChildrenTitle => 'Children\'s privacy';
+
+  @override
+  String get privacyPolicyChildrenBody =>
+      'DarJar is not directed to children below the legal age for independently using digital services, and we do not knowingly collect their data without a legal basis or parental consent where required. Contact us if you believe a child provided data inappropriately.';
+
+  @override
+  String get privacyPolicyChangesTitle => 'Changes to this policy';
+
+  @override
+  String get privacyPolicyChangesBody =>
+      'We may update this policy as the service evolves or legal requirements change. We will display the updated version and effective date in the app and provide notice of material changes when appropriate.';
+
+  @override
+  String get privacyPolicyContactTitle => 'Contact us';
+
+  @override
+  String get privacyPolicyContactBody =>
+      'For privacy questions or to exercise your rights, contact Raqmain using the official contact details published on the app\'s store listing. We will review and respond within a reasonable period under applicable law.';
+
+  @override
   String get edit => 'Edit';
 
   @override

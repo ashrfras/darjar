@@ -237,6 +237,28 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
               ],
               const SizedBox(height: AppSpacing.large),
               DarJarCard(
+                key: const Key('profile-information-links-card'),
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _ProfileLink(
+                      key: const Key('privacy-policy-link'),
+                      icon: Icons.privacy_tip_outlined,
+                      title: localizations.privacyPolicy,
+                      route: AppRoutes.privacyPolicy,
+                    ),
+                    const Divider(),
+                    _ProfileLink(
+                      key: const Key('about-app-link'),
+                      icon: Icons.info_outline_rounded,
+                      title: localizations.aboutApp,
+                      route: AppRoutes.aboutApp,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.medium),
+              DarJarCard(
                 key: const Key('account-actions-card'),
                 padding: EdgeInsets.zero,
                 child: ListTile(
@@ -845,6 +867,33 @@ class _ManagementLink extends StatelessWidget {
       subtitle: Text(description),
       trailing: const Icon(
         Icons.chevron_left_rounded,
+        textDirection: TextDirection.ltr,
+      ),
+      onTap: () => context.go(route),
+    );
+  }
+}
+
+class _ProfileLink extends StatelessWidget {
+  const _ProfileLink({
+    required this.icon,
+    required this.title,
+    required this.route,
+    super.key,
+  });
+
+  final IconData icon;
+  final String title;
+  final String route;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      trailing: const Icon(
+        Icons.chevron_left_rounded,
+        color: AppColors.inkMuted,
         textDirection: TextDirection.ltr,
       ),
       onTap: () => context.go(route),
