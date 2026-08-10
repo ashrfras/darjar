@@ -49,6 +49,8 @@ ui-debug.log*
 *.jks
 *.keystore
 *.key
+/android/key.properties
+/android/app/darjar-upload.jks
 
 # Symbolication related
 app.*.symbols
