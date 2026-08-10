@@ -200,18 +200,6 @@ abstract class AppLocalizations {
   /// **'قريباً في المرحلة الثانية'**
   String get milestoneTwo;
 
-  /// No description provided for @componentGallery.
-  ///
-  /// In ar, this message translates to:
-  /// **'معرض المكوّنات'**
-  String get componentGallery;
-
-  /// No description provided for @componentGalleryDescription.
-  ///
-  /// In ar, this message translates to:
-  /// **'مرجع داخلي لعناصر واجهة دارجار وحالاتها الأساسية.'**
-  String get componentGalleryDescription;
-
   /// No description provided for @buttons.
   ///
   /// In ar, this message translates to:

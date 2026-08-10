@@ -4,7 +4,6 @@ import 'package:darjar/features/auth/presentation/phone_auth_page.dart';
 import 'package:darjar/features/community/presentation/community_feed_page.dart';
 import 'package:darjar/features/community/presentation/create_post_page.dart';
 import 'package:darjar/features/community/presentation/community_post_detail_page.dart';
-import 'package:darjar/features/component_gallery/presentation/component_gallery_page.dart';
 import 'package:darjar/features/directory/presentation/directory_page.dart';
 import 'package:darjar/features/directory/presentation/directory_profile_page.dart';
 import 'package:darjar/features/directory/presentation/create_service_page.dart';
@@ -65,7 +64,6 @@ abstract final class AppRoutes {
   static const deleteAccount = '/delete-account';
   static const aboutApp = '/profile/about';
   static const settings = '/settings';
-  static const gallery = '/gallery';
 
   static String directoryProfile(String id) => '/directory/$id';
   static String editService(String id) => '/directory/$id/edit';
@@ -275,10 +273,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.settings,
             builder: (context, state) => const SettingsPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.gallery,
-            builder: (context, state) => const ComponentGalleryPage(),
           ),
         ],
       ),

@@ -301,20 +301,6 @@ class _ExpandedShell extends StatelessWidget {
                       onTap: () => context.go(AppRoutes.profile),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.small),
-                  Material(
-                    color: Colors.transparent,
-                    child: ListTile(
-                      key: const Key('gallery-button'),
-                      leading: const Icon(Icons.palette_outlined),
-                      title: Text(localizations.componentGallery),
-                      selected: locationIsGallery(context),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.medium),
-                      ),
-                      onTap: () => context.go(AppRoutes.gallery),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -324,10 +310,6 @@ class _ExpandedShell extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  bool locationIsGallery(BuildContext context) {
-    return GoRouterState.of(context).uri.path == AppRoutes.gallery;
   }
 }
 

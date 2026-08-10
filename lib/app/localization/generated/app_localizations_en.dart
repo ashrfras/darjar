@@ -66,13 +66,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get milestoneTwo => 'Coming in Milestone 2';
 
   @override
-  String get componentGallery => 'Component gallery';
-
-  @override
-  String get componentGalleryDescription =>
-      'An internal reference for DarJar interface elements and their basic states.';
-
-  @override
   String get buttons => 'Buttons';
 
   @override

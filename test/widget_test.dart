@@ -4014,17 +4014,6 @@ void main() {
     expect(find.byKey(const Key('profile-page')), findsOneWidget);
   });
 
-  testWidgets('internal component gallery remains navigable', (tester) async {
-    await _pumpApp(tester, size: const Size(1280, 844));
-    await _enterResidence(tester);
-
-    await tester.tap(find.byKey(const Key('gallery-button')));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('component-gallery')), findsOneWidget);
-    expect(find.byType(BackButtonIcon), findsOneWidget);
-  });
-
   testWidgets('apartments and residents support daily assignments', (
     tester,
   ) async {

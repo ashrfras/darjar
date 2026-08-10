@@ -65,13 +65,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get milestoneTwo => 'قريباً في المرحلة الثانية';
 
   @override
-  String get componentGallery => 'معرض المكوّنات';
-
-  @override
-  String get componentGalleryDescription =>
-      'مرجع داخلي لعناصر واجهة دارجار وحالاتها الأساسية.';
-
-  @override
   String get buttons => 'الأزرار';
 
   @override
