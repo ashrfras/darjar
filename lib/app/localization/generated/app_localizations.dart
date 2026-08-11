@@ -308,6 +308,90 @@ abstract class AppLocalizations {
   /// **'تابع أخبار إقامتك، واكتشف الخدمات المحلية، واطّلع على الشؤون المالية بكل وضوح وشفافية.'**
   String get onboardingDescription;
 
+  /// No description provided for @landingDarjarTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'دارجار'**
+  String get landingDarjarTitle;
+
+  /// No description provided for @landingDarjarDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكان واحد يجمع أخبار الإقامة ومعلوماتها وشؤونها اليومية، ليبقى كل ساكن على اطّلاع.'**
+  String get landingDarjarDescription;
+
+  /// No description provided for @landingFinanceTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مالية الإقامة'**
+  String get landingFinanceTitle;
+
+  /// No description provided for @landingFinanceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'صورة واضحة عن المداخيل والمصاريف والرصيد الحالي، مع سجل المعاملات والوثائق الداعمة عند توفرها.'**
+  String get landingFinanceDescription;
+
+  /// No description provided for @landingCommunityTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'المجتمع'**
+  String get landingCommunityTitle;
+
+  /// No description provided for @landingCommunityDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أخبار ومنشورات الإقامة وتواصل منظّم حول ما يهم السكان والحياة المشتركة.'**
+  String get landingCommunityDescription;
+
+  /// No description provided for @landingServicesTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الخدمات'**
+  String get landingServicesTitle;
+
+  /// No description provided for @landingServicesDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتشف خدمات محلية مفيدة وتجارب يشاركها مجتمع دارجار لتسهيل احتياجات الإقامة اليومية.'**
+  String get landingServicesDescription;
+
+  /// No description provided for @landingManagementTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة الإقامة'**
+  String get landingManagementTitle;
+
+  /// No description provided for @landingManagementDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدوات بسيطة لتنظيم الشقق والسكان والاشتراكات وبيانات الإقامة، حسب صلاحيات كل مستخدم.'**
+  String get landingManagementDescription;
+
+  /// No description provided for @landingCtaTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إقامتك أقرب إليك مع دارجار'**
+  String get landingCtaTitle;
+
+  /// No description provided for @landingCtaDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'ابدأ الآن وأنشئ إقامتك أو انضم إلى جيرانك.'**
+  String get landingCtaDescription;
+
+  /// No description provided for @landingSupport.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدعم والتواصل'**
+  String get landingSupport;
+
+  /// No description provided for @landingLearnMore.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعرّف أكثر'**
+  String get landingLearnMore;
+
   /// No description provided for @getStarted.
   ///
   /// In ar, this message translates to:

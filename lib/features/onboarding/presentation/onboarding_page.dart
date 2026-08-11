@@ -6,58 +6,123 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/responsive/responsive_builder.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
+import 'package:darjar/features/onboarding/presentation/web_landing_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class OnboardingPage extends StatelessWidget {
-  const OnboardingPage({super.key});
+  const OnboardingPage({this.showWebLanding, super.key});
+
+  /// A test seam for verifying both platform presentations in widget tests.
+  /// Production callers leave this null and use the compiled platform.
+  final bool? showWebLanding;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final isWebLanding = showWebLanding ?? kIsWeb;
+
+    if (isWebLanding) {
+      return WebLandingPage(
+        heroBuilder: (onLearnMore) => _OnboardingHero(
+          localizations: localizations,
+          allowInternalScroll: false,
+          actionLabel: localizations.landingLearnMore,
+          actionIcon: Icons.keyboard_arrow_down_rounded,
+          onAction: onLearnMore,
+        ),
+        onStart: () => context.go(AppRoutes.accountResolution),
+      );
+    }
 
     return Scaffold(
       key: const Key('onboarding-page'),
-      body: SafeArea(
-        child: ResponsiveBuilder(
-          builder: (context, sizeClass) {
-            final expanded = sizeClass == WindowSizeClass.expanded;
-            return Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1180),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xLarge),
-                  child: expanded
-                      ? Row(
-                          children: [
-                            Expanded(child: _WelcomeContent(localizations)),
-                            const SizedBox(width: AppSpacing.xxxLarge),
-                            const Expanded(child: _OnboardingVisual()),
-                          ],
-                        )
-                      : SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              const _OnboardingVisual(compact: true),
-                              const SizedBox(height: AppSpacing.xxLarge),
-                              _WelcomeContent(localizations),
-                            ],
-                          ),
-                        ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
+      body: SafeArea(child: _OnboardingHero(localizations: localizations)),
     );
   }
 }
 
-class _WelcomeContent extends StatelessWidget {
-  const _WelcomeContent(this.localizations);
+class _OnboardingHero extends StatelessWidget {
+  const _OnboardingHero({
+    required this.localizations,
+    this.allowInternalScroll = true,
+    this.actionLabel,
+    this.actionIcon,
+    this.onAction,
+  });
 
   final AppLocalizations localizations;
+  final bool allowInternalScroll;
+  final String? actionLabel;
+  final IconData? actionIcon;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return ResponsiveBuilder(
+      builder: (context, sizeClass) {
+        final expanded = sizeClass == WindowSizeClass.expanded;
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1180),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.xLarge),
+              child: expanded
+                  ? Row(
+                      children: [
+                        Expanded(
+                          child: _WelcomeContent(
+                            localizations,
+                            actionLabel: actionLabel,
+                            actionIcon: actionIcon,
+                            onAction: onAction,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xxxLarge),
+                        const Expanded(child: _OnboardingVisual()),
+                      ],
+                    )
+                  : _compactHero(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _compactHero() {
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const _OnboardingVisual(compact: true),
+        const SizedBox(height: AppSpacing.xxLarge),
+        _WelcomeContent(
+          localizations,
+          actionLabel: actionLabel,
+          actionIcon: actionIcon,
+          onAction: onAction,
+        ),
+      ],
+    );
+    return allowInternalScroll
+        ? SingleChildScrollView(child: content)
+        : content;
+  }
+}
+
+class _WelcomeContent extends StatelessWidget {
+  const _WelcomeContent(
+    this.localizations, {
+    this.actionLabel,
+    this.actionIcon,
+    this.onAction,
+  });
+
+  final AppLocalizations localizations;
+  final String? actionLabel;
+  final IconData? actionIcon;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -98,12 +163,14 @@ class _WelcomeContent extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xxLarge),
         DarJarButton(
-          key: const Key('start-button'),
-          label: localizations.getStarted,
-          icon: Icons.arrow_forward_rounded,
+          key: onAction == null
+              ? const Key('start-button')
+              : const Key('landing-learn-more-button'),
+          label: actionLabel ?? localizations.getStarted,
+          icon: actionIcon ?? Icons.arrow_forward_rounded,
           iconAtEnd: true,
           expanded: true,
-          onPressed: () => context.go(AppRoutes.accountResolution),
+          onPressed: onAction ?? () => context.go(AppRoutes.accountResolution),
         ),
       ],
     );

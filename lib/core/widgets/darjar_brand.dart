@@ -5,9 +5,10 @@ import 'package:darjar/app/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
 class DarJarBrand extends StatelessWidget {
-  const DarJarBrand({this.logoSize = 30, super.key});
+  const DarJarBrand({this.logoSize = 30, this.fontSize = 20, super.key});
 
   final double logoSize;
+  final double fontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +29,7 @@ class DarJarBrand extends StatelessWidget {
           AppLocalizations.of(context).appName,
           style: AppTypography.brandArabic.copyWith(
             color: AppColors.ink,
-            fontSize: 20,
+            fontSize: fontSize,
           ),
         ),
       ],

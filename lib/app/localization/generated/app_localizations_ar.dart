@@ -121,6 +121,54 @@ class AppLocalizationsAr extends AppLocalizations {
       'تابع أخبار إقامتك، واكتشف الخدمات المحلية، واطّلع على الشؤون المالية بكل وضوح وشفافية.';
 
   @override
+  String get landingDarjarTitle => 'دارجار';
+
+  @override
+  String get landingDarjarDescription =>
+      'مكان واحد يجمع أخبار الإقامة ومعلوماتها وشؤونها اليومية، ليبقى كل ساكن على اطّلاع.';
+
+  @override
+  String get landingFinanceTitle => 'مالية الإقامة';
+
+  @override
+  String get landingFinanceDescription =>
+      'صورة واضحة عن المداخيل والمصاريف والرصيد الحالي، مع سجل المعاملات والوثائق الداعمة عند توفرها.';
+
+  @override
+  String get landingCommunityTitle => 'المجتمع';
+
+  @override
+  String get landingCommunityDescription =>
+      'أخبار ومنشورات الإقامة وتواصل منظّم حول ما يهم السكان والحياة المشتركة.';
+
+  @override
+  String get landingServicesTitle => 'الخدمات';
+
+  @override
+  String get landingServicesDescription =>
+      'اكتشف خدمات محلية مفيدة وتجارب يشاركها مجتمع دارجار لتسهيل احتياجات الإقامة اليومية.';
+
+  @override
+  String get landingManagementTitle => 'إدارة الإقامة';
+
+  @override
+  String get landingManagementDescription =>
+      'أدوات بسيطة لتنظيم الشقق والسكان والاشتراكات وبيانات الإقامة، حسب صلاحيات كل مستخدم.';
+
+  @override
+  String get landingCtaTitle => 'إقامتك أقرب إليك مع دارجار';
+
+  @override
+  String get landingCtaDescription =>
+      'ابدأ الآن وأنشئ إقامتك أو انضم إلى جيرانك.';
+
+  @override
+  String get landingSupport => 'الدعم والتواصل';
+
+  @override
+  String get landingLearnMore => 'تعرّف أكثر';
+
+  @override
   String get getStarted => 'ابدأ الآن';
 
   @override

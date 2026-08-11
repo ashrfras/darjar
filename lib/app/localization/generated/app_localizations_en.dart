@@ -122,6 +122,54 @@ class AppLocalizationsEn extends AppLocalizations {
       'Connect with neighbors, discover trusted local services, and follow residence matters with ease and privacy.';
 
   @override
+  String get landingDarjarTitle => 'DarJar';
+
+  @override
+  String get landingDarjarDescription =>
+      'One organized place for residence news, information, and everyday matters, keeping every resident informed.';
+
+  @override
+  String get landingFinanceTitle => 'Residence finances';
+
+  @override
+  String get landingFinanceDescription =>
+      'A clear view of income, expenses, the current balance, transactions, and supporting documents when available.';
+
+  @override
+  String get landingCommunityTitle => 'Community';
+
+  @override
+  String get landingCommunityDescription =>
+      'Residence news, posts, and organized communication about shared life and what matters to residents.';
+
+  @override
+  String get landingServicesTitle => 'Services';
+
+  @override
+  String get landingServicesDescription =>
+      'Discover useful local services and experiences shared through the DarJar community for everyday residence needs.';
+
+  @override
+  String get landingManagementTitle => 'Residence management';
+
+  @override
+  String get landingManagementDescription =>
+      'Simple tools for organizing apartments, residents, subscriptions, and residence details according to each user’s permissions.';
+
+  @override
+  String get landingCtaTitle => 'Bring your residence closer with DarJar';
+
+  @override
+  String get landingCtaDescription =>
+      'Start now to create your residence or join your neighbors.';
+
+  @override
+  String get landingSupport => 'Support and contact';
+
+  @override
+  String get landingLearnMore => 'Learn more';
+
+  @override
   String get getStarted => 'Get started';
 
   @override

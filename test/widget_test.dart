@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:darjar/app/app.dart';
 import 'package:darjar/app/bootstrap.dart';
+import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
@@ -28,6 +29,7 @@ import 'package:darjar/features/documents/presentation/residence_document_picker
 import 'package:darjar/features/documents/presentation/residence_documents_management_page.dart';
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
 import 'package:darjar/features/notifications/data/notifications_repository.dart';
+import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/profile/data/app_package_info.dart';
 import 'package:darjar/features/profile/presentation/delete_account_page.dart';
@@ -1532,6 +1534,119 @@ void main() {
     );
 
     expect(tester.getCenter(arrow).dx, lessThan(tester.getCenter(label).dx));
+  });
+
+  testWidgets('Web onboarding extends the existing hero into a landing page', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        locale: const Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: const [Locale('ar')],
+        home: const OnboardingPage(showWebLanding: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('web-landing-header')), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('web-landing-header'))).height,
+      58,
+    );
+    expect(find.byType(DarJarBrand), findsNWidgets(2));
+    final headerBrand = tester.widget<DarJarBrand>(
+      find.descendant(
+        of: find.byKey(const Key('web-landing-header')),
+        matching: find.byType(DarJarBrand),
+      ),
+    );
+    expect(headerBrand.logoSize, 31);
+    expect(headerBrand.fontSize, 16);
+    expect(find.text('كل ما يخص إقامتك، في مكان واحد.'), findsOneWidget);
+    expect(find.byKey(const Key('landing-learn-more-button')), findsOneWidget);
+    expect(find.text('تعرّف أكثر'), findsOneWidget);
+    expect(find.byKey(const Key('start-button')), findsNothing);
+    expect(find.byKey(const Key('landing-darjar-section')), findsOneWidget);
+    expect(find.byKey(const Key('landing-finance-section')), findsOneWidget);
+    expect(find.byKey(const Key('landing-community-section')), findsOneWidget);
+    expect(find.byKey(const Key('landing-services-section')), findsOneWidget);
+    expect(find.byKey(const Key('landing-management-section')), findsOneWidget);
+    expect(find.byKey(const Key('landing-final-cta')), findsOneWidget);
+    expect(find.byKey(const Key('landing-footer')), findsOneWidget);
+    expect(find.text('سياسة الخصوصية'), findsOneWidget);
+    expect(find.text('حذف حساب دارجار'), findsOneWidget);
+    expect(find.textContaining('Raqmain'), findsOneWidget);
+    expect(find.text('معاينة من التطبيق'), findsNothing);
+    expect(
+      find.byKey(const Key('landing-preview-non-interactive')),
+      findsNWidgets(5),
+    );
+    expect(find.byIcon(Icons.chevron_left_rounded), findsNothing);
+  });
+
+  testWidgets('native onboarding does not build Web landing sections', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        locale: const Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: const [Locale('ar')],
+        home: const OnboardingPage(showWebLanding: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('كل ما يخص إقامتك، في مكان واحد.'), findsOneWidget);
+    expect(find.byKey(const Key('start-button')), findsOneWidget);
+    expect(find.byKey(const Key('web-landing-header')), findsNothing);
+    expect(find.byKey(const Key('landing-darjar-section')), findsNothing);
+    expect(find.byKey(const Key('landing-footer')), findsNothing);
+  });
+
+  testWidgets('Web landing remains scrollable on compact browser widths', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        locale: const Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: const [Locale('ar')],
+        home: const OnboardingPage(showWebLanding: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('web-landing-scroll-view')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));
+    expect(scrollable.position.pixels, 0);
+    await tester.tap(find.byKey(const Key('landing-learn-more-button')));
+    await tester.pumpAndSettle();
+    expect(scrollable.position.pixels, greaterThan(0));
+    await tester.ensureVisible(find.byKey(const Key('landing-final-cta')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('landing-final-start-button')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('compact header keeps identity right and actions left', (
