@@ -1,20 +1,18 @@
 import 'dart:async';
 
 import 'package:darjar/app/localization/generated/app_localizations.dart';
-import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/utils/phone_number.dart';
-import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_country_code_picker.dart';
+import 'package:darjar/core/widgets/darjar_public_page_chrome.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 class PhoneAuthPage extends ConsumerStatefulWidget {
   const PhoneAuthPage({super.key});
@@ -51,14 +49,9 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
 
     return Scaffold(
       key: const Key('phone-auth-page'),
-      appBar: AppBar(
-        title: const DarJarBrand(key: Key('phone-auth-brand')),
-        leading: IconButton(
-          key: const Key('auth-back-button'),
-          tooltip: localizations.back,
-          onPressed: () => context.go(AppRoutes.onboarding),
-          icon: const BackButtonIcon(),
-        ),
+      appBar: const DarJarPublicAppBar(
+        brandKey: Key('phone-auth-brand'),
+        backButtonKey: Key('auth-back-button'),
       ),
       body: SafeArea(
         top: false,

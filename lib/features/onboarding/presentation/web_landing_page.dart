@@ -1,15 +1,11 @@
 import 'package:darjar/app/localization/generated/app_localizations.dart';
-import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
+import 'package:darjar/core/widgets/darjar_public_page_chrome.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-const _supportEmail = 'support@raqmain.ma';
 
 typedef LandingHeroBuilder = Widget Function(VoidCallback onLearnMore);
 
@@ -168,7 +164,7 @@ class _LandingSections extends StatelessWidget {
           ),
         ),
         _FinalCallToAction(localizations: localizations, onStart: onStart),
-        _LandingFooter(localizations: localizations),
+        const DarJarPublicFooter(),
       ],
     );
   }
@@ -796,58 +792,6 @@ class _FinalCallToAction extends StatelessWidget {
             label: Text(localizations.getStarted),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _LandingFooter extends StatelessWidget {
-  const _LandingFooter({required this.localizations});
-
-  final AppLocalizations localizations;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      key: const Key('landing-footer'),
-      width: double.infinity,
-      color: AppColors.surface,
-      padding: const EdgeInsets.all(AppSpacing.xLarge),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1080),
-          child: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: AppSpacing.xLarge,
-            runSpacing: AppSpacing.large,
-            children: [
-              const DarJarBrand(),
-              Wrap(
-                spacing: AppSpacing.small,
-                children: [
-                  TextButton(
-                    onPressed: () => context.go(AppRoutes.publicPrivacyPolicy),
-                    child: Text(localizations.privacyPolicy),
-                  ),
-                  TextButton(
-                    onPressed: () => context.go(AppRoutes.deleteAccount),
-                    child: Text(localizations.deleteAccountTitle),
-                  ),
-                  TextButton(
-                    onPressed: () =>
-                        launchUrl(Uri(scheme: 'mailto', path: _supportEmail)),
-                    child: Text(localizations.landingSupport),
-                  ),
-                ],
-              ),
-              Text(
-                localizations.appCopyright,
-                style: Theme.of(context).textTheme.labelMedium,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

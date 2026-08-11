@@ -183,6 +183,9 @@ void main() {
       expect(find.byKey(const Key('phone-auth-page')), findsNothing);
       expect(find.byKey(const Key('onboarding-page')), findsNothing);
       expect(find.byKey(const Key('subpage-back-button')), findsNothing);
+      expect(find.byKey(const Key('public-legal-brand')), findsOneWidget);
+      expect(find.byKey(const Key('public-legal-back-button')), findsOneWidget);
+      expect(find.byKey(const Key('landing-footer')), findsOneWidget);
     });
 
     testWidgets('account deletion opens directly without authentication', (
@@ -205,6 +208,9 @@ void main() {
       );
       expect(find.byKey(const Key('phone-auth-page')), findsNothing);
       expect(find.byKey(const Key('onboarding-page')), findsNothing);
+      expect(find.byKey(const Key('public-legal-brand')), findsOneWidget);
+      expect(find.byKey(const Key('public-legal-back-button')), findsOneWidget);
+      expect(find.byKey(const Key('landing-footer')), findsOneWidget);
     });
   });
 
