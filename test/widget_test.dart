@@ -1587,7 +1587,7 @@ void main() {
     expect(find.byKey(const Key('landing-final-cta')), findsOneWidget);
     expect(find.byKey(const Key('landing-footer')), findsOneWidget);
     expect(find.text('سياسة الخصوصية'), findsOneWidget);
-    expect(find.text('حذف حساب دارجار'), findsOneWidget);
+    expect(find.text('حذف الحساب'), findsOneWidget);
     expect(find.textContaining('Raqmain'), findsOneWidget);
     expect(find.text('معاينة من التطبيق'), findsNothing);
     expect(
@@ -1595,6 +1595,13 @@ void main() {
       findsNWidgets(5),
     );
     expect(find.byIcon(Icons.chevron_left_rounded), findsNothing);
+
+    await tester.ensureVisible(find.text('الدعم والتواصل'));
+    await tester.tap(find.text('الدعم والتواصل'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('support-contact-dialog')), findsOneWidget);
+    expect(find.text('support@raqmain.ma'), findsOneWidget);
+    expect(find.byKey(const Key('support-email-button')), findsOneWidget);
   });
 
   testWidgets('native onboarding does not build Web landing sections', (

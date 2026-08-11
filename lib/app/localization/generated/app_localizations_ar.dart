@@ -166,6 +166,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get landingSupport => 'الدعم والتواصل';
 
   @override
+  String get landingDeleteAccount => 'حذف الحساب';
+
+  @override
+  String get landingSupportDescription =>
+      'يسعدنا مساعدتك والإجابة عن استفساراتك عبر البريد الإلكتروني.';
+
+  @override
+  String get landingSupportEmailAction => 'إرسال بريد إلكتروني';
+
+  @override
   String get landingLearnMore => 'تعرّف أكثر';
 
   @override

@@ -386,6 +386,24 @@ abstract class AppLocalizations {
   /// **'الدعم والتواصل'**
   String get landingSupport;
 
+  /// No description provided for @landingDeleteAccount.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الحساب'**
+  String get landingDeleteAccount;
+
+  /// No description provided for @landingSupportDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'يسعدنا مساعدتك والإجابة عن استفساراتك عبر البريد الإلكتروني.'**
+  String get landingSupportDescription;
+
+  /// No description provided for @landingSupportEmailAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرسال بريد إلكتروني'**
+  String get landingSupportEmailAction;
+
   /// No description provided for @landingLearnMore.
   ///
   /// In ar, this message translates to:

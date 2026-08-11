@@ -115,6 +115,7 @@ class _LandingSections extends StatelessWidget {
       children: [
         _SectionShell(
           key: firstSectionKey,
+          backgroundColor: AppColors.surface,
           child: _FeatureSection(
             key: const Key('landing-darjar-section'),
             icon: Icons.apartment_rounded,
@@ -124,7 +125,6 @@ class _LandingSections extends StatelessWidget {
           ),
         ),
         _SectionShell(
-          backgroundColor: AppColors.surface,
           child: _FeatureSection(
             key: const Key('landing-finance-section'),
             icon: Icons.account_balance_wallet_outlined,
@@ -135,6 +135,7 @@ class _LandingSections extends StatelessWidget {
           ),
         ),
         _SectionShell(
+          backgroundColor: AppColors.surface,
           child: _FeatureSection(
             key: const Key('landing-community-section'),
             icon: Icons.forum_outlined,
@@ -144,7 +145,6 @@ class _LandingSections extends StatelessWidget {
           ),
         ),
         _SectionShell(
-          backgroundColor: AppColors.surface,
           child: _FeatureSection(
             key: const Key('landing-services-section'),
             icon: Icons.handyman_outlined,
@@ -155,6 +155,7 @@ class _LandingSections extends StatelessWidget {
           ),
         ),
         _SectionShell(
+          backgroundColor: AppColors.surface,
           child: _FeatureSection(
             key: const Key('landing-management-section'),
             icon: Icons.domain_outlined,

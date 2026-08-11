@@ -167,6 +167,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get landingSupport => 'Support and contact';
 
   @override
+  String get landingDeleteAccount => 'Delete account';
+
+  @override
+  String get landingSupportDescription =>
+      'We’re happy to help and answer your questions by email.';
+
+  @override
+  String get landingSupportEmailAction => 'Send an email';
+
+  @override
   String get landingLearnMore => 'Learn more';
 
   @override
