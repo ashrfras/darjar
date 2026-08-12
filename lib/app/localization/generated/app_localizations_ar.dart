@@ -1750,7 +1750,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get residenceStructureDescription =>
-      'أنشئ مباني الإقامة وحدد اسماً وعدد الطوابق لكل مبنى.';
+      'أنشئ مباني الإقامة وحدد اسماً وعدد الطوابق فوق الأرضي لكل مبنى.';
 
   @override
   String get buildings => 'البنايات';
@@ -1768,11 +1768,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buildingNameHint => 'مثال: جناح أ';
 
   @override
-  String get floorCount => 'عدد الطوابق';
+  String get floorCount => 'عدد الطوابق فوق الأرضي';
 
   @override
   String buildingFloorCount(int count) {
-    return 'عدد الطوابق: $count';
+    return 'عدد الطوابق فوق الأرضي: $count';
   }
 
   @override

@@ -805,6 +805,29 @@ void main() {
       expect(updated.managementOrganization, isNotEmpty);
       expect(updated.bankAccount, isNotEmpty);
     });
+
+    test('building floor count excludes the ground floor', () {
+      expect(
+        ResidenceBuildingConfiguration.upperFloorCountFromStoredFloors(5),
+        4,
+      );
+      expect(
+        ResidenceBuildingConfiguration.upperFloorCountFromStoredFloors(1),
+        0,
+      );
+      expect(
+        ResidenceBuildingConfiguration.upperFloorCountFromStoredFloors(0),
+        0,
+      );
+      expect(
+        const ResidenceBuildingConfiguration(
+          id: 'main',
+          name: 'Main',
+          floorCount: 4,
+        ).storedFloorCount,
+        5,
+      );
+    });
   });
 
   group('authentication foundation', () {
@@ -4147,6 +4170,18 @@ void main() {
       expect(buildingDialog.backgroundColor, AppColors.surface);
       expect(buildingDialog.surfaceTintColor, Colors.transparent);
       expect(find.text('مثال: جناح أ'), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(const Key('building-floor-count-field')),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller
+            ?.text,
+        '0',
+      );
       await tester.enterText(
         find.byKey(const Key('building-name-field')),
         'المبنى B',
@@ -4170,7 +4205,18 @@ void main() {
       await tester.tap(find.byKey(const Key('confirm-building-button')));
       await tester.pumpAndSettle();
       expect(find.text('المبنى B'), findsOneWidget);
-      expect(find.text('عدد الطوابق: 5'), findsOneWidget);
+      expect(find.text('عدد الطوابق فوق الأرضي: 5'), findsOneWidget);
+      final editBuildingButton = find.byTooltip('تعديل المبنى').last;
+      await tester.ensureVisible(editBuildingButton);
+      await tester.tap(editBuildingButton);
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('building-floor-count-field')),
+        '0',
+      );
+      await tester.tap(find.byKey(const Key('confirm-building-button')));
+      await tester.pumpAndSettle();
+      expect(find.text('عدد الطوابق فوق الأرضي: 0'), findsOneWidget);
       final deleteBuildingButton = find.byTooltip('حذف المبنى').last;
       await tester.ensureVisible(deleteBuildingButton);
       await tester.tap(deleteBuildingButton);

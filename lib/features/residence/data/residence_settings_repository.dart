@@ -14,6 +14,12 @@ class ResidenceBuildingConfiguration {
   final String name;
   final int floorCount;
 
+  static int upperFloorCountFromStoredFloors(int storedFloorCount) {
+    return storedFloorCount > 0 ? storedFloorCount - 1 : 0;
+  }
+
+  int get storedFloorCount => floorCount + 1;
+
   ResidenceBuildingConfiguration copyWith({String? name, int? floorCount}) {
     return ResidenceBuildingConfiguration(
       id: id,
@@ -177,7 +183,10 @@ class FirestoreResidenceSettingsRepository
           building.data()['nameAr'] as String? ??
           building.data()['name'] as String? ??
           '',
-      floorCount: floors.size,
+      floorCount:
+          ResidenceBuildingConfiguration.upperFloorCountFromStoredFloors(
+            floors.size,
+          ),
     );
   }
 
@@ -243,9 +252,10 @@ class FirestoreResidenceSettingsRepository
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
         final existingFloors = floorsByBuilding[desired.id] ?? const [];
-        if (desired.floorCount < existingFloors.length) {
+        final desiredStoredFloorCount = desired.storedFloorCount;
+        if (desiredStoredFloorCount < existingFloors.length) {
           final removedFloors = existingFloors
-              .skip(desired.floorCount)
+              .skip(desiredStoredFloorCount)
               .toList();
           await _ensureFloorsAreEmpty(removedFloors);
           for (final floor in removedFloors) {
@@ -254,7 +264,7 @@ class FirestoreResidenceSettingsRepository
         }
         for (
           var index = existingFloors.length;
-          index < desired.floorCount;
+          index < desiredStoredFloorCount;
           index++
         ) {
           final floorReference = buildingReference
@@ -303,7 +313,7 @@ class FirestoreResidenceSettingsRepository
       'الطابق الثامن',
       'الطابق التاسع',
     ];
-    return index < names.length ? names[index] : 'الطابق ${index + 1}';
+    return index < names.length ? names[index] : 'الطابق $index';
   }
 
   String _englishFloorName(int index) {

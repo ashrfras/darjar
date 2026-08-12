@@ -625,7 +625,7 @@ class _BuildingEditorDialogState extends State<_BuildingEditorDialog> {
     text: widget.building?.name,
   );
   late final TextEditingController _floorsController = TextEditingController(
-    text: widget.building?.floorCount.toString() ?? '1',
+    text: widget.building?.floorCount.toString() ?? '0',
   );
   bool _showError = false;
 
@@ -700,7 +700,7 @@ class _BuildingEditorDialogState extends State<_BuildingEditorDialog> {
   void _submit() {
     final name = _nameController.text.trim();
     final floorCount = int.tryParse(_floorsController.text.trim());
-    if (name.isEmpty || floorCount == null || floorCount < 1) {
+    if (name.isEmpty || floorCount == null || floorCount < 0) {
       setState(() => _showError = true);
       return;
     }

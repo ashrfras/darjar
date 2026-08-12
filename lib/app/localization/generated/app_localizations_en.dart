@@ -1781,7 +1781,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get residenceStructureDescription =>
-      'Create residence buildings and set a name and floor count for each one.';
+      'Create residence buildings and set a name and the number of floors above ground for each one.';
 
   @override
   String get buildings => 'Buildings';
@@ -1799,11 +1799,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buildingNameHint => 'Example: Wing A';
 
   @override
-  String get floorCount => 'Number of floors';
+  String get floorCount => 'Floors above ground';
 
   @override
   String buildingFloorCount(int count) {
-    return 'Floors: $count';
+    return 'Floors above ground: $count';
   }
 
   @override

@@ -3243,7 +3243,7 @@ abstract class AppLocalizations {
   /// No description provided for @residenceStructureDescription.
   ///
   /// In ar, this message translates to:
-  /// **'أنشئ مباني الإقامة وحدد اسماً وعدد الطوابق لكل مبنى.'**
+  /// **'أنشئ مباني الإقامة وحدد اسماً وعدد الطوابق فوق الأرضي لكل مبنى.'**
   String get residenceStructureDescription;
 
   /// No description provided for @buildings.
@@ -3279,13 +3279,13 @@ abstract class AppLocalizations {
   /// No description provided for @floorCount.
   ///
   /// In ar, this message translates to:
-  /// **'عدد الطوابق'**
+  /// **'عدد الطوابق فوق الأرضي'**
   String get floorCount;
 
   /// No description provided for @buildingFloorCount.
   ///
   /// In ar, this message translates to:
-  /// **'عدد الطوابق: {count}'**
+  /// **'عدد الطوابق فوق الأرضي: {count}'**
   String buildingFloorCount(int count);
 
   /// No description provided for @addBuilding.
