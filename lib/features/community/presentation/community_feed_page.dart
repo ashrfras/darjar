@@ -9,6 +9,7 @@ import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,6 +45,13 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
   @override
   Widget build(BuildContext context) {
     final postsState = ref.watch(communityPostsProvider);
+    final canManageResidence =
+        ref
+            .watch(residenceContextProvider)
+            .value
+            ?.activeResidence
+            ?.canManageResidence ??
+        false;
     final posts = postsState.value ?? const <CommunityPost>[];
     ref.listen(communityPostsProvider, (previous, next) {
       if (!next.isLoading) _loadingMore = false;
@@ -138,11 +146,14 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                         .read(communityActionsProvider)
                                         .vote(post.id, optionId),
                                   ),
-                                  onArchive: () => _runAction(
-                                    () => ref
-                                        .read(communityActionsProvider)
-                                        .archivePost(post.id),
-                                  ),
+                                  onArchive:
+                                      post.isCurrentUser || canManageResidence
+                                      ? () => _runAction(
+                                          () => ref
+                                              .read(communityActionsProvider)
+                                              .archivePost(post.id),
+                                        )
+                                      : null,
                                 ),
                                 const SizedBox(height: AppSpacing.medium),
                               ],

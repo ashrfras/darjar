@@ -2466,6 +2466,90 @@ abstract class AppLocalizations {
   /// **'تعذّر تسجيل الخروج. حاول مجدداً.'**
   String get signOutFailed;
 
+  /// No description provided for @resetResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة ضبط الإقامة'**
+  String get resetResidence;
+
+  /// No description provided for @resetResidenceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرجاع الإقامة إلى حالتها الأولى'**
+  String get resetResidenceDescription;
+
+  /// No description provided for @resetResidenceConfirmationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة ضبط الإقامة؟'**
+  String get resetResidenceConfirmationTitle;
+
+  /// No description provided for @resetResidenceConfirmationDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيُزال السكان والشقق والاشتراكات والعمليات والوثائق، وستؤرشف جميع المنشورات. لا يمكن التراجع عن هذا الإجراء.'**
+  String get resetResidenceConfirmationDescription;
+
+  /// No description provided for @resetResidenceSendCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرسال رمز التأكيد'**
+  String get resetResidenceSendCode;
+
+  /// No description provided for @resetResidenceCodeTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد رقم الهاتف'**
+  String get resetResidenceCodeTitle;
+
+  /// No description provided for @resetResidenceCodeDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أرسلنا رمزاً عبر SMS إلى رقمك. أدخله لتأكيد إعادة ضبط الإقامة.'**
+  String get resetResidenceCodeDescription;
+
+  /// No description provided for @resetResidenceCodeHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز التأكيد'**
+  String get resetResidenceCodeHint;
+
+  /// No description provided for @resetResidenceConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد وإعادة الضبط'**
+  String get resetResidenceConfirm;
+
+  /// No description provided for @resetResidenceSendingCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ إرسال الرمز…'**
+  String get resetResidenceSendingCode;
+
+  /// No description provided for @resetResidenceInProgress.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ إعادة ضبط الإقامة…'**
+  String get resetResidenceInProgress;
+
+  /// No description provided for @resetResidenceSuccess.
+  ///
+  /// In ar, this message translates to:
+  /// **'تمت إعادة الإقامة إلى حالتها الأولى.'**
+  String get resetResidenceSuccess;
+
+  /// No description provided for @resetResidenceFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّرت إعادة ضبط الإقامة. حاول مجدداً.'**
+  String get resetResidenceFailed;
+
+  /// No description provided for @resetResidenceInvalidCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز التأكيد غير صحيح.'**
+  String get resetResidenceInvalidCode;
+
   /// No description provided for @privacyPolicy.
   ///
   /// In ar, this message translates to:

@@ -269,7 +269,7 @@ class _PostHeader extends StatelessWidget {
             ],
           ),
         ),
-        if (post.isCurrentUser && onArchive != null)
+        if (!post.isSystem && onArchive != null)
           PopupMenuButton<String>(
             key: ValueKey('post-menu-${post.id}'),
             tooltip: MaterialLocalizations.of(context).moreButtonTooltip,

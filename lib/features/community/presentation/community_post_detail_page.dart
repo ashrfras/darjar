@@ -9,6 +9,7 @@ import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -38,6 +39,13 @@ class _CommunityPostDetailPageState
     final post = postState.value;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final compact = MediaQuery.sizeOf(context).width < 600;
+    final canManageResidence =
+        ref
+            .watch(residenceContextProvider)
+            .value
+            ?.activeResidence
+            ?.canManageResidence ??
+        false;
 
     if (post == null && postState.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -105,7 +113,9 @@ class _CommunityPostDetailPageState
                           .read(communityActionsProvider)
                           .vote(post.id, optionId),
                     ),
-                    onArchive: () => _archivePost(post.id),
+                    onArchive: post.isCurrentUser || canManageResidence
+                        ? () => _archivePost(post.id)
+                        : null,
                   ),
                   if (!post.isSystem) ...[
                     const SizedBox(height: AppSpacing.large),

@@ -2310,6 +2310,62 @@ void main() {
     );
   });
 
+  testWidgets('president can archive another resident community post', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(1280, 900));
+    await _enterResidence(tester);
+
+    final menu = find.byKey(const ValueKey('post-menu-announcement-elevator'));
+    await tester.ensureVisible(menu);
+    await tester.tap(menu);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('حذف المنشور'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(FilledButton, 'حذف'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('community-post-announcement-elevator')),
+      findsNothing,
+    );
+  });
+
+  testWidgets(
+    'delegated president permissions expose archive for other posts',
+    (tester) async {
+      await _pumpApp(
+        tester,
+        size: const Size(1280, 900),
+        residenceContext: const ResidenceContext(
+          residences: [
+            UserResidence(
+              id: 'test-residence',
+              name: 'إقامة الاختبار',
+              address: 'شارع الاختبار',
+              city: '6141010',
+              role: 'resident',
+              apartmentId: '',
+              hasPresidentPermissions: true,
+            ),
+          ],
+          activeResidenceId: 'test-residence',
+        ),
+      );
+      await _enterResidence(tester);
+
+      expect(
+        find.byKey(const ValueKey('post-menu-announcement-elevator')),
+        findsOneWidget,
+      );
+    },
+  );
+
   testWidgets('resident can browse a service profile and recommend it', (
     tester,
   ) async {
@@ -2849,13 +2905,18 @@ void main() {
     final signOutButton = find.byKey(const Key('sign-out-button'));
     await tester.ensureVisible(signOutButton);
 
-    final informationCard = tester.widget<DarJarCard>(
-      find.ancestor(of: privacyLink, matching: find.byType(DarJarCard)),
+    final informationCard = find.ancestor(
+      of: privacyLink,
+      matching: find.byType(DarJarCard),
     );
-    final signOutCard = tester.widget<DarJarCard>(
-      find.ancestor(of: signOutButton, matching: find.byType(DarJarCard)),
+    final signOutCard = find.ancestor(
+      of: signOutButton,
+      matching: find.byType(DarJarCard),
     );
-    expect(informationCard, isNot(same(signOutCard)));
+    expect(
+      informationCard.evaluate().single,
+      same(signOutCard.evaluate().single),
+    );
 
     expect(
       tester.getTopLeft(privacyLink).dy,
@@ -3416,6 +3477,7 @@ void main() {
     expect(find.byKey(const Key('residence-management-section')), findsNothing);
     expect(find.byKey(const Key('manage-residence-link')), findsNothing);
     expect(find.byKey(const Key('manage-documents-link')), findsNothing);
+    expect(find.byKey(const Key('reset-residence-button')), findsNothing);
   });
 
   testWidgets(
@@ -3449,8 +3511,52 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const Key('manage-residence-link')), findsOneWidget);
+      expect(find.byKey(const Key('reset-residence-button')), findsNothing);
     },
   );
+
+  testWidgets('president actions share one neutral account actions group', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+
+    final signOut = find.byKey(const Key('sign-out-button'));
+    final reset = find.byKey(const Key('reset-residence-button'));
+    await tester.ensureVisible(reset);
+    await tester.pumpAndSettle();
+    expect(reset, findsOneWidget);
+    final signOutCard = find.ancestor(
+      of: signOut,
+      matching: find.byType(DarJarCard),
+    );
+    final resetCard = find.ancestor(
+      of: reset,
+      matching: find.byType(DarJarCard),
+    );
+    expect(signOutCard.evaluate().single, same(resetCard.evaluate().single));
+    final signOutTile = tester.widget<ListTile>(signOut);
+    final resetTile = tester.widget<ListTile>(reset);
+    expect((signOutTile.title! as Text).style, isNull);
+    expect((resetTile.title! as Text).style, isNull);
+    expect((signOutTile.leading! as Icon).color, isNull);
+    expect((resetTile.leading! as Icon).color, isNull);
+    expect(
+      tester.getTopLeft(signOut).dy,
+      lessThan(tester.getTopLeft(reset).dy),
+    );
+
+    await tester.tap(reset);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('reset-residence-confirmation-dialog')),
+      findsOneWidget,
+    );
+    expect(find.text('إعادة ضبط الإقامة؟'), findsOneWidget);
+    expect(find.textContaining('ستؤرشف جميع المنشورات'), findsOneWidget);
+  });
 
   testWidgets('residence management links are visible and navigate', (
     tester,

@@ -546,7 +546,7 @@ class MockCommunityRepository implements CommunityRepository {
     String userId = 'mock-user',
     required String postId,
   }) async {
-    _posts.removeWhere((post) => post.id == postId && post.isCurrentUser);
+    _posts.removeWhere((post) => post.id == postId);
     _notify();
   }
 

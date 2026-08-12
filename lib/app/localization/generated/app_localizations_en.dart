@@ -1334,6 +1334,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signOutFailed => 'Could not sign out. Try again.';
 
   @override
+  String get resetResidence => 'Reset residence';
+
+  @override
+  String get resetResidenceDescription =>
+      'Restore the residence to its initial state';
+
+  @override
+  String get resetResidenceConfirmationTitle => 'Reset residence?';
+
+  @override
+  String get resetResidenceConfirmationDescription =>
+      'Residents, apartments, dues, transactions, and documents will be removed, and all posts will be archived. This action cannot be undone.';
+
+  @override
+  String get resetResidenceSendCode => 'Send confirmation code';
+
+  @override
+  String get resetResidenceCodeTitle => 'Confirm your phone number';
+
+  @override
+  String get resetResidenceCodeDescription =>
+      'We sent an SMS code to your number. Enter it to confirm the residence reset.';
+
+  @override
+  String get resetResidenceCodeHint => 'Confirmation code';
+
+  @override
+  String get resetResidenceConfirm => 'Confirm and reset';
+
+  @override
+  String get resetResidenceSendingCode => 'Sending code…';
+
+  @override
+  String get resetResidenceInProgress => 'Resetting residence…';
+
+  @override
+  String get resetResidenceSuccess =>
+      'The residence was restored to its initial state.';
+
+  @override
+  String get resetResidenceFailed =>
+      'Could not reset the residence. Try again.';
+
+  @override
+  String get resetResidenceInvalidCode => 'The confirmation code is incorrect.';
+
+  @override
   String get privacyPolicy => 'Privacy policy';
 
   @override

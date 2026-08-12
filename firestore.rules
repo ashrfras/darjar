@@ -95,6 +95,13 @@ service cloud.firestore {
         );
     }
 
+    function isRecentlyVerifiedPresident(residenceId) {
+      return isPresident(residenceId)
+        && request.auth.token.auth_time is int
+        && request.auth.token.auth_time
+          >= request.time.toMillis() / 1000 - 300;
+    }
+
     function isInvitationMembership(residenceId, memberId) {
       let invitation = get(
         invitationPath(
@@ -440,7 +447,10 @@ service cloud.firestore {
         && request.resource.data.comment.size() <= 1000
         && request.resource.data.createdAt == request.time;
 
-      allow delete: if false;
+      allow delete: if isRecentlyVerifiedPresident(
+        resource.data.residenceId
+      );
+
     }
 
     match /residences/{residenceId} {
@@ -696,6 +706,18 @@ service cloud.firestore {
             )
             && request.resource.data.updatedAt == request.time
           )
+          || (
+            memberId == request.auth.uid
+            && isRecentlyVerifiedPresident(residenceId)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'apartmentId',
+              'hasPresidentPermissions',
+              'updatedAt'
+            ])
+            && request.resource.data.apartmentId == ''
+            && request.resource.data.hasPresidentPermissions == false
+            && request.resource.data.updatedAt == request.time
+          )
           || isJoinCodeMembership(residenceId, memberId);
       }
 
@@ -792,6 +814,8 @@ service cloud.firestore {
             )
           )
           && request.resource.data.updatedAt == request.time;
+
+        allow delete: if isRecentlyVerifiedPresident(residenceId);
       }
 
       match /duePayments/{paymentId} {
@@ -851,6 +875,8 @@ service cloud.firestore {
           )
           && request.resource.data.recordedBy == request.auth.uid
           && request.resource.data.createdAt == request.time;
+
+        allow delete: if isRecentlyVerifiedPresident(residenceId);
       }
 
       match /financeTransactions/{transactionId} {
@@ -1004,8 +1030,10 @@ service cloud.firestore {
           )
           && request.resource.data.updatedAt == request.time;
 
-        allow delete: if canManageResidence(residenceId)
-          && transactionId != 'opening-balance';
+        allow delete: if (
+            canManageResidence(residenceId)
+            && transactionId != 'opening-balance'
+          ) || isRecentlyVerifiedPresident(residenceId);
       }
 
       match /documents/{documentId} {
@@ -1132,7 +1160,10 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time;
 
         allow update: if isResidenceMember(residenceId)
-          && resource.data.authorId == request.auth.uid
+          && (
+            resource.data.authorId == request.auth.uid
+            || canManageResidence(residenceId)
+          )
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'archivedAt',
             'archivedBy',

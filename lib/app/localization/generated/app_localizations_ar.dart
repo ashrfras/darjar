@@ -1309,6 +1309,50 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signOutFailed => 'تعذّر تسجيل الخروج. حاول مجدداً.';
 
   @override
+  String get resetResidence => 'إعادة ضبط الإقامة';
+
+  @override
+  String get resetResidenceDescription => 'إرجاع الإقامة إلى حالتها الأولى';
+
+  @override
+  String get resetResidenceConfirmationTitle => 'إعادة ضبط الإقامة؟';
+
+  @override
+  String get resetResidenceConfirmationDescription =>
+      'سيُزال السكان والشقق والاشتراكات والعمليات والوثائق، وستؤرشف جميع المنشورات. لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get resetResidenceSendCode => 'إرسال رمز التأكيد';
+
+  @override
+  String get resetResidenceCodeTitle => 'تأكيد رقم الهاتف';
+
+  @override
+  String get resetResidenceCodeDescription =>
+      'أرسلنا رمزاً عبر SMS إلى رقمك. أدخله لتأكيد إعادة ضبط الإقامة.';
+
+  @override
+  String get resetResidenceCodeHint => 'رمز التأكيد';
+
+  @override
+  String get resetResidenceConfirm => 'تأكيد وإعادة الضبط';
+
+  @override
+  String get resetResidenceSendingCode => 'جارٍ إرسال الرمز…';
+
+  @override
+  String get resetResidenceInProgress => 'جارٍ إعادة ضبط الإقامة…';
+
+  @override
+  String get resetResidenceSuccess => 'تمت إعادة الإقامة إلى حالتها الأولى.';
+
+  @override
+  String get resetResidenceFailed => 'تعذّرت إعادة ضبط الإقامة. حاول مجدداً.';
+
+  @override
+  String get resetResidenceInvalidCode => 'رمز التأكيد غير صحيح.';
+
+  @override
   String get privacyPolicy => 'سياسة الخصوصية';
 
   @override
