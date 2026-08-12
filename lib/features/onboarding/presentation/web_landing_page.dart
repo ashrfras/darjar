@@ -116,6 +116,8 @@ class _LandingSections extends StatelessWidget {
         _SectionShell(
           key: firstSectionKey,
           backgroundColor: AppColors.surface,
+          roundsTopEdge: true,
+          topPadding: 56,
           child: _FeatureSection(
             key: const Key('landing-darjar-section'),
             icon: Icons.apartment_rounded,
@@ -172,19 +174,43 @@ class _LandingSections extends StatelessWidget {
 }
 
 class _SectionShell extends StatelessWidget {
-  const _SectionShell({required this.child, this.backgroundColor, super.key});
+  const _SectionShell({
+    required this.child,
+    this.backgroundColor,
+    this.roundsTopEdge = false,
+    this.topPadding = 72,
+    super.key,
+  });
 
   final Widget child;
   final Color? backgroundColor;
+  final bool roundsTopEdge;
+  final double topPadding;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: backgroundColor,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xLarge,
-        vertical: 72,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: roundsTopEdge
+            ? const BorderRadius.vertical(top: Radius.circular(36))
+            : null,
+        boxShadow: roundsTopEdge
+            ? const [
+                BoxShadow(
+                  color: Color(0x0A17151D),
+                  blurRadius: 24,
+                  offset: Offset(0, -6),
+                ),
+              ]
+            : null,
+      ),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.xLarge,
+        topPadding,
+        AppSpacing.xLarge,
+        72,
       ),
       child: Center(
         child: ConstrainedBox(

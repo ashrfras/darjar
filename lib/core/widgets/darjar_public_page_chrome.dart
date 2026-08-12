@@ -49,14 +49,10 @@ class DarJarPublicFooter extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1080),
-          child: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: AppSpacing.xLarge,
-            runSpacing: AppSpacing.large,
-            children: [
-              const DarJarBrand(),
-              Wrap(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final links = Wrap(
+                alignment: WrapAlignment.center,
                 spacing: AppSpacing.small,
                 children: [
                   TextButton(
@@ -72,12 +68,34 @@ class DarJarPublicFooter extends StatelessWidget {
                     child: Text(localizations.landingSupport),
                   ),
                 ],
-              ),
-              Text(
+              );
+              final copyright = Text(
                 localizations.appCopyright,
+                key: const Key('public-footer-copyright'),
+                textAlign: constraints.maxWidth < 700 ? TextAlign.center : null,
                 style: Theme.of(context).textTheme.labelMedium,
-              ),
-            ],
+              );
+
+              if (constraints.maxWidth < 700) {
+                return Column(
+                  children: [
+                    const DarJarBrand(),
+                    const SizedBox(height: AppSpacing.large),
+                    links,
+                    const SizedBox(height: AppSpacing.large),
+                    SizedBox(width: double.infinity, child: copyright),
+                  ],
+                );
+              }
+
+              return Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: AppSpacing.xLarge,
+                runSpacing: AppSpacing.large,
+                children: [const DarJarBrand(), links, copyright],
+              );
+            },
           ),
         ),
       ),

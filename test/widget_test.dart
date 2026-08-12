@@ -1682,6 +1682,14 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('landing-final-cta')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('landing-final-start-button')), findsOneWidget);
+    await tester.ensureVisible(
+      find.byKey(const Key('public-footer-copyright')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getCenter(find.byKey(const Key('public-footer-copyright'))).dx,
+      closeTo(195, 1),
+    );
     expect(tester.takeException(), isNull);
   });
 
