@@ -1193,6 +1193,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get duesPaymentSaved => 'تم تسجيل الأداء بنجاح.';
 
   @override
+  String get duesDeletePayment => 'حذف الأداء';
+
+  @override
+  String duesConfirmDeletePayment(String number, String amount) {
+    return 'هل تريد حذف أداء الشقة رقم $number بقيمة $amount درهم؟ سيُعاد احتساب سجل الاشتراكات ولا يمكن التراجع عن ذلك.';
+  }
+
+  @override
+  String get duesPaymentDeleted => 'تم حذف الأداء وإعادة احتساب الاشتراكات.';
+
+  @override
+  String get duesPaymentDeleteError => 'تعذر حذف الأداء. حاول مجدداً.';
+
+  @override
   String get duesInvalidPayment =>
       'أدخل مبلغاً صحيحاً. يجب أن يساوي الجزء المدفوع مسبقاً قيمة شهر كامل أو عدة أشهر.';
 

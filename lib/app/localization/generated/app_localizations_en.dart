@@ -1217,6 +1217,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duesPaymentSaved => 'Payment recorded successfully.';
 
   @override
+  String get duesDeletePayment => 'Delete payment';
+
+  @override
+  String duesConfirmDeletePayment(String number, String amount) {
+    return 'Delete the $amount MAD payment for apartment $number? The subscription history will be recalculated and this cannot be undone.';
+  }
+
+  @override
+  String get duesPaymentDeleted =>
+      'Payment deleted and subscriptions recalculated.';
+
+  @override
+  String get duesPaymentDeleteError =>
+      'The payment could not be deleted. Try again.';
+
+  @override
   String get duesInvalidPayment =>
       'Enter a valid amount. Any advance portion must equal one or more complete monthly subscriptions.';
 

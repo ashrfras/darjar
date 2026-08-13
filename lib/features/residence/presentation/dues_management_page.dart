@@ -123,13 +123,13 @@ class DuesManagementPage extends ConsumerWidget {
   }
 }
 
-class _ManagementContent extends StatelessWidget {
+class _ManagementContent extends ConsumerWidget {
   const _ManagementContent({required this.overview});
 
   final ResidenceDuesOverview overview;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final groups = _groupDuesByApartment(overview.dues);
     if (groups.isEmpty) {
@@ -182,7 +182,11 @@ class _ManagementContent extends StatelessWidget {
             child: Column(
               children: [
                 for (var index = 0; index < paymentGroups.length; index++) ...[
-                  _ManagementPaymentRow(paymentGroup: paymentGroups[index]),
+                  _ManagementPaymentRow(
+                    paymentGroup: paymentGroups[index],
+                    onDelete: () =>
+                        _deletePayment(context, ref, paymentGroups[index]),
+                  ),
                   if (index != paymentGroups.length - 1) const Divider(),
                 ],
               ],
@@ -795,9 +799,13 @@ class _ManagementTotals extends StatelessWidget {
 }
 
 class _ManagementPaymentRow extends StatelessWidget {
-  const _ManagementPaymentRow({required this.paymentGroup});
+  const _ManagementPaymentRow({
+    required this.paymentGroup,
+    required this.onDelete,
+  });
 
   final ResidenceDuePaymentGroup paymentGroup;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -865,8 +873,61 @@ class _ManagementPaymentRow extends StatelessWidget {
               context,
             ).textTheme.titleMedium?.copyWith(color: AppColors.residence),
           ),
+          IconButton(
+            key: ValueKey('delete-management-payment-${paymentGroup.id}'),
+            tooltip: localizations.delete,
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline_rounded),
+          ),
         ],
       ),
+    );
+  }
+}
+
+Future<void> _deletePayment(
+  BuildContext context,
+  WidgetRef ref,
+  ResidenceDuePaymentGroup paymentGroup,
+) async {
+  final localizations = AppLocalizations.of(context);
+  final payment = paymentGroup.payments.first;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(localizations.duesDeletePayment),
+      content: Text(
+        localizations.duesConfirmDeletePayment(
+          payment.apartmentNumber,
+          _amount(context, paymentGroup.totalAmount),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(localizations.cancel),
+        ),
+        FilledButton(
+          key: const Key('confirm-delete-dues-payment'),
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(localizations.delete),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    await ref
+        .read(residenceDuesManagementProvider.notifier)
+        .deletePayment(paymentGroup.id);
+    messenger.showSnackBar(
+      SnackBar(content: Text(localizations.duesPaymentDeleted)),
+    );
+    ref.invalidate(residenceDuesManagementProvider);
+  } on ResidenceDuesFailure {
+    messenger.showSnackBar(
+      SnackBar(content: Text(localizations.duesPaymentDeleteError)),
     );
   }
 }

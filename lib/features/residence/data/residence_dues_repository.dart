@@ -208,6 +208,11 @@ abstract interface class ResidenceDuesRepository {
     String supportingDocument = '',
     ResidenceDocumentUpload? attachmentUpload,
   });
+
+  Future<void> deletePaymentGroup({
+    required String residenceId,
+    required String paymentGroupId,
+  });
 }
 
 class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
@@ -461,6 +466,88 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
     }
   }
 
+  @override
+  Future<void> deletePaymentGroup({
+    required String residenceId,
+    required String paymentGroupId,
+  }) async {
+    if (paymentGroupId.isEmpty) {
+      throw const ResidenceDuesFailure('invalid-payment-group');
+    }
+    final residence = _firestore.collection('residences').doc(residenceId);
+    final paymentsCollection = residence.collection('duePayments');
+    final duesCollection = residence.collection('dues');
+    try {
+      final paymentDocuments = await paymentsCollection
+          .where('paymentGroupId', isEqualTo: paymentGroupId)
+          .get();
+      if (paymentDocuments.docs.isEmpty) {
+        throw const ResidenceDuesFailure('payment-not-found');
+      }
+      final payments = [
+        for (final document in paymentDocuments.docs)
+          _paymentFromDocument(document),
+      ];
+      final amountsByDueId = <String, int>{};
+      for (final payment in payments) {
+        amountsByDueId.update(
+          payment.dueId,
+          (amount) => amount + payment.amount,
+          ifAbsent: () => payment.amount,
+        );
+      }
+      final currentPeriodKey = residenceDuesPeriodKey(DateTime.now());
+      await _firestore.runTransaction((transaction) async {
+        final storedDues = <String, ResidenceDue>{};
+        for (final dueId in amountsByDueId.keys) {
+          final document = await transaction.get(duesCollection.doc(dueId));
+          if (!document.exists) {
+            throw const ResidenceDuesFailure('due-not-found');
+          }
+          storedDues[dueId] = _dueFromDocument(document);
+        }
+        for (final entry in amountsByDueId.entries) {
+          final due = storedDues[entry.key]!;
+          final amountPaid = due.amountPaid - entry.value;
+          if (amountPaid < 0) {
+            throw const ResidenceDuesFailure('invalid-payment-balance');
+          }
+          final dueReference = duesCollection.doc(due.id);
+          if (amountPaid == 0 &&
+              due.periodKey.compareTo(currentPeriodKey) > 0) {
+            transaction.delete(dueReference);
+          } else {
+            transaction.update(dueReference, {
+              'amountPaid': amountPaid,
+              'status': amountPaid == 0
+                  ? ResidenceDueStatus.unpaid.name
+                  : amountPaid == due.amountDue
+                  ? ResidenceDueStatus.paid.name
+                  : ResidenceDueStatus.partial.name,
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+          }
+        }
+        for (final document in paymentDocuments.docs) {
+          transaction.delete(document.reference);
+        }
+      });
+      final attachmentPath = payments.first.attachmentStoragePath;
+      if (attachmentPath.isNotEmpty) {
+        try {
+          await _storage.ref(attachmentPath).delete();
+        } on FirebaseException {
+          // The payment itself is already deleted. A stale attachment must not
+          // make a retry look as though the payment still exists.
+        }
+      }
+    } on ResidenceDuesFailure {
+      rethrow;
+    } on FirebaseException catch (error) {
+      throw ResidenceDuesFailure(error.code, error.message);
+    }
+  }
+
   ResidenceDue _dueFromDocument(
     DocumentSnapshot<Map<String, dynamic>> document,
   ) {
@@ -690,6 +777,22 @@ class ResidenceDuesManagementController
     ref.invalidate(residenceFinancesProvider);
     ref.invalidate(residenceTransactionAttachmentsProvider);
     ref.invalidateSelf();
+  }
+
+  Future<void> deletePayment(String paymentGroupId) async {
+    final residenceId = _residenceId;
+    if (residenceId == null) {
+      throw const ResidenceDuesFailure('missing-context');
+    }
+    await ref
+        .read(residenceDuesRepositoryProvider)
+        .deletePaymentGroup(
+          residenceId: residenceId,
+          paymentGroupId: paymentGroupId,
+        );
+    ref.invalidate(residentDuesProvider);
+    ref.invalidate(residenceFinancesProvider);
+    ref.invalidate(residenceTransactionAttachmentsProvider);
   }
 }
 

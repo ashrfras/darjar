@@ -2262,6 +2262,30 @@ abstract class AppLocalizations {
   /// **'تم تسجيل الأداء بنجاح.'**
   String get duesPaymentSaved;
 
+  /// No description provided for @duesDeletePayment.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الأداء'**
+  String get duesDeletePayment;
+
+  /// No description provided for @duesConfirmDeletePayment.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد حذف أداء الشقة رقم {number} بقيمة {amount} درهم؟ سيُعاد احتساب سجل الاشتراكات ولا يمكن التراجع عن ذلك.'**
+  String duesConfirmDeletePayment(String number, String amount);
+
+  /// No description provided for @duesPaymentDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حذف الأداء وإعادة احتساب الاشتراكات.'**
+  String get duesPaymentDeleted;
+
+  /// No description provided for @duesPaymentDeleteError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر حذف الأداء. حاول مجدداً.'**
+  String get duesPaymentDeleteError;
+
   /// No description provided for @duesInvalidPayment.
   ///
   /// In ar, this message translates to:

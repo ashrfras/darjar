@@ -794,7 +794,7 @@ service cloud.firestore {
             'updatedAt'
           ])
           && request.resource.data.amountPaid is int
-          && request.resource.data.amountPaid >= resource.data.amountPaid
+          && request.resource.data.amountPaid >= 0
           && request.resource.data.amountPaid <= resource.data.amountDue
           && (
             (
@@ -815,7 +815,8 @@ service cloud.firestore {
           )
           && request.resource.data.updatedAt == request.time;
 
-        allow delete: if isRecentlyVerifiedPresident(residenceId);
+        allow delete: if canManageResidence(residenceId)
+          && resource.data.periodKey > currentPeriodKey();
       }
 
       match /duePayments/{paymentId} {
@@ -876,7 +877,7 @@ service cloud.firestore {
           && request.resource.data.recordedBy == request.auth.uid
           && request.resource.data.createdAt == request.time;
 
-        allow delete: if isRecentlyVerifiedPresident(residenceId);
+        allow delete: if canManageResidence(residenceId);
       }
 
       match /financeTransactions/{transactionId} {

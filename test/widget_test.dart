@@ -3478,6 +3478,39 @@ void main() {
       ),
       findsOneWidget,
     );
+
+    final paymentGroupId = apartmentOnePayments.first.paymentGroupId;
+    final deletePayment = find.byKey(
+      ValueKey('delete-management-payment-$paymentGroupId'),
+    );
+    await tester.ensureVisible(deletePayment);
+    await tester.tap(deletePayment);
+    await tester.pumpAndSettle();
+    expect(find.text('حذف الأداء'), findsOneWidget);
+    expect(
+      find.textContaining('هل تريد حذف أداء الشقة رقم 01 بقيمة 750 درهم؟'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('confirm-delete-dues-payment')));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
+
+    expect(
+      duesRepository.overview.payments.where(
+        (payment) => payment.paymentGroupId == paymentGroupId,
+      ),
+      isEmpty,
+    );
+    final remainingApartmentOneDues = duesRepository.overview.dues
+        .where((due) => due.apartmentId == 'apartment-01')
+        .toList();
+    expect(remainingApartmentOneDues, hasLength(3));
+    expect(
+      remainingApartmentOneDues.every(
+        (due) => due.amountPaid == 0 && due.status == ResidenceDueStatus.unpaid,
+      ),
+      isTrue,
+    );
   });
 
   testWidgets('residence management is hidden from regular residents', (
@@ -6065,6 +6098,61 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
         for (final due in futureDues) updatedById[due.id]!,
       ],
       payments: [...payments.reversed, ...overview.payments],
+    );
+  }
+
+  @override
+  Future<void> deletePaymentGroup({
+    required String residenceId,
+    required String paymentGroupId,
+  }) async {
+    final payments = overview.payments
+        .where((payment) => payment.paymentGroupId == paymentGroupId)
+        .toList();
+    if (payments.isEmpty) {
+      throw const ResidenceDuesFailure('payment-not-found');
+    }
+    final amountsByDueId = <String, int>{};
+    for (final payment in payments) {
+      amountsByDueId.update(
+        payment.dueId,
+        (amount) => amount + payment.amount,
+        ifAbsent: () => payment.amount,
+      );
+    }
+    final currentPeriodKey = residenceDuesPeriodKey(DateTime.now());
+    final updatedDues = <ResidenceDue>[];
+    for (final due in overview.dues) {
+      final deletedAmount = amountsByDueId[due.id];
+      if (deletedAmount == null) {
+        updatedDues.add(due);
+        continue;
+      }
+      final amountPaid = due.amountPaid - deletedAmount;
+      if (amountPaid == 0 && due.periodKey.compareTo(currentPeriodKey) > 0) {
+        continue;
+      }
+      updatedDues.add(
+        ResidenceDue(
+          id: due.id,
+          apartmentId: due.apartmentId,
+          apartmentNumber: due.apartmentNumber,
+          periodKey: due.periodKey,
+          amountDue: due.amountDue,
+          amountPaid: amountPaid,
+          status: amountPaid == 0
+              ? ResidenceDueStatus.unpaid
+              : amountPaid == due.amountDue
+              ? ResidenceDueStatus.paid
+              : ResidenceDueStatus.partial,
+        ),
+      );
+    }
+    overview = ResidenceDuesOverview(
+      dues: updatedDues,
+      payments: overview.payments
+          .where((payment) => payment.paymentGroupId != paymentGroupId)
+          .toList(),
     );
   }
 }
