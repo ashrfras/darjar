@@ -91,6 +91,16 @@ class ResidenceApartment {
       duesTrackingStatus == ResidenceDuesTrackingStatus.active;
 }
 
+int compareResidenceApartmentNumbers(String first, String second) {
+  final firstNumber = int.tryParse(first.trim());
+  final secondNumber = int.tryParse(second.trim());
+  if (firstNumber != null && secondNumber != null) {
+    final numericComparison = firstNumber.compareTo(secondNumber);
+    if (numericComparison != 0) return numericComparison;
+  }
+  return first.compareTo(second);
+}
+
 class ResidenceFloor {
   const ResidenceFloor({
     required this.id,
@@ -197,6 +207,12 @@ abstract interface class ResidenceMembersRepository {
     required String? openingPaidThroughPeriodKey,
     required String currentPeriodKey,
     required int defaultAmount,
+  });
+
+  Future<void> moveApartmentToFloor({
+    required String residenceId,
+    required ResidenceApartment apartment,
+    required String floorId,
   });
 
   Future<void> deleteApartment({
@@ -322,7 +338,7 @@ class FirestoreResidenceMembersRepository
           openingPaidThroughPeriodKey:
               document.data()['openingPaidThroughPeriodKey'] as String? ?? '',
         ),
-    ]..sort((a, b) => a.number.compareTo(b.number));
+    ]..sort((a, b) => compareResidenceApartmentNumbers(a.number, b.number));
     final data = floor.data();
     return ResidenceFloor(
       id: floor.id,
@@ -541,6 +557,42 @@ class FirestoreResidenceMembersRepository
       defaultAmount: defaultAmount,
     );
     await batch.commit();
+  }
+
+  @override
+  Future<void> moveApartmentToFloor({
+    required String residenceId,
+    required ResidenceApartment apartment,
+    required String floorId,
+  }) async {
+    if (floorId == apartment.floorId) return;
+    final building = _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('buildings')
+        .doc(apartment.buildingId);
+    final source = building
+        .collection('floors')
+        .doc(apartment.floorId)
+        .collection('apartments')
+        .doc(apartment.id);
+    final destination = building
+        .collection('floors')
+        .doc(floorId)
+        .collection('apartments')
+        .doc(apartment.id);
+    await _firestore.runTransaction((transaction) async {
+      final sourceDocument = await transaction.get(source);
+      final data = sourceDocument.data();
+      if (!sourceDocument.exists || data == null) {
+        throw const ResidenceMembersFailure('apartment-not-found');
+      }
+      transaction.set(destination, {
+        ...data,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      transaction.delete(source);
+    });
   }
 
   void _addOpeningDuesToBatch({
@@ -813,6 +865,20 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
           openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
           currentPeriodKey: _periodKey(DateTime.now()),
           defaultAmount: settings.defaultSubscriptionAmount,
+        );
+    ref.invalidateSelf();
+  }
+
+  Future<void> moveApartmentToFloor({
+    required ResidenceApartment apartment,
+    required String floorId,
+  }) async {
+    await ref
+        .read(residenceMembersRepositoryProvider)
+        .moveApartmentToFloor(
+          residenceId: _requiredResidenceId(),
+          apartment: apartment,
+          floorId: floorId,
         );
     ref.invalidateSelf();
   }

@@ -13,6 +13,7 @@ import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
+import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1032,8 +1033,10 @@ List<_ApartmentDuesGroup> _groupDuesByApartment(List<ResidenceDue> dues) {
             dues: entry.value,
           ),
       ]..sort(
-        (first, second) =>
-            first.apartmentNumber.compareTo(second.apartmentNumber),
+        (first, second) => compareResidenceApartmentNumbers(
+          first.apartmentNumber,
+          second.apartmentNumber,
+        ),
       );
   return groups;
 }

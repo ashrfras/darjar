@@ -23,7 +23,14 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 enum _ManagementView { apartments, residents }
 
-enum _ApartmentDetailsAction { startTracking, delete }
+enum _ApartmentDetailsAction { updateFloor, startTracking, delete }
+
+class _ApartmentDetailsResult {
+  const _ApartmentDetailsResult(this.action, {this.floorId});
+
+  final _ApartmentDetailsAction action;
+  final String? floorId;
+}
 
 class ApartmentsResidentsPage extends ConsumerStatefulWidget {
   const ApartmentsResidentsPage({super.key});
@@ -422,7 +429,7 @@ class _ApartmentsResidentsPageState
     ResidenceFloor floor,
   ) async {
     final copy = _Copy.of(context);
-    final action = await showModalBottomSheet<_ApartmentDetailsAction>(
+    final result = await showModalBottomSheet<_ApartmentDetailsResult>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -436,8 +443,33 @@ class _ApartmentsResidentsPageState
         copy: copy,
       ),
     );
-    if (!mounted || action == null) return;
-    switch (action) {
+    if (!mounted || result == null) return;
+    switch (result.action) {
+      case _ApartmentDetailsAction.updateFloor:
+        final floorId = result.floorId;
+        if (floorId == null || floorId == apartment.floorId) return;
+        final targetFloor = building.floors.firstWhere(
+          (item) => item.id == floorId,
+        );
+        final duplicate = targetFloor.apartments.any(
+          (item) =>
+              item.id != apartment.id &&
+              item.number.trim().toLowerCase() ==
+                  apartment.number.trim().toLowerCase(),
+        );
+        if (duplicate) {
+          _showSavedMessage(copy.apartmentAlreadyExists);
+          return;
+        }
+        try {
+          await ref
+              .read(residenceMembersProvider.notifier)
+              .moveApartmentToFloor(apartment: apartment, floorId: floorId);
+          if (mounted) _showSavedMessage(copy.apartmentFloorUpdated);
+        } on ResidenceMembersFailure {
+          if (mounted) _showSavedMessage(copy.saveFailed);
+        }
+        return;
       case _ApartmentDetailsAction.startTracking:
         await _showStartDuesTrackingSheet(apartment);
         return;
@@ -1658,7 +1690,7 @@ class _ApartmentTile extends StatelessWidget {
   }
 }
 
-class _ApartmentDetailsSheet extends StatelessWidget {
+class _ApartmentDetailsSheet extends StatefulWidget {
   const _ApartmentDetailsSheet({
     required this.apartment,
     required this.members,
@@ -1674,7 +1706,19 @@ class _ApartmentDetailsSheet extends StatelessWidget {
   final _Copy copy;
 
   @override
+  State<_ApartmentDetailsSheet> createState() => _ApartmentDetailsSheetState();
+}
+
+class _ApartmentDetailsSheetState extends State<_ApartmentDetailsSheet> {
+  late String _floorId = widget.floor.id;
+
+  @override
   Widget build(BuildContext context) {
+    final apartment = widget.apartment;
+    final members = widget.members;
+    final building = widget.building;
+    final floor = widget.floor;
+    final copy = widget.copy;
     return Material(
       key: ValueKey('apartment-details-${apartment.id}'),
       color: AppColors.surface,
@@ -1746,6 +1790,42 @@ class _ApartmentDetailsSheet extends StatelessWidget {
               value:
                   '${copy.buildingName(building)} · ${copy.floorName(floor)}',
             ),
+            const SizedBox(height: AppSpacing.medium),
+            Text(
+              copy.chooseFloor,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.small),
+            Wrap(
+              spacing: AppSpacing.small,
+              runSpacing: AppSpacing.small,
+              children: [
+                for (final availableFloor in building.floors)
+                  ChoiceChip(
+                    key: ValueKey('edit-apartment-floor-${availableFloor.id}'),
+                    label: Text(copy.floorName(availableFloor)),
+                    selected: _floorId == availableFloor.id,
+                    onSelected: (_) {
+                      setState(() => _floorId = availableFloor.id);
+                    },
+                  ),
+              ],
+            ),
+            if (_floorId != floor.id) ...[
+              const SizedBox(height: AppSpacing.medium),
+              FilledButton.icon(
+                key: ValueKey('save-apartment-floor-${apartment.id}'),
+                onPressed: () => Navigator.pop(
+                  context,
+                  _ApartmentDetailsResult(
+                    _ApartmentDetailsAction.updateFloor,
+                    floorId: _floorId,
+                  ),
+                ),
+                icon: const Icon(Icons.save_outlined),
+                label: Text(copy.saveFloor),
+              ),
+            ],
             const Divider(height: AppSpacing.large),
             _ApartmentDetailRow(
               icon: Icons.people_outline_rounded,
@@ -1802,7 +1882,9 @@ class _ApartmentDetailsSheet extends StatelessWidget {
                 key: ValueKey('start-dues-tracking-${apartment.id}'),
                 onPressed: () => Navigator.pop(
                   context,
-                  _ApartmentDetailsAction.startTracking,
+                  const _ApartmentDetailsResult(
+                    _ApartmentDetailsAction.startTracking,
+                  ),
                 ),
                 icon: const Icon(Icons.play_arrow_rounded),
                 label: Text(copy.startTracking),
@@ -1814,8 +1896,10 @@ class _ApartmentDetailsSheet extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.danger,
               ),
-              onPressed: () =>
-                  Navigator.pop(context, _ApartmentDetailsAction.delete),
+              onPressed: () => Navigator.pop(
+                context,
+                const _ApartmentDetailsResult(_ApartmentDetailsAction.delete),
+              ),
               icon: const Icon(Icons.delete_outline_rounded),
               label: Text(copy.deleteApartment),
             ),
@@ -2701,6 +2785,7 @@ class _Copy {
       ? 'رقم الهاتف مسجل لساكن آخر.'
       : 'This phone number is already registered.';
   String get chooseFloor => arabic ? 'اختر الطابق' : 'Choose a floor';
+  String get saveFloor => arabic ? 'حفظ الطابق' : 'Save floor';
   String get apartmentNumberLabel => arabic ? 'رقم الشقة' : 'Apartment number';
   String get apartmentNumberHint => arabic ? 'مثال: 24' : 'Example: 24';
   String get apartmentNumberRequired =>
@@ -2713,6 +2798,8 @@ class _Copy {
   String get delete => arabic ? 'حذف' : 'Delete';
   String get deleteApartment => arabic ? 'حذف الشقة' : 'Delete apartment';
   String get apartmentAdded => arabic ? 'تمت إضافة الشقة.' : 'Apartment added.';
+  String get apartmentFloorUpdated =>
+      arabic ? 'تم تحديث طابق الشقة.' : 'Apartment floor updated.';
   String get duesTracking => arabic ? 'تتبّع الاشتراك' : 'Dues tracking';
   String get trackingActive => arabic ? 'التتبّع مفعّل' : 'Tracking active';
   String get trackingStartsLater =>

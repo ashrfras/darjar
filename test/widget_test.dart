@@ -782,6 +782,13 @@ void main() {
       ]);
     });
 
+    test('apartment numbers are ordered numerically', () {
+      final numbers = ['10', '9', '02', '1']
+        ..sort(compareResidenceApartmentNumbers);
+
+      expect(numbers, ['1', '02', '9', '10']);
+    });
+
     test('residence settings repository persists management changes', () async {
       final repository = _FakeResidenceSettingsRepository();
       final original = await repository.load('test-residence');
@@ -4371,8 +4378,24 @@ void main() {
     expect(find.text('عدد السكان'), findsOneWidget);
     expect(find.text('التتبّع مفعّل'), findsOneWidget);
     expect(find.text('يوسف العلوي'), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.close_rounded).last);
+    final secondFloorChoice = find.byKey(
+      const ValueKey('edit-apartment-floor-second-floor'),
+    );
+    await tester.ensureVisible(secondFloorChoice);
+    await tester.tap(secondFloorChoice);
     await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('save-apartment-floor-apartment-12')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('تم تحديث طابق الشقة.'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('floor-second-floor')),
+        matching: find.byKey(const ValueKey('apartment-apartment-12')),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('العمارة الرئيسية'), findsNothing);
     expect(find.text('إعدادات الإقامة'), findsNothing);
 
@@ -4430,6 +4453,7 @@ void main() {
     await tester.ensureVisible(
       find.byKey(const Key('confirm-add-apartment-button')),
     );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('confirm-add-apartment-button')));
     await tester.pumpAndSettle();
     final addedApartment = find.byKey(
@@ -5632,6 +5656,59 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
                             )
                           : item,
                   ],
+                ),
+            ],
+          ),
+      ],
+      members: data.members,
+      pendingInvitations: data.pendingInvitations,
+    );
+  }
+
+  @override
+  Future<void> moveApartmentToFloor({
+    required String residenceId,
+    required ResidenceApartment apartment,
+    required String floorId,
+  }) async {
+    data = ResidenceMembersData(
+      buildings: [
+        for (final building in data.buildings)
+          ResidenceBuilding(
+            id: building.id,
+            nameAr: building.nameAr,
+            nameEn: building.nameEn,
+            floors: [
+              for (final floor in building.floors)
+                ResidenceFloor(
+                  id: floor.id,
+                  nameAr: floor.nameAr,
+                  nameEn: floor.nameEn,
+                  order: floor.order,
+                  apartments:
+                      [
+                        for (final item in floor.apartments)
+                          if (item.id != apartment.id) item,
+                        if (building.id == apartment.buildingId &&
+                            floor.id == floorId)
+                          ResidenceApartment(
+                            id: apartment.id,
+                            number: apartment.number,
+                            floorId: floorId,
+                            buildingId: apartment.buildingId,
+                            createdAt: apartment.createdAt,
+                            duesTrackingStatus: apartment.duesTrackingStatus,
+                            duesTrackingStartPeriodKey:
+                                apartment.duesTrackingStartPeriodKey,
+                            openingPaidThroughPeriodKey:
+                                apartment.openingPaidThroughPeriodKey,
+                          ),
+                      ]..sort(
+                        (first, second) => compareResidenceApartmentNumbers(
+                          first.number,
+                          second.number,
+                        ),
+                      ),
                 ),
             ],
           ),
