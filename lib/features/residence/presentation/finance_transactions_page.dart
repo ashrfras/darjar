@@ -3,6 +3,7 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
@@ -163,10 +164,9 @@ class _FinanceTransactionsPageState
 
   String _periodLabel(BuildContext context) {
     final locale = Localizations.localeOf(context).languageCode;
-    final formatter = DateFormat.yMMMd(locale);
     return AppLocalizations.of(context).periodFromTo(
-      formatter.format(_period.start),
-      formatter.format(_period.end),
+      DarJarDateFormat.yMMMd(_period.start, locale),
+      DarJarDateFormat.yMMMd(_period.end, locale),
     );
   }
 
@@ -320,9 +320,10 @@ class _TransactionRow extends StatelessWidget {
                     _Meta(icon: Icons.swap_vert_rounded, label: typeLabel),
                     _Meta(
                       icon: Icons.calendar_today_outlined,
-                      label: DateFormat.yMMMd(
+                      label: DarJarDateFormat.yMMMd(
+                        transaction.date,
                         localizations.localeName,
-                      ).format(transaction.date),
+                      ),
                     ),
                     if (transaction.expenseCategory case final category?)
                       _Meta(

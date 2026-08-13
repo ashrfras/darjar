@@ -2625,7 +2625,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicyLastUpdated.
   ///
   /// In ar, this message translates to:
-  /// **'آخر تحديث: 9 أغسطس 2026'**
+  /// **'آخر تحديث: 9 غشت 2026'**
   String get privacyPolicyLastUpdated;
 
   /// No description provided for @privacyPolicyDataTitle.

@@ -1390,7 +1390,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'تحترم Raqmain خصوصيتك. توضّح هذه السياسة كيف يجمع تطبيق دارجار بياناتك ويستخدمها ويحميها عند استعمال خدماته.';
 
   @override
-  String get privacyPolicyLastUpdated => 'آخر تحديث: 9 أغسطس 2026';
+  String get privacyPolicyLastUpdated => 'آخر تحديث: 9 غشت 2026';
 
   @override
   String get privacyPolicyDataTitle => 'البيانات التي نجمعها';

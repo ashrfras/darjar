@@ -3,6 +3,7 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
@@ -462,7 +463,7 @@ class _ExpenseRow extends StatelessWidget {
                     ),
                     _Meta(
                       icon: Icons.calendar_today_outlined,
-                      label: DateFormat.yMMMd(locale).format(expense.date),
+                      label: DarJarDateFormat.yMMMd(expense.date, locale),
                     ),
                   ],
                 ),

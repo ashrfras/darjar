@@ -3,6 +3,7 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
@@ -407,9 +408,10 @@ class _AccountCard extends StatelessWidget {
               detail: paymentGroup == null
                   ? localizations.duesNoPayments
                   : localizations.duesRecordedOn(
-                      DateFormat.yMMMd(
+                      DarJarDateFormat.yMMMd(
+                        paymentGroup.paidAt,
                         localizations.localeName,
-                      ).format(paymentGroup.paidAt),
+                      ),
                     ),
               receipt: paymentGroup != null,
             ),
@@ -945,7 +947,8 @@ String _formatPercentage(double value) {
 
 String _duesPeriodLabel(BuildContext context, String periodKey) {
   final parts = periodKey.split('-');
-  return DateFormat.yMMMM(
+  return DarJarDateFormat.yMMMM(
+    DateTime(int.parse(parts[0]), int.parse(parts[1])),
     AppLocalizations.of(context).localeName,
-  ).format(DateTime(int.parse(parts[0]), int.parse(parts[1])));
+  );
 }

@@ -6,6 +6,7 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_typography.dart';
 import 'package:darjar/core/responsive/responsive_builder.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
+import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
@@ -19,7 +20,6 @@ import 'package:darjar/features/shell/data/residence_data_warmup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 class DarJarShell extends ConsumerWidget {
   const DarJarShell({required this.location, required this.child, super.key});
@@ -483,7 +483,7 @@ class _NotificationsSheet extends ConsumerWidget {
     return Material(
       key: const Key('notifications-sheet'),
       color: Theme.of(context).colorScheme.surface,
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.xLarge,
           AppSpacing.small,
@@ -728,7 +728,7 @@ String _notificationTime(
     return localizations.notificationTimeDays(elapsedDays);
   }
   if (elapsedDays >= 7) {
-    return DateFormat.yMMMd(localizations.localeName).format(safeOccurredAt);
+    return DarJarDateFormat.yMMMd(safeOccurredAt, localizations.localeName);
   }
 
   final elapsed = now.difference(safeOccurredAt);

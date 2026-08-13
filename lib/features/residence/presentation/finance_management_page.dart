@@ -2,6 +2,7 @@ import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
@@ -455,7 +456,7 @@ class _ManagementTransactionRow extends StatelessWidget {
                 Text(title, style: Theme.of(context).textTheme.labelLarge),
                 const SizedBox(height: AppSpacing.xSmall),
                 Text(
-                  '${DateFormat.yMMMd(localizations.localeName).format(transaction.date)} · '
+                  '${DarJarDateFormat.yMMMd(transaction.date, localizations.localeName)} · '
                   '${transaction.isOpeningBalance
                       ? localizations.openingSettlement
                       : transaction.isManual
@@ -596,7 +597,7 @@ class _OpeningBalanceSheetState extends State<_OpeningBalanceSheet> {
                 icon: const Icon(Icons.calendar_today_outlined),
                 label: Text(
                   '${localizations.openingBalanceDate}: '
-                  '${DateFormat.yMMMd(localizations.localeName).format(_date)}',
+                  '${DarJarDateFormat.yMMMd(_date, localizations.localeName)}',
                 ),
               ),
               if (_showError) ...[
@@ -811,7 +812,7 @@ class _TransactionFormSheetState extends ConsumerState<_TransactionFormSheet> {
                 icon: const Icon(Icons.calendar_today_outlined),
                 label: Text(
                   '${localizations.transactionDate}: '
-                  '${DateFormat.yMMMd(localizations.localeName).format(_date)}',
+                  '${DarJarDateFormat.yMMMd(_date, localizations.localeName)}',
                 ),
               ),
               const SizedBox(height: AppSpacing.medium),

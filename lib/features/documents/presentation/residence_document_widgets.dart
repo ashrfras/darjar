@@ -3,12 +3,12 @@ import 'dart:ui' as ui;
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 
@@ -70,7 +70,7 @@ class ResidenceDocumentRow extends StatelessWidget {
                   Text(
                     '${residenceDocumentTypeLabel(localizations, document)}'
                     ' · ${residenceDocumentSizeLabel(document.sizeBytes)}'
-                    ' · ${DateFormat.yMMMd(localizations.localeName).format(document.createdAt)}',
+                    ' · ${DarJarDateFormat.yMMMd(document.createdAt, localizations.localeName)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelMedium,

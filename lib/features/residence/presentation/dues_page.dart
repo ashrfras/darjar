@@ -3,6 +3,7 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
@@ -398,9 +399,10 @@ class _PaymentRow extends StatelessWidget {
                 ),
                 Text(
                   localizations.duesRecordedOn(
-                    DateFormat.yMMMd(
+                    DarJarDateFormat.yMMMd(
+                      payment.paidAt,
                       localizations.localeName,
-                    ).format(payment.paidAt),
+                    ),
                   ),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
@@ -552,5 +554,5 @@ String _amount(BuildContext context, int amount) {
 String _periodLabel(BuildContext context, String periodKey) {
   final parts = periodKey.split('-');
   final date = DateTime(int.parse(parts[0]), int.parse(parts[1]));
-  return DateFormat.yMMMM(AppLocalizations.of(context).localeName).format(date);
+  return DarJarDateFormat.yMMMM(date, AppLocalizations.of(context).localeName);
 }

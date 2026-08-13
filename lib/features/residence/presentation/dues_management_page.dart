@@ -5,6 +5,7 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
@@ -669,9 +670,10 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
   }
 
   String _formattedDate() {
-    return DateFormat.yMMMd(
+    return DarJarDateFormat.yMMMd(
+      _paidAt,
       AppLocalizations.of(context).localeName,
-    ).format(_paidAt);
+    );
   }
 
   Future<void> _save() async {
@@ -833,9 +835,10 @@ class _ManagementPaymentRow extends StatelessWidget {
                 ),
                 Text(
                   localizations.duesRecordedOn(
-                    DateFormat.yMMMd(
+                    DarJarDateFormat.yMMMd(
+                      payment.paidAt,
                       localizations.localeName,
-                    ).format(payment.paidAt),
+                    ),
                   ),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
@@ -1049,7 +1052,8 @@ String _amount(BuildContext context, int amount) {
 
 String _periodLabel(BuildContext context, String periodKey) {
   final parts = periodKey.split('-');
-  return DateFormat.yMMMM(
+  return DarJarDateFormat.yMMMM(
+    DateTime(int.parse(parts[0]), int.parse(parts[1])),
     AppLocalizations.of(context).localeName,
-  ).format(DateTime(int.parse(parts[0]), int.parse(parts[1])));
+  );
 }

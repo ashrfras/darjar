@@ -2,6 +2,7 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
@@ -19,7 +20,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart' hide TextDirection;
 
 enum _ManagementView { apartments, residents }
 
@@ -1082,7 +1082,7 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
   }
 
   String _formattedPaidThrough() =>
-      DateFormat.yMMMM(widget.copy.arabic ? 'ar' : 'en').format(_paidThrough);
+      DarJarDateFormat.yMMMM(_paidThrough, widget.copy.arabic ? 'ar' : 'en');
 
   void _submit() {
     final number = _numberController.text.trim();
@@ -1178,7 +1178,7 @@ class _StartDuesTrackingSheetState extends State<_StartDuesTrackingSheet> {
                 icon: const Icon(Icons.calendar_month_outlined),
                 label: Text(
                   '${widget.copy.lastPaidMonth}: '
-                  '${DateFormat.yMMMM(widget.copy.arabic ? 'ar' : 'en').format(_paidThrough)}',
+                  '${DarJarDateFormat.yMMMM(_paidThrough, widget.copy.arabic ? 'ar' : 'en')}',
                 ),
               ),
             const SizedBox(height: AppSpacing.xLarge),
@@ -1312,7 +1312,7 @@ class _MonthYearPickerDialogState extends State<_MonthYearPickerDialog> {
                 return ChoiceChip(
                   key: ValueKey('month-year-picker-month-$month'),
                   label: Text(
-                    DateFormat.MMMM(locale).format(DateTime(2000, month)),
+                    DarJarDateFormat.mmmm(DateTime(2000, month), locale),
                   ),
                   selected: _month == month,
                   onSelected: _isAllowed(month)
