@@ -3042,6 +3042,13 @@ void main() {
     await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
     expect(duesRepository.overview.dues, hasLength(3));
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('account-dues-status')),
+        matching: find.text('المبلغ المتبقي: 450 درهم'),
+      ),
+      findsOneWidget,
+    );
     await tester.tap(find.text('حالة الواجبات'));
     await tester.pumpAndSettle();
 

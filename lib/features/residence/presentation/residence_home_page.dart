@@ -357,6 +357,9 @@ class _AccountCard extends StatelessWidget {
     final overview = duesState.value;
     final currentPeriodKey = residenceDuesPeriodKey(DateTime.now());
     final due = overview?.duesForPeriod(currentPeriodKey).firstOrNull;
+    final remainingThroughCurrentPeriod = overview?.debitThroughPeriod(
+      currentPeriodKey,
+    );
     final paymentGroup = overview?.paymentGroups.firstOrNull;
     final status = switch (due?.status) {
       ResidenceDueStatus.unpaid => localizations.duesStatusUnpaid,
@@ -376,12 +379,14 @@ class _AccountCard extends StatelessWidget {
           final narrow = constraints.maxWidth < 300;
           final items = [
             _FinancialMetric(
+              key: const Key('account-dues-status'),
               label: 'حالة الاشتراك',
               value: status,
               detail: due == null
                   ? localizations.duesNoRecords
                   : '${localizations.duesRemaining}: '
-                        '${due.remainingAmount} ${localizations.currency}',
+                        '$remainingThroughCurrentPeriod '
+                        '${localizations.currency}',
               status: due?.status == ResidenceDueStatus.paid,
             ),
             _FinancialMetric(
