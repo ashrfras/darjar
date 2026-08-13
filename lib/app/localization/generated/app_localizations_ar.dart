@@ -500,7 +500,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get selectServiceCategoryFirst => 'اختر الصنف الرئيسي أولاً.';
 
   @override
-  String get serviceDescription => 'وصف الخدمة';
+  String get serviceDescription => 'وصف الخدمة (اختياري)';
 
   @override
   String get serviceDescriptionHint => 'اذكر التخصص والخدمات التي يقدمها';

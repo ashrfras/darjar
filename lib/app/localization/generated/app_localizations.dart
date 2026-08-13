@@ -1019,7 +1019,7 @@ abstract class AppLocalizations {
   /// No description provided for @serviceDescription.
   ///
   /// In ar, this message translates to:
-  /// **'وصف الخدمة'**
+  /// **'وصف الخدمة (اختياري)'**
   String get serviceDescription;
 
   /// No description provided for @serviceDescriptionHint.

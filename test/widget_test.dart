@@ -2486,10 +2486,6 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey('service-subcategory-plumber')));
     await tester.enterText(
-      find.byKey(const Key('service-description-field')),
-      'إصلاح الأعطال والتركيبات الكهربائية',
-    );
-    await tester.enterText(
       find.byKey(const Key('service-phone-field')),
       '6 12 34 56 78',
     );
@@ -2504,6 +2500,7 @@ void main() {
     expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
     expect(find.text('شركة النور'), findsOneWidget);
     expect(find.text('كهربائي · سباك'), findsOneWidget);
+    expect(find.text('إصلاح الأعطال والتركيبات الكهربائية'), findsNothing);
   });
 
   testWidgets('service creator can edit their service from its profile', (

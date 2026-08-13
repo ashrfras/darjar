@@ -155,7 +155,7 @@
   "selectServiceSubcategory": "Select a service type",
   "selectServiceTypesHint": "You can select more than one service type.",
   "selectServiceCategoryFirst": "Select the main category first.",
-  "serviceDescription": "Service description",
+  "serviceDescription": "Service description (optional)",
   "serviceDescriptionHint": "Describe the specialty and services provided",
   "servicePhone": "Service phone number",
   "serviceNeighborhood": "Neighborhood or service area",

@@ -333,7 +333,6 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
         subcategoryIds.isEmpty ||
         subcategoryIds.length > 8 ||
         subcategoryIds.toSet().length != subcategoryIds.length ||
-        normalizedProfession.isEmpty ||
         normalizedProfession.length > 160 ||
         !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(normalizedPhone) ||
         normalizedNeighborhood.length > 120) {
@@ -407,7 +406,6 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
         subcategoryIds.isEmpty ||
         subcategoryIds.length > 8 ||
         subcategoryIds.toSet().length != subcategoryIds.length ||
-        normalizedProfession.isEmpty ||
         normalizedProfession.length > 160 ||
         !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(normalizedPhone) ||
         normalizedNeighborhood.length > 120) {

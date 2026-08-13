@@ -510,7 +510,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectServiceCategoryFirst => 'Select the main category first.';
 
   @override
-  String get serviceDescription => 'Service description';
+  String get serviceDescription => 'Service description (optional)';
 
   @override
   String get serviceDescriptionHint =>

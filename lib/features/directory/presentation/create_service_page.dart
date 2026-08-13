@@ -308,7 +308,6 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
     if (!(_formKey.currentState?.validate() ?? false) ||
         _categoryId == null ||
         _subcategoryIds.isEmpty ||
-        _professionController.text.trim().isEmpty ||
         _professionController.text.trim().length > 160 ||
         !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(phone)) {
       _showMessage(localizations.completeServiceFields);

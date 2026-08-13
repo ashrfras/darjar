@@ -344,7 +344,6 @@ service cloud.firestore {
           serviceCategoryPath(request.resource.data.categoryId)
         ).data.subcategoryIds.hasAll(request.resource.data.subcategoryIds)
         && request.resource.data.profession is string
-        && request.resource.data.profession.size() > 0
         && request.resource.data.profession.size() <= 160
         && request.resource.data.phone is string
         && request.resource.data.phone.matches('^[+][1-9][0-9]{7,14}$')
@@ -386,7 +385,6 @@ service cloud.firestore {
           serviceCategoryPath(request.resource.data.categoryId)
         ).data.subcategoryIds.hasAll(request.resource.data.subcategoryIds)
         && request.resource.data.profession is string
-        && request.resource.data.profession.size() > 0
         && request.resource.data.profession.size() <= 160
         && request.resource.data.phone is string
         && request.resource.data.phone.matches('^[+][1-9][0-9]{7,14}$')

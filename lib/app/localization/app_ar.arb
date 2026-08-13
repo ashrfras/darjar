@@ -155,7 +155,7 @@
   "selectServiceSubcategory": "اختر نوع الخدمة",
   "selectServiceTypesHint": "يمكنك اختيار أكثر من نوع خدمة.",
   "selectServiceCategoryFirst": "اختر الصنف الرئيسي أولاً.",
-  "serviceDescription": "وصف الخدمة",
+  "serviceDescription": "وصف الخدمة (اختياري)",
   "serviceDescriptionHint": "اذكر التخصص والخدمات التي يقدمها",
   "servicePhone": "رقم هاتف الخدمة",
   "serviceNeighborhood": "الحي أو منطقة العمل",
