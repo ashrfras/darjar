@@ -2762,22 +2762,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('residence-documents-page')), findsOneWidget);
     expect(find.text('الوثائق الإدارية'), findsOneWidget);
-    expect(find.text('الوثائق المرفقة'), findsOneWidget);
+    expect(find.text('الوثائق المرفقة'), findsNothing);
     expect(
       find.byKey(const Key('administrative-documents-section')),
       findsOneWidget,
     );
     expect(
       find.byKey(const Key('transaction-attachments-section')),
-      findsOneWidget,
+      findsNothing,
     );
     expect(find.text('القانون الداخلي'), findsOneWidget);
     expect(find.text('محضر الاجتماع'), findsOneWidget);
     expect(
       find.text(residenceTransactionAttachmentName('elevator-service-july')),
-      findsOneWidget,
+      findsNothing,
     );
-    expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
+
+    await tester.tap(find.text('محضر الاجتماع'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('download-document-button')), findsOneWidget);
+    expect(find.byIcon(Icons.download_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.share_outlined), findsNothing);
+    await tester.tap(find.byIcon(Icons.close_rounded).last);
+    await tester.pumpAndSettle();
 
     await tester.tap(
       find.byKey(const Key('view-all-administrative-documents')),
@@ -2789,16 +2796,6 @@ void main() {
     );
     await tester.tap(find.byIcon(Icons.close_rounded).last);
     await tester.pumpAndSettle();
-
-    await tester.ensureVisible(
-      find.byKey(const Key('view-all-transaction-attachments')),
-    );
-    await tester.tap(find.byKey(const Key('view-all-transaction-attachments')));
-    await tester.pumpAndSettle();
-    expect(
-      find.byKey(const Key('all-transaction-attachments-sheet')),
-      findsOneWidget,
-    );
   });
 
   testWidgets('profile exposes real editable account and residence data', (

@@ -1,15 +1,16 @@
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
-import 'package:share_plus/share_plus.dart';
 
 class ResidenceDocumentRow extends StatelessWidget {
   const ResidenceDocumentRow({
@@ -130,6 +131,7 @@ class _ResidenceDocumentPreviewState
   late final Future<Uint8List> _download = ref
       .read(residenceDocumentsRepositoryProvider)
       .download(widget.document);
+  bool _saving = false;
 
   @override
   Widget build(BuildContext context) {
@@ -181,45 +183,54 @@ class _ResidenceDocumentPreviewState
                     );
                   }
                   final bytes = snapshot.data!;
-                  if (widget.document.isPdf) {
-                    return PdfPreview(
-                      build: (_) async => bytes,
-                      allowPrinting: false,
-                      allowSharing: true,
-                      canChangeOrientation: false,
-                      canChangePageFormat: false,
-                      canDebug: false,
-                      pdfFileName: widget.document.originalFileName,
-                      onError: (context, error) => _PreviewError(
-                        message: localizations.documentOpenError,
-                      ),
-                    );
-                  }
                   return Stack(
                     children: [
                       Positioned.fill(
-                        child: InteractiveViewer(
-                          minScale: 0.5,
-                          maxScale: 4,
-                          child: Center(
-                            child: Image.memory(
-                              bytes,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  _PreviewError(
-                                    message: localizations.documentOpenError,
+                        child: widget.document.isPdf
+                            ? PdfPreview(
+                                build: (_) async => bytes,
+                                allowPrinting: false,
+                                allowSharing: false,
+                                canChangeOrientation: false,
+                                canChangePageFormat: false,
+                                canDebug: false,
+                                pdfFileName: widget.document.originalFileName,
+                                onError: (context, error) => _PreviewError(
+                                  message: localizations.documentOpenError,
+                                ),
+                              )
+                            : InteractiveViewer(
+                                minScale: 0.5,
+                                maxScale: 4,
+                                child: Center(
+                                  child: Image.memory(
+                                    bytes,
+                                    fit: BoxFit.contain,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            _PreviewError(
+                                              message: localizations
+                                                  .documentOpenError,
+                                            ),
                                   ),
-                            ),
-                          ),
-                        ),
+                                ),
+                              ),
                       ),
                       PositionedDirectional(
                         end: AppSpacing.medium,
                         bottom: AppSpacing.medium,
                         child: FloatingActionButton.small(
-                          tooltip: localizations.shareDocument,
-                          onPressed: () => _share(bytes),
-                          child: const Icon(Icons.share_outlined),
+                          key: const Key('download-document-button'),
+                          tooltip: localizations.downloadDocument,
+                          onPressed: _saving ? null : () => _save(bytes),
+                          child: _saving
+                              ? const SizedBox.square(
+                                  dimension: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.download_rounded),
                         ),
                       ),
                     ],
@@ -233,20 +244,45 @@ class _ResidenceDocumentPreviewState
     );
   }
 
-  Future<void> _share(Uint8List bytes) async {
-    await SharePlus.instance.share(
-      ShareParams(
-        files: [
-          XFile.fromData(
-            bytes,
-            mimeType: widget.document.contentType,
-            name: widget.document.originalFileName,
-          ),
-        ],
-        subject: widget.document.title,
-      ),
-    );
+  Future<void> _save(Uint8List bytes) async {
+    setState(() => _saving = true);
+    final localizations = AppLocalizations.of(context);
+    try {
+      final fileName = _safeFileName(widget.document.originalFileName);
+      final file = XFile.fromData(
+        bytes,
+        mimeType: widget.document.contentType,
+        name: fileName,
+      );
+      if (kIsWeb ||
+          (defaultTargetPlatform != TargetPlatform.android &&
+              defaultTargetPlatform != TargetPlatform.iOS)) {
+        final location = await getSaveLocation(suggestedName: fileName);
+        if (location == null) return;
+        await file.saveTo(location.path);
+      } else {
+        final directory = await getDownloadsDirectory();
+        if (directory == null) throw StateError('downloads-unavailable');
+        await file.saveTo('${directory.path}/$fileName');
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(localizations.documentDownloaded)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(localizations.documentDownloadError)),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
+}
+
+String _safeFileName(String fileName) {
+  final safeName = fileName.trim().replaceAll(RegExp(r'[/\\]'), '_');
+  return safeName.isEmpty ? 'document' : safeName;
 }
 
 class _PreviewError extends StatelessWidget {

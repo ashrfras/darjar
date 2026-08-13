@@ -932,12 +932,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get documents => 'الوثائق';
 
   @override
-  String get documentsDescription =>
-      'الوثائق الإدارية ومرفقات المعاملات المالية.';
+  String get documentsDescription => 'الوثائق الإدارية الخاصة بالإقامة.';
 
   @override
-  String get documentsPageDescription =>
-      'الوثائق الإدارية ومرفقات المعاملات المالية الخاصة بالإقامة.';
+  String get documentsPageDescription => 'الوثائق الإدارية الخاصة بالإقامة.';
 
   @override
   String get administrativeDocuments => 'الوثائق الإدارية';
@@ -945,16 +943,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get administrativeDocumentsDescription =>
       'الوثائق الرسمية التي ترفعها إدارة الإقامة.';
-
-  @override
-  String get attachedDocuments => 'الوثائق المرفقة';
-
-  @override
-  String get attachedDocumentsDescription =>
-      'الفواتير والإيصالات والمستندات المرفقة بالمعاملات المالية.';
-
-  @override
-  String get noAttachedDocuments => 'لا توجد مرفقات للمعاملات المالية بعد.';
 
   @override
   String get viewAllDocuments => 'عرض كل الوثائق';
@@ -975,7 +963,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get documentOpenError => 'تعذر فتح هذه الوثيقة.';
 
   @override
-  String get shareDocument => 'مشاركة الوثيقة';
+  String get downloadDocument => 'تنزيل الوثيقة';
+
+  @override
+  String get documentDownloaded => 'تم تنزيل الوثيقة.';
+
+  @override
+  String get documentDownloadError => 'تعذر تنزيل الوثيقة. حاول مجدداً.';
 
   @override
   String get documentsManagement => 'إدارة الوثائق';

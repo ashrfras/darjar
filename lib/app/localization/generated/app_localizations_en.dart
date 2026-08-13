@@ -954,11 +954,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get documentsDescription =>
-      'Administrative documents and financial transaction attachments.';
+      'Administrative documents for the residence.';
 
   @override
   String get documentsPageDescription =>
-      'Administrative documents and financial transaction attachments for the residence.';
+      'Administrative documents for the residence.';
 
   @override
   String get administrativeDocuments => 'Administrative documents';
@@ -966,16 +966,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get administrativeDocumentsDescription =>
       'Official documents uploaded by residence management.';
-
-  @override
-  String get attachedDocuments => 'Attached documents';
-
-  @override
-  String get attachedDocumentsDescription =>
-      'Invoices, receipts, and documents attached to financial transactions.';
-
-  @override
-  String get noAttachedDocuments => 'No financial transaction attachments yet.';
 
   @override
   String get viewAllDocuments => 'View all documents';
@@ -997,7 +987,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentOpenError => 'This document could not be opened.';
 
   @override
-  String get shareDocument => 'Share document';
+  String get downloadDocument => 'Download document';
+
+  @override
+  String get documentDownloaded => 'The document was downloaded.';
+
+  @override
+  String get documentDownloadError =>
+      'The document could not be downloaded. Try again.';
 
   @override
   String get documentsManagement => 'Document management';

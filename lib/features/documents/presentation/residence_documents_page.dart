@@ -1,5 +1,3 @@
-import 'dart:ui' as ui;
-
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
@@ -12,7 +10,6 @@ import 'package:darjar/features/documents/data/residence_documents_repository.da
 import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 class ResidenceDocumentsPage extends ConsumerStatefulWidget {
   const ResidenceDocumentsPage({super.key});
@@ -28,7 +25,6 @@ class _ResidenceDocumentsPageState
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final documents = ref.watch(residenceDocumentsProvider);
-    final attachments = ref.watch(residenceTransactionAttachmentsProvider);
     final compact = MediaQuery.sizeOf(context).width < 600;
     return SingleChildScrollView(
       key: const Key('residence-documents-page'),
@@ -99,58 +95,6 @@ class _ResidenceDocumentsPageState
                   );
                 },
               ),
-              const SizedBox(height: AppSpacing.xLarge),
-              _SectionHeader(
-                title: localizations.attachedDocuments,
-                description: localizations.attachedDocumentsDescription,
-                icon: Icons.attach_file_rounded,
-                compact: true,
-                onViewAll: () {
-                  final visibleAttachments =
-                      attachments.value ??
-                      const <ResidenceTransactionAttachment>[];
-                  _showAllTransactionAttachments(visibleAttachments);
-                },
-              ),
-              const SizedBox(height: AppSpacing.small),
-              attachments.when(
-                loading: _loading,
-                error: (error, stackTrace) => _loadError(
-                  () => ref.invalidate(residenceTransactionAttachmentsProvider),
-                ),
-                data: (attachments) {
-                  final visible = attachments.take(3).toList();
-                  return DarJarCard(
-                    key: const Key('transaction-attachments-section'),
-                    padding: EdgeInsets.zero,
-                    child: attachments.isEmpty
-                        ? _EmptyState(
-                            message: localizations.noAttachedDocuments,
-                            icon: Icons.attachment_outlined,
-                            compact: true,
-                          )
-                        : Column(
-                            children: [
-                              for (
-                                var index = 0;
-                                index < visible.length;
-                                index++
-                              ) ...[
-                                _TransactionAttachmentRow(
-                                  attachment: visible[index],
-                                  onOpen: () => showResidenceDocumentPreview(
-                                    context,
-                                    ref,
-                                    visible[index].document,
-                                  ),
-                                ),
-                                if (index < visible.length - 1) const Divider(),
-                              ],
-                            ],
-                          ),
-                  );
-                },
-              ),
             ],
           ),
         ),
@@ -203,34 +147,6 @@ class _ResidenceDocumentsPageState
       ),
     );
   }
-
-  Future<void> _showAllTransactionAttachments(
-    List<ResidenceTransactionAttachment> attachments,
-  ) {
-    final localizations = AppLocalizations.of(context);
-    return showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 760),
-      builder: (sheetContext) => _AllDocumentsSheet(
-        key: const Key('all-transaction-attachments-sheet'),
-        title: localizations.attachedDocuments,
-        emptyMessage: localizations.noAttachedDocuments,
-        compact: true,
-        children: [
-          for (final attachment in attachments)
-            _TransactionAttachmentRow(
-              attachment: attachment,
-              onOpen: () {
-                Navigator.of(sheetContext).pop();
-                showResidenceDocumentPreview(context, ref, attachment.document);
-              },
-            ),
-        ],
-      ),
-    );
-  }
 }
 
 class _SectionHeader extends StatelessWidget {
@@ -239,14 +155,12 @@ class _SectionHeader extends StatelessWidget {
     required this.description,
     required this.icon,
     required this.onViewAll,
-    this.compact = false,
   });
 
   final String title;
   final String description;
   final IconData icon;
   final VoidCallback onViewAll;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -255,82 +169,30 @@ class _SectionHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: compact ? 36 : 42,
-          height: compact ? 36 : 42,
+          width: 42,
+          height: 42,
           decoration: BoxDecoration(
-            color: compact ? AppColors.residenceSoft : AppColors.primarySoft,
+            color: AppColors.primarySoft,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(
-            icon,
-            size: compact ? 20 : 23,
-            color: compact ? AppColors.residence : AppColors.primary,
-          ),
+          child: Icon(icon, size: 23, color: AppColors.primary),
         ),
         const SizedBox(width: AppSpacing.medium),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: compact
-                    ? theme.textTheme.titleMedium
-                    : theme.textTheme.titleLarge,
-              ),
+              Text(title, style: theme.textTheme.titleLarge),
               Text(description, style: theme.textTheme.bodySmall),
             ],
           ),
         ),
         TextButton(
-          key: ValueKey(
-            compact
-                ? 'view-all-transaction-attachments'
-                : 'view-all-administrative-documents',
-          ),
+          key: const ValueKey('view-all-administrative-documents'),
           onPressed: onViewAll,
           child: Text(AppLocalizations.of(context).viewAll),
         ),
       ],
-    );
-  }
-}
-
-class _TransactionAttachmentRow extends StatelessWidget {
-  const _TransactionAttachmentRow({
-    required this.attachment,
-    required this.onOpen,
-  });
-
-  final ResidenceTransactionAttachment attachment;
-  final VoidCallback? onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    return ListTile(
-      key: ValueKey('transaction-attachment-${attachment.id}'),
-      onTap: onOpen,
-      leading: const Icon(
-        Icons.description_outlined,
-        color: AppColors.residence,
-      ),
-      title: Text(
-        attachment.document.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        '${attachment.isIncome ? localizations.income : localizations.expense}'
-        ' · ${DateFormat.yMMMd(localizations.localeName).format(attachment.date)}',
-      ),
-      trailing: onOpen == null
-          ? null
-          : Icon(
-              Directionality.of(context) == ui.TextDirection.rtl
-                  ? Icons.chevron_right_rounded
-                  : Icons.chevron_left_rounded,
-            ),
     );
   }
 }
@@ -340,14 +202,12 @@ class _AllDocumentsSheet extends StatelessWidget {
     required this.title,
     required this.emptyMessage,
     required this.children,
-    this.compact = false,
     super.key,
   });
 
   final String title;
   final String emptyMessage;
   final List<Widget> children;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -383,10 +243,7 @@ class _AllDocumentsSheet extends StatelessWidget {
             child: children.isEmpty
                 ? _EmptyState(
                     message: emptyMessage,
-                    icon: compact
-                        ? Icons.attachment_outlined
-                        : Icons.folder_open_outlined,
-                    compact: compact,
+                    icon: Icons.folder_open_outlined,
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.only(bottom: AppSpacing.xLarge),
@@ -402,23 +259,18 @@ class _AllDocumentsSheet extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({
-    required this.message,
-    required this.icon,
-    this.compact = false,
-  });
+  const _EmptyState({required this.message, required this.icon});
 
   final String message;
   final IconData icon;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(compact ? AppSpacing.large : AppSpacing.xLarge),
+      padding: const EdgeInsets.all(AppSpacing.xLarge),
       child: Column(
         children: [
-          Icon(icon, size: compact ? 32 : 44, color: AppColors.inkMuted),
+          Icon(icon, size: 44, color: AppColors.inkMuted),
           const SizedBox(height: AppSpacing.medium),
           Text(message, textAlign: TextAlign.center),
         ],

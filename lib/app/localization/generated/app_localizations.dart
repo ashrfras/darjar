@@ -1809,13 +1809,13 @@ abstract class AppLocalizations {
   /// No description provided for @documentsDescription.
   ///
   /// In ar, this message translates to:
-  /// **'الوثائق الإدارية ومرفقات المعاملات المالية.'**
+  /// **'الوثائق الإدارية الخاصة بالإقامة.'**
   String get documentsDescription;
 
   /// No description provided for @documentsPageDescription.
   ///
   /// In ar, this message translates to:
-  /// **'الوثائق الإدارية ومرفقات المعاملات المالية الخاصة بالإقامة.'**
+  /// **'الوثائق الإدارية الخاصة بالإقامة.'**
   String get documentsPageDescription;
 
   /// No description provided for @administrativeDocuments.
@@ -1829,24 +1829,6 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'الوثائق الرسمية التي ترفعها إدارة الإقامة.'**
   String get administrativeDocumentsDescription;
-
-  /// No description provided for @attachedDocuments.
-  ///
-  /// In ar, this message translates to:
-  /// **'الوثائق المرفقة'**
-  String get attachedDocuments;
-
-  /// No description provided for @attachedDocumentsDescription.
-  ///
-  /// In ar, this message translates to:
-  /// **'الفواتير والإيصالات والمستندات المرفقة بالمعاملات المالية.'**
-  String get attachedDocumentsDescription;
-
-  /// No description provided for @noAttachedDocuments.
-  ///
-  /// In ar, this message translates to:
-  /// **'لا توجد مرفقات للمعاملات المالية بعد.'**
-  String get noAttachedDocuments;
 
   /// No description provided for @viewAllDocuments.
   ///
@@ -1884,11 +1866,23 @@ abstract class AppLocalizations {
   /// **'تعذر فتح هذه الوثيقة.'**
   String get documentOpenError;
 
-  /// No description provided for @shareDocument.
+  /// No description provided for @downloadDocument.
   ///
   /// In ar, this message translates to:
-  /// **'مشاركة الوثيقة'**
-  String get shareDocument;
+  /// **'تنزيل الوثيقة'**
+  String get downloadDocument;
+
+  /// No description provided for @documentDownloaded.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تنزيل الوثيقة.'**
+  String get documentDownloaded;
+
+  /// No description provided for @documentDownloadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تنزيل الوثيقة. حاول مجدداً.'**
+  String get documentDownloadError;
 
   /// No description provided for @documentsManagement.
   ///
