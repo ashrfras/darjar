@@ -1764,6 +1764,24 @@ abstract class AppLocalizations {
   /// **'تم حفظ الرصيد الافتتاحي.'**
   String get openingBalanceSaved;
 
+  /// No description provided for @deleteOpeningBalance.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الرصيد الافتتاحي'**
+  String get deleteOpeningBalance;
+
+  /// No description provided for @confirmDeleteOpeningBalance.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد حذف الرصيد الافتتاحي؟ سيُعاد احتساب الرصيد الحالي، ولا يمكن التراجع عن ذلك.'**
+  String get confirmDeleteOpeningBalance;
+
+  /// No description provided for @openingBalanceDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حذف الرصيد الافتتاحي.'**
+  String get openingBalanceDeleted;
+
   /// No description provided for @openingSettlement.
   ///
   /// In ar, this message translates to:

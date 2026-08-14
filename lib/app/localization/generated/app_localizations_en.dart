@@ -931,6 +931,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openingBalanceSaved => 'Opening balance saved.';
 
   @override
+  String get deleteOpeningBalance => 'Delete opening balance';
+
+  @override
+  String get confirmDeleteOpeningBalance =>
+      'Delete the opening balance? The current balance will be recalculated, and this action cannot be undone.';
+
+  @override
+  String get openingBalanceDeleted => 'Opening balance deleted.';
+
+  @override
   String get openingSettlement => 'Opening adjustment';
 
   @override

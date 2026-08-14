@@ -910,6 +910,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get openingBalanceSaved => 'تم حفظ الرصيد الافتتاحي.';
 
   @override
+  String get deleteOpeningBalance => 'حذف الرصيد الافتتاحي';
+
+  @override
+  String get confirmDeleteOpeningBalance =>
+      'هل تريد حذف الرصيد الافتتاحي؟ سيُعاد احتساب الرصيد الحالي، ولا يمكن التراجع عن ذلك.';
+
+  @override
+  String get openingBalanceDeleted => 'تم حذف الرصيد الافتتاحي.';
+
+  @override
   String get openingSettlement => 'تسوية افتتاحية';
 
   @override

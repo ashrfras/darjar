@@ -3985,6 +3985,29 @@ void main() {
     final finances = await financeRepository.load('test-residence');
     expect(finances.totalIncome, 200);
     expect(finances.currentBalance, 1120);
+
+    final deleteOpeningBalanceButton = find.byKey(
+      const ValueKey('delete-finance-transaction-opening-balance'),
+    );
+    await tester.ensureVisible(deleteOpeningBalanceButton);
+    await tester.tap(deleteOpeningBalanceButton);
+    await tester.pumpAndSettle();
+    expect(find.text('حذف الرصيد الافتتاحي'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('confirm-delete-opening-balance')));
+    await tester.pumpAndSettle();
+
+    expect(
+      financeRepository.transactions.any(
+        (transaction) => transaction.isOpeningBalance,
+      ),
+      isFalse,
+    );
+    expect(find.byKey(const Key('opening-balance-alert')), findsOneWidget);
+    expect(find.text('لم يتم إدخال الرصيد الافتتاحي'), findsOneWidget);
+    final financesAfterDeletion = await financeRepository.load(
+      'test-residence',
+    );
+    expect(financesAfterDeletion.currentBalance, 120);
   });
 
   testWidgets(
@@ -5931,6 +5954,14 @@ class _FakeResidenceFinanceRepository implements ResidenceFinanceRepository {
         source: ResidenceTransactionSource.openingBalance,
         recordedBy: recordedBy,
       ),
+    ];
+  }
+
+  @override
+  Future<void> deleteOpeningBalance({required String residenceId}) async {
+    transactions = [
+      for (final transaction in transactions)
+        if (!transaction.isOpeningBalance) transaction,
     ];
   }
 

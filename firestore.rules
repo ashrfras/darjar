@@ -1029,10 +1029,7 @@ service cloud.firestore {
           )
           && request.resource.data.updatedAt == request.time;
 
-        allow delete: if (
-            canManageResidence(residenceId)
-            && transactionId != 'opening-balance'
-          ) || isRecentlyVerifiedPresident(residenceId);
+        allow delete: if canManageResidence(residenceId);
       }
 
       match /documents/{documentId} {

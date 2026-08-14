@@ -255,6 +255,8 @@ abstract interface class ResidenceFinanceRepository {
     required String recordedBy,
   });
 
+  Future<void> deleteOpeningBalance({required String residenceId});
+
   Future<void> updateManualTransaction({
     required String residenceId,
     required String transactionId,
@@ -417,6 +419,20 @@ class FirestoreResidenceFinanceRepository
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
+    } on FirebaseException catch (error) {
+      throw ResidenceFinanceFailure(error.code, error.message);
+    }
+  }
+
+  @override
+  Future<void> deleteOpeningBalance({required String residenceId}) async {
+    final reference = _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('financeTransactions')
+        .doc('opening-balance');
+    try {
+      await reference.delete();
     } on FirebaseException catch (error) {
       throw ResidenceFinanceFailure(error.code, error.message);
     }
@@ -660,6 +676,13 @@ class ResidenceFinanceController extends AsyncNotifier<ResidenceFinances> {
           date: date,
           recordedBy: user.uid,
         );
+    await _reload();
+  }
+
+  Future<void> deleteOpeningBalance() async {
+    await ref
+        .read(residenceFinanceRepositoryProvider)
+        .deleteOpeningBalance(residenceId: _requiredResidenceId());
     await _reload();
   }
 

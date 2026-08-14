@@ -153,7 +153,14 @@ class FinanceManagementPage extends ConsumerWidget {
                                           )
                                         : null,
                                     onDelete:
-                                        finances.transactions[index].isManual
+                                        finances
+                                            .transactions[index]
+                                            .isOpeningBalance
+                                        ? () => _deleteOpeningBalance(
+                                            context,
+                                            ref,
+                                          )
+                                        : finances.transactions[index].isManual
                                         ? () => _deleteTransaction(
                                             context,
                                             ref,
@@ -241,6 +248,42 @@ class FinanceManagementPage extends ConsumerWidget {
     } on ResidenceFinanceFailure {
       if (context.mounted) {
         _showMessage(context, AppLocalizations.of(context).financeInvalidData);
+      }
+    }
+  }
+
+  Future<void> _deleteOpeningBalance(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final localizations = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(localizations.deleteOpeningBalance),
+        content: Text(localizations.confirmDeleteOpeningBalance),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(localizations.cancel),
+          ),
+          FilledButton(
+            key: const Key('confirm-delete-opening-balance'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(localizations.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      await ref.read(residenceFinancesProvider.notifier).deleteOpeningBalance();
+      if (context.mounted) {
+        _showMessage(context, localizations.openingBalanceDeleted);
+      }
+    } on ResidenceFinanceFailure {
+      if (context.mounted) {
+        _showMessage(context, localizations.financeInvalidData);
       }
     }
   }
