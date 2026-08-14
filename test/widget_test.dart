@@ -3823,7 +3823,7 @@ void main() {
     );
     await tester.enterText(
       find.byKey(const Key('finance-transaction-amount-field')),
-      '300',
+      '300,50',
     );
     await tester.ensureVisible(
       find.byKey(const Key('save-finance-transaction-button')),
@@ -3840,7 +3840,8 @@ void main() {
       financeRepository.transactions.any(
         (transaction) =>
             transaction.name == 'كراء موقف إضافي' &&
-            transaction.type == ResidenceTransactionType.income,
+            transaction.type == ResidenceTransactionType.income &&
+            transaction.amount == 300.5,
       ),
       isTrue,
     );
@@ -3970,7 +3971,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('opening-balance-amount-field')),
-      '1000',
+      '1000٫50',
     );
     await tester.tap(find.byKey(const Key('save-opening-balance-button')));
     await tester.pumpAndSettle();
@@ -3980,11 +3981,11 @@ void main() {
       financeRepository.transactions
           .singleWhere((transaction) => transaction.isOpeningBalance)
           .amount,
-      1000,
+      1000.5,
     );
     final finances = await financeRepository.load('test-residence');
     expect(finances.totalIncome, 200);
-    expect(finances.currentBalance, 1120);
+    expect(finances.currentBalance, 1120.5);
 
     final deleteOpeningBalanceButton = find.byKey(
       const ValueKey('delete-finance-transaction-opening-balance'),
@@ -5938,7 +5939,7 @@ class _FakeResidenceFinanceRepository implements ResidenceFinanceRepository {
   @override
   Future<void> setOpeningBalance({
     required String residenceId,
-    required int amount,
+    required num amount,
     required DateTime date,
     required String recordedBy,
   }) async {

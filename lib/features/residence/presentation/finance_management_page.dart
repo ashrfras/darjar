@@ -10,10 +10,9 @@ import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
+import 'package:darjar/features/residence/domain/finance_amount.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 class FinanceManagementPage extends ConsumerWidget {
   const FinanceManagementPage({super.key});
@@ -429,7 +428,7 @@ class _SummaryValue extends StatelessWidget {
   });
 
   final String label;
-  final int value;
+  final num value;
   final Color color;
 
   @override
@@ -443,7 +442,7 @@ class _SummaryValue extends StatelessWidget {
           const SizedBox(height: AppSpacing.small),
           FittedBox(
             child: Text(
-              '${NumberFormat.decimalPattern(localizations.localeName).format(value)} ${localizations.currency}',
+              '${formatFinanceAmount(value, localizations.localeName)} ${localizations.currency}',
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(color: color),
@@ -516,7 +515,7 @@ class _ManagementTransactionRow extends StatelessWidget {
                 ? ''
                 : isIncome
                 ? '+'
-                : '-'}${NumberFormat.decimalPattern(localizations.localeName).format(transaction.amount)}',
+                : '-'}${formatFinanceAmount(transaction.amount, localizations.localeName)}',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: isIncome ? AppColors.residence : AppColors.warning,
             ),
@@ -544,7 +543,7 @@ class _ManagementTransactionRow extends StatelessWidget {
 class _OpeningBalanceInput {
   const _OpeningBalanceInput({required this.amount, required this.date});
 
-  final int amount;
+  final num amount;
   final DateTime date;
 }
 
@@ -623,8 +622,10 @@ class _OpeningBalanceSheetState extends State<_OpeningBalanceSheet> {
                 controller: _amountController,
                 prefixIcon: Icons.payments_outlined,
                 suffixText: localizations.currency,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: [financeAmountInputFormatter],
               ),
               const SizedBox(height: AppSpacing.xSmall),
               Text(
@@ -678,7 +679,7 @@ class _OpeningBalanceSheetState extends State<_OpeningBalanceSheet> {
   }
 
   void _submit() {
-    final amount = int.tryParse(_amountController.text.trim());
+    final amount = parseFinanceAmount(_amountController.text);
     if (amount == null || amount < 0) {
       setState(() => _showError = true);
       return;
@@ -734,7 +735,9 @@ class _TransactionFormSheetState extends ConsumerState<_TransactionFormSheet> {
     final transaction = widget.transaction;
     _nameController = TextEditingController(text: transaction?.name ?? '');
     _amountController = TextEditingController(
-      text: transaction == null ? '' : '${transaction.amount}',
+      text: transaction == null
+          ? ''
+          : formatFinanceAmountForInput(transaction.amount),
     );
     _noteController = TextEditingController(text: transaction?.note ?? '');
     _selectedAttachmentName = transaction?.hasAttachment == true
@@ -845,8 +848,10 @@ class _TransactionFormSheetState extends ConsumerState<_TransactionFormSheet> {
                 controller: _amountController,
                 prefixIcon: Icons.payments_outlined,
                 suffixText: localizations.currency,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: [financeAmountInputFormatter],
               ),
               const SizedBox(height: AppSpacing.medium),
               OutlinedButton.icon(
@@ -957,7 +962,7 @@ class _TransactionFormSheetState extends ConsumerState<_TransactionFormSheet> {
   }
 
   void _submit() {
-    final amount = int.tryParse(_amountController.text);
+    final amount = parseFinanceAmount(_amountController.text);
     final name = _requiresName
         ? _nameController.text.trim()
         : _category?.name ?? '';

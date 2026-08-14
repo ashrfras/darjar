@@ -12,6 +12,7 @@ import 'package:darjar/features/documents/presentation/residence_document_widget
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
+import 'package:darjar/features/residence/domain/finance_amount.dart';
 import 'package:darjar/features/residence/data/residence_important_notifications.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
@@ -935,10 +936,11 @@ class _InfoMetric extends StatelessWidget {
   }
 }
 
-String _formatAmount(BuildContext context, int amount) {
-  return NumberFormat.decimalPattern(
+String _formatAmount(BuildContext context, num amount) {
+  return formatFinanceAmount(
+    amount,
     Localizations.localeOf(context).languageCode,
-  ).format(amount);
+  );
 }
 
 String _formatPercentage(double value) {

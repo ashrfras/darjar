@@ -9,9 +9,9 @@ import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
+import 'package:darjar/features/residence/domain/finance_amount.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 class FinanceTransactionsPage extends ConsumerStatefulWidget {
   const FinanceTransactionsPage({super.key});
@@ -187,8 +187,8 @@ class _FinanceTransactionsPageState
 class _PeriodSummary extends StatelessWidget {
   const _PeriodSummary({required this.income, required this.expenses});
 
-  final int income;
-  final int expenses;
+  final num income;
+  final num expenses;
 
   @override
   Widget build(BuildContext context) {
@@ -228,7 +228,7 @@ class _PeriodTotal extends StatelessWidget {
   });
 
   final String label;
-  final int value;
+  final num value;
   final Color color;
   final IconData icon;
 
@@ -442,7 +442,7 @@ class _Meta extends StatelessWidget {
   }
 }
 
-int _totalFor(
+num _totalFor(
   List<ResidenceTransaction> transactions,
   ResidenceTransactionType type,
 ) {
@@ -451,13 +451,14 @@ int _totalFor(
         (transaction) =>
             transaction.type == type && !transaction.isOpeningBalance,
       )
-      .fold(0, (total, transaction) => total + transaction.amount);
+      .fold<num>(0, (total, transaction) => total + transaction.amount);
 }
 
-String _amount(BuildContext context, int amount) {
-  return NumberFormat.decimalPattern(
+String _amount(BuildContext context, num amount) {
+  return formatFinanceAmount(
+    amount,
     Localizations.localeOf(context).languageCode,
-  ).format(amount);
+  );
 }
 
 String _categoryLabel(BuildContext context, ResidenceExpenseCategory category) {

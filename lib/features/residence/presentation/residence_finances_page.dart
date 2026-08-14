@@ -10,10 +10,10 @@ import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
+import 'package:darjar/features/residence/domain/finance_amount.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 class ResidenceFinancesPage extends ConsumerWidget {
   const ResidenceFinancesPage({super.key});
@@ -304,7 +304,7 @@ class _BreakdownRow extends StatelessWidget {
   });
 
   final ResidenceExpenseBreakdown item;
-  final int totalExpenses;
+  final num totalExpenses;
   final Color color;
 
   @override
@@ -561,10 +561,11 @@ class _Meta extends StatelessWidget {
   }
 }
 
-String _amount(BuildContext context, int amount) {
-  return NumberFormat.decimalPattern(
+String _amount(BuildContext context, num amount) {
+  return formatFinanceAmount(
+    amount,
     Localizations.localeOf(context).languageCode,
-  ).format(amount);
+  );
 }
 
 String _categoryLabel(BuildContext context, ResidenceExpenseCategory category) {

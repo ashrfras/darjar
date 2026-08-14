@@ -41,7 +41,7 @@ class ResidenceTransaction {
 
   final String id;
   final ResidenceTransactionType type;
-  final int amount;
+  final num amount;
   final DateTime date;
   final String name;
   final ResidenceTransactionSource source;
@@ -87,7 +87,7 @@ class ResidenceExpenseBreakdown {
   });
 
   final ResidenceExpenseCategory category;
-  final int amount;
+  final num amount;
 }
 
 class ResidenceFinances {
@@ -133,29 +133,29 @@ class ResidenceFinances {
               transaction.type == ResidenceTransactionType.income &&
               !transaction.isOpeningBalance,
         )
-        .fold(0, (total, transaction) => total + transaction.amount);
+        .fold<num>(0, (total, transaction) => total + transaction.amount);
     final totalExpenses = currentYearTransactions
         .where(
           (transaction) => transaction.type == ResidenceTransactionType.expense,
         )
-        .fold(0, (total, transaction) => total + transaction.amount);
+        .fold<num>(0, (total, transaction) => total + transaction.amount);
     final allTimeIncome = orderedTransactions
         .where(
           (transaction) =>
               transaction.type == ResidenceTransactionType.income &&
               !transaction.isOpeningBalance,
         )
-        .fold(0, (total, transaction) => total + transaction.amount);
+        .fold<num>(0, (total, transaction) => total + transaction.amount);
     final allTimeExpenses = orderedTransactions
         .where(
           (transaction) => transaction.type == ResidenceTransactionType.expense,
         )
-        .fold(0, (total, transaction) => total + transaction.amount);
+        .fold<num>(0, (total, transaction) => total + transaction.amount);
     final openingBalance = orderedTransactions
         .where((transaction) => transaction.isOpeningBalance)
-        .fold(0, (total, transaction) => total + transaction.amount);
+        .fold<num>(0, (total, transaction) => total + transaction.amount);
     final breakdownAmounts = {
-      for (final category in ResidenceExpenseCategory.values) category: 0,
+      for (final category in ResidenceExpenseCategory.values) category: 0 as num,
     };
     for (final transaction in currentYearTransactions) {
       if (transaction.type != ResidenceTransactionType.expense) continue;
@@ -194,9 +194,9 @@ class ResidenceFinances {
     );
   }
 
-  final int totalIncome;
-  final int totalExpenses;
-  final int currentBalance;
+  final num totalIncome;
+  final num totalExpenses;
+  final num currentBalance;
   final int paidResidents;
   final int totalResidents;
   final List<ResidenceExpenseBreakdown> breakdown;
@@ -223,7 +223,7 @@ class ResidenceFinanceInput {
   });
 
   final ResidenceTransactionType type;
-  final int amount;
+  final num amount;
   final DateTime date;
   final String name;
   final ResidenceExpenseCategory? expenseCategory;
@@ -250,7 +250,7 @@ abstract interface class ResidenceFinanceRepository {
 
   Future<void> setOpeningBalance({
     required String residenceId,
-    required int amount,
+    required num amount,
     required DateTime date,
     required String recordedBy,
   });
@@ -372,7 +372,7 @@ class FirestoreResidenceFinanceRepository
     return ResidenceTransaction(
       id: document.id,
       type: ResidenceTransactionType.values.byName(data['type'] as String),
-      amount: data['amount'] as int,
+      amount: data['amount'] as num,
       date: _dateFrom(data['date']),
       name: data['name'] as String,
       source: data['source'] == ResidenceTransactionSource.openingBalance.name
@@ -393,7 +393,7 @@ class FirestoreResidenceFinanceRepository
   @override
   Future<void> setOpeningBalance({
     required String residenceId,
-    required int amount,
+    required num amount,
     required DateTime date,
     required String recordedBy,
   }) async {
@@ -661,7 +661,7 @@ class ResidenceFinanceController extends AsyncNotifier<ResidenceFinances> {
   }
 
   Future<void> setOpeningBalance({
-    required int amount,
+    required num amount,
     required DateTime date,
   }) async {
     final user = ref.read(authRepositoryProvider).currentUser;
