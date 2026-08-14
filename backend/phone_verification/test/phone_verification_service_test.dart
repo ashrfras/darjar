@@ -2,6 +2,7 @@ import 'package:darjar_phone_verification/src/phone_verification_service.dart';
 import 'package:test/test.dart';
 
 void main() {
+  const regularPhoneNumber = '+212600000002';
   late _FakeSmsGateway sms;
   late _MemorySessions sessions;
   late _FakeIdentity identity;
@@ -26,25 +27,67 @@ void main() {
     'stores only a hash and sends the code through the SMS gateway',
     () async {
       final sessionId = await service.start(
-        '+212600000001',
+        regularPhoneNumber,
         languageCode: 'ar',
       );
 
       expect(sessionId, 'A' * 43);
-      expect(sms.sentPhone, '+212600000001');
+      expect(sms.sentPhone, regularPhoneNumber);
       expect(sms.sentCode, '123456');
       expect(sessions.values.values.single.codeHash, isNot(contains('123456')));
-      expect(sessions.values.values.single.phoneNumber, '+212600000001');
+      expect(sessions.values.values.single.phoneNumber, regularPhoneNumber);
     },
   );
 
+  test('Google Play review phone uses its fixed code without SMS', () async {
+    final sessionId = await service.start(
+      googlePlayReviewPhoneNumber,
+      languageCode: 'ar',
+    );
+
+    expect(sms.sendCount, 0);
+    expect(sessions.values.values.single.codeHash, isNot(contains('786345')));
+
+    final token = await service.check(
+      sessionId: sessionId,
+      code: googlePlayReviewVerificationCode,
+    );
+
+    expect(token, 'firebase-custom-token');
+    expect(identity.requestedPhone, googlePlayReviewPhoneNumber);
+    expect(sessions.values, isEmpty);
+  });
+
+  test('Google Play review phone rejects any other code', () async {
+    final sessionId = await service.start(
+      googlePlayReviewPhoneNumber,
+      languageCode: 'en',
+    );
+
+    await expectLater(
+      service.check(sessionId: sessionId, code: '123456'),
+      throwsA(
+        isA<VerificationFailure>().having(
+          (error) => error.code,
+          'code',
+          'invalid-verification-code',
+        ),
+      ),
+    );
+    expect(sms.sendCount, 0);
+    expect(identity.requestedPhone, isNull);
+  });
+
   test('checks the code hash and returns a Firebase custom token', () async {
-    final sessionId = await service.start('+212600000001', languageCode: 'ar');
+    final sessionId = await service.start(
+      regularPhoneNumber,
+      languageCode: 'ar',
+    );
 
     final token = await service.check(sessionId: sessionId, code: '123456');
 
     expect(token, 'firebase-custom-token');
-    expect(identity.requestedPhone, '+212600000001');
+    expect(identity.requestedPhone, regularPhoneNumber);
     expect(sessions.values, isEmpty);
   });
 
@@ -61,7 +104,10 @@ void main() {
   );
 
   test('decrements attempts when the code is wrong', () async {
-    final sessionId = await service.start('+212600000001', languageCode: 'ar');
+    final sessionId = await service.start(
+      regularPhoneNumber,
+      languageCode: 'ar',
+    );
 
     await expectLater(
       service.check(sessionId: sessionId, code: '654321'),
@@ -79,10 +125,10 @@ void main() {
   });
 
   test('rejects repeated sends to the same number within a minute', () async {
-    await service.start('+212600000001', languageCode: 'ar');
+    await service.start(regularPhoneNumber, languageCode: 'ar');
 
     await expectLater(
-      service.start('+212600000001', languageCode: 'ar'),
+      service.start(regularPhoneNumber, languageCode: 'ar'),
       throwsA(
         isA<VerificationFailure>().having(
           (error) => error.code,
@@ -97,7 +143,7 @@ void main() {
   test('rejects an expired session before checking the code', () async {
     sessions.values['B' * 43] = VerificationSession(
       id: 'B' * 43,
-      phoneNumber: '+212600000001',
+      phoneNumber: regularPhoneNumber,
       codeHash: 'expired-hash',
       attemptsRemaining: 5,
       expiresAt: DateTime.utc(2026, 8, 4, 11, 59),

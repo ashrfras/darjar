@@ -3,6 +3,9 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 
+const googlePlayReviewPhoneNumber = '+212600000001';
+const googlePlayReviewVerificationCode = '786345';
+
 class VerificationFailure implements Exception {
   const VerificationFailure(this.code, {this.message});
 
@@ -116,7 +119,10 @@ class PhoneVerificationService {
     final requestedAt = _now().toUtc();
     await _sessions.reserveSend(phoneNumber, requestedAt);
     final sessionId = _newSessionId();
-    final code = _newCode();
+    final isGooglePlayReview = phoneNumber == googlePlayReviewPhoneNumber;
+    final code = isGooglePlayReview
+        ? googlePlayReviewVerificationCode
+        : _newCode();
     final session = VerificationSession(
       id: sessionId,
       phoneNumber: phoneNumber,
@@ -126,12 +132,14 @@ class PhoneVerificationService {
     );
     try {
       await _sessions.save(session);
-      await _sms.sendCode(
-        phoneNumber: phoneNumber,
-        code: code,
-        idempotencyKey: sessionId,
-        languageCode: languageCode == 'en' ? 'en' : 'ar',
-      );
+      if (!isGooglePlayReview) {
+        await _sms.sendCode(
+          phoneNumber: phoneNumber,
+          code: code,
+          idempotencyKey: sessionId,
+          languageCode: languageCode == 'en' ? 'en' : 'ar',
+        );
+      }
     } catch (_) {
       await _sessions.delete(sessionId);
       await _sessions.releaseSend(phoneNumber, requestedAt);
