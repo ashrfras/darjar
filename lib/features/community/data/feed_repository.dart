@@ -117,6 +117,8 @@ class FirebaseFeedActivityRepository implements FeedActivityRepository {
               type: referenceType,
               entityId: data['referenceId'] as String?,
             ),
+      apartmentNumber: payload['apartmentNumber']?.toString(),
+      periodKey: payload['periodKey']?.toString(),
     );
   }
 }
@@ -229,7 +231,9 @@ final feedItemsProvider = Provider.autoDispose<AsyncValue<List<FeedItem>>>((
   final posts = postsState.value;
   final activities = activitiesState.value;
   if (posts != null) {
-    return AsyncData(_mergeFeed(posts, activities ?? const []));
+    return AsyncData(
+      _mergeFeed(posts, groupConsecutiveDueActivities(activities ?? const [])),
+    );
   }
   if (postsState.hasError) {
     return AsyncError(postsState.error!, postsState.stackTrace!);
@@ -260,6 +264,71 @@ List<FeedItem> _mergeFeed(
   }
   items.addAll(systemPosts.map(PostFeedItem.new));
   return items;
+}
+
+List<ResidenceActivity> groupConsecutiveDueActivities(
+  List<ResidenceActivity> activities,
+) {
+  final grouped = <ResidenceActivity>[];
+  var index = 0;
+  while (index < activities.length) {
+    final first = activities[index];
+    if (!_canGroupDueActivity(first)) {
+      grouped.add(first);
+      index++;
+      continue;
+    }
+
+    var end = index + 1;
+    while (end < activities.length &&
+        _canGroupDueActivity(activities[end]) &&
+        activities[end].apartmentNumber == first.apartmentNumber) {
+      end++;
+    }
+
+    final run = activities.sublist(index, end);
+    if (run.length == 1) {
+      grouped.add(first);
+    } else {
+      final orderedPeriods = run.map((activity) => activity.periodKey!).toList()
+        ..sort(_comparePeriodKeys);
+      final start = orderedPeriods.first;
+      final finish = orderedPeriods.last;
+      final apartment = first.apartmentNumber!;
+      grouped.add(
+        first.copyWith(
+          descriptionAr:
+              'تم تسجيل أداء اشتراك $start إلى $finish للشقة $apartment',
+          descriptionEn:
+              'Dues from $start to $finish were recorded for apartment '
+              '$apartment',
+          periodKey: finish,
+        ),
+      );
+    }
+    index = end;
+  }
+  return grouped;
+}
+
+bool _canGroupDueActivity(ResidenceActivity activity) {
+  return activity.activityType == ResidenceActivityType.duePaid &&
+      (activity.apartmentNumber?.isNotEmpty ?? false) &&
+      _periodIndex(activity.periodKey) != null;
+}
+
+int _comparePeriodKeys(String left, String right) {
+  return _periodIndex(left)!.compareTo(_periodIndex(right)!);
+}
+
+int? _periodIndex(String? periodKey) {
+  if (periodKey == null) return null;
+  final match = RegExp(r'^(\d{4})-(\d{2})$').firstMatch(periodKey);
+  if (match == null) return null;
+  final year = int.parse(match.group(1)!);
+  final month = int.parse(match.group(2)!);
+  if (month < 1 || month > 12) return null;
+  return year * 12 + month;
 }
 
 const _initialActivities = <ResidenceActivity>[

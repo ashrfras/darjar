@@ -65,6 +65,8 @@ class ResidenceActivity extends FeedItem {
     this.classificationAr,
     this.classificationEn,
     this.reference,
+    this.apartmentNumber,
+    this.periodKey,
   }) : super(type: FeedItemType.activity);
 
   final ResidenceActivityType activityType;
@@ -77,14 +79,22 @@ class ResidenceActivity extends FeedItem {
   final String? classificationAr;
   final String? classificationEn;
   final FeedEntityReference? reference;
+  final String? apartmentNumber;
+  final String? periodKey;
 
-  ResidenceActivity copyWith({int? likes, bool? isLiked}) {
+  ResidenceActivity copyWith({
+    int? likes,
+    bool? isLiked,
+    String? descriptionAr,
+    String? descriptionEn,
+    String? periodKey,
+  }) {
     return ResidenceActivity(
       id: id,
       activityType: activityType,
       category: category,
-      descriptionAr: descriptionAr,
-      descriptionEn: descriptionEn,
+      descriptionAr: descriptionAr ?? this.descriptionAr,
+      descriptionEn: descriptionEn ?? this.descriptionEn,
       timeLabelAr: timeLabelAr,
       timeLabelEn: timeLabelEn,
       likes: likes ?? this.likes,
@@ -92,6 +102,8 @@ class ResidenceActivity extends FeedItem {
       classificationAr: classificationAr,
       classificationEn: classificationEn,
       reference: reference,
+      apartmentNumber: apartmentNumber,
+      periodKey: periodKey ?? this.periodKey,
     );
   }
 }
