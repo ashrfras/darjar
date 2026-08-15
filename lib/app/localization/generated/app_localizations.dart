@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @community.
   ///
   /// In ar, this message translates to:
-  /// **'المجتمع'**
+  /// **'الموجز'**
   String get community;
 
   /// No description provided for @directory.
@@ -185,7 +185,7 @@ abstract class AppLocalizations {
   /// No description provided for @communityDescription.
   ///
   /// In ar, this message translates to:
-  /// **'مساحة أخبار الجيران والإعلانات والنقاشات داخل الإقامة.'**
+  /// **'موجز نشاط الإقامة ومنشورات السكان والإعلانات.'**
   String get communityDescription;
 
   /// No description provided for @shellPreviewDescription.
@@ -335,13 +335,13 @@ abstract class AppLocalizations {
   /// No description provided for @landingCommunityTitle.
   ///
   /// In ar, this message translates to:
-  /// **'المجتمع'**
+  /// **'الموجز'**
   String get landingCommunityTitle;
 
   /// No description provided for @landingCommunityDescription.
   ///
   /// In ar, this message translates to:
-  /// **'أخبار ومنشورات الإقامة وتواصل منظّم حول ما يهم السكان والحياة المشتركة.'**
+  /// **'نشاط الإقامة ومنشورات السكان وتواصل منظّم حول ما يهم الحياة المشتركة.'**
   String get landingCommunityDescription;
 
   /// No description provided for @landingServicesTitle.
@@ -881,7 +881,7 @@ abstract class AppLocalizations {
   /// No description provided for @communityFeedDescription.
   ///
   /// In ar, this message translates to:
-  /// **'آخر أخبار وإعلانات إقامة الياسمين.'**
+  /// **'آخر نشاط ومنشورات وإعلانات الإقامة.'**
   String get communityFeedDescription;
 
   /// No description provided for @newPost.
@@ -3129,7 +3129,7 @@ abstract class AppLocalizations {
   /// No description provided for @communityNotifications.
   ///
   /// In ar, this message translates to:
-  /// **'إشعارات المجتمع'**
+  /// **'إشعارات الموجز'**
   String get communityNotifications;
 
   /// No description provided for @residenceNotifications.

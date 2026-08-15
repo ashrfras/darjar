@@ -536,7 +536,10 @@ class _CommunityPreview extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _PreviewTitle(icon: Icons.forum_outlined, label: 'المجتمع'),
+          const _PreviewTitle(
+            icon: Icons.dynamic_feed_outlined,
+            label: 'الموجز',
+          ),
           const SizedBox(height: AppSpacing.xLarge),
           const _PostPreview(
             initials: 'س',

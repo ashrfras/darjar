@@ -21,7 +21,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get brandLatin => 'DarJar';
 
   @override
-  String get community => 'المجتمع';
+  String get community => 'الموجز';
 
   @override
   String get directory => 'الخدمات';
@@ -55,7 +55,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get communityDescription =>
-      'مساحة أخبار الجيران والإعلانات والنقاشات داخل الإقامة.';
+      'موجز نشاط الإقامة ومنشورات السكان والإعلانات.';
 
   @override
   String get shellPreviewDescription =>
@@ -135,11 +135,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'صورة واضحة عن المداخيل والمصاريف والرصيد الحالي، مع سجل المعاملات والوثائق الداعمة عند توفرها.';
 
   @override
-  String get landingCommunityTitle => 'المجتمع';
+  String get landingCommunityTitle => 'الموجز';
 
   @override
   String get landingCommunityDescription =>
-      'أخبار ومنشورات الإقامة وتواصل منظّم حول ما يهم السكان والحياة المشتركة.';
+      'نشاط الإقامة ومنشورات السكان وتواصل منظّم حول ما يهم الحياة المشتركة.';
 
   @override
   String get landingServicesTitle => 'الخدمات';
@@ -428,7 +428,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setupUnexpectedError => 'تعذر إكمال العملية الآن. حاول مجدداً.';
 
   @override
-  String get communityFeedDescription => 'آخر أخبار وإعلانات إقامة الياسمين.';
+  String get communityFeedDescription => 'آخر نشاط ومنشورات وإعلانات الإقامة.';
 
   @override
   String get newPost => 'منشور جديد';
@@ -1682,7 +1682,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get communityNotifications => 'إشعارات المجتمع';
+  String get communityNotifications => 'إشعارات الموجز';
 
   @override
   String get residenceNotifications => 'إشعارات الإقامة';

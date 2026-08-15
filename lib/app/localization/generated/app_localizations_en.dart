@@ -21,7 +21,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get brandLatin => 'DarJar';
 
   @override
-  String get community => 'Community';
+  String get community => 'Feed';
 
   @override
   String get directory => 'Services';
@@ -56,7 +56,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get communityDescription =>
-      'News, announcements, and discussions for residence neighbors.';
+      'Residence activity, resident posts, and announcements.';
 
   @override
   String get shellPreviewDescription =>
@@ -136,11 +136,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'A clear view of income, expenses, the current balance, transactions, and supporting documents when available.';
 
   @override
-  String get landingCommunityTitle => 'Community';
+  String get landingCommunityTitle => 'Feed';
 
   @override
   String get landingCommunityDescription =>
-      'Residence news, posts, and organized communication about shared life and what matters to residents.';
+      'Residence activity, resident posts, and organized communication about shared life.';
 
   @override
   String get landingServicesTitle => 'Services';
@@ -435,7 +435,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get communityFeedDescription =>
-      'The latest news and announcements from Yasmeen Residence.';
+      'The latest residence activity, posts, and announcements.';
 
   @override
   String get newPost => 'New post';
@@ -1718,7 +1718,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get communityNotifications => 'Community notifications';
+  String get communityNotifications => 'Feed notifications';
 
   @override
   String get residenceNotifications => 'Residence notifications';

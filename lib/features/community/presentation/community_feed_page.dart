@@ -8,13 +8,16 @@ import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
+import 'package:darjar/features/community/data/feed_repository.dart';
+import 'package:darjar/features/community/domain/feed_item.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
+import 'package:darjar/features/community/presentation/residence_activity_card.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-enum CommunityFeedFilter { all, official, mine, saved }
+enum CommunityFeedFilter { all, posts, finance, announcements, polls }
 
 class CommunityFeedPage extends ConsumerStatefulWidget {
   const CommunityFeedPage({super.key});
@@ -45,6 +48,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
   @override
   Widget build(BuildContext context) {
     final postsState = ref.watch(communityPostsProvider);
+    final feedState = ref.watch(feedItemsProvider);
     final canManageResidence =
         ref
             .watch(residenceContextProvider)
@@ -53,17 +57,20 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
             ?.canManageResidence ??
         false;
     final posts = postsState.value ?? const <CommunityPost>[];
+    final items = feedState.value ?? const <FeedItem>[];
     ref.listen(communityPostsProvider, (previous, next) {
       if (!next.isLoading) _loadingMore = false;
     });
     final compact = MediaQuery.sizeOf(context).width < 600;
     final wide = MediaQuery.sizeOf(context).width >= 1180;
-    final filtered = posts.where((post) {
+    final filtered = items.where((item) {
       return switch (_filter) {
         CommunityFeedFilter.all => true,
-        CommunityFeedFilter.official => post.isOfficial,
-        CommunityFeedFilter.mine => post.isCurrentUser,
-        CommunityFeedFilter.saved => post.isSaved,
+        CommunityFeedFilter.posts => item.type == FeedItemType.post,
+        CommunityFeedFilter.finance => item.category == FeedCategory.finance,
+        CommunityFeedFilter.announcements =>
+          item.category == FeedCategory.announcements,
+        CommunityFeedFilter.polls => item.category == FeedCategory.polls,
       };
     }).toList();
 
@@ -111,9 +118,9 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                               onTap: () => context.go(AppRoutes.createPost),
                             ),
                             const SizedBox(height: AppSpacing.large),
-                            if (postsState.isLoading && posts.isEmpty)
+                            if (feedState.isLoading && items.isEmpty)
                               const DarJarLoadingSkeleton()
-                            else if (postsState.hasError && posts.isEmpty)
+                            else if (feedState.hasError && items.isEmpty)
                               _CommunityLoadError(
                                 onRetry: () =>
                                     ref.invalidate(communityPostsProvider),
@@ -125,36 +132,51 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                 ),
                               )
                             else
-                              for (final post in filtered) ...[
-                                CommunityPostCard(
-                                  post: post,
-                                  onOpen: () => context.go(
-                                    AppRoutes.communityPost(post.id),
+                              for (final item in filtered) ...[
+                                switch (item) {
+                                  PostFeedItem(:final post) =>
+                                    CommunityPostCard(
+                                      post: post,
+                                      onOpen: () => context.go(
+                                        AppRoutes.communityPost(post.id),
+                                      ),
+                                      onLike: () => _runAction(
+                                        () => ref
+                                            .read(communityActionsProvider)
+                                            .toggleLike(post.id),
+                                      ),
+                                      onSave: () => _runAction(
+                                        () => ref
+                                            .read(communityActionsProvider)
+                                            .toggleSaved(post.id),
+                                      ),
+                                      onVote: (optionId) => _runAction(
+                                        () => ref
+                                            .read(communityActionsProvider)
+                                            .vote(post.id, optionId),
+                                      ),
+                                      onArchive:
+                                          post.isCurrentUser ||
+                                              canManageResidence
+                                          ? () => _runAction(
+                                              () => ref
+                                                  .read(
+                                                    communityActionsProvider,
+                                                  )
+                                                  .archivePost(post.id),
+                                            )
+                                          : null,
+                                    ),
+                                  ResidenceActivity() => ResidenceActivityCard(
+                                    activity: item,
+                                    onLike: () => ref
+                                        .read(feedActivitiesProvider.notifier)
+                                        .toggleLike(item.id),
+                                    onOpen: item.reference == null
+                                        ? null
+                                        : () => _openActivity(item.reference!),
                                   ),
-                                  onLike: () => _runAction(
-                                    () => ref
-                                        .read(communityActionsProvider)
-                                        .toggleLike(post.id),
-                                  ),
-                                  onSave: () => _runAction(
-                                    () => ref
-                                        .read(communityActionsProvider)
-                                        .toggleSaved(post.id),
-                                  ),
-                                  onVote: (optionId) => _runAction(
-                                    () => ref
-                                        .read(communityActionsProvider)
-                                        .vote(post.id, optionId),
-                                  ),
-                                  onArchive:
-                                      post.isCurrentUser || canManageResidence
-                                      ? () => _runAction(
-                                          () => ref
-                                              .read(communityActionsProvider)
-                                              .archivePost(post.id),
-                                        )
-                                      : null,
-                                ),
+                                },
                                 const SizedBox(height: AppSpacing.medium),
                               ],
                             if (postsState.isLoading && posts.isNotEmpty)
@@ -181,6 +203,21 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
         ],
       ),
     );
+  }
+
+  void _openActivity(FeedEntityReference reference) {
+    final destination = switch (reference.type) {
+      FeedEntityType.transaction => AppRoutes.financeTransactions,
+      FeedEntityType.dues => AppRoutes.dues,
+      FeedEntityType.document => AppRoutes.documents,
+      FeedEntityType.service when reference.entityId != null =>
+        AppRoutes.directoryProfile(reference.entityId!),
+      FeedEntityType.service => AppRoutes.directory,
+      FeedEntityType.post when reference.entityId != null =>
+        AppRoutes.communityPost(reference.entityId!),
+      FeedEntityType.post => AppRoutes.community,
+    };
+    context.go(destination);
   }
 
   void _loadMoreNearBottom() {
@@ -229,7 +266,7 @@ class _CommunityLoadError extends StatelessWidget {
         children: [
           const Icon(Icons.cloud_off_outlined, color: AppColors.danger),
           const SizedBox(height: AppSpacing.small),
-          Text(ar ? 'تعذّر تحميل المجتمع.' : 'Could not load the community.'),
+          Text(ar ? 'تعذّر تحميل الموجز.' : 'Could not load the feed.'),
           TextButton(
             onPressed: onRetry,
             child: Text(ar ? 'إعادة المحاولة' : 'Retry'),
@@ -311,18 +348,19 @@ extension on CommunityFeedFilter {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     return switch (this) {
       CommunityFeedFilter.all => ar ? 'الكل' : 'All',
-      CommunityFeedFilter.official =>
-        ar ? 'منشورات الإدارة' : 'Management posts',
-      CommunityFeedFilter.mine => ar ? 'منشوراتي الشخصية' : 'My posts',
-      CommunityFeedFilter.saved => ar ? 'المنشورات المحفوظة' : 'Saved posts',
+      CommunityFeedFilter.posts => ar ? 'المنشورات' : 'Posts',
+      CommunityFeedFilter.finance => ar ? 'المالية' : 'Finance',
+      CommunityFeedFilter.announcements => ar ? 'الإعلانات' : 'Announcements',
+      CommunityFeedFilter.polls => ar ? 'الاستطلاعات' : 'Polls',
     };
   }
 
   IconData get icon => switch (this) {
     CommunityFeedFilter.all => Icons.dynamic_feed_outlined,
-    CommunityFeedFilter.official => Icons.verified_outlined,
-    CommunityFeedFilter.mine => Icons.person_outline_rounded,
-    CommunityFeedFilter.saved => Icons.bookmark_border_rounded,
+    CommunityFeedFilter.posts => Icons.forum_outlined,
+    CommunityFeedFilter.finance => Icons.account_balance_wallet_outlined,
+    CommunityFeedFilter.announcements => Icons.campaign_outlined,
+    CommunityFeedFilter.polls => Icons.poll_outlined,
   };
 }
 
@@ -434,20 +472,23 @@ class _Composer extends ConsumerWidget {
     final userId = ref.watch(authRepositoryProvider).currentUser?.uid ?? '';
     return DarJarCard(
       key: const Key('community-composer'),
-      padding: const EdgeInsets.all(AppSpacing.medium),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.medium,
+        vertical: AppSpacing.small,
+      ),
       onTap: onTap,
       child: Row(
         children: [
           DarJarUserAvatar(
             userId: userId,
-            radius: 22,
+            radius: 18,
             backgroundColor: AppColors.primarySoft,
             foregroundColor: AppColors.primary,
           ),
           const SizedBox(width: AppSpacing.medium),
           Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               decoration: BoxDecoration(
                 color: AppColors.canvas,
                 borderRadius: BorderRadius.circular(AppRadius.medium),
@@ -466,7 +507,7 @@ class _Composer extends ConsumerWidget {
           const Icon(
             Icons.add_circle_rounded,
             color: AppColors.primary,
-            size: 34,
+            size: 28,
           ),
         ],
       ),
@@ -574,7 +615,9 @@ class _EmptyFilter extends StatelessWidget {
           const Icon(Icons.inbox_outlined, size: 44, color: AppColors.inkMuted),
           const SizedBox(height: AppSpacing.medium),
           Text(
-            ar ? 'لا توجد منشورات في هذه الفئة' : 'No posts in this category',
+            ar
+                ? 'لا توجد عناصر في هذه الفئة'
+                : 'No feed items in this category',
           ),
           TextButton(
             onPressed: onReset,

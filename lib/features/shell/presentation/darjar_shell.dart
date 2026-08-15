@@ -1165,8 +1165,8 @@ List<_ShellDestination> _destinations(AppLocalizations localizations) {
     _ShellDestination(
       label: localizations.community,
       path: AppRoutes.community,
-      icon: Icons.people_outline_rounded,
-      selectedIcon: Icons.people_rounded,
+      icon: Icons.dynamic_feed_outlined,
+      selectedIcon: Icons.dynamic_feed_rounded,
       color: AppColors.community,
     ),
     _ShellDestination(

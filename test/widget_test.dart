@@ -2205,7 +2205,7 @@ void main() {
       ),
       findsNothing,
     );
-    expect(find.textContaining('المجتمع: تواصل مع جيرانك'), findsOneWidget);
+    expect(find.textContaining('الموجز: تابع نشاط الإقامة'), findsOneWidget);
     expect(
       find.textContaining('الخدمات: اعثر على مقدمي الخدمات'),
       findsOneWidget,
@@ -2241,15 +2241,27 @@ void main() {
     );
     expect(find.byKey(const ValueKey('post-images-alert-water')), findsNothing);
 
-    for (final filter in ['all', 'official', 'mine', 'saved']) {
+    for (final filter in [
+      'all',
+      'posts',
+      'finance',
+      'announcements',
+      'polls',
+    ]) {
       expect(find.byKey(ValueKey('community-filter-$filter')), findsOneWidget);
     }
 
-    final mineFilter = find.byKey(const Key('community-filter-mine'));
-    await tester.tap(mineFilter);
+    expect(
+      find.byKey(const ValueKey('feed-activity-activity-cleaning-expense')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('مصروفاً للتنظيف بقيمة 450 د'), findsOneWidget);
+
+    final financeFilter = find.byKey(const Key('community-filter-finance'));
+    await tester.tap(financeFilter);
     await tester.pumpAndSettle();
     expect(
-      find.byKey(const ValueKey('community-post-question-plumber')),
+      find.byKey(const ValueKey('feed-activity-activity-cleaning-expense')),
       findsOneWidget,
     );
     expect(
@@ -2257,16 +2269,24 @@ void main() {
       findsNothing,
     );
 
-    final savedFilter = find.byKey(const Key('community-filter-saved'));
-    await tester.tap(savedFilter);
+    final activityLike = find.byKey(
+      const ValueKey('activity-like-activity-cleaning-expense'),
+    );
+    expect(
+      find.descendant(of: activityLike, matching: find.text('3')),
+      findsOneWidget,
+    );
+    await tester.tap(activityLike);
     await tester.pumpAndSettle();
     expect(
-      find.byKey(const ValueKey('community-post-suggestion-trees')),
+      find.descendant(of: activityLike, matching: find.text('4')),
       findsOneWidget,
     );
 
-    final officialFilter = find.byKey(const Key('community-filter-official'));
-    await tester.tap(officialFilter);
+    final announcementFilter = find.byKey(
+      const Key('community-filter-announcements'),
+    );
+    await tester.tap(announcementFilter);
     await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('community-post-announcement-elevator')),
@@ -2306,12 +2326,27 @@ void main() {
     expect(find.text('شكراً على التوضيح'), findsOneWidget);
   });
 
+  testWidgets('feed activity opens its original residence section', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+
+    final expenseActivity = find.byKey(
+      const ValueKey('feed-activity-activity-cleaning-expense'),
+    );
+    await tester.ensureVisible(expenseActivity);
+    await tester.pumpAndSettle();
+    await tester.tap(expenseActivity);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('finance-transactions-page')), findsOneWidget);
+  });
+
   testWidgets('author can archive their community post', (tester) async {
     await _pumpApp(tester, size: const Size(1280, 900));
     await _enterResidence(tester);
 
-    await tester.tap(find.byKey(const Key('community-filter-mine')));
-    await tester.pumpAndSettle();
     expect(find.text('شقة 12 · منذ ساعة'), findsOneWidget);
     final roleBadge = find.byKey(
       const ValueKey('post-author-role-question-plumber'),
