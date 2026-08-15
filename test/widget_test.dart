@@ -3521,6 +3521,67 @@ void main() {
     );
   });
 
+  testWidgets(
+    'management excludes deleted apartments but keeps their payment history',
+    (tester) async {
+      final membersRepository = _FakeResidenceMembersRepository();
+      membersRepository.data = ResidenceMembersData(
+        buildings: [
+          for (final building in membersRepository.data.buildings)
+            ResidenceBuilding(
+              id: building.id,
+              nameAr: building.nameAr,
+              nameEn: building.nameEn,
+              floors: [
+                for (final floor in building.floors)
+                  ResidenceFloor(
+                    id: floor.id,
+                    nameAr: floor.nameAr,
+                    nameEn: floor.nameEn,
+                    apartments: floor.apartments
+                        .where((apartment) => apartment.id != 'apartment-02')
+                        .toList(),
+                  ),
+              ],
+            ),
+        ],
+        members: membersRepository.data.members,
+      );
+
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        residenceMembersRepository: membersRepository,
+      );
+      await _enterResidence(tester);
+      await tester.tap(find.byKey(const Key('profile-button')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('manage-dues-link')));
+      await tester.tap(find.byKey(const Key('manage-dues-link')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('managed-apartment-apartment-01')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('managed-apartment-apartment-02')),
+        findsNothing,
+      );
+      expect(find.text('الشقة رقم 02'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('record-payment-button')));
+      await tester.pumpAndSettle();
+      final dropdown = tester.widget<DropdownButton<String>>(
+        find.byType(DropdownButton<String>),
+      );
+      expect(
+        dropdown.items?.map((item) => item.value),
+        isNot(contains('apartment-02')),
+      );
+    },
+  );
+
   testWidgets('residence management is hidden from regular residents', (
     tester,
   ) async {

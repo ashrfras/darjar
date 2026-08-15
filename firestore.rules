@@ -899,7 +899,7 @@ service cloud.firestore {
             'updatedAt'
           ])
           && request.resource.data.type in ['income', 'expense']
-          && request.resource.data.amount is int
+          && request.resource.data.amount is number
           && (
             (
               !request.resource.data.keys().hasAny(['source'])
@@ -980,7 +980,7 @@ service cloud.firestore {
             'updatedAt'
           ])
           && request.resource.data.type in ['income', 'expense']
-          && request.resource.data.amount is int
+          && request.resource.data.amount is number
           && request.resource.data.amount > 0
           && request.resource.data.date is timestamp
           && request.resource.data.date <= request.time

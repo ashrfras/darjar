@@ -126,6 +126,18 @@ class ResidenceDuesOverview {
   final List<ResidenceDue> dues;
   final List<ResidenceDuePayment> payments;
 
+  ResidenceDuesOverview forActiveApartments(Iterable<String> apartmentIds) {
+    final activeApartmentIds = apartmentIds.toSet();
+    return ResidenceDuesOverview(
+      dues: dues
+          .where((due) => activeApartmentIds.contains(due.apartmentId))
+          .toList(growable: false),
+      // Payments are financial history and must remain visible after an
+      // apartment is deleted. Only current dues drive summaries and choices.
+      payments: payments,
+    );
+  }
+
   List<ResidenceDue> duesForPeriod(String periodKey) {
     return dues.where((due) => due.periodKey == periodKey).toList();
   }
@@ -740,7 +752,10 @@ class ResidenceDuesManagementController
       defaultAmount: settings.defaultSubscriptionAmount,
       apartments: members.apartments,
     );
-    return repository.load(residenceId: activeResidence.id);
+    final overview = await repository.load(residenceId: activeResidence.id);
+    return overview.forActiveApartments(
+      members.apartments.map((apartment) => apartment.id),
+    );
   }
 
   Future<void> recordPayment({

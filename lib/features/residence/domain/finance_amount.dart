@@ -8,13 +8,13 @@ import 'package:intl/intl.dart';
 final TextInputFormatter financeAmountInputFormatter =
     TextInputFormatter.withFunction((oldValue, newValue) {
       final isValid = RegExp(
-        r'^\d*(?:[.,٫]\d{0,2})?$',
+        r'^\d*(?:[.,،٫]\d{0,2})?$',
       ).hasMatch(newValue.text);
       return isValid ? newValue : oldValue;
     });
 
 num? parseFinanceAmount(String value) {
-  final normalized = value.trim().replaceAll(RegExp(r'[,٫]'), '.');
+  final normalized = value.trim().replaceAll(RegExp(r'[,،٫]'), '.');
   return num.tryParse(normalized);
 }
 
