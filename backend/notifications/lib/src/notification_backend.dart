@@ -46,6 +46,32 @@ class NotificationPayload {
   };
 }
 
+class FeedActivityPayload {
+  const FeedActivityPayload({
+    required this.id,
+    required this.residenceId,
+    required this.type,
+    required this.category,
+    required this.referenceType,
+    required this.referenceId,
+    required this.occurredAt,
+    required this.payload,
+    this.actorId = '',
+    this.actorName = '',
+  });
+
+  final String id;
+  final String residenceId;
+  final String type;
+  final String category;
+  final String actorId;
+  final String actorName;
+  final String referenceType;
+  final String referenceId;
+  final DateTime occurredAt;
+  final Map<String, Object?> payload;
+}
+
 abstract interface class NotificationBackend {
   Future<BackendDocument?> getDocument(String path);
 
@@ -53,6 +79,9 @@ abstract interface class NotificationBackend {
 
   /// Returns false when this idempotent notification already exists.
   Future<bool> createNotification(NotificationPayload notification);
+
+  /// Returns false when this idempotent activity already exists.
+  Future<bool> createFeedActivity(FeedActivityPayload activity);
 
   Future<void> sendPush({
     required String token,

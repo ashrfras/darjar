@@ -29,6 +29,7 @@ class CommunityFeedPage extends ConsumerStatefulWidget {
 class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
   CommunityFeedFilter _filter = CommunityFeedFilter.all;
   final _scrollController = ScrollController();
+  int _visibleItemCount = feedItemsPageSize;
   bool _loadingMore = false;
 
   @override
@@ -48,6 +49,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
   @override
   Widget build(BuildContext context) {
     final postsState = ref.watch(communityPostsProvider);
+    final activitiesState = ref.watch(feedActivitiesProvider);
     final feedState = ref.watch(feedItemsProvider);
     final canManageResidence =
         ref
@@ -56,23 +58,17 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
             ?.activeResidence
             ?.canManageResidence ??
         false;
-    final posts = postsState.value ?? const <CommunityPost>[];
     final items = feedState.value ?? const <FeedItem>[];
     ref.listen(communityPostsProvider, (previous, next) {
-      if (!next.isLoading) _loadingMore = false;
+      _finishLoadingMore();
+    });
+    ref.listen(feedActivitiesProvider, (previous, next) {
+      _finishLoadingMore();
     });
     final compact = MediaQuery.sizeOf(context).width < 600;
     final wide = MediaQuery.sizeOf(context).width >= 1180;
-    final filtered = items.where((item) {
-      return switch (_filter) {
-        CommunityFeedFilter.all => true,
-        CommunityFeedFilter.posts => item.type == FeedItemType.post,
-        CommunityFeedFilter.finance => item.category == FeedCategory.finance,
-        CommunityFeedFilter.announcements =>
-          item.category == FeedCategory.announcements,
-        CommunityFeedFilter.polls => item.category == FeedCategory.polls,
-      };
-    }).toList();
+    final filtered = items.where(_matchesSelectedFilter).toList();
+    final visibleItems = filtered.take(_visibleItemCount).toList();
 
     return Scaffold(
       key: const Key('community-feed-page'),
@@ -122,8 +118,10 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                               const DarJarLoadingSkeleton()
                             else if (feedState.hasError && items.isEmpty)
                               _CommunityLoadError(
-                                onRetry: () =>
-                                    ref.invalidate(communityPostsProvider),
+                                onRetry: () {
+                                  ref.invalidate(communityPostsProvider);
+                                  ref.invalidate(feedActivitiesProvider);
+                                },
                               )
                             else if (filtered.isEmpty)
                               _EmptyFilter(
@@ -132,7 +130,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                 ),
                               )
                             else
-                              for (final item in filtered) ...[
+                              for (final item in visibleItems) ...[
                                 switch (item) {
                                   PostFeedItem(:final post) =>
                                     CommunityPostCard(
@@ -169,9 +167,11 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                     ),
                                   ResidenceActivity() => ResidenceActivityCard(
                                     activity: item,
-                                    onLike: () => ref
-                                        .read(feedActivitiesProvider.notifier)
-                                        .toggleLike(item.id),
+                                    onLike: () => _runAction(
+                                      () => ref
+                                          .read(feedActivityActionsProvider)
+                                          .toggleLike(item.id),
+                                    ),
                                     onOpen: item.reference == null
                                         ? null
                                         : () => _openActivity(item.reference!),
@@ -179,7 +179,9 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                 },
                                 const SizedBox(height: AppSpacing.medium),
                               ],
-                            if (postsState.isLoading && posts.isNotEmpty)
+                            if ((postsState.isLoading ||
+                                    activitiesState.isLoading) &&
+                                items.isNotEmpty)
                               const Padding(
                                 key: Key('community-load-more-progress'),
                                 padding: EdgeInsets.all(AppSpacing.large),
@@ -227,13 +229,48 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
       return;
     }
     final postsState = ref.read(communityPostsProvider);
+    final activitiesState = ref.read(feedActivitiesProvider);
+    if (postsState.isLoading || activitiesState.isLoading) return;
+
+    final items = ref.read(feedItemsProvider).value ?? const <FeedItem>[];
+    final filteredCount = items.where(_matchesSelectedFilter).length;
     final loadedPostCount =
         postsState.value?.where((post) => !post.isSystem).length ?? 0;
-    final currentLimit = ref.read(communityPostsLimitProvider);
-    if (postsState.isLoading || loadedPostCount < currentLimit) return;
+    final postsLimit = ref.read(communityPostsLimitProvider);
+    final loadedActivityCount = activitiesState.value?.length ?? 0;
+    final activitiesLimit = ref.read(feedActivitiesLimitProvider);
+    final canLoadPosts = loadedPostCount >= postsLimit;
+    final canLoadActivities = loadedActivityCount >= activitiesLimit;
+    final canRevealItems = filteredCount > _visibleItemCount;
+    if (!canRevealItems && !canLoadPosts && !canLoadActivities) return;
 
     _loadingMore = true;
-    ref.read(communityPostsLimitProvider.notifier).loadMore();
+    if (canRevealItems) {
+      setState(() => _visibleItemCount += feedItemsPageSize);
+    }
+    if (canLoadPosts) {
+      ref.read(communityPostsLimitProvider.notifier).loadMore();
+    }
+    if (canLoadActivities) {
+      ref.read(feedActivitiesLimitProvider.notifier).loadMore();
+    }
+    if (!canLoadPosts && !canLoadActivities) _loadingMore = false;
+  }
+
+  bool _matchesSelectedFilter(FeedItem item) => switch (_filter) {
+    CommunityFeedFilter.all => true,
+    CommunityFeedFilter.posts => item.type == FeedItemType.post,
+    CommunityFeedFilter.finance => item.category == FeedCategory.finance,
+    CommunityFeedFilter.announcements =>
+      item.category == FeedCategory.announcements,
+    CommunityFeedFilter.polls => item.category == FeedCategory.polls,
+  };
+
+  void _finishLoadingMore() {
+    if (!ref.read(communityPostsProvider).isLoading &&
+        !ref.read(feedActivitiesProvider).isLoading) {
+      _loadingMore = false;
+    }
   }
 
   Future<void> _runAction(Future<void> Function() action) async {

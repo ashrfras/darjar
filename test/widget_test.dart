@@ -20,6 +20,7 @@ import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
+import 'package:darjar/features/community/data/feed_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/directory/data/service_categories_repository.dart';
 import 'package:darjar/features/directory/presentation/service_category_icon.dart';
@@ -510,6 +511,14 @@ void main() {
         expect(posts, hasLength(3));
       },
     );
+
+    test('activity feed repository respects the requested page size', () async {
+      final activities = await MockFeedActivityRepository()
+          .watchActivities(residenceId: 'residence', userId: 'resident', limit: 2)
+          .first;
+
+      expect(activities, hasLength(2));
+    });
 
     test('community images are resized and converted for efficient upload', () {
       final source = test_image.Image(width: 2400, height: 1800);
@@ -2150,6 +2159,8 @@ void main() {
   ) async {
     await _pumpApp(tester, size: const Size(390, 844));
     await _enterResidence(tester);
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -10000));
+    await tester.pumpAndSettle();
 
     final longContent = tester.widget<Text>(
       find.byKey(const ValueKey('post-content-$communityWelcomePostId')),
@@ -2165,6 +2176,12 @@ void main() {
     await _enterResidence(tester);
 
     expect(find.text('مجتمعك، صوتك، تفاعلك'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('community-post-darjar-welcome')),
+      findsNothing,
+    );
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -10000));
+    await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('community-post-darjar-welcome')),
       findsOneWidget,
@@ -2205,6 +2222,20 @@ void main() {
       ),
       findsNothing,
     );
+    expect(
+      find.descendant(
+        of: presidentPost,
+        matching: find.byIcon(Icons.thumb_up_outlined),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: presidentPost,
+        matching: find.byIcon(Icons.favorite_border_rounded),
+      ),
+      findsNothing,
+    );
     expect(find.textContaining('الموجز: تابع نشاط الإقامة'), findsOneWidget);
     expect(
       find.textContaining('الخدمات: اعثر على مقدمي الخدمات'),
@@ -2236,10 +2267,27 @@ void main() {
       ),
     );
     expect(
+      tester
+          .getTopLeft(
+            find.byKey(const ValueKey('community-post-darjar-welcome')),
+          )
+          .dy,
+      greaterThan(
+        tester
+            .getTopLeft(
+              find.byKey(const ValueKey('feed-activity-activity-new-poll')),
+            )
+            .dy,
+      ),
+    );
+    expect(
       find.byKey(const ValueKey('post-images-announcement-elevator')),
       findsOneWidget,
     );
     expect(find.byKey(const ValueKey('post-images-alert-water')), findsNothing);
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 10000));
+    await tester.pumpAndSettle();
 
     for (final filter in [
       'all',
@@ -2256,6 +2304,15 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('مصروفاً للتنظيف بقيمة 450 د'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(
+          const ValueKey('feed-activity-activity-cleaning-expense'),
+        ),
+        matching: find.byIcon(Icons.chevron_right_rounded),
+      ),
+      findsOneWidget,
+    );
 
     final financeFilter = find.byKey(const Key('community-filter-finance'));
     await tester.tap(financeFilter);

@@ -88,6 +88,35 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
   }
 
   @override
+  Future<bool> createFeedActivity(FeedActivityPayload activity) async {
+    final parent = 'residences/${activity.residenceId}';
+    final uri = Uri.parse(
+      '$_documentsBase/$parent/feedActivities',
+    ).replace(queryParameters: {'documentId': activity.id});
+    final response = await _client.post(
+      uri,
+      headers: const {'content-type': 'application/json'},
+      body: jsonEncode({
+        'fields': {
+          'type': _firestoreValue(activity.type),
+          'category': _firestoreValue(activity.category),
+          'actorId': _firestoreValue(activity.actorId),
+          'actorName': _firestoreValue(activity.actorName),
+          'referenceType': _firestoreValue(activity.referenceType),
+          'referenceId': _firestoreValue(activity.referenceId),
+          'payload': _firestoreValue(activity.payload),
+          'likedBy': _firestoreValue(const <String>[]),
+          'likesCount': _firestoreValue(0),
+          'occurredAt': _firestoreValue(activity.occurredAt.toUtc()),
+        },
+      }),
+    );
+    if (response.statusCode == 409) return false;
+    _expectSuccess(response, 'create feed activity ${activity.id}');
+    return true;
+  }
+
+  @override
   Future<void> sendPush({
     required String token,
     required String title,
@@ -186,3 +215,32 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
 }
 
 Map<String, Object?> _stringValue(String value) => {'stringValue': value};
+
+Map<String, Object?> _firestoreValue(Object? value) {
+  return switch (value) {
+    null => {'nullValue': null},
+    bool boolean => {'booleanValue': boolean},
+    int integer => {'integerValue': '$integer'},
+    num number => {'doubleValue': number},
+    String text => {'stringValue': text},
+    DateTime date => {'timestampValue': date.toUtc().toIso8601String()},
+    List<Object?> values => {
+      'arrayValue': {
+        'values': [for (final item in values) _firestoreValue(item)],
+      },
+    },
+    Map<Object?, Object?> map => {
+      'mapValue': {
+        'fields': {
+          for (final entry in map.entries)
+            entry.key.toString(): _firestoreValue(entry.value),
+        },
+      },
+    },
+    _ => throw ArgumentError.value(
+      value,
+      'value',
+      'Unsupported Firestore value',
+    ),
+  };
+}

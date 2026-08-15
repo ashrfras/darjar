@@ -1,3 +1,4 @@
+import 'package:darjar_notifications/src/feed_activity_dispatcher.dart';
 import 'package:darjar_notifications/src/notification_backend.dart';
 import 'package:darjar_notifications/src/notification_dispatcher.dart';
 import 'package:test/test.dart';
@@ -255,6 +256,160 @@ void main() {
       expect(backend.notifications.single.periodKey, '2026-06');
     },
   );
+
+  test('expense creation produces one structured feed activity', () async {
+    final backend = _FakeBackend()
+      ..document('residences/home/members/manager', {
+        'firstName': 'أحمد',
+        'lastName': 'المريني',
+      });
+    final dispatcher = FeedActivityDispatcher(
+      backend,
+      now: () => DateTime.utc(2026, 8, 15, 12),
+    );
+
+    for (var attempt = 0; attempt < 2; attempt++) {
+      await dispatcher.financeTransactionCreated(
+        documentPath: 'residences/home/financeTransactions/expense-1',
+        eventId: 'event-expense-1',
+        data: {
+          'type': 'expense',
+          'name': 'التنظيف',
+          'expenseCategory': 'cleaning',
+          'amount': 450,
+          'recordedBy': 'manager',
+          'createdAt': DateTime.utc(2026, 8, 15, 10),
+        },
+      );
+    }
+
+    expect(backend.activities, hasLength(1));
+    final activity = backend.activities.single;
+    expect(activity.type, 'expenseAdded');
+    expect(activity.referenceId, 'expense-1');
+    expect(activity.actorName, 'أحمد م.');
+    expect(activity.payload, {
+      'title': 'التنظيف',
+      'expenseCategory': 'cleaning',
+      'amount': 450,
+    });
+  });
+
+  test('due activity is created only on transition to paid', () async {
+    final backend = _FakeBackend();
+    final dispatcher = FeedActivityDispatcher(backend);
+
+    await dispatcher.dueMarkedPaid(
+      documentPath: 'residences/home/dues/2026-08_apartment-a',
+      eventId: 'due-event-1',
+      becamePaid: false,
+      data: const {},
+    );
+    await dispatcher.dueMarkedPaid(
+      documentPath: 'residences/home/dues/2026-08_apartment-a',
+      eventId: 'due-event-2',
+      becamePaid: true,
+      data: {
+        'periodKey': '2026-08',
+        'apartmentNumber': '12',
+        'updatedAt': DateTime.utc(2026, 8, 15),
+      },
+    );
+
+    expect(backend.activities, hasLength(1));
+    expect(backend.activities.single.type, 'duePaid');
+    expect(backend.activities.single.payload['apartmentNumber'], '12');
+  });
+
+  test('document, service, and monthly due writes create activities', () async {
+    final backend = _FakeBackend();
+    final dispatcher = FeedActivityDispatcher(
+      backend,
+      now: () => DateTime.utc(2026, 8, 15),
+    );
+
+    await dispatcher.documentCreated(
+      documentPath: 'residences/home/documents/minutes',
+      eventId: 'document-event',
+      data: const {'title': 'محضر الجمع العام'},
+    );
+    await dispatcher.serviceCreated(
+      documentPath: 'services/plumber',
+      eventId: 'service-event',
+      data: const {'createdFromResidenceId': 'home', 'name': 'سباك الحي'},
+    );
+    await dispatcher.monthlyDueChanged(
+      documentPath: 'residences/home/settings/private',
+      eventId: 'settings-event',
+      before: const {'defaultSubscriptionAmount': 150},
+      after: const {'defaultSubscriptionAmount': 200},
+    );
+
+    expect(
+      backend.activities.map((activity) => activity.type),
+      containsAll(['documentAdded', 'serviceAdded', 'monthlyDueChanged']),
+    );
+  });
+
+  test(
+    'backfill imports recent real data once and respects its limit',
+    () async {
+      final backend = _FakeBackend()
+        ..collection('residences', [_document('home', {})])
+        ..collection('residences/home/financeTransactions', [
+          for (var index = 0; index < 12; index++)
+            _document('expense-$index', {
+              'type': 'expense',
+              'name': 'مصروف $index',
+              'amount': index + 1,
+              'createdAt': DateTime.utc(2026, 8, index + 1),
+            }),
+        ])
+        ..collection('residences/home/dues', [
+          _document('due-paid', {
+            'status': 'paid',
+            'periodKey': '2026-08',
+            'apartmentNumber': '12',
+            'updatedAt': DateTime.utc(2026, 8, 15),
+          }),
+          _document('due-unpaid', {'status': 'unpaid'}),
+        ])
+        ..collection('residences/home/documents', [
+          _document('minutes', {
+            'title': 'محضر الجمع العام',
+            'createdAt': DateTime.utc(2026, 8, 14),
+          }),
+        ])
+        ..collection('services', [
+          _document('plumber', {
+            'createdFromResidenceId': 'home',
+            'name': 'سباك الحي',
+            'status': 'active',
+            'createdAt': DateTime.utc(2026, 8, 13),
+          }),
+        ]);
+      final dispatcher = FeedActivityDispatcher(backend);
+
+      final firstProcessed = await dispatcher.backfillExistingActivities();
+      final secondProcessed = await dispatcher.backfillExistingActivities();
+
+      expect(firstProcessed, 13);
+      expect(secondProcessed, 13);
+      expect(backend.activities, hasLength(13));
+      expect(
+        backend.activities.any(
+          (activity) => activity.referenceId == 'expense-11',
+        ),
+        isTrue,
+      );
+      expect(
+        backend.activities.any(
+          (activity) => activity.referenceId == 'expense-0',
+        ),
+        isFalse,
+      );
+    },
+  );
 }
 
 BackendDocument _document(String id, Map<String, Object?> data) {
@@ -272,7 +427,9 @@ class _FakeBackend implements NotificationBackend {
   final Map<String, BackendDocument> _documents = {};
   final Map<String, List<BackendDocument>> _collections = {};
   final Set<String> _notificationKeys = {};
+  final Set<String> _activityKeys = {};
   final List<NotificationPayload> notifications = [];
+  final List<FeedActivityPayload> activities = [];
   final List<_Push> pushes = [];
 
   void document(String path, Map<String, Object?> data) {
@@ -299,6 +456,14 @@ class _FakeBackend implements NotificationBackend {
     final key = '${notification.recipientUserId}/${notification.id}';
     if (!_notificationKeys.add(key)) return false;
     notifications.add(notification);
+    return true;
+  }
+
+  @override
+  Future<bool> createFeedActivity(FeedActivityPayload activity) async {
+    final key = '${activity.residenceId}/${activity.id}';
+    if (!_activityKeys.add(key)) return false;
+    activities.add(activity);
     return true;
   }
 

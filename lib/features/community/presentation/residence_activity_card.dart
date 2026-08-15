@@ -92,7 +92,7 @@ class ResidenceActivityCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsetsDirectional.only(start: 2, top: 9),
               child: Icon(
-                ar ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+                ar ? Icons.chevron_right_rounded : Icons.chevron_left_rounded,
                 size: 18,
                 color: AppColors.inkMuted,
               ),

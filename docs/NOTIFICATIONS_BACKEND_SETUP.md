@@ -1,8 +1,8 @@
 # تشغيل خدمة إشعارات DarJar
 
 الخدمة موجودة في `backend/notifications` وتعمل على Cloud Run باستخدام Dart.
-تستقبل خمسة أنواع من أحداث Firestore عبر Eventarc، وتشغّل فحص الواجبات المتأخرة يوميًا
-عبر Cloud Scheduler.
+تستقبل أحداث Firestore عبر Eventarc لتوليد الإشعارات وأنشطة الموجز، وتشغّل فحص
+الواجبات المتأخرة يوميًا عبر Cloud Scheduler.
 
 لا تنشئ أو تنزّل مفتاح service account. تستخدم الخدمة Application Default
 Credentials الخاصة بحساب Cloud Run.
@@ -196,9 +196,78 @@ gcloud eventarc triggers create darjar-budget-written \
   --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
 ```
 
+إنشاء نشاط عند إضافة وثيقة:
+
+```bash
+gcloud eventarc triggers create darjar-document-created \
+  --location FIRESTORE_LOCATION \
+  --destination-run-service darjar-notifications \
+  --destination-run-region RUN_REGION \
+  --destination-run-path /events/document-created \
+  --event-filters="type=google.cloud.firestore.document.v1.created" \
+  --event-filters="database=(default)" \
+  --event-filters="namespace=(default)" \
+  --event-filters-path-pattern="document=residences/{residenceId}/documents/{documentId}" \
+  --event-data-content-type="application/protobuf" \
+  --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
+```
+
+إنشاء نشاط عند إضافة خدمة:
+
+```bash
+gcloud eventarc triggers create darjar-service-created \
+  --location FIRESTORE_LOCATION \
+  --destination-run-service darjar-notifications \
+  --destination-run-region RUN_REGION \
+  --destination-run-path /events/service-created \
+  --event-filters="type=google.cloud.firestore.document.v1.created" \
+  --event-filters="database=(default)" \
+  --event-filters="namespace=(default)" \
+  --event-filters-path-pattern="document=services/{serviceId}" \
+  --event-data-content-type="application/protobuf" \
+  --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
+```
+
+إنشاء نشاط عند تعديل قيمة الاشتراك الشهرية:
+
+```bash
+gcloud eventarc triggers create darjar-settings-written \
+  --location FIRESTORE_LOCATION \
+  --destination-run-service darjar-notifications \
+  --destination-run-region RUN_REGION \
+  --destination-run-path /events/settings-written \
+  --event-filters="type=google.cloud.firestore.document.v1.updated" \
+  --event-filters="database=(default)" \
+  --event-filters="namespace=(default)" \
+  --event-filters-path-pattern="document=residences/{residenceId}/settings/private" \
+  --event-data-content-type="application/protobuf" \
+  --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
+```
+
 قد يستغرق المشغل عدة دقائق قبل أن يصبح نشطًا.
 
-## 6. الفحص اليومي للواجبات المتأخرة
+## 6. تعبئة الموجز من البيانات الحالية
+
+بعد نشر القواعد والخدمة، شغّل العملية مرة واحدة. تستورد أحدث عشرة عناصر من كل
+نوع ولكل إقامة: المصروفات، الاشتراكات المؤداة، الوثائق والخدمات. العملية
+idempotent ويمكن تكرارها بأمان.
+
+```bash
+SERVICE_URL="$(gcloud run services describe darjar-notifications \
+  --region europe-southwest1 \
+  --format='value(status.url)')"
+
+IDENTITY_TOKEN="$(gcloud auth print-identity-token)"
+
+curl -fsS -X POST \
+  -H "Authorization: Bearer $IDENTITY_TOKEN" \
+  "$SERVICE_URL/jobs/backfill-feed-activities"
+```
+
+يعيد المسار عدد العناصر المرشحة التي عالجها. إعادة التشغيل لا تكرر الوثائق لأن
+معرّفات أنشطة الـbackfill ثابتة.
+
+## 7. الفحص اليومي للواجبات المتأخرة
 
 استبدل `SERVICE_URL` بالرابط الذي أعادته الخطوة الرابعة:
 
@@ -219,7 +288,7 @@ gcloud scheduler jobs create http darjar-overdue-dues \
 gcloud scheduler jobs run darjar-overdue-dues --location SCHEDULER_REGION
 ```
 
-## 7. Web Push وiOS
+## 8. Web Push وiOS
 
 ### الويب
 
@@ -242,7 +311,7 @@ flutter build web \
 
 Android لا يحتاج مفتاحًا إضافيًا بعد وجود `google-services.json`.
 
-## 8. اختبار النتيجة
+## 9. اختبار النتيجة
 
 استخدم حسابين عضوين في الإقامة نفسها:
 

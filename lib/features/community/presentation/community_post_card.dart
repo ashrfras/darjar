@@ -70,7 +70,6 @@ class CommunityPostCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final compact = MediaQuery.sizeOf(context).width < 600;
-    final color = post.kind.color;
     final residenceDirectory = ref.watch(residenceDirectoryProvider).value;
     final apartmentLabel = _communityApartmentLabel(
       context,
@@ -85,7 +84,6 @@ class CommunityPostCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(height: 3, color: color),
           Padding(
             padding: EdgeInsets.all(compact ? 14 : AppSpacing.large),
             child: Column(
@@ -773,8 +771,8 @@ class _PostActions extends StatelessWidget {
         _ActionButton(
           key: ValueKey('like-${post.id}'),
           icon: post.isLiked
-              ? Icons.favorite_rounded
-              : Icons.favorite_border_rounded,
+              ? Icons.thumb_up_rounded
+              : Icons.thumb_up_outlined,
           label: '${post.likes}',
           color: post.isLiked ? AppColors.danger : AppColors.inkMuted,
           onTap: onLike,

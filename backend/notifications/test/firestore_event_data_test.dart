@@ -26,6 +26,21 @@ void main() {
     expect(change.oldValue['status'], 'partial');
     expect(change.value['status'], 'paid');
   });
+
+  test('decodes numeric, timestamp, and map activity payload fields', () {
+    final currentDocument = _document({
+      'amount': _integerValue(450),
+      'createdAt': _timestampValue(1723723200),
+      'payload': _mapValue({'title': _stringValue('التنظيف')}),
+    });
+    final event = Uint8List.fromList(_messageField(1, currentDocument));
+
+    final change = FirestoreDocumentChange.fromBuffer(event);
+
+    expect(change.value['amount'], 450);
+    expect(change.value['createdAt'], DateTime.utc(2024, 8, 15, 12));
+    expect(change.value['payload'], {'title': 'التنظيف'});
+  });
 }
 
 List<int> _document(Map<String, List<int>> fields) {
@@ -39,6 +54,22 @@ List<int> _document(Map<String, List<int>> fields) {
 }
 
 List<int> _stringValue(String value) => _stringField(17, value);
+
+List<int> _integerValue(int value) => [..._varint(2 << 3), ..._varint(value)];
+
+List<int> _timestampValue(int seconds) {
+  return _messageField(10, [..._varint(1 << 3), ..._varint(seconds)]);
+}
+
+List<int> _mapValue(Map<String, List<int>> values) {
+  return _messageField(6, [
+    for (final entry in values.entries)
+      ..._messageField(1, [
+        ..._stringField(1, entry.key),
+        ..._messageField(2, entry.value),
+      ]),
+  ]);
+}
 
 List<int> _arrayValue(List<String> values) {
   return _messageField(9, [
