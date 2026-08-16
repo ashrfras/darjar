@@ -287,6 +287,7 @@ void main() {
     final activity = backend.activities.single;
     expect(activity.type, 'expenseAdded');
     expect(activity.referenceId, 'expense-1');
+    expect(activity.occurredAt, DateTime.utc(2026, 8, 15, 10));
     expect(activity.actorName, 'أحمد م.');
     expect(activity.payload, {
       'title': 'التنظيف',
@@ -318,6 +319,7 @@ void main() {
 
     expect(backend.activities, hasLength(1));
     expect(backend.activities.single.type, 'duePaid');
+    expect(backend.activities.single.occurredAt, DateTime.utc(2026, 8, 15));
     expect(backend.activities.single.payload['apartmentNumber'], '12');
   });
 

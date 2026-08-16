@@ -112,6 +112,7 @@ class CommunityPost {
     this.eventLocation,
     this.commentCountOverride,
     this.isSystem = false,
+    this.createdAt,
   });
 
   final String id;
@@ -135,6 +136,7 @@ class CommunityPost {
   final String? eventLocation;
   final int? commentCountOverride;
   final bool isSystem;
+  final DateTime? createdAt;
 
   int get commentCount => commentCountOverride ?? comments.length;
 
@@ -168,6 +170,7 @@ class CommunityPost {
       eventLocation: eventLocation,
       commentCountOverride: commentCountOverride,
       isSystem: isSystem,
+      createdAt: createdAt,
     );
   }
 }
@@ -463,6 +466,7 @@ class MockCommunityRepository implements CommunityRepository {
       ],
       eventDate: eventDate,
       eventLocation: eventLocation,
+      createdAt: DateTime.now(),
     );
     _posts.insert(0, post);
     _notify();
@@ -908,6 +912,7 @@ class FirebaseCommunityRepository implements CommunityRepository {
       authorUnit: _nullableString(data['authorUnit']),
       authorRole: authorRole,
       timeLabel: _relativeTime(data['createdAt']),
+      createdAt: _dateTime(data['createdAt']),
       content: content,
       kind: _kindFrom(data['kind']),
       likes: likedBy.length,
@@ -984,11 +989,7 @@ class FirebaseCommunityRepository implements CommunityRepository {
   }
 
   String _relativeTime(Object? value) {
-    final date = switch (value) {
-      Timestamp timestamp => timestamp.toDate(),
-      DateTime date => date,
-      _ => DateTime.now(),
-    };
+    final date = _dateTime(value) ?? DateTime.now();
     final difference = DateTime.now().difference(date);
     if (difference.inMinutes < 1) return 'الآن';
     if (difference.inHours < 1) return 'منذ ${difference.inMinutes} دقيقة';
@@ -996,6 +997,12 @@ class FirebaseCommunityRepository implements CommunityRepository {
     if (difference.inDays == 1) return 'أمس';
     return 'منذ ${difference.inDays} أيام';
   }
+
+  DateTime? _dateTime(Object? value) => switch (value) {
+    Timestamp timestamp => timestamp.toDate(),
+    DateTime date => date,
+    _ => null,
+  };
 
   CommunityFailure _failure(Object error) => switch (error) {
     CommunityFailure failure => failure,

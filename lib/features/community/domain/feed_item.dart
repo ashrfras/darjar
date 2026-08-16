@@ -28,11 +28,13 @@ sealed class FeedItem {
     required this.id,
     required this.type,
     required this.category,
+    required this.occurredAt,
   });
 
   final String id;
   final FeedItemType type;
   final FeedCategory category;
+  final DateTime? occurredAt;
 }
 
 class PostFeedItem extends FeedItem {
@@ -40,6 +42,7 @@ class PostFeedItem extends FeedItem {
     : super(
         id: 'post-${post.id}',
         type: FeedItemType.post,
+        occurredAt: post.createdAt,
         category: post.kind == CommunityPostKind.poll
             ? FeedCategory.polls
             : post.kind == CommunityPostKind.announcement ||
@@ -67,6 +70,7 @@ class ResidenceActivity extends FeedItem {
     this.reference,
     this.apartmentNumber,
     this.periodKey,
+    super.occurredAt,
   }) : super(type: FeedItemType.activity);
 
   final ResidenceActivityType activityType;
@@ -104,6 +108,7 @@ class ResidenceActivity extends FeedItem {
       reference: reference,
       apartmentNumber: apartmentNumber,
       periodKey: periodKey ?? this.periodKey,
+      occurredAt: occurredAt,
     );
   }
 }

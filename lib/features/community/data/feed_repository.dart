@@ -9,7 +9,7 @@ import 'package:darjar/features/community/domain/feed_item.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-const feedActivitiesPageSize = 5;
+const feedActivitiesPageSize = 10;
 const feedItemsPageSize = 10;
 
 abstract interface class FeedActivityRepository {
@@ -111,6 +111,7 @@ class FirebaseFeedActivityRepository implements FeedActivityRepository {
       classificationEn: copy.classificationEn,
       likes: data['likesCount'] as int? ?? likedBy.length,
       isLiked: likedBy.contains(userId),
+      occurredAt: occurredAt,
       reference: referenceType == null
           ? null
           : FeedEntityReference(
@@ -232,7 +233,10 @@ final feedItemsProvider = Provider.autoDispose<AsyncValue<List<FeedItem>>>((
   final activities = activitiesState.value;
   if (posts != null) {
     return AsyncData(
-      _mergeFeed(posts, groupConsecutiveDueActivities(activities ?? const [])),
+      mergeFeedItems(
+        posts,
+        groupConsecutiveDueActivities(activities ?? const []),
+      ),
     );
   }
   if (postsState.hasError) {
@@ -244,24 +248,30 @@ final feedItemsProvider = Provider.autoDispose<AsyncValue<List<FeedItem>>>((
   return const AsyncLoading();
 });
 
-List<FeedItem> _mergeFeed(
+List<FeedItem> mergeFeedItems(
   List<CommunityPost> posts,
   List<ResidenceActivity> activities,
 ) {
-  final items = <FeedItem>[];
   final regularPosts = posts.where((post) => !post.isSystem).toList();
   final systemPosts = posts.where((post) => post.isSystem).toList();
-  var activityIndex = 0;
-  for (var index = 0; index < regularPosts.length; index++) {
-    items.add(PostFeedItem(regularPosts[index]));
-    if (index.isEven && activityIndex < activities.length) {
-      items.add(activities[activityIndex++]);
+  final indexedItems = <FeedItem>[
+    ...regularPosts.map(PostFeedItem.new),
+    ...activities,
+  ].indexed.toList();
+  indexedItems.sort((left, right) {
+    final leftDate = left.$2.occurredAt;
+    final rightDate = right.$2.occurredAt;
+    if (leftDate == null && rightDate == null) {
+      return left.$1.compareTo(right.$1);
     }
-  }
-  if (regularPosts.isEmpty) items.addAll(activities);
-  if (activityIndex < activities.length) {
-    items.addAll(activities.skip(activityIndex));
-  }
+    if (leftDate == null) return 1;
+    if (rightDate == null) return -1;
+    final dateComparison = rightDate.compareTo(leftDate);
+    return dateComparison != 0
+        ? dateComparison
+        : left.$1.compareTo(right.$1);
+  });
+  final items = indexedItems.map((entry) => entry.$2).toList();
   items.addAll(systemPosts.map(PostFeedItem.new));
   return items;
 }

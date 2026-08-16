@@ -21,6 +21,7 @@ import 'package:darjar/features/account/data/account_onboarding_repository.dart'
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/data/feed_repository.dart';
+import 'package:darjar/features/community/domain/feed_item.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/directory/data/service_categories_repository.dart';
 import 'package:darjar/features/directory/presentation/service_category_icon.dart';
@@ -518,6 +519,35 @@ void main() {
           .first;
 
       expect(activities, hasLength(2));
+    });
+
+    test('feed orders posts and activities by occurrence time', () {
+      final post = CommunityPost(
+        id: 'older-post',
+        author: 'أحمد',
+        timeLabel: 'منذ ساعة',
+        content: 'منشور أقدم',
+        kind: CommunityPostKind.general,
+        likes: 0,
+        comments: const [],
+        createdAt: DateTime.utc(2026, 8, 15, 10),
+      );
+      final activity = ResidenceActivity(
+        id: 'newer-expense',
+        activityType: ResidenceActivityType.expenseAdded,
+        category: FeedCategory.finance,
+        descriptionAr: 'أضيف مصروف جديد',
+        descriptionEn: 'A new expense was added',
+        timeLabelAr: 'الآن',
+        timeLabelEn: 'Now',
+        likes: 0,
+        occurredAt: DateTime.utc(2026, 8, 15, 11),
+      );
+
+      final items = mergeFeedItems([post], [activity]);
+
+      expect(items.first, same(activity));
+      expect((items.last as PostFeedItem).post, same(post));
     });
 
     test('community images are resized and converted for efficient upload', () {
