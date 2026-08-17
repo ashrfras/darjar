@@ -483,6 +483,7 @@
   "profileRoleTreasurer": "Treasurer",
   "profileRoleResident": "Resident",
   "residenceAdministration": "Management",
+  "residenceAdministrationDescription": "Residence management tools for the president and authorized people.",
   "residenceSettings": "Residence settings",
   "apartments": "Apartments and residents",
   "apartmentsManagementDescription": "Manage apartments and resident assignments",

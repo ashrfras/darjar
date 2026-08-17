@@ -483,6 +483,7 @@
   "profileRoleTreasurer": "أمين",
   "profileRoleResident": "ساكن",
   "residenceAdministration": "الإدارة",
+  "residenceAdministrationDescription": "أدوات إدارة الإقامة المخصصة للرئيس والأشخاص المخوّلين.",
   "residenceSettings": "إعدادات الإقامة",
   "apartments": "الشقق والسكان",
   "apartmentsManagementDescription": "إدارة الشقق وتوزيع السكان داخل الإقامة",

@@ -98,9 +98,16 @@ class DarJarShell extends ConsumerWidget {
 
   Widget _buildShell(BuildContext context, ResidenceContext residenceContext) {
     final localizations = AppLocalizations.of(context);
-    final destinations = _destinations(localizations);
+    final destinations = _destinations(
+      localizations,
+      canManageResidence:
+          residenceContext.activeResidence?.canManageResidence ?? false,
+    );
+    final selectedPath = location.startsWith('/residence/admin/')
+        ? AppRoutes.administration
+        : location;
     final selectedIndex = destinations.indexWhere(
-      (destination) => location.startsWith(destination.path),
+      (destination) => selectedPath.startsWith(destination.path),
     );
 
     return ResponsiveBuilder(
@@ -1160,7 +1167,10 @@ class _ShellDestination {
   final Color color;
 }
 
-List<_ShellDestination> _destinations(AppLocalizations localizations) {
+List<_ShellDestination> _destinations(
+  AppLocalizations localizations, {
+  required bool canManageResidence,
+}) {
   return [
     _ShellDestination(
       label: localizations.community,
@@ -1183,5 +1193,13 @@ List<_ShellDestination> _destinations(AppLocalizations localizations) {
       selectedIcon: Icons.home_rounded,
       color: AppColors.residence,
     ),
+    if (canManageResidence)
+      _ShellDestination(
+        label: localizations.residenceAdministration,
+        path: AppRoutes.administration,
+        icon: Icons.settings_outlined,
+        selectedIcon: Icons.settings_rounded,
+        color: AppColors.primary,
+      ),
   ];
 }

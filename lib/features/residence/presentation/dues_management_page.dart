@@ -18,6 +18,7 @@ import 'package:darjar/features/residence/data/residence_members_repository.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class DuesManagementPage extends ConsumerWidget {
@@ -49,7 +50,8 @@ class DuesManagementPage extends ConsumerWidget {
                   children: [
                     DarJarSubpageHeader(
                       title: localizations.duesManagement,
-                      fallbackLocation: AppRoutes.profile,
+                      fallbackLocation: AppRoutes.administration,
+                      onBack: () => context.go(AppRoutes.administration),
                     ),
                     const SizedBox(height: AppSpacing.xLarge),
                     DarJarCard(

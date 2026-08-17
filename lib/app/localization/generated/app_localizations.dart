@@ -2862,6 +2862,12 @@ abstract class AppLocalizations {
   /// **'الإدارة'**
   String get residenceAdministration;
 
+  /// No description provided for @residenceAdministrationDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدوات إدارة الإقامة المخصصة للرئيس والأشخاص المخوّلين.'**
+  String get residenceAdministrationDescription;
+
   /// No description provided for @residenceSettings.
   ///
   /// In ar, this message translates to:

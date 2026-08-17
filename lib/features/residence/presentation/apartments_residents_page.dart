@@ -88,7 +88,8 @@ class _ApartmentsResidentsPageState
               DarJarSubpageHeader(
                 title: copy.pageTitle,
                 description: compact ? null : copy.pageDescription,
-                fallbackLocation: AppRoutes.profile,
+                fallbackLocation: AppRoutes.administration,
+                onBack: () => context.go(AppRoutes.administration),
               ),
               const SizedBox(height: AppSpacing.large),
               if (membersState.isLoading)

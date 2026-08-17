@@ -1527,6 +1527,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get residenceAdministration => 'الإدارة';
 
   @override
+  String get residenceAdministrationDescription =>
+      'أدوات إدارة الإقامة المخصصة للرئيس والأشخاص المخوّلين.';
+
+  @override
   String get residenceSettings => 'إعدادات الإقامة';
 
   @override

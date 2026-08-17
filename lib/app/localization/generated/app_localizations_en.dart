@@ -1560,6 +1560,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get residenceAdministration => 'Management';
 
   @override
+  String get residenceAdministrationDescription =>
+      'Residence management tools for the president and authorized people.';
+
+  @override
   String get residenceSettings => 'Residence settings';
 
   @override

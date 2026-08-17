@@ -158,7 +158,7 @@ class _ResidenceSettingsFormState
                       description: compact
                           ? null
                           : localizations.residenceSettingsPageDescription,
-                      fallbackLocation: AppRoutes.profile,
+                      fallbackLocation: AppRoutes.administration,
                       onBack: _requestBack,
                     ),
                     const SizedBox(height: AppSpacing.large),
@@ -594,11 +594,7 @@ class _ResidenceSettingsFormState
     setState(() => _allowPop = true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      if (context.canPop()) {
-        context.pop();
-      } else {
-        context.go(AppRoutes.profile);
-      }
+      context.go(AppRoutes.administration);
     });
   }
 

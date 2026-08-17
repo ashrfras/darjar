@@ -3463,8 +3463,7 @@ void main() {
       residenceDuesRepository: duesRepository,
     );
     await _enterResidence(tester);
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
+    await _openAdministration(tester);
 
     await tester.ensureVisible(find.byKey(const Key('manage-dues-link')));
     await tester.tap(find.byKey(const Key('manage-dues-link')));
@@ -3676,8 +3675,7 @@ void main() {
         residenceMembersRepository: membersRepository,
       );
       await _enterResidence(tester);
-      await tester.tap(find.byKey(const Key('profile-button')));
-      await tester.pumpAndSettle();
+      await _openAdministration(tester);
       await tester.ensureVisible(find.byKey(const Key('manage-dues-link')));
       await tester.tap(find.byKey(const Key('manage-dues-link')));
       await tester.pumpAndSettle();
@@ -3726,6 +3724,7 @@ void main() {
       ),
     );
     await _enterResidence(tester);
+    expect(find.text('الإدارة'), findsNothing);
     await tester.tap(find.byKey(const Key('profile-button')));
     await tester.pumpAndSettle();
 
@@ -3758,8 +3757,20 @@ void main() {
         ),
       );
       await _enterResidence(tester);
+
+      expect(find.text('الإدارة'), findsOneWidget);
       await tester.tap(find.byKey(const Key('profile-button')));
       await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('profile-page')), findsOneWidget);
+      expect(
+        find.byKey(const Key('residence-management-section')),
+        findsNothing,
+      );
+      expect(find.byKey(const Key('manage-residence-link')), findsNothing);
+      await tester.tap(find.byKey(const Key('subpage-back-button')));
+      await tester.pumpAndSettle();
+      await _openAdministration(tester);
 
       expect(
         find.byKey(const Key('residence-management-section')),
@@ -3770,70 +3781,51 @@ void main() {
     },
   );
 
-  testWidgets('president actions share one neutral account actions group', (
-    tester,
-  ) async {
-    await _pumpApp(tester, size: const Size(390, 844));
-    await _enterResidence(tester);
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'president reset moves to management and account stays standard',
+    (tester) async {
+      await _pumpApp(tester, size: const Size(390, 844));
+      await _enterResidence(tester);
+      await tester.tap(find.byKey(const Key('profile-button')));
+      await tester.pumpAndSettle();
 
-    final signOut = find.byKey(const Key('sign-out-button'));
-    final reset = find.byKey(const Key('reset-residence-button'));
-    await tester.ensureVisible(reset);
-    await tester.pumpAndSettle();
-    expect(reset, findsOneWidget);
-    final signOutCard = find.ancestor(
-      of: signOut,
-      matching: find.byType(DarJarCard),
-    );
-    final resetCard = find.ancestor(
-      of: reset,
-      matching: find.byType(DarJarCard),
-    );
-    expect(signOutCard.evaluate().single, same(resetCard.evaluate().single));
-    final signOutTile = tester.widget<ListTile>(signOut);
-    final resetTile = tester.widget<ListTile>(reset);
-    expect((signOutTile.title! as Text).style, isNull);
-    expect((resetTile.title! as Text).style, isNull);
-    expect((signOutTile.leading! as Icon).color, isNull);
-    expect((resetTile.leading! as Icon).color, isNull);
-    expect(
-      tester.getTopLeft(signOut).dy,
-      lessThan(tester.getTopLeft(reset).dy),
-    );
+      final signOut = find.byKey(const Key('sign-out-button'));
+      expect(signOut, findsOneWidget);
+      expect(find.byKey(const Key('reset-residence-button')), findsNothing);
 
-    await tester.tap(reset);
-    await tester.pumpAndSettle();
-    expect(
-      find.byKey(const Key('reset-residence-confirmation-dialog')),
-      findsOneWidget,
-    );
-    expect(find.text('إعادة ضبط الإقامة؟'), findsOneWidget);
-    expect(find.textContaining('ستؤرشف جميع المنشورات'), findsOneWidget);
-  });
+      await tester.tap(find.byKey(const Key('subpage-back-button')));
+      await tester.pumpAndSettle();
+      await _openAdministration(tester);
+      final reset = find.byKey(const Key('reset-residence-button'));
+      await tester.ensureVisible(reset);
+      expect(reset, findsOneWidget);
+      expect(find.byKey(const Key('sign-out-button')), findsNothing);
+
+      await tester.tap(reset);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('reset-residence-confirmation-dialog')),
+        findsOneWidget,
+      );
+      expect(find.text('إعادة ضبط الإقامة؟'), findsOneWidget);
+      expect(find.textContaining('ستؤرشف جميع المنشورات'), findsOneWidget);
+    },
+  );
 
   testWidgets('residence management links are visible and navigate', (
     tester,
   ) async {
     await _pumpApp(tester, size: const Size(390, 844));
     await _enterResidence(tester);
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
+    await _openAdministration(tester);
 
     expect(
       find.byKey(const Key('residence-management-section')),
       findsOneWidget,
     );
-    expect(
-      tester
-          .getTopLeft(find.byKey(const Key('residence-management-section')))
-          .dy,
-      greaterThan(
-        tester.getTopLeft(find.byKey(const Key('profile-residences-card'))).dy,
-      ),
-    );
-    expect(find.text('الإدارة'), findsOneWidget);
+    expect(find.byIcon(Icons.settings_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.admin_panel_settings_rounded), findsNothing);
+    expect(find.text('الإدارة'), findsWidgets);
     expect(find.text('إدارة الشقق وتوزيع السكان داخل الإقامة'), findsOneWidget);
     expect(find.byKey(const Key('manage-projects-link')), findsNothing);
     expect(
@@ -3869,9 +3861,15 @@ void main() {
       await tester.tap(find.byKey(Key(navigation.link)));
       await tester.pumpAndSettle();
       expect(find.byKey(Key(navigation.page)), findsOneWidget);
+      expect(find.byIcon(Icons.settings_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.home_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.home_rounded), findsNothing);
       await tester.tap(find.byKey(const Key('subpage-back-button')));
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('profile-page')), findsOneWidget);
+      expect(
+        find.byKey(const Key('residence-administration-page')),
+        findsOneWidget,
+      );
     }
   });
 
@@ -3893,8 +3891,7 @@ void main() {
       ),
     );
     await _enterResidence(tester);
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
+    await _openAdministration(tester);
     await tester.ensureVisible(find.byKey(const Key('manage-documents-link')));
     await tester.tap(find.byKey(const Key('manage-documents-link')));
     await tester.pumpAndSettle();
@@ -3968,8 +3965,7 @@ void main() {
       residenceFinanceRepository: financeRepository,
     );
     await _enterResidence(tester);
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
+    await _openAdministration(tester);
     await tester.ensureVisible(find.byKey(const Key('manage-finances-link')));
     await tester.tap(find.byKey(const Key('manage-finances-link')));
     await tester.pumpAndSettle();
@@ -4143,8 +4139,7 @@ void main() {
       residenceFinanceRepository: financeRepository,
     );
     await _enterResidence(tester);
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
+    await _openAdministration(tester);
     await tester.ensureVisible(find.byKey(const Key('manage-finances-link')));
     await tester.tap(find.byKey(const Key('manage-finances-link')));
     await tester.pumpAndSettle();
@@ -4206,8 +4201,7 @@ void main() {
         residenceSettingsRepository: settingsRepository,
       );
       await _enterResidence(tester);
-      await tester.tap(find.byKey(const Key('profile-button')));
-      await tester.pumpAndSettle();
+      await _openAdministration(tester);
       await tester.ensureVisible(
         find.byKey(const Key('manage-residence-link')),
       );
@@ -4522,8 +4516,7 @@ void main() {
       residenceSettingsRepository: settingsRepository,
     );
     await _enterResidence(tester);
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
+    await _openAdministration(tester);
     await tester.ensureVisible(find.byKey(const Key('manage-residence-link')));
     await tester.tap(find.byKey(const Key('manage-residence-link')));
     await tester.pumpAndSettle();
@@ -4547,7 +4540,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(settingsRepository.settings.name, 'إقامة معدلة');
-    expect(find.byKey(const Key('profile-page')), findsOneWidget);
+    expect(
+      find.byKey(const Key('residence-administration-page')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('apartments and residents support daily assignments', (
@@ -4555,8 +4551,7 @@ void main() {
   ) async {
     await _pumpApp(tester, size: const Size(390, 844));
     await _enterResidence(tester);
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
+    await _openAdministration(tester);
     await tester.ensureVisible(find.byKey(const Key('manage-apartments-link')));
     await tester.tap(find.byKey(const Key('manage-apartments-link')));
     await tester.pumpAndSettle();
@@ -4828,8 +4823,7 @@ void main() {
       residenceMembersRepository: membersRepository,
     );
     await _enterResidence(tester);
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
+    await _openAdministration(tester);
     await tester.ensureVisible(find.byKey(const Key('manage-apartments-link')));
     await tester.tap(find.byKey(const Key('manage-apartments-link')));
     await tester.pumpAndSettle();
@@ -4854,8 +4848,7 @@ void main() {
       residenceMembersRepository: membersRepository,
     );
     await _enterResidence(tester);
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
+    await _openAdministration(tester);
     await tester.ensureVisible(find.byKey(const Key('manage-apartments-link')));
     await tester.tap(find.byKey(const Key('manage-apartments-link')));
     await tester.pumpAndSettle();
@@ -5428,6 +5421,15 @@ Future<void> _enterResidence(WidgetTester tester) async {
   await tester.ensureVisible(find.byKey(const Key('enter-residence-button')));
   await tester.tap(find.byKey(const Key('enter-residence-button')));
   await tester.pumpAndSettle();
+}
+
+Future<void> _openAdministration(WidgetTester tester) async {
+  await tester.tap(find.text('الإدارة'));
+  await tester.pumpAndSettle();
+  expect(
+    find.byKey(const Key('residence-administration-page')),
+    findsOneWidget,
+  );
 }
 
 class _FakeAuthRepository implements AuthRepository {

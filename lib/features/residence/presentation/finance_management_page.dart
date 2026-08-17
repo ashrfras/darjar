@@ -13,6 +13,7 @@ import 'package:darjar/features/residence/data/residence_finance_repository.dart
 import 'package:darjar/features/residence/domain/finance_amount.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class FinanceManagementPage extends ConsumerWidget {
   const FinanceManagementPage({super.key});
@@ -40,7 +41,8 @@ class FinanceManagementPage extends ConsumerWidget {
             children: [
               DarJarSubpageHeader(
                 title: localizations.financeManagement,
-                fallbackLocation: AppRoutes.profile,
+                fallbackLocation: AppRoutes.administration,
+                onBack: () => context.go(AppRoutes.administration),
                 description: compact
                     ? null
                     : localizations.financeManagementDescription,
