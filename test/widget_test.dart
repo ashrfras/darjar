@@ -10,6 +10,7 @@ import 'package:darjar/app/theme/app_theme.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
 import 'package:darjar/core/images/app_image_processing.dart';
 import 'package:darjar/core/images/storage_image_provider.dart';
+import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_country_code_picker.dart';
@@ -515,7 +516,11 @@ void main() {
 
     test('activity feed repository respects the requested page size', () async {
       final activities = await MockFeedActivityRepository()
-          .watchActivities(residenceId: 'residence', userId: 'resident', limit: 2)
+          .watchActivities(
+            residenceId: 'residence',
+            userId: 'resident',
+            limit: 2,
+          )
           .first;
 
       expect(activities, hasLength(2));
@@ -3499,6 +3504,10 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     await tester.pumpAndSettle();
     expect(find.text('الأشهر غير المؤداة: 3'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('share-dues-reminder-apartment-01')),
+      findsNothing,
+    );
     await tester.tap(find.byKey(const ValueKey('open-periods-apartment-01')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('period-details-sheet')), findsOneWidget);
@@ -3508,6 +3517,46 @@ void main() {
       ),
       findsOneWidget,
     );
+    final shareReminder = find.byKey(
+      const ValueKey('share-dues-reminder-apartment-01'),
+    );
+    expect(shareReminder, findsOneWidget);
+    await tester.tap(shareReminder);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('dues-reminder-share-dialog')), findsOneWidget);
+    final reminderField = tester.widget<TextField>(
+      find.byKey(const Key('dues-reminder-message-field')),
+    );
+    expect(reminderField.controller?.text, contains('الشقة رقم 01'));
+    expect(reminderField.controller?.text, contains('450 درهم'));
+    for (final periodKey in apartmentOnePeriods) {
+      final parts = periodKey.split('-');
+      expect(
+        reminderField.controller?.text,
+        contains(
+          DarJarDateFormat.yMMMM(
+            DateTime(int.parse(parts.first), int.parse(parts.last)),
+            'ar',
+          ),
+        ),
+      );
+    }
+    await tester.enterText(
+      find.byKey(const Key('dues-reminder-message-field')),
+      'نص إشعار معدل',
+    );
+    expect(
+      tester
+          .widget<TextField>(
+            find.byKey(const Key('dues-reminder-message-field')),
+          )
+          .controller
+          ?.text,
+      'نص إشعار معدل',
+    );
+    await tester.tap(find.byKey(const Key('close-dues-reminder-share-dialog')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('period-details-sheet')), findsOneWidget);
     await tester.tap(find.byIcon(Icons.close_rounded).last);
     await tester.pumpAndSettle();
 

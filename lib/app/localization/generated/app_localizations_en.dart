@@ -1114,6 +1114,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get duesShareReminderAction => 'Share notice';
+
+  @override
+  String get duesShareReminderTitle => 'Share overdue notice';
+
+  @override
+  String get duesShareReminderDescription =>
+      'Review and edit the notice before sharing it.';
+
+  @override
+  String get duesShareReminderMessageLabel => 'Notice message';
+
+  @override
+  String get duesShareReminderPeriodsSeparator => ', ';
+
+  @override
+  String duesShareReminderMessage(
+    String apartment,
+    String periods,
+    String amount,
+    String currency,
+  ) {
+    return 'Hello,\n\nThis is a reminder that the subscriptions for apartment $apartment remain unpaid for the following months: $periods.\n\nRemaining amount: $amount $currency.\n\nPlease settle the outstanding amount. Thank you for your cooperation.';
+  }
+
+  @override
   String get duesAllPeriodsPaid => 'All months are paid';
 
   @override

@@ -2082,6 +2082,47 @@ abstract class AppLocalizations {
   /// **'الأشهر غير المؤداة: {count}'**
   String duesOutstandingPeriods(int count);
 
+  /// No description provided for @duesShareReminderAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشاركة إشعار'**
+  String get duesShareReminderAction;
+
+  /// No description provided for @duesShareReminderTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشاركة إشعار التأخر'**
+  String get duesShareReminderTitle;
+
+  /// No description provided for @duesShareReminderDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'راجع نص الإشعار وعدّله قبل مشاركته.'**
+  String get duesShareReminderDescription;
+
+  /// No description provided for @duesShareReminderMessageLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'نص الإشعار'**
+  String get duesShareReminderMessageLabel;
+
+  /// No description provided for @duesShareReminderPeriodsSeparator.
+  ///
+  /// In ar, this message translates to:
+  /// **'، '**
+  String get duesShareReminderPeriodsSeparator;
+
+  /// No description provided for @duesShareReminderMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'مرحباً،\n\nنذكّركم بأن اشتراكات الشقة رقم {apartment} عن الأشهر التالية لم تؤدَّ بعد: {periods}.\n\nالمبلغ المتبقي: {amount} {currency}.\n\nيرجى تسوية المبلغ المستحق، وشكراً لتعاونكم.'**
+  String duesShareReminderMessage(
+    String apartment,
+    String periods,
+    String amount,
+    String currency,
+  );
+
   /// No description provided for @duesAllPeriodsPaid.
   ///
   /// In ar, this message translates to:

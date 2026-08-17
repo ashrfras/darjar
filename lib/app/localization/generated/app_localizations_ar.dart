@@ -1088,6 +1088,32 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get duesShareReminderAction => 'مشاركة إشعار';
+
+  @override
+  String get duesShareReminderTitle => 'مشاركة إشعار التأخر';
+
+  @override
+  String get duesShareReminderDescription =>
+      'راجع نص الإشعار وعدّله قبل مشاركته.';
+
+  @override
+  String get duesShareReminderMessageLabel => 'نص الإشعار';
+
+  @override
+  String get duesShareReminderPeriodsSeparator => '، ';
+
+  @override
+  String duesShareReminderMessage(
+    String apartment,
+    String periods,
+    String amount,
+    String currency,
+  ) {
+    return 'مرحباً،\n\nنذكّركم بأن اشتراكات الشقة رقم $apartment عن الأشهر التالية لم تؤدَّ بعد: $periods.\n\nالمبلغ المتبقي: $amount $currency.\n\nيرجى تسوية المبلغ المستحق، وشكراً لتعاونكم.';
+  }
+
+  @override
   String get duesAllPeriodsPaid => 'جميع الأشهر مؤداة';
 
   @override

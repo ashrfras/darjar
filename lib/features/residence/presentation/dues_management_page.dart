@@ -15,6 +15,7 @@ import 'package:darjar/features/documents/data/residence_documents_repository.da
 import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
+import 'package:darjar/features/residence/presentation/dues_reminder_share_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -280,6 +281,23 @@ class _ApartmentDuesCard extends StatelessWidget {
   }
 }
 
+Future<void> _showDuesReminderDialog(
+  BuildContext context,
+  _ApartmentDuesGroup group,
+) {
+  final localizations = AppLocalizations.of(context);
+  final periodLabels = group.outstandingDues
+      .map((due) => _periodLabel(context, due.periodKey))
+      .join(localizations.duesShareReminderPeriodsSeparator);
+  final initialMessage = localizations.duesShareReminderMessage(
+    group.apartmentNumber,
+    periodLabels,
+    _amount(context, group.remainingAmount),
+    localizations.currency,
+  );
+  return showDuesReminderShareDialog(context, initialMessage: initialMessage);
+}
+
 Future<void> _showPeriodDetailsSheet(
   BuildContext context,
   _ApartmentDuesGroup group,
@@ -374,6 +392,22 @@ class _PeriodDetailsSheet extends StatelessWidget {
                     },
                   ),
                 ),
+                if (group.outstandingPeriods > 0)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.xLarge,
+                      AppSpacing.medium,
+                      AppSpacing.xLarge,
+                      AppSpacing.xLarge,
+                    ),
+                    child: DarJarButton(
+                      key: ValueKey('share-dues-reminder-${group.apartmentId}'),
+                      label: localizations.duesShareReminderAction,
+                      icon: Icons.ios_share_rounded,
+                      expanded: true,
+                      onPressed: () => _showDuesReminderDialog(context, group),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -1011,6 +1045,9 @@ class _ApartmentDuesGroup {
 
   int get outstandingPeriods =>
       dues.where((due) => due.remainingAmount > 0).length;
+
+  List<ResidenceDue> get outstandingDues =>
+      dues.where((due) => due.remainingAmount > 0).toList(growable: false);
 
   int get remainingAmount =>
       dues.fold(0, (total, due) => total + due.remainingAmount);
