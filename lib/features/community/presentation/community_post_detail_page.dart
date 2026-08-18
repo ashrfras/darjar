@@ -266,9 +266,10 @@ class _CommentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: ValueKey('community-comment-${comment.id}'),
       padding: const EdgeInsets.all(AppSpacing.medium),
       decoration: BoxDecoration(
-        color: comment.isAuthor ? AppColors.primarySoft : AppColors.surface,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.large),
         border: Border.all(color: AppColors.outline),
       ),

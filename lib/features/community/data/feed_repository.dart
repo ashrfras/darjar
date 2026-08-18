@@ -267,9 +267,7 @@ List<FeedItem> mergeFeedItems(
     if (leftDate == null) return 1;
     if (rightDate == null) return -1;
     final dateComparison = rightDate.compareTo(leftDate);
-    return dateComparison != 0
-        ? dateComparison
-        : left.$1.compareTo(right.$1);
+    return dateComparison != 0 ? dateComparison : left.$1.compareTo(right.$1);
   });
   final items = indexedItems.map((entry) => entry.$2).toList();
   items.addAll(systemPosts.map(PostFeedItem.new));
@@ -346,8 +344,8 @@ const _initialActivities = <ResidenceActivity>[
     id: 'activity-cleaning-expense',
     activityType: ResidenceActivityType.expenseAdded,
     category: FeedCategory.finance,
-    descriptionAr: 'أضاف أحمد م. مصروفاً للتنظيف بقيمة 450 د',
-    descriptionEn: 'Ahmed M. added a cleaning expense of 450 MAD',
+    descriptionAr: 'تمت إضافة مصروف للتنظيف بقيمة 450 د',
+    descriptionEn: 'A cleaning expense of 450 MAD was added',
     timeLabelAr: 'منذ 35 دقيقة',
     timeLabelEn: '35 min ago',
     classificationAr: 'مصروف',
@@ -450,8 +448,8 @@ _activityCopy(
   final newAmount = payload['newAmount']?.toString() ?? '';
   return switch (type) {
     ResidenceActivityType.expenseAdded => (
-      descriptionAr: 'أضاف $actorAr مصروفاً $expensePurposeAr بقيمة $amount د',
-      descriptionEn: '$actorEn added a $expenseTitleEn expense of $amount MAD',
+      descriptionAr: 'تمت إضافة مصروف $expensePurposeAr بقيمة $amount د',
+      descriptionEn: 'A $expenseTitleEn expense of $amount MAD was added',
       classificationAr: 'مصروف',
       classificationEn: 'Expense',
     ),

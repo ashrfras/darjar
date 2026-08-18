@@ -524,6 +524,11 @@ void main() {
           .first;
 
       expect(activities, hasLength(2));
+      expect(
+        activities.first.descriptionAr,
+        'تمت إضافة مصروف للتنظيف بقيمة 450 د',
+      );
+      expect(activities.first.descriptionAr, isNot(contains('أحمد')));
     });
 
     test('feed orders posts and activities by occurrence time', () {
@@ -2338,7 +2343,7 @@ void main() {
       find.byKey(const ValueKey('feed-activity-activity-cleaning-expense')),
       findsOneWidget,
     );
-    expect(find.textContaining('مصروفاً للتنظيف بقيمة 450 د'), findsOneWidget);
+    expect(find.text('تمت إضافة مصروف للتنظيف بقيمة 450 د'), findsOneWidget);
     expect(
       find.descendant(
         of: find.byKey(
@@ -2416,6 +2421,22 @@ void main() {
     await tester.tap(find.byKey(const Key('submit-comment-button')));
     await tester.pumpAndSettle();
     expect(find.text('شكراً على التوضيح'), findsOneWidget);
+    final submittedCommentFinder = find.ancestor(
+      of: find.text('شكراً على التوضيح'),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Container &&
+            widget.key is ValueKey<String> &&
+            (widget.key! as ValueKey<String>).value.startsWith(
+              'community-comment-',
+            ),
+      ),
+    );
+    final submittedComment = tester.widget<Container>(submittedCommentFinder);
+    expect(
+      (submittedComment.decoration as BoxDecoration).color,
+      AppColors.surface,
+    );
   });
 
   testWidgets('feed activity opens its original residence section', (
