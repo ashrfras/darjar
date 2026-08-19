@@ -594,6 +594,50 @@ void main() {
       expect(complete.requireValue, hasLength(2));
     });
 
+    test('feed hides posts that may be preceded by unloaded activities', () {
+      final post = CommunityPost(
+        id: 'older-post',
+        author: 'أحمد',
+        timeLabel: 'منذ ساعة',
+        content: 'منشور أقدم',
+        kind: CommunityPostKind.general,
+        likes: 0,
+        comments: const [],
+        createdAt: DateTime.utc(2026, 8, 15, 10),
+      );
+      final activities = [
+        for (var hour = 20; hour >= 11; hour--)
+          ResidenceActivity(
+            id: 'activity-$hour',
+            activityType: ResidenceActivityType.expenseAdded,
+            category: FeedCategory.finance,
+            descriptionAr: 'نشاط',
+            descriptionEn: 'Activity',
+            timeLabelAr: 'الآن',
+            timeLabelEn: 'Now',
+            likes: 0,
+            occurredAt: DateTime.utc(2026, 8, 15, hour),
+          ),
+      ];
+
+      final partial = combineFeedStates(
+        AsyncData([post]),
+        AsyncData(activities),
+        postsLimit: 10,
+        activitiesLimit: 10,
+      ).requireValue;
+      final complete = combineFeedStates(
+        AsyncData([post]),
+        AsyncData(activities),
+        postsLimit: 10,
+        activitiesLimit: 20,
+      ).requireValue;
+
+      expect(partial.whereType<PostFeedItem>(), isEmpty);
+      expect(complete.whereType<PostFeedItem>(), hasLength(1));
+      expect(complete.last, isA<PostFeedItem>());
+    });
+
     test('community images are resized and converted for efficient upload', () {
       final source = test_image.Image(width: 2400, height: 1800);
       test_image.fill(source, color: test_image.ColorRgb8(34, 139, 94));

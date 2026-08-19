@@ -231,18 +231,33 @@ final feedItemsProvider = Provider.autoDispose<AsyncValue<List<FeedItem>>>((
   return combineFeedStates(
     ref.watch(communityPostsProvider),
     ref.watch(feedActivitiesProvider),
+    postsLimit: ref.watch(communityPostsLimitProvider),
+    activitiesLimit: ref.watch(feedActivitiesLimitProvider),
   );
 });
 
 AsyncValue<List<FeedItem>> combineFeedStates(
   AsyncValue<List<CommunityPost>> postsState,
-  AsyncValue<List<ResidenceActivity>> activitiesState,
-) {
+  AsyncValue<List<ResidenceActivity>> activitiesState, {
+  int? postsLimit,
+  int? activitiesLimit,
+}) {
   final posts = postsState.value;
   final activities = activitiesState.value;
   if (posts != null && activities != null) {
+    final loadedPostCount = posts.where((post) => !post.isSystem).length;
     return AsyncData(
-      mergeFeedItems(posts, groupConsecutiveDueActivities(activities)),
+      mergeStableFeedItems(
+        posts,
+        groupConsecutiveDueActivities(activities),
+        postsMayHaveMore:
+            postsLimit != null &&
+            (postsState.isLoading || loadedPostCount >= postsLimit),
+        activitiesMayHaveMore:
+            activitiesLimit != null &&
+            (activitiesState.isLoading || activities.length >= activitiesLimit),
+        rawActivities: activities,
+      ),
     );
   }
   if (postsState.hasError) {
@@ -252,6 +267,50 @@ AsyncValue<List<FeedItem>> combineFeedStates(
     return AsyncError(activitiesState.error!, activitiesState.stackTrace!);
   }
   return const AsyncLoading();
+}
+
+List<FeedItem> mergeStableFeedItems(
+  List<CommunityPost> posts,
+  List<ResidenceActivity> activities, {
+  required bool postsMayHaveMore,
+  required bool activitiesMayHaveMore,
+  required List<ResidenceActivity> rawActivities,
+}) {
+  final items = mergeFeedItems(posts, activities);
+  final frontiers = <DateTime>[];
+  if (postsMayHaveMore) {
+    final frontier = _oldestOccurredAt(
+      posts.where((post) => !post.isSystem).map(PostFeedItem.new),
+    );
+    if (frontier == null) return const [];
+    frontiers.add(frontier);
+  }
+  if (activitiesMayHaveMore) {
+    final frontier = _oldestOccurredAt(rawActivities);
+    if (frontier == null) return const [];
+    frontiers.add(frontier);
+  }
+  if (frontiers.isEmpty) return items;
+
+  final stableAfter = frontiers.reduce(
+    (latest, frontier) => frontier.isAfter(latest) ? frontier : latest,
+  );
+  return items
+      .where(
+        (item) =>
+            item.occurredAt != null && item.occurredAt!.isAfter(stableAfter),
+      )
+      .toList(growable: false);
+}
+
+DateTime? _oldestOccurredAt(Iterable<FeedItem> items) {
+  DateTime? oldest;
+  for (final item in items) {
+    final occurredAt = item.occurredAt;
+    if (occurredAt == null) return null;
+    if (oldest == null || occurredAt.isBefore(oldest)) oldest = occurredAt;
+  }
+  return oldest;
 }
 
 List<FeedItem> mergeFeedItems(
