@@ -560,6 +560,40 @@ void main() {
       expect((items.last as PostFeedItem).post, same(post));
     });
 
+    test('feed waits for posts and activities before publishing data', () {
+      const post = CommunityPost(
+        id: 'post',
+        author: 'أحمد',
+        timeLabel: 'الآن',
+        content: 'منشور',
+        kind: CommunityPostKind.general,
+        likes: 0,
+        comments: [],
+      );
+      const activity = ResidenceActivity(
+        id: 'activity',
+        activityType: ResidenceActivityType.expenseAdded,
+        category: FeedCategory.finance,
+        descriptionAr: 'نشاط',
+        descriptionEn: 'Activity',
+        timeLabelAr: 'الآن',
+        timeLabelEn: 'Now',
+        likes: 0,
+      );
+
+      final postsOnly = combineFeedStates(
+        const AsyncData([post]),
+        const AsyncLoading(),
+      );
+      final complete = combineFeedStates(
+        const AsyncData([post]),
+        const AsyncData([activity]),
+      );
+
+      expect(postsOnly.isLoading, isTrue);
+      expect(complete.requireValue, hasLength(2));
+    });
+
     test('community images are resized and converted for efficient upload', () {
       final source = test_image.Image(width: 2400, height: 1800);
       test_image.fill(source, color: test_image.ColorRgb8(34, 139, 94));
@@ -2218,7 +2252,7 @@ void main() {
     expect(find.text('مجتمعك، صوتك، تفاعلك'), findsNothing);
     expect(
       find.byKey(const ValueKey('community-post-darjar-welcome')),
-      findsNothing,
+      findsOneWidget,
     );
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -10000));
     await tester.pumpAndSettle();

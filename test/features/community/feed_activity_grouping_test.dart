@@ -46,6 +46,34 @@ void main() {
       'تم تسجيل أداء اشتراك 2026-03 إلى 2026-04 للشقة 13',
     );
   });
+
+  test('detects when an activity page was shortened by grouping', () {
+    final collapsed = [
+      for (var month = 10; month >= 1; month--)
+        _due(
+          'due-$month',
+          apartment: '16',
+          period: '2026-${month.toString().padLeft(2, '0')}',
+        ),
+    ];
+    final unchanged = [_expense('cleaning'), _expense('garden')];
+
+    expect(
+      shouldPrefetchCollapsedActivityPage(collapsed, pageSize: 10),
+      isTrue,
+    );
+    expect(
+      shouldPrefetchCollapsedActivityPage(
+        collapsed.take(9).toList(),
+        pageSize: 10,
+      ),
+      isFalse,
+    );
+    expect(
+      shouldPrefetchCollapsedActivityPage(unchanged, pageSize: 2),
+      isFalse,
+    );
+  });
 }
 
 ResidenceActivity _due(

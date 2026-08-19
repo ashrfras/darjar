@@ -29,8 +29,9 @@ class CommunityFeedPage extends ConsumerStatefulWidget {
 class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
   CommunityFeedFilter _filter = CommunityFeedFilter.all;
   final _scrollController = ScrollController();
-  int _visibleItemCount = feedItemsPageSize;
   bool _loadingMore = false;
+  bool _loadMoreCheckScheduled = false;
+  bool _initialActivityPrefetchChecked = false;
 
   @override
   void initState() {
@@ -68,7 +69,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
     final compact = MediaQuery.sizeOf(context).width < 600;
     final wide = MediaQuery.sizeOf(context).width >= 1180;
     final filtered = items.where(_matchesSelectedFilter).toList();
-    final visibleItems = filtered.take(_visibleItemCount).toList();
+    _scheduleLoadMoreCheck(feedState);
 
     return Scaffold(
       key: const Key('community-feed-page'),
@@ -130,7 +131,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                 ),
                               )
                             else
-                              for (final item in visibleItems) ...[
+                              for (final item in filtered) ...[
                                 switch (item) {
                                   PostFeedItem(:final post) =>
                                     CommunityPostCard(
@@ -222,18 +223,14 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
     context.go(destination);
   }
 
-  void _loadMoreNearBottom() {
-    if (!_scrollController.hasClients ||
-        _scrollController.position.extentAfter > 500 ||
-        _loadingMore) {
+  void _loadMoreNearBottom({bool checkCollapsedActivities = false}) {
+    if (!_scrollController.hasClients || _loadingMore) {
       return;
     }
     final postsState = ref.read(communityPostsProvider);
     final activitiesState = ref.read(feedActivitiesProvider);
     if (postsState.isLoading || activitiesState.isLoading) return;
 
-    final items = ref.read(feedItemsProvider).value ?? const <FeedItem>[];
-    final filteredCount = items.where(_matchesSelectedFilter).length;
     final loadedPostCount =
         postsState.value?.where((post) => !post.isSystem).length ?? 0;
     final postsLimit = ref.read(communityPostsLimitProvider);
@@ -241,20 +238,38 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
     final activitiesLimit = ref.read(feedActivitiesLimitProvider);
     final canLoadPosts = loadedPostCount >= postsLimit;
     final canLoadActivities = loadedActivityCount >= activitiesLimit;
-    final canRevealItems = filteredCount > _visibleItemCount;
-    if (!canRevealItems && !canLoadPosts && !canLoadActivities) return;
+    final nearBottom = _scrollController.position.extentAfter <= 500;
+    final shouldPrefetchCollapsedActivities =
+        checkCollapsedActivities &&
+        activitiesLimit == feedActivitiesPageSize &&
+        shouldPrefetchCollapsedActivityPage(
+          activitiesState.value!,
+          pageSize: feedActivitiesPageSize,
+        );
+    final shouldLoadPosts = nearBottom && canLoadPosts;
+    final shouldLoadActivities =
+        canLoadActivities && (nearBottom || shouldPrefetchCollapsedActivities);
+    if (!shouldLoadPosts && !shouldLoadActivities) return;
 
     _loadingMore = true;
-    if (canRevealItems) {
-      setState(() => _visibleItemCount += feedItemsPageSize);
-    }
-    if (canLoadPosts) {
+    if (shouldLoadPosts) {
       ref.read(communityPostsLimitProvider.notifier).loadMore();
     }
-    if (canLoadActivities) {
+    if (shouldLoadActivities) {
       ref.read(feedActivitiesLimitProvider.notifier).loadMore();
     }
-    if (!canLoadPosts && !canLoadActivities) _loadingMore = false;
+  }
+
+  void _scheduleLoadMoreCheck(AsyncValue<List<FeedItem>> feedState) {
+    if (!feedState.hasValue || _loadMoreCheckScheduled) return;
+    _loadMoreCheckScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadMoreCheckScheduled = false;
+      if (!mounted) return;
+      final checkCollapsedActivities = !_initialActivityPrefetchChecked;
+      _initialActivityPrefetchChecked = true;
+      _loadMoreNearBottom(checkCollapsedActivities: checkCollapsedActivities);
+    });
   }
 
   bool _matchesSelectedFilter(FeedItem item) => switch (_filter) {

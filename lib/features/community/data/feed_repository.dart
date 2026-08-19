@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/core/providers/provider_cache.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
@@ -10,7 +11,6 @@ import 'package:darjar/features/residence/data/residence_context_repository.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const feedActivitiesPageSize = 10;
-const feedItemsPageSize = 10;
 
 abstract interface class FeedActivityRepository {
   Stream<List<ResidenceActivity>> watchActivities({
@@ -183,6 +183,7 @@ final feedActivitiesLimitProvider =
 
 final feedActivitiesProvider =
     StreamProvider.autoDispose<List<ResidenceActivity>>((ref) async* {
+      cacheProviderFor(ref);
       final limit = ref.watch(feedActivitiesLimitProvider);
       final context = await ref.watch(residenceContextProvider.future);
       final residence = context.activeResidence;
@@ -227,16 +228,21 @@ class FeedActivityActions {
 final feedItemsProvider = Provider.autoDispose<AsyncValue<List<FeedItem>>>((
   ref,
 ) {
-  final postsState = ref.watch(communityPostsProvider);
-  final activitiesState = ref.watch(feedActivitiesProvider);
+  return combineFeedStates(
+    ref.watch(communityPostsProvider),
+    ref.watch(feedActivitiesProvider),
+  );
+});
+
+AsyncValue<List<FeedItem>> combineFeedStates(
+  AsyncValue<List<CommunityPost>> postsState,
+  AsyncValue<List<ResidenceActivity>> activitiesState,
+) {
   final posts = postsState.value;
   final activities = activitiesState.value;
-  if (posts != null) {
+  if (posts != null && activities != null) {
     return AsyncData(
-      mergeFeedItems(
-        posts,
-        groupConsecutiveDueActivities(activities ?? const []),
-      ),
+      mergeFeedItems(posts, groupConsecutiveDueActivities(activities)),
     );
   }
   if (postsState.hasError) {
@@ -246,7 +252,7 @@ final feedItemsProvider = Provider.autoDispose<AsyncValue<List<FeedItem>>>((
     return AsyncError(activitiesState.error!, activitiesState.stackTrace!);
   }
   return const AsyncLoading();
-});
+}
 
 List<FeedItem> mergeFeedItems(
   List<CommunityPost> posts,
@@ -318,6 +324,13 @@ List<ResidenceActivity> groupConsecutiveDueActivities(
   }
   return grouped;
 }
+
+bool shouldPrefetchCollapsedActivityPage(
+  List<ResidenceActivity> activities, {
+  required int pageSize,
+}) =>
+    activities.length >= pageSize &&
+    groupConsecutiveDueActivities(activities).length < activities.length;
 
 bool _canGroupDueActivity(ResidenceActivity activity) {
   return activity.activityType == ResidenceActivityType.duePaid &&

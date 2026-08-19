@@ -589,14 +589,14 @@ class FirebaseCommunityRepository implements CommunityRepository {
     required int limit,
   }) {
     return _posts(residenceId)
+        .where('archivedAt', isNull: true)
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()
         .asyncMap((snapshot) async {
           return Future.wait([
             for (final document in snapshot.docs)
-              if (document.data()['archivedAt'] == null)
-                _postFromDocument(document, userId, includeComments: false),
+              _postFromDocument(document, userId, includeComments: false),
           ]);
         })
         .handleError((Object error) => throw _failure(error));
