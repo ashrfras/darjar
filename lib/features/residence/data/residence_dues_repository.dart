@@ -132,9 +132,9 @@ class ResidenceDuesOverview {
       dues: dues
           .where((due) => activeApartmentIds.contains(due.apartmentId))
           .toList(growable: false),
-      // Payments are financial history and must remain visible after an
-      // apartment is deleted. Only current dues drive summaries and choices.
-      payments: payments,
+      payments: payments
+          .where((payment) => activeApartmentIds.contains(payment.apartmentId))
+          .toList(growable: false),
     );
   }
 

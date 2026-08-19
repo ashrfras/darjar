@@ -4,6 +4,7 @@ import 'package:darjar/features/account/data/account_onboarding_repository.dart'
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,6 +19,23 @@ enum ResidenceExpenseCategory {
 enum ResidenceTransactionType { income, expense }
 
 enum ResidenceTransactionSource { dues, manual, openingBalance }
+
+int countPaidActiveApartments({
+  required Set<String> activeTrackedApartmentIds,
+  required Iterable<String> paidApartmentIds,
+}) {
+  return paidApartmentIds
+      .toSet()
+      .intersection(activeTrackedApartmentIds)
+      .length;
+}
+
+bool isActiveTrackedApartment(
+  String apartmentId,
+  Set<String> activeTrackedApartmentIds,
+) {
+  return activeTrackedApartmentIds.contains(apartmentId);
+}
 
 class ResidenceTransaction {
   const ResidenceTransaction({
@@ -155,7 +173,8 @@ class ResidenceFinances {
         .where((transaction) => transaction.isOpeningBalance)
         .fold<num>(0, (total, transaction) => total + transaction.amount);
     final breakdownAmounts = {
-      for (final category in ResidenceExpenseCategory.values) category: 0 as num,
+      for (final category in ResidenceExpenseCategory.values)
+        category: 0 as num,
     };
     for (final transaction in currentYearTransactions) {
       if (transaction.type != ResidenceTransactionType.expense) continue;
@@ -240,7 +259,10 @@ class ResidenceFinanceFailure implements Exception {
 }
 
 abstract interface class ResidenceFinanceRepository {
-  Future<ResidenceFinances> load(String residenceId);
+  Future<ResidenceFinances> load(
+    String residenceId, {
+    required Set<String> activeTrackedApartmentIds,
+  });
 
   Future<void> addManualTransaction({
     required String residenceId,
@@ -277,7 +299,10 @@ class FirestoreResidenceFinanceRepository
   final FirebaseStorage _storage;
 
   @override
-  Future<ResidenceFinances> load(String residenceId) async {
+  Future<ResidenceFinances> load(
+    String residenceId, {
+    required Set<String> activeTrackedApartmentIds,
+  }) async {
     final residence = _firestore.collection('residences').doc(residenceId);
     final currentPeriod = _periodKey(DateTime.now());
     try {
@@ -287,29 +312,38 @@ class FirestoreResidenceFinanceRepository
         residence
             .collection('dues')
             .where('periodKey', isEqualTo: currentPeriod)
-            .count()
-            .get(),
-        residence
-            .collection('dues')
-            .where('periodKey', isEqualTo: currentPeriod)
-            .where('status', isEqualTo: 'paid')
-            .count()
             .get(),
       ]);
       final paymentDocuments =
           results[0] as QuerySnapshot<Map<String, dynamic>>;
       final manualDocuments = results[1] as QuerySnapshot<Map<String, dynamic>>;
-      final currentDues = results[2] as AggregateQuerySnapshot;
-      final paidDues = results[3] as AggregateQuerySnapshot;
+      final currentDues = results[2] as QuerySnapshot<Map<String, dynamic>>;
+      final paidTrackedApartments = countPaidActiveApartments(
+        activeTrackedApartmentIds: activeTrackedApartmentIds,
+        paidApartmentIds: currentDues.docs
+            .where((document) {
+              return document.data()['status'] == 'paid';
+            })
+            .map((document) => document.data()['apartmentId'] as String? ?? ''),
+      );
       final transactions = [
-        ..._duesTransactions(paymentDocuments.docs),
+        ..._duesTransactions(
+          paymentDocuments.docs
+              .where((document) {
+                return isActiveTrackedApartment(
+                  document.data()['apartmentId'] as String? ?? '',
+                  activeTrackedApartmentIds,
+                );
+              })
+              .toList(growable: false),
+        ),
         for (final document in manualDocuments.docs)
           _manualTransaction(document),
       ];
       return ResidenceFinances.fromTransactions(
         transactions: transactions,
-        paidResidents: paidDues.count ?? 0,
-        totalResidents: currentDues.count ?? 0,
+        paidResidents: paidTrackedApartments,
+        totalResidents: activeTrackedApartmentIds.length,
       );
     } on FirebaseException catch (error) {
       throw ResidenceFinanceFailure(error.code, error.message);
@@ -640,7 +674,16 @@ class ResidenceFinanceController extends AsyncNotifier<ResidenceFinances> {
         return ResidenceFinances.empty;
       }
       _residenceId = residence.id;
-      return ref.read(residenceFinanceRepositoryProvider).load(residence.id);
+      final members = await ref.watch(residenceMembersProvider.future);
+      return ref
+          .read(residenceFinanceRepositoryProvider)
+          .load(
+            residence.id,
+            activeTrackedApartmentIds: {
+              for (final apartment in members.apartments)
+                if (apartment.isDuesTrackingActive) apartment.id,
+            },
+          );
     });
   }
 
@@ -712,8 +755,17 @@ class ResidenceFinanceController extends AsyncNotifier<ResidenceFinances> {
 
   Future<void> _reload() async {
     final residenceId = _requiredResidenceId();
+    final members = await ref.read(residenceMembersProvider.future);
     state = AsyncData(
-      await ref.read(residenceFinanceRepositoryProvider).load(residenceId),
+      await ref
+          .read(residenceFinanceRepositoryProvider)
+          .load(
+            residenceId,
+            activeTrackedApartmentIds: {
+              for (final apartment in members.apartments)
+                if (apartment.isDuesTrackingActive) apartment.id,
+            },
+          ),
     );
     ref.invalidate(residenceTransactionAttachmentsProvider);
   }

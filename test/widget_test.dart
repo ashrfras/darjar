@@ -783,6 +783,37 @@ void main() {
       expect(finances.recentExpenses, hasLength(2));
     });
 
+    test('collection rate excludes dues from deleted apartments', () {
+      final paidApartments = countPaidActiveApartments(
+        activeTrackedApartmentIds: {'active-apartment', 'unpaid-apartment'},
+        paidApartmentIds: {'active-apartment', 'deleted-apartment'},
+      );
+      final finances = ResidenceFinances.fromTransactions(
+        transactions: const [],
+        paidResidents: paidApartments,
+        totalResidents: 2,
+      );
+
+      expect(paidApartments, 1);
+      expect(finances.collectionRate, .5);
+    });
+
+    test('deleted apartment payments are excluded from finances', () {
+      const activeTrackedApartmentIds = {'active-apartment'};
+
+      expect(
+        isActiveTrackedApartment('active-apartment', activeTrackedApartmentIds),
+        isTrue,
+      );
+      expect(
+        isActiveTrackedApartment(
+          'deleted-apartment',
+          activeTrackedApartmentIds,
+        ),
+        isFalse,
+      );
+    });
+
     test('opening balance affects balance without becoming income', () {
       final finances = ResidenceFinances.fromTransactions(
         now: DateTime(2026, 8, 6),
@@ -3791,7 +3822,7 @@ void main() {
   });
 
   testWidgets(
-    'management excludes deleted apartments but keeps their payment history',
+    'management excludes deleted apartments and their payment history',
     (tester) async {
       final membersRepository = _FakeResidenceMembersRepository();
       membersRepository.data = ResidenceMembersData(
@@ -3836,7 +3867,7 @@ void main() {
         find.byKey(const ValueKey('managed-apartment-apartment-02')),
         findsNothing,
       );
-      expect(find.text('الشقة رقم 02'), findsOneWidget);
+      expect(find.text('الشقة رقم 02'), findsNothing);
 
       await tester.tap(find.byKey(const Key('record-payment-button')));
       await tester.pumpAndSettle();
@@ -4309,7 +4340,10 @@ void main() {
           .amount,
       1000.5,
     );
-    final finances = await financeRepository.load('test-residence');
+    final finances = await financeRepository.load(
+      'test-residence',
+      activeTrackedApartmentIds: const {},
+    );
     expect(finances.totalIncome, 200);
     expect(finances.currentBalance, 1120.5);
 
@@ -4333,6 +4367,7 @@ void main() {
     expect(find.text('لم يتم إدخال الرصيد الافتتاحي'), findsOneWidget);
     final financesAfterDeletion = await financeRepository.load(
       'test-residence',
+      activeTrackedApartmentIds: const {},
     );
     expect(financesAfterDeletion.currentBalance, 120);
   });
@@ -6245,7 +6280,10 @@ class _FakeResidenceFinanceRepository implements ResidenceFinanceRepository {
   var _nextId = 1;
 
   @override
-  Future<ResidenceFinances> load(String residenceId) async {
+  Future<ResidenceFinances> load(
+    String residenceId, {
+    required Set<String> activeTrackedApartmentIds,
+  }) async {
     return ResidenceFinances.fromTransactions(
       transactions: transactions,
       paidResidents: 1,
