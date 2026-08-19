@@ -21,13 +21,30 @@ class ResidenceDocumentsPage extends ConsumerStatefulWidget {
 
 class _ResidenceDocumentsPageState
     extends ConsumerState<ResidenceDocumentsPage> {
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_loadMoreNearBottom);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_loadMoreNearBottom)
+      ..dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final documents = ref.watch(residenceDocumentsProvider);
+    final documents = ref.watch(residenceDocumentsPageProvider);
     final compact = MediaQuery.sizeOf(context).width < 600;
     return SingleChildScrollView(
       key: const Key('residence-documents-page'),
+      controller: _scrollController,
       padding: EdgeInsets.fromLTRB(
         compact ? 12 : AppSpacing.xLarge,
         compact ? AppSpacing.small : AppSpacing.xLarge,
@@ -49,22 +66,12 @@ class _ResidenceDocumentsPageState
                 fallbackLocation: AppRoutes.residence,
               ),
               const SizedBox(height: AppSpacing.large),
-              _SectionHeader(
-                title: localizations.administrativeDocuments,
-                description: localizations.administrativeDocumentsDescription,
-                icon: Icons.account_balance_outlined,
-                onViewAll: () => _showAllAdministrativeDocuments(
-                  documents.value ?? const [],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.small),
               documents.when(
                 loading: _loading,
                 error: (error, stackTrace) => _loadError(
-                  () => ref.invalidate(residenceDocumentsProvider),
+                  () => ref.invalidate(residenceDocumentsPageProvider),
                 ),
                 data: (items) {
-                  final visible = items.take(5).toList();
                   return DarJarCard(
                     key: const Key('administrative-documents-section'),
                     padding: EdgeInsets.zero,
@@ -77,18 +84,18 @@ class _ResidenceDocumentsPageState
                             children: [
                               for (
                                 var index = 0;
-                                index < visible.length;
+                                index < items.length;
                                 index++
                               ) ...[
                                 ResidenceDocumentRow(
-                                  document: visible[index],
+                                  document: items[index],
                                   onOpen: () => showResidenceDocumentPreview(
                                     context,
                                     ref,
-                                    visible[index],
+                                    items[index],
                                   ),
                                 ),
-                                if (index < visible.length - 1) const Divider(),
+                                if (index < items.length - 1) const Divider(),
                               ],
                             ],
                           ),
@@ -100,6 +107,19 @@ class _ResidenceDocumentsPageState
         ),
       ),
     );
+  }
+
+  void _loadMoreNearBottom() {
+    if (!_scrollController.hasClients ||
+        _scrollController.position.extentAfter > 320) {
+      return;
+    }
+    final documents = ref.read(residenceDocumentsPageProvider);
+    if (documents.isLoading) return;
+    final loadedCount = documents.value?.length ?? 0;
+    final limit = ref.read(residenceDocumentsPageLimitProvider);
+    if (loadedCount < limit) return;
+    ref.read(residenceDocumentsPageLimitProvider.notifier).loadMore();
   }
 
   Widget _loading() => const DarJarLoadingSkeleton(itemCount: 2);
@@ -120,142 +140,6 @@ class _ResidenceDocumentsPageState
       ],
     ),
   );
-
-  Future<void> _showAllAdministrativeDocuments(
-    List<ResidenceDocument> documents,
-  ) {
-    final localizations = AppLocalizations.of(context);
-    return showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 760),
-      builder: (sheetContext) => _AllDocumentsSheet(
-        key: const Key('all-administrative-documents-sheet'),
-        title: localizations.administrativeDocuments,
-        emptyMessage: localizations.noDocuments,
-        children: [
-          for (final document in documents)
-            ResidenceDocumentRow(
-              document: document,
-              onOpen: () {
-                Navigator.of(sheetContext).pop();
-                showResidenceDocumentPreview(context, ref, document);
-              },
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.onViewAll,
-  });
-
-  final String title;
-  final String description;
-  final IconData icon;
-  final VoidCallback onViewAll;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: AppColors.primarySoft,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, size: 23, color: AppColors.primary),
-        ),
-        const SizedBox(width: AppSpacing.medium),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: theme.textTheme.titleLarge),
-              Text(description, style: theme.textTheme.bodySmall),
-            ],
-          ),
-        ),
-        TextButton(
-          key: const ValueKey('view-all-administrative-documents'),
-          onPressed: onViewAll,
-          child: Text(AppLocalizations.of(context).viewAll),
-        ),
-      ],
-    );
-  }
-}
-
-class _AllDocumentsSheet extends StatelessWidget {
-  const _AllDocumentsSheet({
-    required this.title,
-    required this.emptyMessage,
-    required this.children,
-    super.key,
-  });
-
-  final String title;
-  final String emptyMessage;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.sizeOf(context).height * 0.82,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(
-              AppSpacing.large,
-              AppSpacing.medium,
-              AppSpacing.small,
-              AppSpacing.medium,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded),
-                ),
-              ],
-            ),
-          ),
-          const Divider(),
-          Expanded(
-            child: children.isEmpty
-                ? _EmptyState(
-                    message: emptyMessage,
-                    icon: Icons.folder_open_outlined,
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.xLarge),
-                    itemCount: children.length,
-                    separatorBuilder: (context, index) => const Divider(),
-                    itemBuilder: (context, index) => children[index],
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _EmptyState extends StatelessWidget {

@@ -2906,7 +2906,11 @@ void main() {
     await tester.tap(find.text('الوثائق'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('residence-documents-page')), findsOneWidget);
-    expect(find.text('الوثائق الإدارية'), findsOneWidget);
+    expect(find.text('الوثائق الإدارية'), findsNothing);
+    expect(
+      find.text('الوثائق الرسمية التي رفعتها إدارة الإقامة.'),
+      findsNothing,
+    );
     expect(find.text('الوثائق المرفقة'), findsNothing);
     expect(
       find.byKey(const Key('administrative-documents-section')),
@@ -2931,16 +2935,56 @@ void main() {
     await tester.tap(find.byIcon(Icons.close_rounded).last);
     await tester.pumpAndSettle();
 
-    await tester.tap(
-      find.byKey(const Key('view-all-administrative-documents')),
-    );
-    await tester.pumpAndSettle();
     expect(
-      find.byKey(const Key('all-administrative-documents-sheet')),
-      findsOneWidget,
+      find.byKey(const Key('view-all-administrative-documents')),
+      findsNothing,
     );
-    await tester.tap(find.byIcon(Icons.close_rounded).last);
+  });
+
+  testWidgets('documents page reveals more documents near the bottom', (
+    tester,
+  ) async {
+    final documentsRepository = _FakeResidenceDocumentsRepository(
+      initialDocuments: List.generate(
+        8,
+        (index) => ResidenceDocument(
+          id: 'document-$index',
+          title: 'وثيقة ${index + 1}',
+          originalFileName: 'document-$index.pdf',
+          storagePath: 'documents/document-$index',
+          contentType: 'application/pdf',
+          sizeBytes: 2048,
+          uploadedBy: 'test-user',
+          createdAt: DateTime(2026, 8, 19 - index),
+          updatedAt: DateTime(2026, 8, 19 - index),
+        ),
+      ),
+    );
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceDocumentsRepository: documentsRepository,
+    );
+    await _enterResidence(tester);
+    await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('الوثائق'));
+    await tester.tap(find.text('الوثائق'));
+    await tester.pumpAndSettle();
+    tester.view.physicalSize = const Size(390, 500);
+    await tester.pumpAndSettle();
+
+    expect(find.text('وثيقة 5'), findsOneWidget);
+    expect(find.text('وثيقة 6'), findsNothing);
+
+    await tester.drag(
+      find.byKey(const Key('residence-documents-page')),
+      const Offset(0, -600),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('وثيقة 6'), findsOneWidget);
+    expect(find.text('وثيقة 8'), findsOneWidget);
   });
 
   testWidgets('profile exposes real editable account and residence data', (
@@ -6636,9 +6680,14 @@ class _FakeResidenceDocumentsRepository
   final _changes = StreamController<List<ResidenceDocument>>.broadcast();
 
   @override
-  Stream<List<ResidenceDocument>> watch(String residenceId) async* {
-    yield List.unmodifiable(documents);
-    yield* _changes.stream;
+  Stream<List<ResidenceDocument>> watch(
+    String residenceId, {
+    int? limit,
+  }) async* {
+    List<ResidenceDocument> visibleDocuments(List<ResidenceDocument> items) =>
+        List.unmodifiable(limit == null ? items : items.take(limit));
+    yield visibleDocuments(documents);
+    yield* _changes.stream.map(visibleDocuments);
   }
 
   @override

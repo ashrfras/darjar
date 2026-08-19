@@ -10,6 +10,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const residenceDocumentMaxSizeBytes = 15 * 1024 * 1024;
+const residenceDocumentsPageSize = 5;
 
 const residenceDocumentContentTypes = {
   'application/pdf',
@@ -98,7 +99,7 @@ class ResidenceDocumentsFailure implements Exception {
 }
 
 abstract interface class ResidenceDocumentsRepository {
-  Stream<List<ResidenceDocument>> watch(String residenceId);
+  Stream<List<ResidenceDocument>> watch(String residenceId, {int? limit});
 
   Future<List<ResidenceTransactionAttachment>> loadAttachments(
     String residenceId,
@@ -133,9 +134,12 @@ class FirebaseResidenceDocumentsRepository
   final FirebaseStorage _storage;
 
   @override
-  Stream<List<ResidenceDocument>> watch(String residenceId) {
-    return _documents(residenceId)
-        .orderBy('createdAt', descending: true)
+  Stream<List<ResidenceDocument>> watch(String residenceId, {int? limit}) {
+    Query<Map<String, dynamic>> query = _documents(
+      residenceId,
+    ).orderBy('createdAt', descending: true);
+    if (limit != null) query = query.limit(limit);
+    return query
         .snapshots()
         .map(
           (snapshot) => [
@@ -426,6 +430,44 @@ final residenceDocumentsProvider =
             in ref
                 .watch(residenceDocumentsRepositoryProvider)
                 .watch(activeResidence.id)) {
+          timer.finish();
+          yield documents;
+        }
+      } catch (error) {
+        timer.finish(error: error);
+        rethrow;
+      }
+    });
+
+class ResidenceDocumentsPageLimit extends Notifier<int> {
+  @override
+  int build() => residenceDocumentsPageSize;
+
+  void loadMore() => state += residenceDocumentsPageSize;
+}
+
+final residenceDocumentsPageLimitProvider =
+    NotifierProvider.autoDispose<ResidenceDocumentsPageLimit, int>(
+      ResidenceDocumentsPageLimit.new,
+    );
+
+final residenceDocumentsPageProvider =
+    StreamProvider.autoDispose<List<ResidenceDocument>>((ref) async* {
+      final timer = DataLoadTimer('residence documents page');
+      cacheProviderFor(ref);
+      try {
+        final limit = ref.watch(residenceDocumentsPageLimitProvider);
+        final context = await ref.watch(residenceContextProvider.future);
+        final activeResidence = context.activeResidence;
+        if (activeResidence == null) {
+          timer.finish();
+          yield const [];
+          return;
+        }
+        await for (final documents
+            in ref
+                .watch(residenceDocumentsRepositoryProvider)
+                .watch(activeResidence.id, limit: limit)) {
           timer.finish();
           yield documents;
         }
