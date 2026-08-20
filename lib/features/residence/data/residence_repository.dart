@@ -58,13 +58,13 @@ class MockResidenceRepository implements ResidenceRepository {
     return const [
       DuesRecord(
         period: 'يوليو 2026',
-        amountLabel: '300 درهم',
+        amountLabel: '300 د',
         statusLabel: 'في انتظار التحقق',
         isPaid: false,
       ),
       DuesRecord(
         period: 'يونيو 2026',
-        amountLabel: '300 درهم',
+        amountLabel: '300 د',
         statusLabel: 'تم الأداء',
         isPaid: true,
       ),

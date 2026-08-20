@@ -27,9 +27,9 @@ void main() {
     ).readAsStringSync();
 
     expect(androidManifest, contains('android:label="@string/app_name"'));
-    expect(androidDefault, contains('>DarJar<'));
+    expect(androidDefault, contains('>Darjar<'));
     expect(androidArabic, contains('>دارجار<'));
-    expect(iosDefault, contains('<string>DarJar</string>'));
+    expect(iosDefault, contains('<string>Darjar</string>'));
     expect(iosArabic, contains('"CFBundleDisplayName" = "دارجار";'));
   });
 

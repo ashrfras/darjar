@@ -394,7 +394,7 @@ class _AccountCard extends StatelessWidget {
             _FinancialMetric(
               label: 'المبلغ الشهري',
               value: due == null ? '—' : '${due.amountDue}',
-              suffix: 'درهم',
+              suffix: localizations.currency,
               detail: due == null
                   ? localizations.duesNoRecords
                   : localizations.duesPeriod(
@@ -405,7 +405,7 @@ class _AccountCard extends StatelessWidget {
               key: const Key('account-last-payment-total'),
               label: 'آخر عملية دفع',
               value: paymentGroup == null ? '—' : '${paymentGroup.totalAmount}',
-              suffix: 'درهم',
+              suffix: localizations.currency,
               detail: paymentGroup == null
                   ? localizations.duesNoPayments
                   : localizations.duesRecordedOn(

@@ -736,7 +736,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get viewFinanceDetails => 'عرض تفاصيل مالية الإقامة';
 
   @override
-  String get currency => 'درهم';
+  String get currency => 'د';
 
   @override
   String get supportingDocument => 'المرفق';
@@ -1136,7 +1136,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String duesAdvancePaymentHint(String amount) {
-    return 'بعد أداء جميع المستحقات، يمكن دفع أشهر لاحقة كاملة بقيمة $amount درهم للشهر.';
+    return 'بعد أداء جميع المستحقات، يمكن دفع أشهر لاحقة كاملة بقيمة $amount د للشهر.';
   }
 
   @override
@@ -1230,7 +1230,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String duesConfirmDeletePayment(String number, String amount) {
-    return 'هل تريد حذف أداء الشقة رقم $number بقيمة $amount درهم؟ سيُعاد احتساب سجل الاشتراكات ولا يمكن التراجع عن ذلك.';
+    return 'هل تريد حذف أداء الشقة رقم $number بقيمة $amount د؟ سيُعاد احتساب سجل الاشتراكات ولا يمكن التراجع عن ذلك.';
   }
 
   @override

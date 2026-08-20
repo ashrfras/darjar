@@ -437,7 +437,7 @@ class _FinancePreview extends StatelessWidget {
           Text('الرصيد الحالي', style: Theme.of(context).textTheme.bodyMedium),
           const SizedBox(height: AppSpacing.xSmall),
           Text(
-            '18,450 د.م.',
+            '18,450 د',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: AppSpacing.large),
@@ -459,10 +459,10 @@ class _FinancePreview extends StatelessWidget {
           const SizedBox(height: AppSpacing.large),
           const Divider(),
           const SizedBox(height: AppSpacing.medium),
-          const _TransactionRow(label: 'صيانة المصعد', value: '− 1,200 د.م.'),
+          const _TransactionRow(label: 'صيانة المصعد', value: '− 1,200 د'),
           const _TransactionRow(
             label: 'اشتراكات يوليوز',
-            value: '+ 3,600 د.م.',
+            value: '+ 3,600 د',
           ),
         ],
       ),

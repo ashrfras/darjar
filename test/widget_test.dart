@@ -3500,7 +3500,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byKey(const Key('account-dues-status')),
-        matching: find.text('المبلغ المتبقي: 450 درهم'),
+        matching: find.text('المبلغ المتبقي: 450 د'),
       ),
       findsOneWidget,
     );
@@ -3645,7 +3645,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byKey(const Key('account-last-payment-total')),
-        matching: find.text('300 درهم', findRichText: true),
+        matching: find.text('300 د', findRichText: true),
       ),
       findsOneWidget,
     );
@@ -3655,7 +3655,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byKey(const Key('dues-total-credit')),
-        matching: find.text('150 درهم'),
+        matching: find.text('150 د'),
       ),
       findsOneWidget,
     );
@@ -3859,7 +3859,7 @@ void main() {
       find.byKey(const Key('dues-reminder-message-field')),
     );
     expect(reminderField.controller?.text, contains('الشقة رقم 01'));
-    expect(reminderField.controller?.text, contains('450 درهم'));
+    expect(reminderField.controller?.text, contains('450 د'));
     for (final periodKey in apartmentOnePeriods) {
       final parts = periodKey.split('-');
       expect(
@@ -3983,7 +3983,7 @@ void main() {
             'management-payment-${apartmentOnePayments.first.paymentGroupId}',
           ),
         ),
-        matching: find.text('750 درهم'),
+        matching: find.text('750 د'),
       ),
       findsOneWidget,
     );
@@ -3997,7 +3997,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('حذف الأداء'), findsOneWidget);
     expect(
-      find.textContaining('هل تريد حذف أداء الشقة رقم 01 بقيمة 750 درهم؟'),
+      find.textContaining('هل تريد حذف أداء الشقة رقم 01 بقيمة 750 د؟'),
       findsOneWidget,
     );
     await tester.tap(find.byKey(const Key('confirm-delete-dues-payment')));

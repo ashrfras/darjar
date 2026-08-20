@@ -1457,7 +1457,7 @@ abstract class AppLocalizations {
   /// No description provided for @currency.
   ///
   /// In ar, this message translates to:
-  /// **'درهم'**
+  /// **'د'**
   String get currency;
 
   /// No description provided for @supportingDocument.
@@ -2162,7 +2162,7 @@ abstract class AppLocalizations {
   /// No description provided for @duesAdvancePaymentHint.
   ///
   /// In ar, this message translates to:
-  /// **'بعد أداء جميع المستحقات، يمكن دفع أشهر لاحقة كاملة بقيمة {amount} درهم للشهر.'**
+  /// **'بعد أداء جميع المستحقات، يمكن دفع أشهر لاحقة كاملة بقيمة {amount} د للشهر.'**
   String duesAdvancePaymentHint(String amount);
 
   /// No description provided for @duesNoApartment.
@@ -2330,7 +2330,7 @@ abstract class AppLocalizations {
   /// No description provided for @duesConfirmDeletePayment.
   ///
   /// In ar, this message translates to:
-  /// **'هل تريد حذف أداء الشقة رقم {number} بقيمة {amount} درهم؟ سيُعاد احتساب سجل الاشتراكات ولا يمكن التراجع عن ذلك.'**
+  /// **'هل تريد حذف أداء الشقة رقم {number} بقيمة {amount} د؟ سيُعاد احتساب سجل الاشتراكات ولا يمكن التراجع عن ذلك.'**
   String duesConfirmDeletePayment(String number, String amount);
 
   /// No description provided for @duesPaymentDeleted.
