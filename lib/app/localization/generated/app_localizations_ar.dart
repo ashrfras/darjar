@@ -1627,6 +1627,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notificationsLoadError => 'تعذّر تحميل الإشعارات.';
 
   @override
+  String get residentJoinedNotificationTitle => 'ساكن جديد';
+
+  @override
+  String residentJoinedNotificationBody(String resident) {
+    return 'انضم $resident إلى الإقامة.';
+  }
+
+  @override
   String get newPostNotificationTitle => 'منشور جديد';
 
   @override

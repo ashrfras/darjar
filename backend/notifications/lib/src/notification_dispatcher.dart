@@ -7,6 +7,36 @@ class NotificationDispatcher {
   final NotificationBackend _backend;
   final DateTime Function() _now;
 
+  Future<void> residentJoined({
+    required String documentPath,
+    required String eventId,
+  }) async {
+    final path = _parseDocumentPath(documentPath, collection: 'members');
+    final joinedMember = await _backend.getDocument(path.fullPath);
+    if (joinedMember == null ||
+        _string(joinedMember.data['status']) != 'active') {
+      return;
+    }
+    final residentName = _memberName(joinedMember);
+    final members = await _activeMembers(path.residenceId);
+    for (final member in members) {
+      if (member.id == path.documentId) continue;
+      await _deliver(
+        NotificationPayload(
+          id: _safeId('resident-joined-${path.documentId}-$eventId'),
+          type: 'residentJoined',
+          residenceId: path.residenceId,
+          recipientUserId: member.id,
+          targetId: path.documentId,
+          actorName: residentName,
+          title: 'ساكن جديد',
+          body: 'انضم $residentName إلى الإقامة.',
+          occurredAt: _now().toUtc(),
+        ),
+      );
+    }
+  }
+
   Future<void> postCreated({
     required String documentPath,
     required String eventId,

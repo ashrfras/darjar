@@ -3041,6 +3041,18 @@ abstract class AppLocalizations {
   /// **'تعذّر تحميل الإشعارات.'**
   String get notificationsLoadError;
 
+  /// No description provided for @residentJoinedNotificationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'ساكن جديد'**
+  String get residentJoinedNotificationTitle;
+
+  /// No description provided for @residentJoinedNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'انضم {resident} إلى الإقامة.'**
+  String residentJoinedNotificationBody(String resident);
+
   /// No description provided for @newPostNotificationTitle.
   ///
   /// In ar, this message translates to:

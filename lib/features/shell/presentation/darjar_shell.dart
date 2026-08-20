@@ -628,6 +628,14 @@ class _NotificationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final (icon, color, title, body) = switch (notification.type) {
+      DarJarNotificationType.residentJoined => (
+        Icons.person_add_alt_1_outlined,
+        AppColors.primary,
+        localizations.residentJoinedNotificationTitle,
+        localizations.residentJoinedNotificationBody(
+          abbreviatedPersonName(notification.actorName),
+        ),
+      ),
       DarJarNotificationType.postCreated => (
         Icons.article_outlined,
         AppColors.residence,

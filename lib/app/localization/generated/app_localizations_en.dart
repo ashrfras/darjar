@@ -1660,6 +1660,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsLoadError => 'Notifications could not be loaded.';
 
   @override
+  String get residentJoinedNotificationTitle => 'New resident';
+
+  @override
+  String residentJoinedNotificationBody(String resident) {
+    return '$resident joined the residence.';
+  }
+
+  @override
   String get newPostNotificationTitle => 'New post';
 
   @override

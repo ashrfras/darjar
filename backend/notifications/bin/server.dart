@@ -25,6 +25,14 @@ Future<void> main() async {
   final router = Router()
     ..get('/health', (Request request) => Response.ok('ok'))
     ..post(
+      '/events/member-created',
+      (request) => _event(
+        request,
+        (path, eventId, data) =>
+            dispatcher.residentJoined(documentPath: path, eventId: eventId),
+      ),
+    )
+    ..post(
       '/events/post-created',
       (request) => _event(
         request,

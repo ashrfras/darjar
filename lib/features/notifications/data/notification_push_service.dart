@@ -165,7 +165,8 @@ class NotificationPushService {
       occurredAt: message.sentTime ?? DateTime.now(),
       targetId: data['targetId'] ?? '',
       actorName:
-          type == DarJarNotificationType.postCreated ||
+          type == DarJarNotificationType.residentJoined ||
+              type == DarJarNotificationType.postCreated ||
               type == DarJarNotificationType.postLiked ||
               type == DarJarNotificationType.postCommented
           ? abbreviatedPersonName(data['actorName'] ?? '')
@@ -183,6 +184,7 @@ class NotificationPushService {
 
 String notificationRoute(DarJarNotification notification) {
   return switch (notification.type) {
+    DarJarNotificationType.residentJoined => AppRoutes.residenceResidents,
     DarJarNotificationType.postCreated when notification.targetId.isNotEmpty =>
       AppRoutes.communityPost(notification.targetId),
     DarJarNotificationType.postCreated => AppRoutes.community,

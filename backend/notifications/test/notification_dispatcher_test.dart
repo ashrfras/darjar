@@ -4,6 +4,80 @@ import 'package:darjar_notifications/src/notification_dispatcher.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test(
+    'new active resident notifies existing active members with push',
+    () async {
+      final backend = _FakeBackend()
+        ..document('residences/home/members/new-resident', {
+          'firstName': 'كريم',
+          'lastName': 'المنيعي',
+          'status': 'active',
+        })
+        ..collection('residences/home/members', [
+          _document('manager', {'status': 'active'}),
+          _document('neighbor', {'status': 'active'}),
+          _document('new-resident', {'status': 'active'}),
+          _document('former', {'status': 'inactive'}),
+        ])
+        ..collection('users/manager/pushTokens', [
+          _document('phone', {'token': 'manager-token'}),
+        ]);
+      final dispatcher = NotificationDispatcher(
+        backend,
+        now: () => DateTime.utc(2026, 8, 20, 12),
+      );
+
+      await dispatcher.residentJoined(
+        documentPath:
+            'projects/raq-darjar/databases/(default)/documents/'
+            'residences/home/members/new-resident',
+        eventId: 'member-event-1',
+      );
+
+      expect(backend.notifications, hasLength(2));
+      expect(
+        backend.notifications.map(
+          (notification) => notification.recipientUserId,
+        ),
+        containsAll(['manager', 'neighbor']),
+      );
+      expect(
+        backend.notifications.every(
+          (notification) =>
+              notification.type == 'residentJoined' &&
+              notification.targetId == 'new-resident' &&
+              notification.actorName == 'كريم م.' &&
+              notification.body == 'انضم كريم م. إلى الإقامة.',
+        ),
+        isTrue,
+      );
+      expect(backend.pushes.single.token, 'manager-token');
+    },
+  );
+
+  test(
+    'inactive member creation does not send resident joined notifications',
+    () async {
+      final backend = _FakeBackend()
+        ..document('residences/home/members/inactive', {
+          'firstName': 'مريم',
+          'status': 'inactive',
+        })
+        ..collection('residences/home/members', [
+          _document('manager', {'status': 'active'}),
+        ]);
+      final dispatcher = NotificationDispatcher(backend);
+
+      await dispatcher.residentJoined(
+        documentPath: 'residences/home/members/inactive',
+        eventId: 'member-event-2',
+      );
+
+      expect(backend.notifications, isEmpty);
+      expect(backend.pushes, isEmpty);
+    },
+  );
+
   test('post notifications exclude the author and inactive members', () async {
     final backend = _FakeBackend()
       ..document('residences/home/communityPosts/post-1', {

@@ -319,6 +319,10 @@ void main() {
         notificationRoute(notification(DarJarNotificationType.duesMarkedPaid)),
         AppRoutes.dues,
       );
+      expect(
+        notificationRoute(notification(DarJarNotificationType.residentJoined)),
+        AppRoutes.residenceResidents,
+      );
     });
 
     test('dues overview exposes debit, credit, and grouped payment totals', () {

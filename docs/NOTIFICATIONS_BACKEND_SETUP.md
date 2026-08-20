@@ -116,6 +116,22 @@ gcloud run services describe darjar-notifications \
 
 ## 5. إنشاء مشغلات Firestore
 
+إشعار أعضاء الإقامة عند انضمام ساكن جديد:
+
+```bash
+gcloud eventarc triggers create darjar-member-created \
+  --location FIRESTORE_LOCATION \
+  --destination-run-service darjar-notifications \
+  --destination-run-region RUN_REGION \
+  --destination-run-path /events/member-created \
+  --event-filters="type=google.cloud.firestore.document.v1.created" \
+  --event-filters="database=(default)" \
+  --event-filters="namespace=(default)" \
+  --event-filters-path-pattern="document=residences/{residenceId}/members/{memberId}" \
+  --event-data-content-type="application/protobuf" \
+  --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
+```
+
 إشعارات المنشورات الجديدة:
 
 ```bash
