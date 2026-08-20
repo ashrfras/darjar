@@ -57,6 +57,7 @@
   "back": "رجوع",
   "residenceSetupTitle": "كيف تريد أن تبدأ؟",
   "residenceSetupDescription": "انضم إلى إقامتك الحالية أو أنشئ إقامة جديدة لجيرانك.",
+  "residenceSetupSignedInAs": "أنت مسجّل الدخول بالرقم",
   "joinMyResidence": "الانضمام إلى إقامتي",
   "joinMyResidenceDescription": "ابحث عن إقامتك باستعمال الرمز الذي حصلت عليه.",
   "createNewResidence": "إنشاء إقامة جديدة",

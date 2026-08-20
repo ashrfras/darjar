@@ -1248,6 +1248,52 @@ void main() {
 
       expect(authRepository.confirmedCode, '123456');
       expect(find.byKey(const Key('residence-setup-page')), findsOneWidget);
+      expect(
+        find.byKey(const Key('residence-setup-signed-in-footer')),
+        findsOneWidget,
+      );
+      expect(find.text('أنت مسجّل الدخول بالرقم'), findsOneWidget);
+      expect(find.text('(212)600000001'), findsOneWidget);
+
+      final signedInFooter = find.byKey(
+        const Key('residence-setup-signed-in-footer'),
+      );
+      final signedInPhone = find.byKey(
+        const Key('residence-setup-signed-in-phone'),
+      );
+      final setupSignOut = find.byKey(
+        const Key('residence-setup-sign-out-button'),
+      );
+      expect(
+        tester.getBottomLeft(signedInFooter).dy,
+        greaterThan(
+          tester.view.physicalSize.height / tester.view.devicePixelRatio - 40,
+        ),
+      );
+      expect(
+        tester.getTopLeft(setupSignOut).dy,
+        greaterThan(tester.getBottomLeft(signedInPhone).dy),
+      );
+
+      await tester.tap(setupSignOut);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('sign-out-confirmation-dialog')),
+        findsOneWidget,
+      );
+      expect(authRepository.currentUser, isNotNull);
+
+      await tester.tap(find.byKey(const Key('cancel-sign-out-button')));
+      await tester.pumpAndSettle();
+      expect(authRepository.currentUser, isNotNull);
+
+      await tester.tap(setupSignOut);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('confirm-sign-out-button')));
+      await tester.pumpAndSettle();
+
+      expect(authRepository.currentUser, isNull);
+      expect(find.byKey(const Key('phone-auth-page')), findsOneWidget);
     });
 
     testWidgets('phone auth exposes safe verification diagnostics', (

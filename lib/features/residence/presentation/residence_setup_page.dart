@@ -5,6 +5,8 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_phone_number.dart';
+import 'package:darjar/core/widgets/darjar_sign_out_confirmation_dialog.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
@@ -72,40 +74,48 @@ class _ResidenceSetupPageState extends State<ResidenceSetupPage> {
       ),
       body: SafeArea(
         top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.xLarge),
-          child: Align(
-            alignment: AlignmentDirectional.topCenter,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 640),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                child: switch (_step) {
-                  ResidenceSetupStep.choice => _ResidenceChoice(
-                    key: const ValueKey('residence-choice'),
-                    onCreate: () =>
-                        setState(() => _step = ResidenceSetupStep.create),
-                    onJoin: () =>
-                        setState(() => _step = ResidenceSetupStep.join),
-                  ),
-                  ResidenceSetupStep.create => const _CreateResidenceForm(
-                    key: ValueKey('create-residence-form'),
-                  ),
-                  ResidenceSetupStep.join => _JoinResidenceForm(
-                    key: const ValueKey('join-residence-form'),
-                    invitationCode: widget.invitationCode,
-                  ),
-                },
-              ),
+        child: switch (_step) {
+          ResidenceSetupStep.choice => _ResidenceChoice(
+            key: const ValueKey('residence-choice'),
+            onCreate: () => setState(() => _step = ResidenceSetupStep.create),
+            onJoin: () => setState(() => _step = ResidenceSetupStep.join),
+          ),
+          ResidenceSetupStep.create => const _ScrollableResidenceSetupStep(
+            child: _CreateResidenceForm(key: ValueKey('create-residence-form')),
+          ),
+          ResidenceSetupStep.join => _ScrollableResidenceSetupStep(
+            child: _JoinResidenceForm(
+              key: const ValueKey('join-residence-form'),
+              invitationCode: widget.invitationCode,
             ),
           ),
+        },
+      ),
+    );
+  }
+}
+
+class _ScrollableResidenceSetupStep extends StatelessWidget {
+  const _ScrollableResidenceSetupStep({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.xLarge),
+      child: Align(
+        alignment: AlignmentDirectional.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: child,
         ),
       ),
     );
   }
 }
 
-class _ResidenceChoice extends StatelessWidget {
+class _ResidenceChoice extends ConsumerStatefulWidget {
   const _ResidenceChoice({
     required this.onCreate,
     required this.onJoin,
@@ -116,34 +126,126 @@ class _ResidenceChoice extends StatelessWidget {
   final VoidCallback onJoin;
 
   @override
+  ConsumerState<_ResidenceChoice> createState() => _ResidenceChoiceState();
+}
+
+class _ResidenceChoiceState extends ConsumerState<_ResidenceChoice> {
+  bool _isSigningOut = false;
+
+  @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _StepIntroduction(
-          icon: Icons.apartment_rounded,
-          title: localizations.residenceSetupTitle,
-          description: localizations.residenceSetupDescription,
+    final phoneNumber = ref
+        .watch(authRepositoryProvider)
+        .currentUser
+        ?.phoneNumber;
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xLarge,
+            AppSpacing.xLarge,
+            AppSpacing.xLarge,
+            0,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: Align(
+              alignment: AlignmentDirectional.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _StepIntroduction(
+                      icon: Icons.apartment_rounded,
+                      title: localizations.residenceSetupTitle,
+                      description: localizations.residenceSetupDescription,
+                    ),
+                    const SizedBox(height: AppSpacing.xLarge),
+                    _ChoiceCard(
+                      key: const Key('join-my-residence-option'),
+                      icon: Icons.password_rounded,
+                      title: localizations.joinMyResidence,
+                      description: localizations.joinMyResidenceDescription,
+                      onTap: widget.onJoin,
+                    ),
+                    const SizedBox(height: AppSpacing.large),
+                    _ChoiceCard(
+                      key: const Key('create-new-residence-option'),
+                      icon: Icons.add_home_work_outlined,
+                      title: localizations.createNewResidence,
+                      description: localizations.createNewResidenceDescription,
+                      onTap: widget.onCreate,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-        const SizedBox(height: AppSpacing.xLarge),
-        _ChoiceCard(
-          key: const Key('join-my-residence-option'),
-          icon: Icons.password_rounded,
-          title: localizations.joinMyResidence,
-          description: localizations.joinMyResidenceDescription,
-          onTap: onJoin,
-        ),
-        const SizedBox(height: AppSpacing.large),
-        _ChoiceCard(
-          key: const Key('create-new-residence-option'),
-          icon: Icons.add_home_work_outlined,
-          title: localizations.createNewResidence,
-          description: localizations.createNewResidenceDescription,
-          onTap: onCreate,
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xLarge),
+            child: Align(
+              alignment: AlignmentDirectional.bottomCenter,
+              child: phoneNumber == null || phoneNumber.isEmpty
+                  ? const SizedBox.shrink()
+                  : Column(
+                      key: const Key('residence-setup-signed-in-footer'),
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          localizations.residenceSetupSignedInAs,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.inkMuted),
+                        ),
+                        const SizedBox(height: AppSpacing.xSmall),
+                        DarJarPhoneNumber(
+                          phoneNumber,
+                          key: const Key('residence-setup-signed-in-phone'),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.inkMuted),
+                        ),
+                        const SizedBox(height: AppSpacing.small),
+                        TextButton(
+                          key: const Key('residence-setup-sign-out-button'),
+                          onPressed: _isSigningOut ? null : _confirmSignOut,
+                          child: Text(
+                            _isSigningOut
+                                ? localizations.signingOut
+                                : localizations.signOut,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
         ),
       ],
     );
+  }
+
+  Future<void> _confirmSignOut() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: AppColors.ink.withValues(alpha: 0.42),
+      builder: (context) => const DarJarSignOutConfirmationDialog(),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isSigningOut = true);
+    try {
+      await ref.read(authRepositoryProvider).signOut();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSigningOut = false);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).signOutFailed)),
+        );
+    }
   }
 }
 

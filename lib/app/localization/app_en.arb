@@ -57,6 +57,7 @@
   "back": "Back",
   "residenceSetupTitle": "How would you like to start?",
   "residenceSetupDescription": "Join your current residence or create a new one for your neighbors.",
+  "residenceSetupSignedInAs": "You're signed in with",
   "joinMyResidence": "Join my residence",
   "joinMyResidenceDescription": "Find your residence using the code you received.",
   "createNewResidence": "Create a new residence",

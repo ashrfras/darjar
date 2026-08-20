@@ -93,15 +93,27 @@
   </div>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register(
-          'firebase-messaging-sw.js',
-          {scope: '/firebase-cloud-messaging-push-scope'},
-        );
-      });
+    const isAndroid = /Android/i.test(navigator.userAgent);
+
+    if (isAndroid) {
+      window.location.replace(
+        'https://play.google.com/store/apps/details?id=ma.raqmain.darjar',
+      );
+    } else {
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register(
+            'firebase-messaging-sw.js',
+            {scope: '/firebase-cloud-messaging-push-scope'},
+          );
+        });
+      }
+
+      const flutterBootstrap = document.createElement('script');
+      flutterBootstrap.src = 'flutter_bootstrap.js';
+      flutterBootstrap.async = true;
+      document.body.appendChild(flutterBootstrap);
     }
   </script>
-  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

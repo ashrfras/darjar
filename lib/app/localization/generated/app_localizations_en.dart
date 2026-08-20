@@ -193,6 +193,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Join your current residence or create a new one for your neighbors.';
 
   @override
+  String get residenceSetupSignedInAs => 'You\'re signed in with';
+
+  @override
   String get joinMyResidence => 'Join my residence';
 
   @override

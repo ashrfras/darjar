@@ -192,6 +192,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'انضم إلى إقامتك الحالية أو أنشئ إقامة جديدة لجيرانك.';
 
   @override
+  String get residenceSetupSignedInAs => 'أنت مسجّل الدخول بالرقم';
+
+  @override
   String get joinMyResidence => 'الانضمام إلى إقامتي';
 
   @override

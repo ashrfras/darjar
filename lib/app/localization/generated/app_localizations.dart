@@ -434,6 +434,12 @@ abstract class AppLocalizations {
   /// **'انضم إلى إقامتك الحالية أو أنشئ إقامة جديدة لجيرانك.'**
   String get residenceSetupDescription;
 
+  /// No description provided for @residenceSetupSignedInAs.
+  ///
+  /// In ar, this message translates to:
+  /// **'أنت مسجّل الدخول بالرقم'**
+  String get residenceSetupSignedInAs;
+
   /// No description provided for @joinMyResidence.
   ///
   /// In ar, this message translates to:
