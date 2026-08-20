@@ -348,7 +348,9 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
       if (mounted) {
         setState(() {
           _errorCode = error.code;
-          _technicalError = _formatTechnicalError(error);
+          _technicalError = _showsTechnicalDetails(error.code)
+              ? _formatTechnicalError(error)
+              : null;
         });
       }
     } catch (error) {
@@ -398,6 +400,13 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
       safeMessage = '${safeMessage.substring(0, 600)}…';
     }
     return 'Verification code: ${error.code}\n$safeMessage';
+  }
+
+  bool _showsTechnicalDetails(String code) {
+    return code != 'invalid-verification-code' &&
+        code != 'invalid-verification-id' &&
+        code != 'missing-verification-session' &&
+        code != 'session-expired';
   }
 }
 

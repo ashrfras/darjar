@@ -690,6 +690,9 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
       final residence = await ref
           .read(residenceSetupRepositoryProvider)
           .findByCode(code);
+      if (residence != null && await _openExistingResidence(residence)) {
+        return;
+      }
       if (mounted) {
         setState(() {
           _residence = residence;
@@ -709,6 +712,26 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
         setState(() => _isSearching = false);
       }
     }
+  }
+
+  Future<bool> _openExistingResidence(ResidenceCodeSummary residence) async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user == null) return false;
+
+    final residenceContext = await ref.read(residenceContextProvider.future);
+    final isExistingMember = residenceContext.residences.any(
+      (membership) => membership.id == residence.residenceId,
+    );
+    if (!isExistingMember) return false;
+
+    if (residenceContext.activeResidenceId != residence.residenceId) {
+      await ref
+          .read(residenceContextRepositoryProvider)
+          .setActiveResidence(user: user, residenceId: residence.residenceId);
+      ref.invalidate(residenceContextProvider);
+    }
+    if (mounted) context.go(AppRoutes.community);
+    return true;
   }
 
   Future<void> _join() async {

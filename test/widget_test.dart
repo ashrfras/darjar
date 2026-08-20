@@ -1332,6 +1332,50 @@ void main() {
       expect(details.data, isNot(contains('+212600000001')));
     });
 
+    testWidgets('wrong verification code hides technical details', (
+      tester,
+    ) async {
+      final authRepository = _FakeAuthRepository(
+        signedIn: false,
+        confirmFailure: const AuthFailure(
+          'invalid-verification-code',
+          message: 'HTTP 401: verification provider rejected the code',
+        ),
+      );
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        authRepository: authRepository,
+      );
+
+      await tester.tap(find.byKey(const Key('start-button')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('auth-phone-field')),
+        '0600000001',
+      );
+      await tester.tap(find.byKey(const Key('send-verification-code-button')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('auth-verification-code-field')),
+        '123456',
+      );
+      await tester.tap(
+        find.byKey(const Key('confirm-verification-code-button')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('رمز التحقق غير صحيح. راجع الرمز وحاول مجدداً.'),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('auth-error-technical-details')),
+        findsNothing,
+      );
+      expect(find.textContaining('HTTP 401'), findsNothing);
+    });
+
     testWidgets('phone auth enables resending after a visible countdown', (
       tester,
     ) async {
@@ -1681,6 +1725,60 @@ void main() {
         );
         expect(find.byKey(const Key('join-first-name-field')), findsOneWidget);
         expect(find.byKey(const Key('join-apartment-field')), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'invitation link opens the feed for an existing residence member',
+      (tester) async {
+        final setupRepository = _FakeResidenceSetupRepository(
+          residence: const ResidenceCodeSummary(
+            residenceId: 'residence-yasmine',
+            code: '48273165',
+            name: 'إقامة الياسمين',
+            address: 'حي المعاريف',
+            city: '6141010',
+            joinRequestsEnabled: true,
+          ),
+        );
+        final contextRepository = _FakeResidenceContextRepository();
+
+        await _pumpApp(
+          tester,
+          size: const Size(390, 844),
+          initialLocation: null,
+          platformInitialLocation: AppRoutes.residenceInvitation('48273165'),
+          useBootstrap: true,
+          residenceSetupRepository: setupRepository,
+          residenceContextRepository: contextRepository,
+          residenceContext: const ResidenceContext(
+            residences: [
+              UserResidence(
+                id: 'test-residence',
+                name: 'إقامة الاختبار',
+                address: 'شارع الاختبار',
+                city: '6141010',
+                role: 'owner',
+                apartmentId: '',
+              ),
+              UserResidence(
+                id: 'residence-yasmine',
+                name: 'إقامة الياسمين',
+                address: 'حي المعاريف',
+                city: '6141010',
+                role: 'resident',
+                apartmentId: 'apartment-12',
+              ),
+            ],
+            activeResidenceId: 'test-residence',
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+        expect(find.byKey(const ValueKey('join-residence-form')), findsNothing);
+        expect(contextRepository.selectedResidenceId, 'residence-yasmine');
+        expect(setupRepository.requestedResidence, isNull);
       },
     );
 
@@ -5719,10 +5817,13 @@ Future<void> _openAdministration(WidgetTester tester) async {
 }
 
 class _FakeAuthRepository implements AuthRepository {
-  _FakeAuthRepository({bool signedIn = true, this.sendFailure})
-    : _currentUser = signedIn
-          ? const AuthUser(uid: 'test-user', phoneNumber: '+212600000001')
-          : null;
+  _FakeAuthRepository({
+    bool signedIn = true,
+    this.sendFailure,
+    this.confirmFailure,
+  }) : _currentUser = signedIn
+           ? const AuthUser(uid: 'test-user', phoneNumber: '+212600000001')
+           : null;
 
   final StreamController<AuthUser?> _authStateController =
       StreamController<AuthUser?>.broadcast(sync: true);
@@ -5732,6 +5833,7 @@ class _FakeAuthRepository implements AuthRepository {
   String? confirmedCode;
   int sendVerificationCodeCallCount = 0;
   final AuthFailure? sendFailure;
+  final AuthFailure? confirmFailure;
 
   @override
   AuthUser? get currentUser => _currentUser;
@@ -5756,6 +5858,10 @@ class _FakeAuthRepository implements AuthRepository {
   @override
   Future<void> confirmVerificationCode(String code) async {
     confirmedCode = code;
+    final failure = confirmFailure;
+    if (failure != null) {
+      throw failure;
+    }
     _currentUser = const AuthUser(
       uid: 'test-user',
       phoneNumber: '+212600000001',
