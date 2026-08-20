@@ -175,7 +175,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                     ),
                                     onOpen: item.reference == null
                                         ? null
-                                        : () => _openActivity(item.reference!),
+                                        : () => _openActivity(item),
                                   ),
                                 },
                                 const SizedBox(height: AppSpacing.medium),
@@ -208,7 +208,14 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
     );
   }
 
-  void _openActivity(FeedEntityReference reference) {
+  void _openActivity(ResidenceActivity activity) {
+    if (activity.activityType == ResidenceActivityType.expenseAdded ||
+        activity.activityType == ResidenceActivityType.duePaid) {
+      context.go(AppRoutes.residenceFinances);
+      return;
+    }
+
+    final reference = activity.reference!;
     final destination = switch (reference.type) {
       FeedEntityType.transaction => AppRoutes.financeTransactions,
       FeedEntityType.dues => AppRoutes.dues,

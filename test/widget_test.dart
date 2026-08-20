@@ -2594,9 +2594,7 @@ void main() {
     );
   });
 
-  testWidgets('feed activity opens its original residence section', (
-    tester,
-  ) async {
+  testWidgets('expense feed activity opens residence finances', (tester) async {
     await _pumpApp(tester, size: const Size(390, 844));
     await _enterResidence(tester);
 
@@ -2608,7 +2606,22 @@ void main() {
     await tester.tap(expenseActivity);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('finance-transactions-page')), findsOneWidget);
+    expect(find.byKey(const Key('residence-finances-page')), findsOneWidget);
+  });
+
+  testWidgets('payment feed activity opens residence finances', (tester) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+
+    final paymentActivity = find.byKey(
+      const ValueKey('feed-activity-activity-august-due'),
+    );
+    await tester.ensureVisible(paymentActivity);
+    await tester.pumpAndSettle();
+    await tester.tap(paymentActivity);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('residence-finances-page')), findsOneWidget);
   });
 
   testWidgets('author can archive their community post', (tester) async {
