@@ -709,7 +709,7 @@ class _ProfileLink extends StatelessWidget {
         color: AppColors.inkMuted,
         textDirection: TextDirection.ltr,
       ),
-      onTap: () => context.go(route),
+      onTap: () => context.push(route),
     );
   }
 }

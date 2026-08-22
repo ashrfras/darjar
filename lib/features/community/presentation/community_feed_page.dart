@@ -77,7 +77,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
       floatingActionButton: compact
           ? _CreatePostFloatingButton(
               key: const Key('create-post-fab'),
-              onPressed: () => context.go(AppRoutes.createPost),
+              onPressed: () => context.push(AppRoutes.createPost),
             )
           : null,
       body: CustomScrollView(
@@ -112,7 +112,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _Composer(
-                              onTap: () => context.go(AppRoutes.createPost),
+                              onTap: () => context.push(AppRoutes.createPost),
                             ),
                             const SizedBox(height: AppSpacing.large),
                             if (feedState.isLoading && items.isEmpty)
@@ -136,7 +136,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                   PostFeedItem(:final post) =>
                                     CommunityPostCard(
                                       post: post,
-                                      onOpen: () => context.go(
+                                      onOpen: () => context.push(
                                         AppRoutes.communityPost(post.id),
                                       ),
                                       onLike: () => _runAction(
@@ -211,7 +211,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
   void _openActivity(ResidenceActivity activity) {
     if (activity.activityType == ResidenceActivityType.expenseAdded ||
         activity.activityType == ResidenceActivityType.duePaid) {
-      context.go(AppRoutes.residenceFinances);
+      context.push(AppRoutes.residenceFinances);
       return;
     }
 
@@ -227,7 +227,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
         AppRoutes.communityPost(reference.entityId!),
       FeedEntityType.post => AppRoutes.community,
     };
-    context.go(destination);
+    context.push(destination);
   }
 
   void _loadMoreNearBottom({bool checkCollapsedActivities = false}) {

@@ -3257,6 +3257,27 @@ void main() {
     expect(find.text('وثيقة 8'), findsOneWidget);
   });
 
+  testWidgets('system back returns from a subpage instead of exiting', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      initialLocation: AppRoutes.community,
+    );
+
+    expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('profile-page')), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+    expect(find.byKey(const Key('profile-page')), findsNothing);
+  });
+
   testWidgets('profile exposes real editable account and residence data', (
     tester,
   ) async {

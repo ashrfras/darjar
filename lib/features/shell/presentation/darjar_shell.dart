@@ -305,7 +305,7 @@ class _ExpandedShell extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppRadius.medium),
                       ),
-                      onTap: () => context.go(AppRoutes.profile),
+                      onTap: () => context.push(AppRoutes.profile),
                     ),
                   ),
                 ],
@@ -608,7 +608,7 @@ class _NotificationsSheet extends ConsumerWidget {
     await ref.read(notificationActionsProvider).markRead(notification.id);
     if (!context.mounted) return;
     Navigator.of(context).pop();
-    context.go(notificationRoute(notification));
+    context.push(notificationRoute(notification));
   }
 }
 
@@ -766,7 +766,7 @@ class _ProfileAction extends ConsumerWidget {
     return IconButton(
       key: const Key('profile-button'),
       tooltip: localizations.profile,
-      onPressed: () => context.go(AppRoutes.profile),
+      onPressed: () => context.push(AppRoutes.profile),
       icon: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,

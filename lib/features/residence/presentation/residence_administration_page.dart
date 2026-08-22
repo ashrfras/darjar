@@ -299,7 +299,7 @@ class _ManagementLink extends StatelessWidget {
         Icons.chevron_left_rounded,
         textDirection: TextDirection.ltr,
       ),
-      onTap: () => context.go(route),
+      onTap: () => context.push(route),
     );
   }
 }

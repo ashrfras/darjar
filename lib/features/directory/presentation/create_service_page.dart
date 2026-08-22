@@ -328,7 +328,7 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
           neighborhood: _neighborhoodController.text,
         );
         if (!mounted) return;
-        context.go(AppRoutes.directoryProfile(createdId));
+        context.replace(AppRoutes.directoryProfile(createdId));
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(localizations.serviceCreated)));
@@ -343,7 +343,7 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
           neighborhood: _neighborhoodController.text,
         );
         if (!mounted) return;
-        context.go(AppRoutes.directoryProfile(id));
+        context.replace(AppRoutes.directoryProfile(id));
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(localizations.serviceUpdated)));
@@ -417,7 +417,15 @@ class _CancelButton extends StatelessWidget {
     return DarJarButton(
       label: AppLocalizations.of(context).cancel,
       variant: DarJarButtonVariant.secondary,
-      onPressed: saving ? null : () => context.go(fallbackLocation),
+      onPressed: saving
+          ? null
+          : () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go(fallbackLocation);
+              }
+            },
     );
   }
 }

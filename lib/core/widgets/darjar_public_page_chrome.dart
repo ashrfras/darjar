@@ -28,7 +28,13 @@ class DarJarPublicAppBar extends StatelessWidget
       leading: IconButton(
         key: backButtonKey,
         tooltip: localizations.back,
-        onPressed: () => context.go(AppRoutes.onboarding),
+        onPressed: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go(AppRoutes.onboarding);
+          }
+        },
         icon: const BackButtonIcon(),
       ),
     );
@@ -56,11 +62,12 @@ class DarJarPublicFooter extends StatelessWidget {
                 spacing: AppSpacing.small,
                 children: [
                   TextButton(
-                    onPressed: () => context.go(AppRoutes.publicPrivacyPolicy),
+                    onPressed: () =>
+                        context.push(AppRoutes.publicPrivacyPolicy),
                     child: Text(localizations.privacyPolicy),
                   ),
                   TextButton(
-                    onPressed: () => context.go(AppRoutes.deleteAccount),
+                    onPressed: () => context.push(AppRoutes.deleteAccount),
                     child: Text(localizations.landingDeleteAccount),
                   ),
                   TextButton(

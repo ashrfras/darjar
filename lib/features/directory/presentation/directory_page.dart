@@ -116,7 +116,7 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
       floatingActionButton: compact
           ? _AddServiceFloatingButton(
               key: const Key('add-service-fab'),
-              onPressed: () => context.go(AppRoutes.createService),
+              onPressed: () => context.push(AppRoutes.createService),
             )
           : null,
       body: SingleChildScrollView(
@@ -159,7 +159,7 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
                       IconButton.filledTonal(
                         key: const Key('add-service-button'),
                         tooltip: localizations.addService,
-                        onPressed: () => context.go(AppRoutes.createService),
+                        onPressed: () => context.push(AppRoutes.createService),
                         icon: const Icon(Icons.add_rounded),
                       ),
                     ],
@@ -393,7 +393,7 @@ class _FeaturedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DarJarCard(
       padding: EdgeInsets.zero,
-      onTap: () => context.go(AppRoutes.directoryProfile(entry.id)),
+      onTap: () => context.push(AppRoutes.directoryProfile(entry.id)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -474,7 +474,7 @@ class _CraftsmanRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       key: ValueKey('directory-entry-${entry.id}'),
-      onTap: () => context.go(AppRoutes.directoryProfile(entry.id)),
+      onTap: () => context.push(AppRoutes.directoryProfile(entry.id)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
@@ -596,7 +596,8 @@ class _EntryGrid extends StatelessWidget {
               SizedBox(
                 width: width,
                 child: DarJarCard(
-                  onTap: () => context.go(AppRoutes.directoryProfile(entry.id)),
+                  onTap: () =>
+                      context.push(AppRoutes.directoryProfile(entry.id)),
                   child: Row(
                     children: [
                       CircleAvatar(

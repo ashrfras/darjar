@@ -203,7 +203,7 @@ class DirectoryProfilePage extends ConsumerWidget {
                           visualDensity: VisualDensity.compact,
                           icon: const Icon(Icons.edit_outlined, size: 20),
                           onPressed: () =>
-                              context.go(AppRoutes.editService(entry.id)),
+                              context.push(AppRoutes.editService(entry.id)),
                         ),
                       ),
                   ],

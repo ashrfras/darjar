@@ -375,7 +375,7 @@ class _AccountCard extends StatelessWidget {
       iconColor: AppColors.residence,
       iconBackground: AppColors.residenceSoft,
       footerLabel: localizations.duesStatus,
-      onTap: () => context.go(AppRoutes.dues),
+      onTap: () => context.push(AppRoutes.dues),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final narrow = constraints.maxWidth < 300;
@@ -568,7 +568,7 @@ class _ResidenceFinancesCard extends StatelessWidget {
       iconColor: const Color(0xFF7657D6),
       iconBackground: const Color(0xFFF0ECFF),
       footerLabel: localizations.viewFinanceDetails,
-      onTap: () => context.go(AppRoutes.residenceFinances),
+      onTap: () => context.push(AppRoutes.residenceFinances),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final items = [
@@ -693,7 +693,7 @@ class _DocumentsCard extends StatelessWidget {
       iconColor: AppColors.residence,
       iconBackground: AppColors.residenceSoft,
       footerLabel: AppLocalizations.of(context).viewAllDocuments,
-      onTap: () => context.go(AppRoutes.documents),
+      onTap: () => context.push(AppRoutes.documents),
       child: documents.when(
         loading: () => const Padding(
           padding: EdgeInsets.symmetric(vertical: AppSpacing.large),
@@ -875,7 +875,7 @@ class _ResidenceInfoCard extends StatelessWidget {
       iconColor: AppColors.inkMuted,
       iconBackground: const Color(0xFFF1F2F4),
       footerLabel: 'عرض التفاصيل',
-      onTap: () => context.go(AppRoutes.management),
+      onTap: () => context.push(AppRoutes.management),
       child: IntrinsicHeight(
         child: Row(
           children: [
