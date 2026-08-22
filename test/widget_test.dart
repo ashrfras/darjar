@@ -5194,6 +5194,26 @@ void main() {
     await tester.tap(find.text('منح صلاحيات الرئيس'));
     await tester.pumpAndSettle();
     expect(
+      find.byKey(const Key('grant-president-permissions-dialog')),
+      findsOneWidget,
+    );
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(
+      find.textContaining('سيتمكن كريم التازي من إدارة الإقامة'),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('resident-member-karim')),
+        matching: find.text('صلاحيات الرئيس'),
+      ),
+      findsNothing,
+    );
+    await tester.tap(
+      find.byKey(const Key('confirm-grant-president-permissions-button')),
+    );
+    await tester.pumpAndSettle();
+    expect(
       find.descendant(
         of: find.byKey(const ValueKey('resident-member-karim')),
         matching: find.text('صلاحيات الرئيس'),

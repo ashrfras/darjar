@@ -628,6 +628,16 @@ class _ApartmentsResidentsPageState
 
   Future<void> _togglePresidentPermissions(ResidenceMember member) async {
     final copy = _Copy.of(context);
+    if (!member.hasPresidentPermissions) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => _GrantPresidentPermissionsDialog(
+          residentName: member.name,
+          copy: copy,
+        ),
+      );
+      if (!mounted || confirmed != true) return;
+    }
     try {
       await ref
           .read(residenceMembersProvider.notifier)
@@ -648,6 +658,105 @@ class _ApartmentsResidentsPageState
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _GrantPresidentPermissionsDialog extends StatelessWidget {
+  const _GrantPresidentPermissionsDialog({
+    required this.residentName,
+    required this.copy,
+  });
+
+  final String residentName;
+  final _Copy copy;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      key: const Key('grant-president-permissions-dialog'),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.all(AppSpacing.large),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            border: Border.all(color: AppColors.outline),
+            borderRadius: BorderRadius.circular(AppRadius.large),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x2917151D),
+                blurRadius: 36,
+                offset: Offset(0, 16),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xLarge),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySoft,
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
+                    ),
+                    child: const Icon(
+                      Icons.admin_panel_settings_outlined,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.large),
+                Text(
+                  copy.grantPresidentPermissionsConfirmationTitle,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: AppSpacing.small),
+                Text(
+                  copy.grantPresidentPermissionsConfirmation(residentName),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.inkMuted),
+                ),
+                const SizedBox(height: AppSpacing.xLarge),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DarJarButton(
+                        key: const Key(
+                          'cancel-grant-president-permissions-button',
+                        ),
+                        label: copy.cancel,
+                        variant: DarJarButtonVariant.secondary,
+                        onPressed: () => Navigator.pop(context, false),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.medium),
+                    Expanded(
+                      child: DarJarButton(
+                        key: const Key(
+                          'confirm-grant-president-permissions-button',
+                        ),
+                        label: copy.confirmGrantPresidentPermissions,
+                        icon: Icons.check_rounded,
+                        onPressed: () => Navigator.pop(context, true),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -2848,6 +2957,10 @@ class _Copy {
       arabic ? 'صلاحيات الرئيس' : 'President permissions';
   String get grantPresidentPermissions =>
       arabic ? 'منح صلاحيات الرئيس' : 'Grant president permissions';
+  String get grantPresidentPermissionsConfirmationTitle =>
+      arabic ? 'منح صلاحيات الرئيس؟' : 'Grant president permissions?';
+  String get confirmGrantPresidentPermissions =>
+      arabic ? 'منح الصلاحيات' : 'Grant permissions';
   String get removePresidentPermissions =>
       arabic ? 'سحب صلاحيات الرئيس' : 'Remove president permissions';
   String get removeFromResidence =>
@@ -2911,6 +3024,9 @@ class _Copy {
   String transferPresidencyConfirmation(String name) => arabic
       ? 'سيتم نزع صفة الرئيس منك وإسنادها إلى $name. هل تريد المتابعة؟'
       : 'Your president role will be removed and assigned to $name. Continue?';
+  String grantPresidentPermissionsConfirmation(String name) => arabic
+      ? 'سيتمكن $name من إدارة الإقامة والسكان والمحتوى بصلاحيات الرئيس. هل تريد المتابعة؟'
+      : '$name will be able to manage the residence, residents, and content with president permissions. Continue?';
   String deleteApartmentTitle(String number) =>
       arabic ? 'حذف الشقة $number؟' : 'Delete apartment $number?';
   String deleteApartmentConfirmation(int residentCount) {
