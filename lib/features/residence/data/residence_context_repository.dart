@@ -93,6 +93,8 @@ class FirestoreResidenceContextRepository
       final membershipQuery = results[1] as QuerySnapshot<Map<String, dynamic>>;
       final storedActiveId =
           userDocument.data()?['activeResidenceId'] as String?;
+      final hasProfileImage =
+          userDocument.data()?['hasProfileImage'] as bool? ?? false;
 
       // These are already the complete membership documents. Re-reading every
       // membership added an unnecessary network round-trip to every page load.
@@ -102,6 +104,10 @@ class FirestoreResidenceContextRepository
                 membership.exists && membership.data()['status'] == 'active',
           )
           .toList(growable: false);
+      await _syncMembershipProfileImages(
+        memberships: memberships,
+        hasProfileImage: hasProfileImage,
+      );
       final residenceDocuments = await Future.wait([
         for (final membership in memberships)
           membership.reference.parent.parent!.get(),
@@ -154,6 +160,30 @@ class FirestoreResidenceContextRepository
     });
   }
 
+  Future<void> _syncMembershipProfileImages({
+    required List<QueryDocumentSnapshot<Map<String, dynamic>>> memberships,
+    required bool hasProfileImage,
+  }) async {
+    final staleMemberships = memberships
+        .where(
+          (membership) => shouldSyncMembershipProfileImage(
+            membership.data(),
+            hasProfileImage,
+          ),
+        )
+        .toList(growable: false);
+    if (staleMemberships.isEmpty) return;
+
+    final batch = _firestore.batch();
+    for (final membership in staleMemberships) {
+      batch.update(membership.reference, {
+        'hasProfileImage': hasProfileImage,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    await batch.commit();
+  }
+
   @override
   Future<void> setActiveResidence({
     required AuthUser user,
@@ -200,6 +230,11 @@ class FirestoreResidenceContextRepository
     );
   }
 }
+
+bool shouldSyncMembershipProfileImage(
+  Map<String, dynamic> membership,
+  bool hasProfileImage,
+) => membership['hasProfileImage'] != hasProfileImage;
 
 final residenceContextRepositoryProvider = Provider<ResidenceContextRepository>(
   (ref) {

@@ -55,6 +55,22 @@ import 'package:file_selector/file_selector.dart';
 import 'package:image/image.dart' as test_image;
 
 void main() {
+  group('residence profile image synchronization', () {
+    test('repairs a membership created without the existing profile image', () {
+      expect(
+        shouldSyncMembershipProfileImage({'hasProfileImage': false}, true),
+        isTrue,
+      );
+    });
+
+    test('does not rewrite a membership whose image state is current', () {
+      expect(
+        shouldSyncMembershipProfileImage({'hasProfileImage': true}, true),
+        isFalse,
+      );
+    });
+  });
+
   group('design foundation', () {
     test('uses the handoff breakpoints', () {
       expect(windowSizeClassFor(599), WindowSizeClass.compact);
