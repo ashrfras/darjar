@@ -3390,6 +3390,79 @@ void main() {
     expect(find.text('تم حفظ معلومات الحساب.'), findsOneWidget);
   });
 
+  testWidgets('profile residence items change the active residence', (
+    tester,
+  ) async {
+    const residenceContext = ResidenceContext(
+      residences: [
+        UserResidence(
+          id: 'yasmine',
+          name: 'إقامة الياسمين',
+          address: 'المعاريف، الدار البيضاء',
+          city: '6141010',
+          role: 'resident',
+          apartmentId: 'apartment-12',
+        ),
+        UserResidence(
+          id: 'andalous',
+          name: 'إقامة الأندلس',
+          address: 'أكدال، الرباط',
+          city: '4421010',
+          role: 'resident',
+          apartmentId: 'apartment-5',
+        ),
+      ],
+      activeResidenceId: 'yasmine',
+    );
+    final contextRepository = _FakeResidenceContextRepository();
+    final profileRepository = _FakeProfileRepository(
+      profile: const ResidentProfile(
+        firstName: 'أمين',
+        lastName: 'المريني',
+        phoneNumber: '+212 6 12 34 56 78',
+        residences: [
+          ProfileResidence(
+            id: 'yasmine',
+            name: 'إقامة الياسمين',
+            apartmentNumber: '12',
+          ),
+          ProfileResidence(
+            id: 'andalous',
+            name: 'إقامة الأندلس',
+            apartmentNumber: '5',
+          ),
+        ],
+      ),
+    );
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      initialLocation: AppRoutes.community,
+      residenceContext: residenceContext,
+      residenceContextRepository: contextRepository,
+      profileRepository: profileRepository,
+    );
+
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+
+    final currentTile = tester.widget<ListTile>(
+      find.byKey(const ValueKey('profile-residence-yasmine')),
+    );
+    final otherResidence = find.byKey(
+      const ValueKey('profile-residence-andalous'),
+    );
+    expect(currentTile.enabled, isTrue);
+    expect(currentTile.onTap, isNull);
+    expect(tester.widget<ListTile>(otherResidence).enabled, isTrue);
+
+    await tester.ensureVisible(otherResidence);
+    await tester.tap(otherResidence);
+    await tester.pumpAndSettle();
+
+    expect(contextRepository.selectedResidenceId, 'andalous');
+  });
+
   testWidgets('profile signs out through a DarJar confirmation dialog', (
     tester,
   ) async {
@@ -5965,18 +6038,23 @@ class _FakeAccountOnboardingRepository implements AccountOnboardingRepository {
 }
 
 class _FakeProfileRepository implements ProfileRepository {
-  ResidentProfile profile = const ResidentProfile(
-    firstName: 'أمين',
-    lastName: 'المريني',
-    phoneNumber: '+212 6 12 34 56 78',
-    residences: [
-      ProfileResidence(
-        id: 'test-residence',
-        name: 'إقامة الاختبار',
-        apartmentNumber: '12',
-      ),
-    ],
-  );
+  _FakeProfileRepository({ResidentProfile? profile})
+    : profile =
+          profile ??
+          const ResidentProfile(
+            firstName: 'أمين',
+            lastName: 'المريني',
+            phoneNumber: '+212 6 12 34 56 78',
+            residences: [
+              ProfileResidence(
+                id: 'test-residence',
+                name: 'إقامة الاختبار',
+                apartmentNumber: '12',
+              ),
+            ],
+          );
+
+  ResidentProfile profile;
 
   @override
   Future<ResidentProfile> load({

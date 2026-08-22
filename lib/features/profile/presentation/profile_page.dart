@@ -58,6 +58,7 @@ class _ProfileContent extends ConsumerStatefulWidget {
 class _ProfileContentState extends ConsumerState<_ProfileContent> {
   bool _processingImage = false;
   bool _signingOut = false;
+  String? _switchingResidenceId;
 
   @override
   Widget build(BuildContext context) {
@@ -170,6 +171,12 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                               isCurrent:
                                   widget.profile.residences[index].id ==
                                   residenceContext?.activeResidenceId,
+                              isSwitching:
+                                  widget.profile.residences[index].id ==
+                                  _switchingResidenceId,
+                              onTap: () => _switchResidence(
+                                widget.profile.residences[index].id,
+                              ),
                             ),
                             if (index < widget.profile.residences.length - 1)
                               const Divider(),
@@ -260,6 +267,37 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
         ..showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context).signOutFailed)),
         );
+    }
+  }
+
+  Future<void> _switchResidence(String residenceId) async {
+    final residenceContext = ref.read(residenceContextProvider).value;
+    if (_switchingResidenceId != null ||
+        residenceId == residenceContext?.activeResidenceId) {
+      return;
+    }
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user == null) return;
+
+    setState(() => _switchingResidenceId = residenceId);
+    try {
+      await ref
+          .read(residenceContextRepositoryProvider)
+          .setActiveResidence(user: user, residenceId: residenceId);
+      ref.invalidate(residenceContextProvider);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).accountResolutionUnexpectedError,
+            ),
+          ),
+        );
+    } finally {
+      if (mounted) setState(() => _switchingResidenceId = null);
     }
   }
 
@@ -438,10 +476,17 @@ class _EditableProfileAvatar extends ConsumerWidget {
 enum _ProfileImageAction { select, remove }
 
 class _ResidenceItem extends StatelessWidget {
-  const _ResidenceItem({required this.residence, required this.isCurrent});
+  const _ResidenceItem({
+    required this.residence,
+    required this.isCurrent,
+    required this.isSwitching,
+    required this.onTap,
+  });
 
   final ProfileResidence residence;
   final bool isCurrent;
+  final bool isSwitching;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -478,6 +523,19 @@ class _ResidenceItem extends StatelessWidget {
             ? localizations.profileApartmentNotAssigned
             : localizations.profileApartmentNumber(apartmentNumber),
       ),
+      trailing: isSwitching
+          ? const SizedBox.square(
+              dimension: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : isCurrent
+          ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+          : const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: AppColors.inkMuted,
+              size: 16,
+            ),
+      onTap: isCurrent || isSwitching ? null : onTap,
     );
   }
 }
