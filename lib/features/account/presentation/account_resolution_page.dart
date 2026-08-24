@@ -6,6 +6,7 @@ import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
+import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
@@ -24,8 +25,18 @@ class AccountResolutionPage extends ConsumerStatefulWidget {
 
 class _AccountResolutionPageState extends ConsumerState<AccountResolutionPage> {
   final Set<String> _selectedInvitationPaths = {};
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  String? _initializedInvitationPath;
   bool _isSubmitting = false;
   String? _errorCode;
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +71,17 @@ class _AccountResolutionPageState extends ConsumerState<AccountResolutionPage> {
                     : AppRoutes.community,
               );
             }
+            final invitationPath = data.invitations.first.path;
+            if (_initializedInvitationPath != invitationPath) {
+              final profile = data.displayedProfile!;
+              _firstNameController.text = profile.firstName;
+              _lastNameController.text = profile.lastName;
+              _initializedInvitationPath = invitationPath;
+            }
             return _InvitationConfirmation(
               resolution: data,
+              firstNameController: _firstNameController,
+              lastNameController: _lastNameController,
               selectedInvitationPaths: _selectedInvitationPaths,
               isSubmitting: _isSubmitting,
               errorMessage: _errorCode == null
@@ -77,6 +97,7 @@ class _AccountResolutionPageState extends ConsumerState<AccountResolutionPage> {
                   _errorCode = null;
                 });
               },
+              onNameChanged: () => setState(() => _errorCode = null),
               onConfirm: _selectedInvitationPaths.isEmpty || _isSubmitting
                   ? null
                   : () => _acceptSelected(data),
@@ -100,6 +121,11 @@ class _AccountResolutionPageState extends ConsumerState<AccountResolutionPage> {
       setState(() => _errorCode = 'signed-out');
       return;
     }
+    if (_firstNameController.text.trim().isEmpty ||
+        _lastNameController.text.trim().isEmpty) {
+      setState(() => _errorCode = 'missing-profile-data');
+      return;
+    }
     final selected = resolution.invitations
         .where(
           (invitation) => _selectedInvitationPaths.contains(invitation.path),
@@ -117,6 +143,8 @@ class _AccountResolutionPageState extends ConsumerState<AccountResolutionPage> {
             user: user,
             resolution: resolution,
             invitations: selected,
+            firstName: _firstNameController.text,
+            lastName: _lastNameController.text,
           );
       if (mounted) {
         ref.invalidate(accountResolutionProvider);
@@ -194,24 +222,32 @@ class _ResolutionRedirectState extends State<_ResolutionRedirect> {
 class _InvitationConfirmation extends StatelessWidget {
   const _InvitationConfirmation({
     required this.resolution,
+    required this.firstNameController,
+    required this.lastNameController,
     required this.selectedInvitationPaths,
     required this.isSubmitting,
     required this.errorMessage,
     required this.onChanged,
+    required this.onNameChanged,
     required this.onConfirm,
   });
 
   final AccountResolution resolution;
+  final TextEditingController firstNameController;
+  final TextEditingController lastNameController;
   final Set<String> selectedInvitationPaths;
   final bool isSubmitting;
   final String? errorMessage;
   final void Function(String path, bool selected) onChanged;
+  final VoidCallback onNameChanged;
   final VoidCallback? onConfirm;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final profile = resolution.displayedProfile!;
+    final requiresNameCompletion =
+        profile.firstName.trim().isEmpty || profile.lastName.trim().isEmpty;
     final phoneNumber = resolution.phoneNumber;
 
     return SingleChildScrollView(
@@ -263,6 +299,27 @@ class _InvitationConfirmation extends StatelessWidget {
                   ],
                 ),
               ),
+              if (requiresNameCompletion) ...[
+                const SizedBox(height: AppSpacing.large),
+                DarJarTextField(
+                  key: const Key('account-resolution-first-name-field'),
+                  label: localizations.firstName,
+                  controller: firstNameController,
+                  prefixIcon: Icons.person_outline_rounded,
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) => onNameChanged(),
+                ),
+                const SizedBox(height: AppSpacing.medium),
+                DarJarTextField(
+                  key: const Key('account-resolution-last-name-field'),
+                  label: localizations.lastName,
+                  helper: localizations.lastNamePrivacyHint,
+                  controller: lastNameController,
+                  prefixIcon: Icons.person_outline_rounded,
+                  textInputAction: TextInputAction.done,
+                  onChanged: (_) => onNameChanged(),
+                ),
+              ],
               const SizedBox(height: AppSpacing.xLarge),
               Text(
                 localizations.accountResolutionInvitationsTitle,

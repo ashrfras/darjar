@@ -2118,7 +2118,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountResolutionMissingProfile =>
-      'The first or last name in the invitation is incomplete.';
+      'Enter your first and last name to continue.';
 
   @override
   String get accountResolutionSignedOut =>

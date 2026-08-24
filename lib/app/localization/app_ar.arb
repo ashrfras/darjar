@@ -658,7 +658,7 @@
   "accountResolutionRetry": "إعادة المحاولة",
   "accountResolutionPermissionDenied": "لا تسمح قواعد قاعدة البيانات بقراءة هذه الدعوات أو قبولها. انشر قواعد Firestore الجديدة ثم حاول مجدداً.",
   "accountResolutionFailedPrecondition": "فهرس قاعدة البيانات المطلوب غير جاهز بعد. انتظر اكتمال بنائه ثم حاول مجدداً.",
-  "accountResolutionMissingProfile": "بيانات الاسم أو النسب في الدعوة غير مكتملة.",
+  "accountResolutionMissingProfile": "أدخل الاسم والنسب للمتابعة.",
   "accountResolutionSignedOut": "انتهت جلسة تسجيل الدخول. سجّل الدخول مجدداً.",
   "accountResolutionUnexpectedError": "تعذر تحميل الدعوات أو تأكيدها الآن. حاول مجدداً."
 }

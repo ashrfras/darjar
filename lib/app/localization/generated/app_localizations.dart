@@ -3818,7 +3818,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountResolutionMissingProfile.
   ///
   /// In ar, this message translates to:
-  /// **'بيانات الاسم أو النسب في الدعوة غير مكتملة.'**
+  /// **'أدخل الاسم والنسب للمتابعة.'**
   String get accountResolutionMissingProfile;
 
   /// No description provided for @accountResolutionSignedOut.

@@ -2077,8 +2077,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'فهرس قاعدة البيانات المطلوب غير جاهز بعد. انتظر اكتمال بنائه ثم حاول مجدداً.';
 
   @override
-  String get accountResolutionMissingProfile =>
-      'بيانات الاسم أو النسب في الدعوة غير مكتملة.';
+  String get accountResolutionMissingProfile => 'أدخل الاسم والنسب للمتابعة.';
 
   @override
   String get accountResolutionSignedOut =>

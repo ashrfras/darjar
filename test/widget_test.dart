@@ -1563,6 +1563,84 @@ void main() {
       expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
     });
 
+    testWidgets('resident completes an optional invitation last name', (
+      tester,
+    ) async {
+      final authRepository = _FakeAuthRepository(signedIn: false);
+      final accountRepository = _FakeAccountOnboardingRepository(
+        resolution: const AccountResolution(
+          phoneNumber: '+212600000001',
+          profile: null,
+          invitations: [
+            ResidenceInvitation(
+              path: 'residences/yasmine/invitations/invitation-1',
+              id: 'invitation-1',
+              residenceId: 'yasmine',
+              residenceName: 'إقامة الياسمين',
+              residenceAddress: 'المعاريف، الدار البيضاء',
+              suggestedFirstName: 'أمينة',
+              suggestedLastName: '',
+              apartmentId: 'apartment-12',
+              role: 'resident',
+            ),
+          ],
+        ),
+      );
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        authRepository: authRepository,
+        accountRepository: accountRepository,
+      );
+
+      await tester.tap(find.byKey(const Key('start-button')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('auth-phone-field')),
+        '0600000001',
+      );
+      await tester.tap(find.byKey(const Key('send-verification-code-button')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('auth-verification-code-field')),
+        '123456',
+      );
+      await tester.tap(
+        find.byKey(const Key('confirm-verification-code-button')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('account-resolution-last-name-field')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(
+          const ValueKey('residence-invitation-checkbox-invitation-1'),
+        ),
+      );
+      await tester.ensureVisible(
+        find.byKey(const Key('accept-selected-invitations-button')),
+      );
+      await tester.tap(
+        find.byKey(const Key('accept-selected-invitations-button')),
+      );
+      await tester.pumpAndSettle();
+      expect(accountRepository.acceptedInvitations, isEmpty);
+
+      await tester.enterText(
+        find.byKey(const Key('account-resolution-last-name-field')),
+        'المريني',
+      );
+      await tester.tap(
+        find.byKey(const Key('accept-selected-invitations-button')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(accountRepository.acceptedLastName, 'المريني');
+      expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+    });
+
     testWidgets('existing user enters the app without residence setup', (
       tester,
     ) async {
@@ -5536,10 +5614,7 @@ void main() {
       find.byKey(const Key('resident-first-name-field')),
       'مريم',
     );
-    await tester.enterText(
-      find.byKey(const Key('resident-last-name-field')),
-      'المنصوري',
-    );
+    expect(find.text('النسب (اختياري)'), findsOneWidget);
     await tester.enterText(
       find.byKey(const Key('resident-phone-field')),
       '06 98 76 54 32',
@@ -5557,6 +5632,7 @@ void main() {
 
     expect(membersRepository.createdInvitations, hasLength(1));
     expect(membersRepository.createdInvitations.single.firstName, 'مريم');
+    expect(membersRepository.createdInvitations.single.lastName, isEmpty);
     expect(find.text('تم إنشاء دعوة الساكن.'), findsOneWidget);
     expect(find.byKey(const Key('invitation-share-dialog')), findsOneWidget);
     expect(
@@ -6184,8 +6260,12 @@ class _FakeAccountOnboardingRepository implements AccountOnboardingRepository {
     required AuthUser user,
     required AccountResolution resolution,
     required List<ResidenceInvitation> invitations,
+    required String firstName,
+    required String lastName,
   }) async {
     acceptedInvitations = invitations;
+    acceptedFirstName = firstName;
+    acceptedLastName = lastName;
   }
 
   @override

@@ -583,7 +583,6 @@ service cloud.firestore {
           && request.resource.data.suggestedFirstName is string
           && request.resource.data.suggestedFirstName.size() > 0
           && request.resource.data.suggestedLastName is string
-          && request.resource.data.suggestedLastName.size() > 0
           && request.resource.data.phoneNumber is string
           && request.resource.data.phoneNumber.matches(
             '^[+][1-9][0-9]{7,14}$'

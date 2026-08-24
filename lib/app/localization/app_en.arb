@@ -658,7 +658,7 @@
   "accountResolutionRetry": "Try again",
   "accountResolutionPermissionDenied": "The database rules do not allow these invitations to be read or accepted. Deploy the new Firestore rules and try again.",
   "accountResolutionFailedPrecondition": "The required database index is not ready yet. Wait for it to finish building, then try again.",
-  "accountResolutionMissingProfile": "The first or last name in the invitation is incomplete.",
+  "accountResolutionMissingProfile": "Enter your first and last name to continue.",
   "accountResolutionSignedOut": "Your sign-in session ended. Sign in again.",
   "accountResolutionUnexpectedError": "Invitations could not be loaded or confirmed right now. Try again."
 }

@@ -96,6 +96,8 @@ abstract interface class AccountOnboardingRepository {
     required AuthUser user,
     required AccountResolution resolution,
     required List<ResidenceInvitation> invitations,
+    required String firstName,
+    required String lastName,
   });
 
   Future<void> acceptInvitation({
@@ -216,15 +218,25 @@ class FirestoreAccountOnboardingRepository
     required AuthUser user,
     required AccountResolution resolution,
     required List<ResidenceInvitation> invitations,
+    required String firstName,
+    required String lastName,
   }) async {
     if (invitations.isEmpty) {
       throw const AccountOnboardingFailure('no-invitations-selected');
     }
     final phoneNumber = _verifiedPhoneNumber(user);
-    final profile = resolution.profile ?? _suggestedProfile(invitations.first);
-    if (profile.firstName.isEmpty || profile.lastName.isEmpty) {
+    final normalizedFirstName = firstName.trim();
+    final normalizedLastName = lastName.trim();
+    if (normalizedFirstName.isEmpty || normalizedLastName.isEmpty) {
       throw const AccountOnboardingFailure('missing-profile-data');
     }
+    final profile =
+        resolution.profile ??
+        UserProfile(
+          firstName: normalizedFirstName,
+          lastName: normalizedLastName,
+          phoneNumber: phoneNumber,
+        );
 
     try {
       final batch = _firestore.batch();
@@ -254,6 +266,8 @@ class FirestoreAccountOnboardingRepository
             .collection('members')
             .doc(user.uid);
         batch.update(invitationReference, {
+          'suggestedFirstName': profile.firstName,
+          'suggestedLastName': profile.lastName,
           'status': 'accepted',
           'acceptedBy': user.uid,
           'acceptedAt': FieldValue.serverTimestamp(),
@@ -405,14 +419,6 @@ class FirestoreAccountOnboardingRepository
       throw const AccountOnboardingFailure('invalid-invitation');
     }
     return residenceReference;
-  }
-
-  UserProfile _suggestedProfile(ResidenceInvitation invitation) {
-    return UserProfile(
-      firstName: invitation.suggestedFirstName.trim(),
-      lastName: invitation.suggestedLastName.trim(),
-      phoneNumber: '',
-    );
   }
 }
 
