@@ -149,7 +149,7 @@ service cloud.firestore {
         && acceptedInvitation.status == 'accepted'
         && acceptedInvitation.acceptedBy == request.auth.uid
         && invitation.phoneNumber == request.auth.token.phone_number
-        && request.resource.data.apartmentId == invitation.apartmentId
+        && request.resource.data.apartmentId == acceptedInvitation.apartmentId
         && request.resource.data.role == invitation.role;
     }
 
@@ -599,10 +599,19 @@ service cloud.firestore {
           && resource.data.phoneNumber == request.auth.token.phone_number
           && resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'suggestedFirstName',
+            'suggestedLastName',
+            'apartmentId',
             'status',
             'acceptedBy',
             'acceptedAt'
           ])
+          && request.resource.data.suggestedFirstName is string
+          && request.resource.data.suggestedFirstName.size() > 0
+          && request.resource.data.suggestedLastName is string
+          && request.resource.data.suggestedLastName.size() > 0
+          && request.resource.data.apartmentId is string
+          && request.resource.data.apartmentId.size() > 0
           && request.resource.data.status == 'accepted'
           && request.resource.data.acceptedBy == request.auth.uid
           && request.resource.data.acceptedAt == request.time;

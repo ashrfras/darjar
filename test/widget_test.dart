@@ -1856,6 +1856,137 @@ void main() {
       expect(find.byKey(const Key('residence-search-result')), findsOneWidget);
       expect(authRepository.confirmedCode, '123456');
     });
+
+    testWidgets('private invitation prefills the editable public join form', (
+      tester,
+    ) async {
+      final authRepository = _FakeAuthRepository(signedIn: false);
+      final accountRepository = _FakeAccountOnboardingRepository(
+        pendingInvitation: const ResidenceInvitation(
+          path: 'residences/residence-yasmine/invitations/+212600000001',
+          id: '+212600000001',
+          residenceId: 'residence-yasmine',
+          residenceName: 'إقامة الياسمين',
+          residenceAddress: 'حي المعاريف',
+          suggestedFirstName: 'أمينة',
+          suggestedLastName: 'المريني',
+          apartmentId: 'apartment-12',
+          role: 'resident',
+        ),
+      );
+      final setupRepository = _FakeResidenceSetupRepository(
+        residence: const ResidenceCodeSummary(
+          residenceId: 'residence-yasmine',
+          code: '48273165',
+          name: 'إقامة الياسمين',
+          address: 'حي المعاريف',
+          city: '6141010',
+          joinRequestsEnabled: true,
+          apartments: [
+            ResidenceJoinApartment(
+              id: 'apartment-12',
+              number: '12',
+              buildingNameAr: 'العمارة الرئيسية',
+              buildingNameEn: 'Main building',
+              floorNameAr: 'الطابق الأول',
+              floorNameEn: 'First floor',
+            ),
+            ResidenceJoinApartment(
+              id: 'apartment-13',
+              number: '13',
+              buildingNameAr: 'العمارة الرئيسية',
+              buildingNameEn: 'Main building',
+              floorNameAr: 'الطابق الأول',
+              floorNameEn: 'First floor',
+            ),
+          ],
+        ),
+      );
+
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: AppRoutes.residenceInvitation('48273165'),
+        authRepository: authRepository,
+        accountRepository: accountRepository,
+        residenceSetupRepository: setupRepository,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('auth-phone-field')),
+        '600000001',
+      );
+      await tester.tap(find.byKey(const Key('send-verification-code-button')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('auth-verification-code-field')),
+        '123456',
+      );
+      await tester.tap(
+        find.byKey(const Key('confirm-verification-code-button')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('account-resolution-page')), findsNothing);
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(const Key('join-first-name-field')),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller
+            ?.text,
+        'أمينة',
+      );
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(const Key('join-last-name-field')),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller
+            ?.text,
+        'المريني',
+      );
+      expect(
+        tester
+            .widget<DropdownButton<String>>(
+              find.descendant(
+                of: find.byKey(const Key('join-apartment-field')),
+                matching: find.byType(DropdownButton<String>),
+              ),
+            )
+            .value,
+        'apartment-12',
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('join-first-name-field')),
+        'سلمى',
+      );
+      await tester.tap(find.byKey(const Key('join-apartment-field')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.text('الشقة 13 · العمارة الرئيسية · الطابق الأول').last,
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('join-found-residence-button')),
+      );
+      await tester.tap(find.byKey(const Key('join-found-residence-button')));
+      await tester.pumpAndSettle();
+
+      expect(accountRepository.acceptedFirstName, 'سلمى');
+      expect(accountRepository.acceptedLastName, 'المريني');
+      expect(accountRepository.acceptedApartmentId, 'apartment-13');
+      expect(setupRepository.requestedResidence, isNull);
+      expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+    });
   });
 
   testWidgets('onboarding creates a residence and enters the compact app', (
@@ -5701,8 +5832,13 @@ Future<void> _pumpApp(
       accountRepository ?? _FakeAccountOnboardingRepository();
   final setupRepository =
       residenceSetupRepository ?? _FakeResidenceSetupRepository();
+  final contextData = residenceContext ?? _defaultResidenceContext;
   final contextRepository =
-      residenceContextRepository ?? _FakeResidenceContextRepository();
+      residenceContextRepository ??
+      _FakeResidenceContextRepository(context: contextData);
+  if (contextRepository is _FakeResidenceContextRepository) {
+    contextRepository.context = contextData;
+  }
   final membersRepository =
       residenceMembersRepository ?? _FakeResidenceMembersRepository();
   final duesRepository =
@@ -5728,7 +5864,6 @@ Future<void> _pumpApp(
       profileRepository ?? _FakeProfileRepository();
   final currentNotificationsRepository =
       notificationsRepository ?? MockNotificationsRepository();
-  final contextData = residenceContext ?? _defaultResidenceContext;
   if (repository is _FakeAuthRepository) {
     addTearDown(repository.dispose);
   }
@@ -6019,13 +6154,30 @@ class _FakeAccountOnboardingRepository implements AccountOnboardingRepository {
       profile: null,
       invitations: [],
     ),
+    this.pendingInvitation,
   });
 
   final AccountResolution resolution;
+  final ResidenceInvitation? pendingInvitation;
   List<ResidenceInvitation> acceptedInvitations = [];
+  String? acceptedFirstName;
+  String? acceptedLastName;
+  String? acceptedApartmentId;
 
   @override
   Future<AccountResolution> loadResolution(AuthUser user) async => resolution;
+
+  @override
+  Future<ResidenceInvitation?> loadPendingInvitation({
+    required AuthUser user,
+    required String residenceId,
+    required String residenceName,
+    required String residenceAddress,
+  }) async {
+    return pendingInvitation?.residenceId == residenceId
+        ? pendingInvitation
+        : null;
+  }
 
   @override
   Future<void> acceptInvitations({
@@ -6034,6 +6186,20 @@ class _FakeAccountOnboardingRepository implements AccountOnboardingRepository {
     required List<ResidenceInvitation> invitations,
   }) async {
     acceptedInvitations = invitations;
+  }
+
+  @override
+  Future<void> acceptInvitation({
+    required AuthUser user,
+    required ResidenceInvitation invitation,
+    required String firstName,
+    required String lastName,
+    required String apartmentId,
+  }) async {
+    acceptedInvitations = [invitation];
+    acceptedFirstName = firstName;
+    acceptedLastName = lastName;
+    acceptedApartmentId = apartmentId;
   }
 }
 
@@ -7047,11 +7213,21 @@ class _FakeResidenceSettingsRepository implements ResidenceSettingsRepository {
 }
 
 class _FakeResidenceContextRepository implements ResidenceContextRepository {
+  _FakeResidenceContextRepository({this.context = _defaultResidenceContext});
+
+  ResidenceContext context;
   String? selectedResidenceId;
 
   @override
-  Future<ResidenceContext> load(AuthUser user) async =>
-      _defaultResidenceContext;
+  Future<ResidenceContext> load(AuthUser user) async => context;
+
+  @override
+  Future<bool> hasActiveMembership({
+    required AuthUser user,
+    required String residenceId,
+  }) async {
+    return context.residences.any((residence) => residence.id == residenceId);
+  }
 
   @override
   Future<void> setActiveResidence({

@@ -85,10 +85,25 @@ class AccountOnboardingFailure implements Exception {
 abstract interface class AccountOnboardingRepository {
   Future<AccountResolution> loadResolution(AuthUser user);
 
+  Future<ResidenceInvitation?> loadPendingInvitation({
+    required AuthUser user,
+    required String residenceId,
+    required String residenceName,
+    required String residenceAddress,
+  });
+
   Future<void> acceptInvitations({
     required AuthUser user,
     required AccountResolution resolution,
     required List<ResidenceInvitation> invitations,
+  });
+
+  Future<void> acceptInvitation({
+    required AuthUser user,
+    required ResidenceInvitation invitation,
+    required String firstName,
+    required String lastName,
+    required String apartmentId,
   });
 }
 
@@ -162,6 +177,41 @@ class FirestoreAccountOnboardingRepository
   }
 
   @override
+  Future<ResidenceInvitation?> loadPendingInvitation({
+    required AuthUser user,
+    required String residenceId,
+    required String residenceName,
+    required String residenceAddress,
+  }) async {
+    final phoneNumber = _verifiedPhoneNumber(user);
+    try {
+      final document = await _firestore
+          .collection('residences')
+          .doc(residenceId)
+          .collection('invitations')
+          .doc(phoneNumber)
+          .get();
+      final data = document.data();
+      if (!document.exists || data?['status'] != 'pending') return null;
+      return ResidenceInvitation(
+        path: document.reference.path,
+        id: document.id,
+        residenceId: residenceId,
+        residenceName: residenceName,
+        residenceAddress: residenceAddress,
+        suggestedFirstName: data?['suggestedFirstName'] as String? ?? '',
+        suggestedLastName: data?['suggestedLastName'] as String? ?? '',
+        apartmentId: data?['apartmentId'] as String? ?? '',
+        role: data?['role'] as String? ?? 'resident',
+      );
+    } on FirebaseException catch (error) {
+      throw AccountOnboardingFailure(error.code, error.message);
+    } catch (error) {
+      throw AccountOnboardingFailure('unknown', error.toString());
+    }
+  }
+
+  @override
   Future<void> acceptInvitations({
     required AuthUser user,
     required AccountResolution resolution,
@@ -223,6 +273,83 @@ class FirestoreAccountOnboardingRepository
         });
       }
 
+      await batch.commit();
+    } on FirebaseException catch (error) {
+      throw AccountOnboardingFailure(error.code, error.message);
+    } catch (error) {
+      throw AccountOnboardingFailure('unknown', error.toString());
+    }
+  }
+
+  @override
+  Future<void> acceptInvitation({
+    required AuthUser user,
+    required ResidenceInvitation invitation,
+    required String firstName,
+    required String lastName,
+    required String apartmentId,
+  }) async {
+    final phoneNumber = _verifiedPhoneNumber(user);
+    final normalizedFirstName = firstName.trim();
+    final normalizedLastName = lastName.trim();
+    final normalizedApartmentId = apartmentId.trim();
+    if (normalizedFirstName.isEmpty ||
+        normalizedLastName.isEmpty ||
+        normalizedApartmentId.isEmpty) {
+      throw const AccountOnboardingFailure('missing-profile-data');
+    }
+
+    try {
+      final userReference = _firestore.collection('users').doc(user.uid);
+      final userDocument = await userReference.get();
+      final batch = _firestore.batch();
+      if (!userDocument.exists) {
+        batch.set(userReference, {
+          'firstName': normalizedFirstName,
+          'lastName': normalizedLastName,
+          'phoneNumber': phoneNumber,
+          'activeResidenceId': invitation.residenceId,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      } else {
+        batch.update(userReference, {
+          'firstName': normalizedFirstName,
+          'lastName': normalizedLastName,
+          'activeResidenceId': invitation.residenceId,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      final invitationReference = _firestore.doc(invitation.path);
+      batch.update(invitationReference, {
+        'suggestedFirstName': normalizedFirstName,
+        'suggestedLastName': normalizedLastName,
+        'apartmentId': normalizedApartmentId,
+        'status': 'accepted',
+        'acceptedBy': user.uid,
+        'acceptedAt': FieldValue.serverTimestamp(),
+      });
+      batch.set(
+        _firestore
+            .collection('residences')
+            .doc(invitation.residenceId)
+            .collection('members')
+            .doc(user.uid),
+        {
+          'userId': user.uid,
+          'firstName': normalizedFirstName,
+          'lastName': normalizedLastName,
+          'phoneNumber': phoneNumber,
+          'apartmentId': normalizedApartmentId,
+          'role': invitation.role,
+          'hasPresidentPermissions': false,
+          'hasProfileImage': false,
+          'status': 'active',
+          'sourceInvitationId': invitation.id,
+          'joinedAt': FieldValue.serverTimestamp(),
+        },
+      );
       await batch.commit();
     } on FirebaseException catch (error) {
       throw AccountOnboardingFailure(error.code, error.message);

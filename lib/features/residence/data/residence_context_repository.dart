@@ -66,6 +66,11 @@ class ResidenceContextFailure implements Exception {
 abstract interface class ResidenceContextRepository {
   Future<ResidenceContext> load(AuthUser user);
 
+  Future<bool> hasActiveMembership({
+    required AuthUser user,
+    required String residenceId,
+  });
+
   Future<void> setActiveResidence({
     required AuthUser user,
     required String residenceId,
@@ -77,6 +82,24 @@ class FirestoreResidenceContextRepository
   FirestoreResidenceContextRepository(this._firestore);
 
   final FirebaseFirestore _firestore;
+
+  @override
+  Future<bool> hasActiveMembership({
+    required AuthUser user,
+    required String residenceId,
+  }) async {
+    try {
+      final membership = await _firestore
+          .collection('residences')
+          .doc(residenceId)
+          .collection('members')
+          .doc(user.uid)
+          .get();
+      return membership.exists && membership.data()?['status'] == 'active';
+    } on FirebaseException catch (error) {
+      throw ResidenceContextFailure(error.code, error.message);
+    }
+  }
 
   @override
   Future<ResidenceContext> load(AuthUser user) async {

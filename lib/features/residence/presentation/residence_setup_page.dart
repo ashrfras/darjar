@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
@@ -516,6 +518,7 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
   bool _isJoining = false;
   String? _errorCode;
   String? _selectedApartmentId;
+  ResidenceInvitation? _pendingInvitation;
 
   @override
   void initState() {
@@ -649,7 +652,9 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
                 const SizedBox(height: AppSpacing.large),
                 DarJarButton(
                   key: const Key('join-found-residence-button'),
-                  label: !_residence!.joinRequestsEnabled
+                  label:
+                      !_residence!.joinRequestsEnabled &&
+                          _pendingInvitation == null
                       ? localizations.joinRequestsClosed
                       : _isJoining
                       ? localizations.sendingJoinRequest
@@ -657,7 +662,8 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
                   expanded: true,
                   onPressed:
                       _isJoining ||
-                          !_residence!.joinRequestsEnabled ||
+                          (!_residence!.joinRequestsEnabled &&
+                              _pendingInvitation == null) ||
                           _residence!.apartments.isEmpty
                       ? null
                       : _join,
@@ -684,20 +690,58 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
       _isSearching = true;
       _residence = null;
       _selectedApartmentId = null;
+      _pendingInvitation = null;
+      _firstNameController.clear();
+      _lastNameController.clear();
       _errorCode = null;
     });
     try {
       final residence = await ref
           .read(residenceSetupRepositoryProvider)
-          .findByCode(code);
+          .findByCode(code)
+          .timeout(residenceDataTimeout);
       if (residence != null && await _openExistingResidence(residence)) {
         return;
+      }
+      ResidenceInvitation? pendingInvitation;
+      final user = ref.read(authRepositoryProvider).currentUser;
+      if (residence != null && user != null) {
+        pendingInvitation = await ref
+            .read(accountOnboardingRepositoryProvider)
+            .loadPendingInvitation(
+              user: user,
+              residenceId: residence.residenceId,
+              residenceName: residence.name,
+              residenceAddress: residence.address,
+            )
+            .timeout(residenceDataTimeout);
       }
       if (mounted) {
         setState(() {
           _residence = residence;
+          _pendingInvitation = pendingInvitation;
+          if (pendingInvitation != null) {
+            _firstNameController.text = pendingInvitation.suggestedFirstName;
+            _lastNameController.text = pendingInvitation.suggestedLastName;
+            _selectedApartmentId =
+                residence?.apartments.any(
+                      (apartment) =>
+                          apartment.id == pendingInvitation!.apartmentId,
+                    ) ==
+                    true
+                ? pendingInvitation.apartmentId
+                : null;
+          }
           _errorCode = residence == null ? 'not-found' : null;
         });
+      }
+    } on TimeoutException {
+      if (mounted) {
+        setState(() => _errorCode = 'request-timeout');
+      }
+    } on AccountOnboardingFailure catch (error) {
+      if (mounted) {
+        setState(() => _errorCode = error.code);
       }
     } on ResidenceSetupFailure catch (error) {
       if (mounted) {
@@ -718,18 +762,17 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
     final user = ref.read(authRepositoryProvider).currentUser;
     if (user == null) return false;
 
-    final residenceContext = await ref.read(residenceContextProvider.future);
-    final isExistingMember = residenceContext.residences.any(
-      (membership) => membership.id == residence.residenceId,
-    );
+    final contextRepository = ref.read(residenceContextRepositoryProvider);
+    final isExistingMember = await contextRepository
+        .hasActiveMembership(user: user, residenceId: residence.residenceId)
+        .timeout(residenceDataTimeout);
     if (!isExistingMember) return false;
 
-    if (residenceContext.activeResidenceId != residence.residenceId) {
-      await ref
-          .read(residenceContextRepositoryProvider)
-          .setActiveResidence(user: user, residenceId: residence.residenceId);
-      ref.invalidate(residenceContextProvider);
-    }
+    await contextRepository.setActiveResidence(
+      user: user,
+      residenceId: residence.residenceId,
+    );
+    ref.invalidate(residenceContextProvider);
     if (mounted) context.go(AppRoutes.community);
     return true;
   }
@@ -752,19 +795,36 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
       _errorCode = null;
     });
     try {
-      await ref
-          .read(residenceSetupRepositoryProvider)
-          .requestToJoin(
-            user: user,
-            residence: residence,
-            firstName: _firstNameController.text,
-            lastName: _lastNameController.text,
-            apartmentId: _selectedApartmentId!,
-          );
+      final pendingInvitation = _pendingInvitation;
+      if (pendingInvitation == null) {
+        await ref
+            .read(residenceSetupRepositoryProvider)
+            .requestToJoin(
+              user: user,
+              residence: residence,
+              firstName: _firstNameController.text,
+              lastName: _lastNameController.text,
+              apartmentId: _selectedApartmentId!,
+            );
+      } else {
+        await ref
+            .read(accountOnboardingRepositoryProvider)
+            .acceptInvitation(
+              user: user,
+              invitation: pendingInvitation,
+              firstName: _firstNameController.text,
+              lastName: _lastNameController.text,
+              apartmentId: _selectedApartmentId!,
+            );
+      }
       if (mounted) {
         ref.invalidate(residenceContextProvider);
         ref.invalidate(accountResolutionProvider);
         context.go(AppRoutes.community);
+      }
+    } on AccountOnboardingFailure catch (error) {
+      if (mounted) {
+        setState(() => _errorCode = error.code);
       }
     } on ResidenceSetupFailure catch (error) {
       if (mounted) {
@@ -954,7 +1014,7 @@ String _setupErrorMessage(AppLocalizations localizations, String code) {
     'invalid-code' => localizations.residenceCodeInvalid,
     'permission-denied' => localizations.accountResolutionPermissionDenied,
     'join-requests-disabled' => localizations.joinRequestsClosed,
-    'unavailable' => localizations.authNetworkError,
+    'unavailable' || 'request-timeout' => localizations.authNetworkError,
     'signed-out' ||
     'missing-phone-number' => localizations.accountResolutionSignedOut,
     _ => localizations.setupUnexpectedError,
