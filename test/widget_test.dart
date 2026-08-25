@@ -1201,6 +1201,23 @@ void main() {
         ),
       );
       expect(find.byKey(const Key('auth-country-code-field')), findsOneWidget);
+      expect(
+        Directionality.of(
+          tester.element(find.byKey(const Key('auth-phone-field'))),
+        ),
+        TextDirection.rtl,
+      );
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(const Key('auth-phone-field')),
+                matching: find.byType(TextField),
+              ),
+            )
+            .textDirection,
+        TextDirection.ltr,
+      );
       await tester.tap(find.byKey(const Key('auth-country-code-field')));
       await tester.pumpAndSettle();
       expect(
@@ -1714,6 +1731,48 @@ void main() {
       expect(isValidResidenceCode('4827316A'), isFalse);
       expect(isValidResidenceCode('1234'), isFalse);
     });
+
+    test(
+      'sorts join apartments by floor order and numeric apartment number',
+      () {
+        const apartment9 = ResidenceJoinApartment(
+          id: 'apartment-9',
+          number: '9',
+          buildingNameAr: 'العمارة الرئيسية',
+          buildingNameEn: 'Main building',
+          floorNameAr: 'الطابق الأول',
+          floorNameEn: 'First floor',
+          floorOrder: 1,
+        );
+        const apartment10 = ResidenceJoinApartment(
+          id: 'apartment-10',
+          number: '10',
+          buildingNameAr: 'العمارة الرئيسية',
+          buildingNameEn: 'Main building',
+          floorNameAr: 'الطابق الأول',
+          floorNameEn: 'First floor',
+          floorOrder: 1,
+        );
+        const groundApartment = ResidenceJoinApartment(
+          id: 'apartment-2',
+          number: '2',
+          buildingNameAr: 'العمارة الرئيسية',
+          buildingNameEn: 'Main building',
+          floorNameAr: 'الطابق الأرضي',
+          floorNameEn: 'Ground floor',
+          floorOrder: 0,
+        );
+
+        final apartments = [apartment10, apartment9, groundApartment]
+          ..sort(compareResidenceJoinApartments);
+
+        expect(apartments.map((apartment) => apartment.id), [
+          'apartment-2',
+          'apartment-9',
+          'apartment-10',
+        ]);
+      },
+    );
 
     testWidgets('resident finds a residence and joins immediately', (
       tester,

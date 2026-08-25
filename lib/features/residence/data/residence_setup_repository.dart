@@ -49,6 +49,7 @@ class ResidenceJoinApartment {
     required this.buildingNameEn,
     required this.floorNameAr,
     required this.floorNameEn,
+    this.floorOrder,
   });
 
   final String id;
@@ -57,6 +58,32 @@ class ResidenceJoinApartment {
   final String buildingNameEn;
   final String floorNameAr;
   final String floorNameEn;
+  final int? floorOrder;
+}
+
+int compareResidenceJoinApartments(
+  ResidenceJoinApartment first,
+  ResidenceJoinApartment second,
+) {
+  final building = first.buildingNameAr.compareTo(second.buildingNameAr);
+  if (building != 0) return building;
+
+  const missingOrder = 0x7fffffff;
+  final floorOrder = (first.floorOrder ?? missingOrder).compareTo(
+    second.floorOrder ?? missingOrder,
+  );
+  if (floorOrder != 0) return floorOrder;
+
+  final floorName = first.floorNameAr.compareTo(second.floorNameAr);
+  if (floorName != 0) return floorName;
+
+  final firstNumber = int.tryParse(first.number.trim());
+  final secondNumber = int.tryParse(second.number.trim());
+  if (firstNumber != null && secondNumber != null) {
+    final apartmentNumber = firstNumber.compareTo(secondNumber);
+    if (apartmentNumber != 0) return apartmentNumber;
+  }
+  return first.number.compareTo(second.number);
 }
 
 class CreatedResidence {
@@ -385,18 +412,13 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
                   floorData['nameEn'] as String? ??
                   floorData['name'] as String? ??
                   '',
+              floorOrder: floorData['order'] as int?,
             ),
           );
         }
       }
     }
-    apartments.sort((first, second) {
-      final building = first.buildingNameAr.compareTo(second.buildingNameAr);
-      if (building != 0) return building;
-      final floor = first.floorNameAr.compareTo(second.floorNameAr);
-      if (floor != 0) return floor;
-      return first.number.compareTo(second.number);
-    });
+    apartments.sort(compareResidenceJoinApartments);
     return apartments;
   }
 

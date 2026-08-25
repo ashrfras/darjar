@@ -125,18 +125,21 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
                                 ),
                                 const SizedBox(width: AppSpacing.medium),
                                 Expanded(
-                                  child: DarJarTextField(
-                                    key: const Key('auth-phone-field'),
-                                    controller: _phoneController,
-                                    label: localizations.phoneNumber,
-                                    hint: localizations.authPhoneHint,
-                                    keyboardType: TextInputType.number,
-                                    textDirection: TextDirection.ltr,
-                                    textInputAction: TextInputAction.done,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                      LengthLimitingTextInputFormatter(10),
-                                    ],
+                                  child: Directionality(
+                                    textDirection: Directionality.of(context),
+                                    child: DarJarTextField(
+                                      key: const Key('auth-phone-field'),
+                                      controller: _phoneController,
+                                      label: localizations.phoneNumber,
+                                      hint: localizations.authPhoneHint,
+                                      keyboardType: TextInputType.number,
+                                      textDirection: TextDirection.ltr,
+                                      textInputAction: TextInputAction.done,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                        LengthLimitingTextInputFormatter(10),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],
