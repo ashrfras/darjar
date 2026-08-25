@@ -1092,6 +1092,23 @@ void main() {
       expect(isLoopbackUri(Uri.parse('https://darjar.app')), isFalse);
     });
 
+    test('normalizes trusted absolute invitation launch routes', () {
+      expect(
+        normalizePlatformInitialLocation(
+          'https://darjar.app/join/48273165?source=message',
+        ),
+        '/join/48273165?source=message',
+      );
+      expect(
+        normalizePlatformInitialLocation('https://example.com/join/48273165'),
+        isNull,
+      );
+      expect(
+        normalizePlatformInitialLocation('http://darjar.app/join/48273165'),
+        isNull,
+      );
+    });
+
     test('normalizes equivalent international phone formats', () {
       expect(normalizePhoneNumber('+212 6 12-34-56-78'), '+212612345678');
       expect(normalizePhoneNumber('00212 6 12 34 56 78'), '+212612345678');
@@ -1908,7 +1925,9 @@ void main() {
       await _pumpApp(
         tester,
         size: const Size(390, 844),
-        initialLocation: AppRoutes.residenceInvitation('48273165'),
+        initialLocation: null,
+        platformInitialLocation: 'https://darjar.app/join/48273165',
+        useBootstrap: true,
         authRepository: authRepository,
         residenceSetupRepository: setupRepository,
       );

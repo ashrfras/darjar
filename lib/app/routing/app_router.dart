@@ -75,12 +75,11 @@ abstract final class AppRoutes {
 
 final appInitialLocationProvider = Provider<String>((ref) {
   final platformInitialLocation = ref.watch(platformInitialLocationProvider);
-  final platformUri = Uri.tryParse(platformInitialLocation);
-  if (platformUri != null &&
-      !platformUri.hasAuthority &&
-      platformUri.path.startsWith('/') &&
-      platformUri.path != '/') {
-    return platformUri.toString();
+  final normalizedPlatformLocation = normalizePlatformInitialLocation(
+    platformInitialLocation,
+  );
+  if (normalizedPlatformLocation != null) {
+    return normalizedPlatformLocation;
   }
 
   final user = ref.watch(authRepositoryProvider).currentUser;
@@ -88,6 +87,28 @@ final appInitialLocationProvider = Provider<String>((ref) {
 });
 
 final platformInitialLocationProvider = Provider<String>((ref) => '/');
+
+String? normalizePlatformInitialLocation(String location) {
+  final uri = Uri.tryParse(location);
+  if (uri == null || !uri.path.startsWith('/') || uri.path == '/') {
+    return null;
+  }
+
+  if (!uri.hasAuthority) {
+    return uri.toString();
+  }
+
+  if (uri.scheme.toLowerCase() != 'https' ||
+      uri.host.toLowerCase() != 'darjar.app') {
+    return null;
+  }
+
+  return Uri(
+    path: uri.path,
+    query: uri.hasQuery ? uri.query : null,
+    fragment: uri.hasFragment ? uri.fragment : null,
+  ).toString();
+}
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);

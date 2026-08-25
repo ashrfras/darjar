@@ -4,6 +4,7 @@
   <base href="/">
 
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="انضم إلى إقامتك على دارجار وتابع شؤونها بسهولة.">
 
@@ -36,6 +37,20 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
+    @font-face {
+      font-family: 'IBM Plex Sans Arabic';
+      font-style: normal;
+      font-weight: 400;
+      src: url('/assets/assets/fonts/IBMPlexSansArabic-Regular.ttf');
+    }
+
+    @font-face {
+      font-family: 'IBM Plex Sans Arabic';
+      font-style: normal;
+      font-weight: 700;
+      src: url('/assets/assets/fonts/IBMPlexSansArabic-Bold.ttf');
+    }
+
     html, body {
       background: #f8f6f2;
       height: 100%;
@@ -78,6 +93,58 @@
       width: 45%;
     }
 
+    #darjar-open-app {
+      align-items: center;
+      display: none;
+      flex-direction: column;
+      inset: 0;
+      justify-content: center;
+      padding: 24px;
+      position: fixed;
+      text-align: center;
+    }
+
+    #darjar-open-app img {
+      height: 112px;
+      margin-bottom: 32px;
+      object-fit: contain;
+      width: 112px;
+    }
+
+    #darjar-open-app h1 {
+      color: #163330;
+      font-family: 'IBM Plex Sans Arabic', Arial, sans-serif;
+      font-size: 34px;
+      line-height: 1.15;
+      margin: 0 0 16px;
+    }
+
+    #darjar-open-app p {
+      color: #526461;
+      font-family: 'IBM Plex Sans Arabic', Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      margin: 0 0 24px;
+      max-width: 420px;
+    }
+
+    #darjar-open-app a {
+      background: #0f766e;
+      align-items: center;
+      border-radius: 14px;
+      box-sizing: border-box;
+      color: #fff;
+      display: flex;
+      font-family: 'IBM Plex Sans Arabic', Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 16px;
+      text-decoration: none;
+      width: min(520px, 100%);
+    }
+
     @keyframes darjar-progress {
       to { transform: translateX(225%); }
     }
@@ -92,13 +159,32 @@
     <div class="darjar-progress" aria-hidden="true"></div>
   </div>
 
+  <main id="darjar-open-app">
+    <img
+      src="assets/assets/images/branding/darjar-logo.png"
+      alt="شعار دارجار"
+    >
+    <h1>تمت دعوتك إلى دارجار</h1>
+    <p>اضغط الزر للانتقال إلى التطبيق.</p>
+    <a id="darjar-open-app-link" href="#">فتح تطبيق دارجار</a>
+  </main>
+
   <script>
+    const currentUrl = new URL(window.location.href);
     const isAndroid = /Android/i.test(navigator.userAgent);
 
     if (isAndroid) {
-      window.location.replace(
-        'https://play.google.com/store/apps/details?id=ma.raqmain.darjar',
-      );
+      const appUrl = new URL(currentUrl);
+      const playStoreUrl =
+        'https://play.google.com/store/apps/details?id=ma.raqmain.darjar';
+      const intentUrl =
+        `intent://${appUrl.host}${appUrl.pathname}${appUrl.search}` +
+        '#Intent;scheme=https;package=ma.raqmain.darjar;' +
+        `S.browser_fallback_url=${encodeURIComponent(playStoreUrl)};end`;
+
+      document.getElementById('darjar-loading').style.display = 'none';
+      document.getElementById('darjar-open-app').style.display = 'flex';
+      document.getElementById('darjar-open-app-link').href = intentUrl;
     } else {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

@@ -69,17 +69,33 @@ void main() {
     );
   });
 
-  test('Android invitation fallback opens the app listing on Google Play', () {
+  test('Android invitation opens the app or falls back to Google Play', () {
     final invitationHtml = File('web/join/index.html').readAsStringSync();
 
-    expect(invitationHtml, contains('/Android/i.test(navigator.userAgent)'));
+    expect(
+      invitationHtml,
+      contains(
+        '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+      ),
+    );
+    expect(invitationHtml, contains('height: 112px;'));
+    expect(invitationHtml, isNot(contains('window.location.replace(')));
+    expect(invitationHtml, contains('id="darjar-open-app-link"'));
+    expect(invitationHtml, contains('<h1>تمت دعوتك إلى دارجار</h1>'));
+    expect(invitationHtml, contains('<p>اضغط الزر للانتقال إلى التطبيق.</p>'));
+    expect(invitationHtml, contains('intent://'));
+    expect(invitationHtml, contains('package=ma.raqmain.darjar'));
+    expect(invitationHtml, contains('S.browser_fallback_url='));
     expect(
       invitationHtml,
       contains(
         'https://play.google.com/store/apps/details?id=ma.raqmain.darjar',
       ),
     );
-    expect(invitationHtml, contains('window.location.replace('));
+    expect(
+      invitationHtml,
+      contains("flutterBootstrap.src = 'flutter_bootstrap.js'"),
+    );
   });
 
   test('Android App Links include every Google Play signing certificate', () {
