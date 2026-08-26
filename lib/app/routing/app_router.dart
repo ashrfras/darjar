@@ -110,9 +110,24 @@ String? normalizePlatformInitialLocation(String location) {
   ).toString();
 }
 
+String? normalizeInvitationLocation(String? location) {
+  if (location == null) return null;
+  final normalizedLocation = normalizePlatformInitialLocation(location);
+  if (normalizedLocation == null) return null;
+  final uri = Uri.parse(normalizedLocation);
+  final segments = uri.pathSegments;
+  if (segments.length != 2 || segments.first != 'join') {
+    return null;
+  }
+  return uri.toString();
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   final authRefresh = _AuthRefreshListenable(authRepository.currentUser);
+  final pendingInvitation = _PendingInvitationLocation(
+    normalizeInvitationLocation(ref.watch(platformInitialLocationProvider)),
+  );
   ref.listen(authStateProvider, (previous, next) {
     next.whenData(authRefresh.update);
   });
@@ -132,6 +147,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final user = authRefresh.user;
 
       if (user == null && !isPublicRoute) {
+        final invitationLocation = normalizeInvitationLocation(
+          state.uri.toString(),
+        );
+        if (invitationLocation != null) {
+          pendingInvitation.remember(invitationLocation);
+        }
         return Uri(
           path: AppRoutes.auth,
           queryParameters: {'from': state.uri.toString()},
@@ -139,10 +160,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (user != null && isAuthRoute) {
-        final destination = state.uri.queryParameters['from'];
-        final uri = destination == null ? null : Uri.tryParse(destination);
-        if (uri != null && uri.path.startsWith('/join/') && !uri.hasAuthority) {
-          return uri.toString();
+        final destination =
+            normalizeInvitationLocation(state.uri.queryParameters['from']) ??
+            pendingInvitation.value;
+        if (destination != null) {
+          pendingInvitation.clear();
+          return destination;
         }
         return AppRoutes.accountResolution;
       }
@@ -322,4 +345,16 @@ class _AuthRefreshListenable extends ChangeNotifier {
     user = nextUser;
     notifyListeners();
   }
+}
+
+class _PendingInvitationLocation {
+  _PendingInvitationLocation(this.value);
+
+  String? value;
+
+  void remember(String location) {
+    value = normalizeInvitationLocation(location) ?? value;
+  }
+
+  void clear() => value = null;
 }

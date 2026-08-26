@@ -1993,6 +1993,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('phone-auth-page')), findsOneWidget);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byKey(const Key('phone-auth-page'))),
+      );
+      // Simulate Android/go_router dropping the nested `from` query while the
+      // resident completes phone verification.
+      container.read(appRouterProvider).go(AppRoutes.auth);
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('auth-phone-field')),
         '600000001',
