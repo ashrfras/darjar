@@ -13,8 +13,10 @@ import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
+import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/presentation/dues_reminder_share_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -137,6 +139,11 @@ class _ManagementContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final groups = _groupDuesByApartment(overview.dues);
+    final residenceName = ref.watch(
+      residenceContextProvider.select(
+        (state) => state.value?.activeResidence?.name ?? '',
+      ),
+    );
     if (groups.isEmpty) {
       return _ManagementEmptyState(
         key: const Key('dues-management-no-apartments'),
@@ -168,7 +175,7 @@ class _ManagementContent extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.large),
         for (final group in groups) ...[
-          _ApartmentDuesCard(group: group),
+          _ApartmentDuesCard(group: group, residenceName: residenceName),
           const SizedBox(height: AppSpacing.small),
         ],
         const SizedBox(height: AppSpacing.large),
@@ -203,9 +210,10 @@ class _ManagementContent extends ConsumerWidget {
 }
 
 class _ApartmentDuesCard extends StatelessWidget {
-  const _ApartmentDuesCard({required this.group});
+  const _ApartmentDuesCard({required this.group, required this.residenceName});
 
   final _ApartmentDuesGroup group;
+  final String residenceName;
 
   @override
   Widget build(BuildContext context) {
@@ -216,7 +224,11 @@ class _ApartmentDuesCard extends StatelessWidget {
       child: InkWell(
         key: ValueKey('open-periods-${group.apartmentId}'),
         borderRadius: BorderRadius.circular(AppRadius.large),
-        onTap: () => _showPeriodDetailsSheet(context, group),
+        onTap: () => _showPeriodDetailsSheet(
+          context,
+          group,
+          residenceName: residenceName,
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.large,
@@ -283,37 +295,46 @@ class _ApartmentDuesCard extends StatelessWidget {
 
 Future<void> _showDuesReminderDialog(
   BuildContext context,
-  _ApartmentDuesGroup group,
-) {
+  _ApartmentDuesGroup group, {
+  required String residenceName,
+}) {
   final localizations = AppLocalizations.of(context);
   final periodLabels = group.outstandingDues
       .map((due) => _periodLabel(context, due.periodKey))
       .join(localizations.duesShareReminderPeriodsSeparator);
+  final reminderResidenceName = localizations.localeName.startsWith('ar')
+      ? 'إقامة ${normalizeResidenceName(residenceName)}'
+      : residenceName;
   final initialMessage = localizations.duesShareReminderMessage(
+    reminderResidenceName,
     group.apartmentNumber,
     periodLabels,
     _amount(context, group.remainingAmount),
     localizations.currency,
+    DarJarDateFormat.yMMMd(DateTime.now(), localizations.localeName),
   );
   return showDuesReminderShareDialog(context, initialMessage: initialMessage);
 }
 
 Future<void> _showPeriodDetailsSheet(
   BuildContext context,
-  _ApartmentDuesGroup group,
-) {
+  _ApartmentDuesGroup group, {
+  required String residenceName,
+}) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => _PeriodDetailsSheet(group: group),
+    builder: (context) =>
+        _PeriodDetailsSheet(group: group, residenceName: residenceName),
   );
 }
 
 class _PeriodDetailsSheet extends StatelessWidget {
-  const _PeriodDetailsSheet({required this.group});
+  const _PeriodDetailsSheet({required this.group, required this.residenceName});
 
   final _ApartmentDuesGroup group;
+  final String residenceName;
 
   @override
   Widget build(BuildContext context) {
@@ -405,7 +426,11 @@ class _PeriodDetailsSheet extends StatelessWidget {
                       label: localizations.duesShareReminderAction,
                       icon: Icons.ios_share_rounded,
                       expanded: true,
-                      onPressed: () => _showDuesReminderDialog(context, group),
+                      onPressed: () => _showDuesReminderDialog(
+                        context,
+                        group,
+                        residenceName: residenceName,
+                      ),
                     ),
                   ),
               ],

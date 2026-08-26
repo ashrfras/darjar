@@ -4266,8 +4266,13 @@ void main() {
     final reminderField = tester.widget<TextField>(
       find.byKey(const Key('dues-reminder-message-field')),
     );
-    expect(reminderField.controller?.text, contains('الشقة رقم 01'));
+    expect(reminderField.controller?.text, contains('إشعار بتأخر أداء'));
+    expect(reminderField.controller?.text, contains('*إقامة الاختبار*'));
+    expect(reminderField.controller?.text, isNot(contains('إقامة إقامة')));
+    expect(reminderField.controller?.text, contains('*الشقة:* 01'));
     expect(reminderField.controller?.text, contains('450 د'));
+    expect(reminderField.controller?.text, contains('تاريخ الإشعار'));
+    expect(reminderField.controller?.text, contains('عبر تطبيق Darjar'));
     for (final periodKey in apartmentOnePeriods) {
       final parts = periodKey.split('-');
       expect(

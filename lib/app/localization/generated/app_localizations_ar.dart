@@ -1098,7 +1098,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get duesShareReminderDescription =>
-      'راجع نص الإشعار وعدّله قبل مشاركته.';
+      'راجع الإشعار الإداري وعدّله قبل مشاركته عبر واتساب.';
 
   @override
   String get duesShareReminderMessageLabel => 'نص الإشعار';
@@ -1108,12 +1108,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String duesShareReminderMessage(
+    String residence,
     String apartment,
     String periods,
     String amount,
     String currency,
+    String noticeDate,
   ) {
-    return 'مرحباً،\n\nنذكّركم بأن اشتراكات الشقة رقم $apartment عن الأشهر التالية لم تؤدَّ بعد: $periods.\n\nالمبلغ المتبقي: $amount $currency.\n\nيرجى تسوية المبلغ المستحق، وشكراً لتعاونكم.';
+    return '🏢 *$residence*\n*إشعار بتأخر أداء واجب الإقامة*\n────────────\n\n*الشقة:* $apartment\n*الفترة المعنية:* $periods\n*المبلغ المتبقي:* $amount $currency\n*تاريخ الإشعار:* $noticeDate\n\nنحيطكم علمًا بأن واجب الإقامة الموضح أعلاه لا يزال مسجلًا لدينا كغير مؤدى. يرجى التواصل مع إدارة الإقامة لتسوية الوضعية، أو إشعارها إذا كان الأداء قد تم بالفعل.\n\nمع خالص التحية،\n*إدارة $residence*\n\n_رسالة إدارية تم إعدادها عبر تطبيق Darjar._';
   }
 
   @override

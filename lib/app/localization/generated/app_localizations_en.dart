@@ -1124,7 +1124,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get duesShareReminderDescription =>
-      'Review and edit the notice before sharing it.';
+      'Review and edit the administrative notice before sharing it on WhatsApp.';
 
   @override
   String get duesShareReminderMessageLabel => 'Notice message';
@@ -1134,12 +1134,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String duesShareReminderMessage(
+    String residence,
     String apartment,
     String periods,
     String amount,
     String currency,
+    String noticeDate,
   ) {
-    return 'Hello,\n\nThis is a reminder that the subscriptions for apartment $apartment remain unpaid for the following months: $periods.\n\nRemaining amount: $amount $currency.\n\nPlease settle the outstanding amount. Thank you for your cooperation.';
+    return '🏢 *$residence*\n*Overdue residence dues notice*\n────────────\n\n*Apartment:* $apartment\n*Relevant period:* $periods\n*Remaining amount:* $amount $currency\n*Notice date:* $noticeDate\n\nPlease note that the residence dues shown above are still recorded as unpaid. Contact the residence management to settle the balance, or let them know if payment has already been made.\n\nKind regards,\n*$residence Management*\n\n_Administrative notice prepared using the Darjar app._';
   }
 
   @override
