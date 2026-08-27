@@ -47,6 +47,7 @@ import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:darjar/features/shell/presentation/darjar_shell.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -2314,6 +2315,39 @@ void main() {
       closeTo(195, 1),
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Android Web start action hands off to the installed app', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    var appLaunchRequested = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        locale: const Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: const [Locale('ar')],
+        home: OnboardingPage(
+          showWebLanding: true,
+          openAndroidApp: () async => appLaunchRequested = true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const Key('web-landing-header')),
+        matching: find.text('ابدأ الآن'),
+      ),
+    );
+    await tester.pump();
+
+    debugDefaultTargetPlatformOverride = null;
+    expect(appLaunchRequested, isTrue);
   });
 
   testWidgets('compact header keeps identity right and actions left', (

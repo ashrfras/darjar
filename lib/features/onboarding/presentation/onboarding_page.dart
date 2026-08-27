@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
@@ -6,17 +8,26 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/responsive/responsive_builder.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
+import 'package:darjar/features/onboarding/presentation/android_app_launcher.dart';
 import 'package:darjar/features/onboarding/presentation/web_landing_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class OnboardingPage extends StatelessWidget {
-  const OnboardingPage({this.showWebLanding, super.key});
+  const OnboardingPage({
+    this.showWebLanding,
+    this.openAndroidApp = openDarjarAndroidApp,
+    super.key,
+  });
 
   /// A test seam for verifying both platform presentations in widget tests.
   /// Production callers leave this null and use the compiled platform.
   final bool? showWebLanding;
+
+  /// A replaceable launcher keeps the Android web handoff testable without
+  /// opening an external application from widget tests.
+  final Future<void> Function() openAndroidApp;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +35,14 @@ class OnboardingPage extends StatelessWidget {
     final isWebLanding = showWebLanding ?? kIsWeb;
 
     if (isWebLanding) {
+      void onStart() {
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          unawaited(openAndroidApp());
+          return;
+        }
+        context.go(AppRoutes.accountResolution);
+      }
+
       return WebLandingPage(
         heroBuilder: (onLearnMore) => _OnboardingHero(
           localizations: localizations,
@@ -32,7 +51,7 @@ class OnboardingPage extends StatelessWidget {
           actionIcon: Icons.keyboard_arrow_down_rounded,
           onAction: onLearnMore,
         ),
-        onStart: () => context.go(AppRoutes.accountResolution),
+        onStart: onStart,
       );
     }
 

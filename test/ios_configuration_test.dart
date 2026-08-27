@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:darjar/features/onboarding/presentation/android_app_launcher.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -95,6 +96,24 @@ void main() {
     expect(
       invitationHtml,
       contains("flutterBootstrap.src = 'flutter_bootstrap.js'"),
+    );
+  });
+
+  test('Android home CTA opens DarJar or falls back to Google Play', () {
+    final androidManifest = File(
+      'android/app/src/main/AndroidManifest.xml',
+    ).readAsStringSync();
+
+    expect(androidManifest, contains('android:scheme="darjar"'));
+    expect(androidManifest, contains('android:host="open"'));
+    expect(darjarAndroidIntentUri.scheme, 'intent');
+    expect(
+      darjarAndroidIntentUri.toString(),
+      contains('package=ma.raqmain.darjar'),
+    );
+    expect(
+      darjarAndroidIntentUri.toString(),
+      contains(Uri.encodeComponent(darjarGooglePlayUrl)),
     );
   });
 
