@@ -249,6 +249,7 @@ void main() {
 
       expect(find.byKey(const Key('payment-receipt-page')), findsOneWidget);
       expect(find.byKey(const Key('payment-receipt-card')), findsOneWidget);
+      expect(find.text('إقامة الاختبار'), findsOneWidget);
       expect(find.text('300 د'), findsOneWidget);
       expect(find.text('غشت 2026'), findsOneWidget);
       expect(find.byKey(const Key('phone-auth-page')), findsNothing);
@@ -5493,7 +5494,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('رقم الشقة'), findsOneWidget);
     expect(find.text('رقم أو اسم الشقة'), findsNothing);
-    expect(find.byKey(const Key('apartment-advanced-options')), findsOneWidget);
+    expect(find.text('المرحلة 1 من 2'), findsOneWidget);
     expect(
       find.byKey(const Key('apartment-dues-tracking-field')),
       findsNothing,
@@ -5508,14 +5509,29 @@ void main() {
     );
     tester.testTextInput.hide();
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('apartment-advanced-options')));
+    final continueAddApartment = find.byKey(
+      const Key('continue-add-apartment-button'),
+    );
+    tester.widget<FilledButton>(continueAddApartment).onPressed!();
     await tester.pumpAndSettle();
+    expect(find.text('المرحلة 2 من 2'), findsOneWidget);
+    expect(find.byKey(const Key('new-apartment-number-field')), findsNothing);
     expect(
       find.byKey(const Key('apartment-dues-tracking-field')),
       findsOneWidget,
     );
     expect(
       find.byKey(const Key('apartment-last-paid-month-field')),
+      findsOneWidget,
+    );
+    expect(find.text('اختر آخر شهر مؤدى'), findsOneWidget);
+    final confirmAddApartment = find.byKey(
+      const Key('confirm-add-apartment-button'),
+    );
+    tester.widget<FilledButton>(confirmAddApartment).onPressed!();
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('apartment-last-paid-month-error')),
       findsOneWidget,
     );
     await tester.tap(find.byKey(const Key('apartment-last-paid-month-field')));
@@ -5531,6 +5547,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('يبدأ التتبّع لاحقًا'));
     await tester.pumpAndSettle();
+    tester
+        .widget<OutlinedButton>(
+          find.byKey(const Key('back-add-apartment-button')),
+        )
+        .onPressed!();
+    await tester.pumpAndSettle();
     expect(
       tester
           .widget<TextField>(
@@ -5540,6 +5562,8 @@ void main() {
           ?.text,
       '03',
     );
+    tester.widget<FilledButton>(continueAddApartment).onPressed!();
+    await tester.pumpAndSettle();
     await tester.ensureVisible(
       find.byKey(const Key('confirm-add-apartment-button')),
     );
@@ -7181,7 +7205,7 @@ class _FakePaymentReceiptRepository implements PaymentReceiptRepository {
     return PaymentReceipt(
       id: receiptId,
       residenceId: 'test-residence',
-      residenceName: 'إقامة الاختبار',
+      residenceName: 'الاختبار',
       apartmentNumber: '01',
       amount: 300,
       periodKeys: const ['2026-08'],

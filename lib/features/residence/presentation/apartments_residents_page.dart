@@ -994,11 +994,13 @@ class _AddApartmentSheet extends StatefulWidget {
 class _AddApartmentSheetState extends State<_AddApartmentSheet> {
   final _numberController = TextEditingController();
   late String _floorId = widget.building.floors.first.id;
+  int _step = 0;
   bool _showNumberError = false;
   ResidenceDuesTrackingStatus _trackingStatus =
       ResidenceDuesTrackingStatus.active;
-  bool _hasPreviousPayment = true;
-  DateTime _paidThrough = DateTime.now();
+  bool _hasNoPreviousPayment = false;
+  bool _showPaidThroughError = false;
+  DateTime? _paidThrough;
 
   @override
   void dispose() {
@@ -1037,9 +1039,22 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    widget.copy.addApartment,
-                    style: Theme.of(context).textTheme.titleLarge,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.copy.addApartment,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: AppSpacing.xSmall),
+                      Text(
+                        widget.copy.apartmentStep(_step + 1),
+                        key: const Key('add-apartment-step-label'),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.inkMuted,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 IconButton(
@@ -1050,127 +1065,150 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
               ],
             ),
             const SizedBox(height: AppSpacing.xLarge),
-            Text(
-              widget.copy.chooseFloor,
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
-            const SizedBox(height: AppSpacing.small),
-            Wrap(
-              spacing: AppSpacing.small,
-              runSpacing: AppSpacing.small,
-              children: [
-                for (final floor in widget.building.floors)
-                  ChoiceChip(
-                    key: ValueKey('new-apartment-floor-${floor.id}'),
-                    label: Text(widget.copy.floorName(floor)),
-                    selected: _floorId == floor.id,
-                    onSelected: (_) => setState(() => _floorId = floor.id),
-                  ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.large),
-            TextField(
-              key: const Key('new-apartment-number-field'),
-              controller: _numberController,
-              autofocus: true,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                labelText: widget.copy.apartmentNumberLabel,
-                hintText: widget.copy.apartmentNumberHint,
-                errorText: _showNumberError
-                    ? widget.copy.apartmentNumberRequired
-                    : null,
+            if (_step == 0) ...[
+              Text(
+                widget.copy.chooseFloor,
+                style: Theme.of(context).textTheme.labelLarge,
               ),
-            ),
-            const SizedBox(height: AppSpacing.medium),
-            Theme(
-              data: Theme.of(
-                context,
-              ).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                key: const Key('apartment-advanced-options'),
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: const EdgeInsets.only(
-                  bottom: AppSpacing.small,
-                ),
-                title: Text(
-                  widget.copy.advancedOptions,
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
+              const SizedBox(height: AppSpacing.small),
+              Wrap(
+                spacing: AppSpacing.small,
+                runSpacing: AppSpacing.small,
                 children: [
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Text(
-                      widget.copy.duesTracking,
-                      style: Theme.of(context).textTheme.labelLarge,
+                  for (final floor in widget.building.floors)
+                    ChoiceChip(
+                      key: ValueKey('new-apartment-floor-${floor.id}'),
+                      label: Text(widget.copy.floorName(floor)),
+                      selected: _floorId == floor.id,
+                      onSelected: (_) => setState(() => _floorId = floor.id),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.small),
-                  SegmentedButton<ResidenceDuesTrackingStatus>(
-                    key: const Key('apartment-dues-tracking-field'),
-                    showSelectedIcon: false,
-                    segments: [
-                      ButtonSegment(
-                        value: ResidenceDuesTrackingStatus.active,
-                        icon: const Icon(Icons.playlist_add_check_rounded),
-                        label: Text(widget.copy.trackingActive),
-                      ),
-                      ButtonSegment(
-                        value: ResidenceDuesTrackingStatus.notStarted,
-                        icon: const Icon(Icons.pause_circle_outline_rounded),
-                        label: Text(widget.copy.trackingStartsLater),
-                      ),
-                    ],
-                    selected: {_trackingStatus},
-                    onSelectionChanged: (selection) {
-                      setState(() => _trackingStatus = selection.first);
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.small),
-                  Text(
-                    _trackingStatus == ResidenceDuesTrackingStatus.active
-                        ? widget.copy.trackingActiveHint
-                        : widget.copy.trackingLaterHint,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
-                  ),
-                  if (_trackingStatus ==
-                      ResidenceDuesTrackingStatus.active) ...[
-                    const SizedBox(height: AppSpacing.medium),
-                    CheckboxListTile(
-                      key: const Key('apartment-no-previous-payment-field'),
-                      contentPadding: EdgeInsets.zero,
-                      value: !_hasPreviousPayment,
-                      title: Text(widget.copy.noPreviousPayment),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      onChanged: (value) {
-                        setState(() => _hasPreviousPayment = value != true);
-                      },
-                    ),
-                    if (_hasPreviousPayment)
-                      OutlinedButton.icon(
-                        key: const Key('apartment-last-paid-month-field'),
-                        onPressed: _selectPaidThroughMonth,
-                        icon: const Icon(Icons.calendar_month_outlined),
-                        label: Text(
-                          '${widget.copy.lastPaidMonth}: '
-                          '${_formattedPaidThrough()}',
-                        ),
-                      ),
-                  ],
                 ],
               ),
-            ),
-            const SizedBox(height: AppSpacing.xLarge),
-            FilledButton.icon(
-              key: const Key('confirm-add-apartment-button'),
-              onPressed: _submit,
-              icon: const Icon(Icons.add_rounded),
-              label: Text(widget.copy.add),
-            ),
+              const SizedBox(height: AppSpacing.large),
+              TextField(
+                key: const Key('new-apartment-number-field'),
+                controller: _numberController,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                textInputAction: TextInputAction.next,
+                onSubmitted: (_) => _continueToTracking(),
+                decoration: InputDecoration(
+                  labelText: widget.copy.apartmentNumberLabel,
+                  hintText: widget.copy.apartmentNumberHint,
+                  errorText: _showNumberError
+                      ? widget.copy.apartmentNumberRequired
+                      : null,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xLarge),
+              FilledButton.icon(
+                key: const Key('continue-add-apartment-button'),
+                onPressed: _continueToTracking,
+                icon: const Icon(Icons.arrow_forward_rounded),
+                label: Text(widget.copy.next),
+              ),
+            ] else ...[
+              Text(
+                widget.copy.duesTracking,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: AppSpacing.small),
+              SegmentedButton<ResidenceDuesTrackingStatus>(
+                key: const Key('apartment-dues-tracking-field'),
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(
+                    value: ResidenceDuesTrackingStatus.active,
+                    icon: const Icon(Icons.playlist_add_check_rounded),
+                    label: Text(widget.copy.trackingActive),
+                  ),
+                  ButtonSegment(
+                    value: ResidenceDuesTrackingStatus.notStarted,
+                    icon: const Icon(Icons.pause_circle_outline_rounded),
+                    label: Text(widget.copy.trackingStartsLater),
+                  ),
+                ],
+                selected: {_trackingStatus},
+                onSelectionChanged: (selection) {
+                  setState(() {
+                    _trackingStatus = selection.first;
+                    _showPaidThroughError = false;
+                  });
+                },
+              ),
+              const SizedBox(height: AppSpacing.small),
+              Text(
+                _trackingStatus == ResidenceDuesTrackingStatus.active
+                    ? widget.copy.trackingActiveHint
+                    : widget.copy.trackingLaterHint,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+              ),
+              if (_trackingStatus == ResidenceDuesTrackingStatus.active) ...[
+                const SizedBox(height: AppSpacing.large),
+                Text(
+                  '${widget.copy.lastPaidMonth} *',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: AppSpacing.small),
+                OutlinedButton.icon(
+                  key: const Key('apartment-last-paid-month-field'),
+                  onPressed: _selectPaidThroughMonth,
+                  icon: const Icon(Icons.calendar_month_outlined),
+                  label: Text(
+                    _paidThrough == null
+                        ? widget.copy.chooseLastPaidMonth
+                        : _formattedPaidThrough(),
+                  ),
+                ),
+                CheckboxListTile(
+                  key: const Key('apartment-no-previous-payment-field'),
+                  contentPadding: EdgeInsets.zero,
+                  value: _hasNoPreviousPayment,
+                  title: Text(widget.copy.noPreviousPayment),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  onChanged: (value) {
+                    setState(() {
+                      _hasNoPreviousPayment = value == true;
+                      if (_hasNoPreviousPayment) _paidThrough = null;
+                      _showPaidThroughError = false;
+                    });
+                  },
+                ),
+                if (_showPaidThroughError)
+                  Text(
+                    widget.copy.lastPaidMonthRequired,
+                    key: const Key('apartment-last-paid-month-error'),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+              ],
+              const SizedBox(height: AppSpacing.xLarge),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      key: const Key('back-add-apartment-button'),
+                      onPressed: () => setState(() => _step = 0),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      label: Text(widget.copy.back),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.medium),
+                  Expanded(
+                    child: FilledButton.icon(
+                      key: const Key('confirm-add-apartment-button'),
+                      onPressed: _submit,
+                      icon: const Icon(Icons.add_rounded),
+                      label: Text(widget.copy.add),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -1180,24 +1218,47 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
   Future<void> _selectPaidThroughMonth() async {
     final selected = await _showMonthYearPicker(
       context: context,
-      initialDate: _paidThrough,
+      initialDate: _paidThrough ?? DateTime.now(),
       firstDate: DateTime(DateTime.now().year - 5),
       lastDate: DateTime.now(),
       copy: widget.copy,
     );
     if (selected != null && mounted) {
-      setState(() => _paidThrough = DateTime(selected.year, selected.month));
+      setState(() {
+        _paidThrough = DateTime(selected.year, selected.month);
+        _hasNoPreviousPayment = false;
+        _showPaidThroughError = false;
+      });
     }
   }
 
   String _formattedPaidThrough() =>
-      DarJarDateFormat.yMMMM(_paidThrough, widget.copy.arabic ? 'ar' : 'en');
+      DarJarDateFormat.yMMMM(_paidThrough!, widget.copy.arabic ? 'ar' : 'en');
+
+  void _continueToTracking() {
+    final number = _numberController.text.trim();
+    if (int.tryParse(number) == null) {
+      setState(() => _showNumberError = true);
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _showNumberError = false;
+      _step = 1;
+    });
+  }
 
   void _submit() {
     final number = _numberController.text.trim();
     final numericNumber = int.tryParse(number);
     if (numericNumber == null) {
       setState(() => _showNumberError = true);
+      return;
+    }
+    if (_trackingStatus == ResidenceDuesTrackingStatus.active &&
+        _paidThrough == null &&
+        !_hasNoPreviousPayment) {
+      setState(() => _showPaidThroughError = true);
       return;
     }
     Navigator.pop(
@@ -1208,8 +1269,8 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
         duesTrackingStatus: _trackingStatus,
         openingPaidThroughPeriodKey:
             _trackingStatus == ResidenceDuesTrackingStatus.active &&
-                _hasPreviousPayment
-            ? _periodKey(_paidThrough)
+                _paidThrough != null
+            ? _periodKey(_paidThrough!)
             : null,
       ),
     );
@@ -2901,7 +2962,10 @@ class _Copy {
   String get apartmentNumberHint => arabic ? 'مثال: 24' : 'Example: 24';
   String get apartmentNumberRequired =>
       arabic ? 'أدخل رقم الشقة.' : 'Enter an apartment number.';
-  String get advancedOptions => arabic ? 'خيارات متقدمة' : 'Advanced options';
+  String apartmentStep(int step) =>
+      arabic ? 'المرحلة $step من 2' : 'Step $step of 2';
+  String get next => arabic ? 'التالي' : 'Next';
+  String get back => arabic ? 'السابق' : 'Back';
   String get month => arabic ? 'الشهر' : 'Month';
   String get year => arabic ? 'السنة' : 'Year';
   String get confirm => arabic ? 'تأكيد' : 'Confirm';
@@ -2924,6 +2988,11 @@ class _Copy {
       ? 'لن تُنشأ استحقاقات أو تذكيرات حتى يبدأ التتبّع يدويًا.'
       : 'No dues or reminders are created until tracking is started manually.';
   String get lastPaidMonth => arabic ? 'آخر شهر مؤدى' : 'Last paid month';
+  String get chooseLastPaidMonth =>
+      arabic ? 'اختر آخر شهر مؤدى' : 'Choose the last paid month';
+  String get lastPaidMonthRequired => arabic
+      ? 'اختر آخر شهر مؤدى أو حدّد أنه لم يسبق أداء أي اشتراك.'
+      : 'Choose the last paid month or indicate that no subscription has been paid.';
   String get noPreviousPayment =>
       arabic ? 'لم يسبق أداء أي اشتراك' : 'No subscription has been paid yet';
   String get startTracking => arabic ? 'بدء التتبّع' : 'Start tracking';

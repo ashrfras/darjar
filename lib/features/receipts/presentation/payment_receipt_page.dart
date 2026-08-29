@@ -11,6 +11,7 @@ import 'package:darjar/features/onboarding/presentation/android_app_launcher.dar
 import 'package:darjar/features/receipts/data/payment_receipt_repository.dart';
 import 'package:darjar/features/receipts/domain/payment_receipt.dart';
 import 'package:darjar/features/receipts/presentation/payment_receipt_share_dialog.dart';
+import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -130,7 +131,7 @@ class _ReceiptBody extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            receipt.residenceName,
+                            copy.residence(receipt.residenceName),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
@@ -349,6 +350,9 @@ class _ReceiptCopy {
   String get localeName => arabic ? 'ar' : 'en';
   String get title => arabic ? 'وصل الأداء' : 'Payment receipt';
   String get confirmed => arabic ? 'تم تسجيل الأداء' : 'Payment recorded';
+  String residence(String name) => arabic
+      ? 'إقامة ${normalizeResidenceName(name)}'
+      : normalizeResidenceName(name);
   String apartment(String number) =>
       arabic ? 'الشقة رقم $number' : 'Apartment $number';
   String get currency => arabic ? 'د' : 'MAD';
