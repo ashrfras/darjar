@@ -9,6 +9,10 @@
           {
             "/": "/join/*",
             "comment": "DarJar residence invitation links"
+          },
+          {
+            "/": "/r/*",
+            "comment": "DarJar public payment receipt links"
           }
         ]
       }

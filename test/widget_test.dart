@@ -36,6 +36,8 @@ import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/profile/data/app_package_info.dart';
 import 'package:darjar/features/profile/presentation/delete_account_page.dart';
+import 'package:darjar/features/receipts/data/payment_receipt_repository.dart';
+import 'package:darjar/features/receipts/domain/payment_receipt.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
@@ -231,6 +233,25 @@ void main() {
       expect(find.byKey(const Key('public-legal-brand')), findsOneWidget);
       expect(find.byKey(const Key('public-legal-back-button')), findsOneWidget);
       expect(find.byKey(const Key('landing-footer')), findsOneWidget);
+    });
+
+    testWidgets('payment receipt opens directly without authentication', (
+      tester,
+    ) async {
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: null,
+        platformInitialLocation: 'https://darjar.app/r/7Kx92',
+        authRepository: _FakeAuthRepository(signedIn: false),
+        paymentReceiptRepository: const _FakePaymentReceiptRepository(),
+      );
+
+      expect(find.byKey(const Key('payment-receipt-page')), findsOneWidget);
+      expect(find.byKey(const Key('payment-receipt-card')), findsOneWidget);
+      expect(find.text('300 د'), findsOneWidget);
+      expect(find.text('غشت 2026'), findsOneWidget);
+      expect(find.byKey(const Key('phone-auth-page')), findsNothing);
     });
   });
 
@@ -4133,6 +4154,21 @@ void main() {
     await tester.tap(find.byIcon(Icons.close_rounded).last);
     await tester.pumpAndSettle();
 
+    await tester.tap(
+      find.byKey(const ValueKey('resident-payment-payment-group-attachment')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('payment-receipt-page')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('payment-receipt-card')),
+        matching: find.text('300 د'),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.byType(BackButtonIcon));
+    await tester.pumpAndSettle();
+
     await tester.ensureVisible(find.byKey(const Key('subpage-back-button')));
     await tester.tap(find.byKey(const Key('subpage-back-button')));
     await tester.pumpAndSettle();
@@ -4397,6 +4433,26 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('تم تسجيل الأداء بنجاح.'), findsOneWidget);
+    expect(
+      find.byKey(const Key('payment-receipt-share-dialog')),
+      findsOneWidget,
+    );
+    final sharedReceiptMessage = tester
+        .widget<SelectableText>(
+          find.descendant(
+            of: find.byKey(const Key('payment-receipt-share-message')),
+            matching: find.byType(SelectableText),
+          ),
+        )
+        .data;
+    expect(sharedReceiptMessage, contains('تم تسجيل أداء واجبات الإقامة'));
+    expect(sharedReceiptMessage, contains('بقيمة 750 د'));
+    expect(sharedReceiptMessage, contains('وصل الأداء:'));
+    expect(sharedReceiptMessage, contains('https://darjar.app/r/'));
+    await tester.tap(
+      find.byKey(const Key('close-payment-receipt-share-dialog')),
+    );
+    await tester.pumpAndSettle();
     final apartmentOneDues = duesRepository.overview.dues
         .where((due) => due.apartmentId == 'apartment-01')
         .toList();
@@ -6019,6 +6075,7 @@ Future<void> _pumpApp(
   DirectoryRecommendationsRepository? directoryRecommendationsRepository,
   ProfileRepository? profileRepository,
   NotificationsRepository? notificationsRepository,
+  PaymentReceiptRepository? paymentReceiptRepository,
   ResidenceContext? residenceContext,
   Object? residenceContextError,
 }) async {
@@ -6100,6 +6157,10 @@ Future<void> _pumpApp(
         notificationsRepositoryProvider.overrideWithValue(
           currentNotificationsRepository,
         ),
+        if (paymentReceiptRepository != null)
+          paymentReceiptRepositoryProvider.overrideWithValue(
+            paymentReceiptRepository,
+          ),
         accountOnboardingRepositoryProvider.overrideWithValue(
           onboardingRepository,
         ),
@@ -7112,6 +7173,24 @@ class _FakeResidenceFinanceRepository implements ResidenceFinanceRepository {
   }
 }
 
+class _FakePaymentReceiptRepository implements PaymentReceiptRepository {
+  const _FakePaymentReceiptRepository();
+
+  @override
+  Future<PaymentReceipt> load(String receiptId) async {
+    return PaymentReceipt(
+      id: receiptId,
+      residenceId: 'test-residence',
+      residenceName: 'إقامة الاختبار',
+      apartmentNumber: '01',
+      amount: 300,
+      periodKeys: const ['2026-08'],
+      paidAt: DateTime(2026, 8, 15),
+      note: '',
+    );
+  }
+}
+
 class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
   _FakeResidenceDuesRepository() {
     final periodKey = residenceDuesPeriodKey(DateTime.now());
@@ -7200,8 +7279,9 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
   }
 
   @override
-  Future<void> recordApartmentPayment({
+  Future<PaymentReceipt> recordApartmentPayment({
     required String residenceId,
+    required String residenceName,
     required String apartmentId,
     required String apartmentNumber,
     required int amount,
@@ -7297,6 +7377,18 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
         for (final due in futureDues) updatedById[due.id]!,
       ],
       payments: [...payments.reversed, ...overview.payments],
+    );
+    return PaymentReceipt(
+      id: paymentGroupId,
+      residenceId: residenceId,
+      residenceName: residenceName,
+      apartmentNumber: apartmentNumber,
+      amount: amount,
+      periodKeys: payments
+          .map((payment) => payment.dueId.split('_').first)
+          .toList(growable: false),
+      paidAt: paidAt,
+      note: note,
     );
   }
 

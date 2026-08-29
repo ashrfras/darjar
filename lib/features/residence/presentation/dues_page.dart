@@ -13,6 +13,7 @@ import 'package:darjar/features/residence/data/residence_context_repository.dart
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class DuesPage extends ConsumerWidget {
@@ -109,6 +110,9 @@ class _ResidentDuesContentState extends ConsumerState<_ResidentDuesContent> {
     final visibleDues = orderedDues.take(_visibleDues).toList();
     final paymentGroups = overview.paymentGroups;
     final visiblePaymentGroups = paymentGroups.take(_visiblePayments).toList();
+    final activeResidence = ref.watch(
+      residenceContextProvider.select((state) => state.value?.activeResidence),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -153,6 +157,18 @@ class _ResidentDuesContentState extends ConsumerState<_ResidentDuesContent> {
                 ) ...[
                   _PaymentRow(
                     paymentGroup: visiblePaymentGroups[index],
+                    onOpenReceipt: activeResidence == null
+                        ? null
+                        : () {
+                            final receipt = visiblePaymentGroups[index].receipt(
+                              residenceId: activeResidence.id,
+                              residenceName: activeResidence.name,
+                            );
+                            context.push(
+                              AppRoutes.receipt(receipt.id),
+                              extra: receipt,
+                            );
+                          },
                     onOpenAttachment: visiblePaymentGroups[index].hasAttachment
                         ? () => showResidenceDocumentPreview(
                             context,
@@ -367,90 +383,98 @@ class _AmountLabel extends StatelessWidget {
 class _PaymentRow extends StatelessWidget {
   const _PaymentRow({
     required this.paymentGroup,
+    required this.onOpenReceipt,
     required this.onOpenAttachment,
   });
 
   final ResidenceDuePaymentGroup paymentGroup;
+  final VoidCallback? onOpenReceipt;
   final VoidCallback? onOpenAttachment;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final payment = paymentGroup.payments.first;
-    return Padding(
+    return InkWell(
       key: ValueKey('resident-payment-${paymentGroup.id}'),
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            backgroundColor: AppColors.residenceSoft,
-            foregroundColor: AppColors.residence,
-            child: Icon(Icons.check_rounded),
-          ),
-          const SizedBox(width: AppSpacing.medium),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${_amount(context, paymentGroup.totalAmount)} '
-                  '${localizations.currency}',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  localizations.duesRecordedOn(
-                    DarJarDateFormat.yMMMd(
-                      payment.paidAt,
-                      localizations.localeName,
-                    ),
-                  ),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                if (payment.note.isNotEmpty)
+      onTap: onOpenReceipt,
+      borderRadius: BorderRadius.circular(AppRadius.small),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              backgroundColor: AppColors.residenceSoft,
+              foregroundColor: AppColors.residence,
+              child: Icon(Icons.check_rounded),
+            ),
+            const SizedBox(width: AppSpacing.medium),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    payment.note,
+                    '${_amount(context, paymentGroup.totalAmount)} '
+                    '${localizations.currency}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Text(
+                    localizations.duesRecordedOn(
+                      DarJarDateFormat.yMMMd(
+                        payment.paidAt,
+                        localizations.localeName,
+                      ),
+                    ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                if (onOpenAttachment != null)
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: InkWell(
-                      key: ValueKey(
-                        'resident-payment-attachment-${paymentGroup.id}',
-                      ),
-                      onTap: onOpenAttachment,
-                      borderRadius: BorderRadius.circular(AppRadius.small),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.xSmall,
+                  if (payment.note.isNotEmpty)
+                    Text(
+                      payment.note,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  if (onOpenAttachment != null)
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: InkWell(
+                        key: ValueKey(
+                          'resident-payment-attachment-${paymentGroup.id}',
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.attachment_outlined,
-                              size: 17,
-                              color: AppColors.residence,
-                            ),
-                            const SizedBox(width: AppSpacing.xSmall),
-                            Flexible(
-                              child: Text(
-                                payment.attachmentName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: AppColors.residence),
+                        onTap: onOpenAttachment,
+                        borderRadius: BorderRadius.circular(AppRadius.small),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.xSmall,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.attachment_outlined,
+                                size: 17,
+                                color: AppColors.residence,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: AppSpacing.xSmall),
+                              Flexible(
+                                child: Text(
+                                  payment.attachmentName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: AppColors.residence),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+            if (onOpenReceipt != null)
+              const Icon(Icons.chevron_left_rounded, color: AppColors.inkMuted),
+          ],
+        ),
       ),
     );
   }

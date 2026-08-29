@@ -4,6 +4,7 @@ import 'package:darjar/core/providers/provider_cache.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
+import 'package:darjar/features/receipts/domain/payment_receipt.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
@@ -101,6 +102,32 @@ class ResidenceDuePaymentGroup {
 
   DateTime get paidAt => payments.first.paidAt;
   bool get hasAttachment => payments.first.hasAttachment;
+
+  List<String> get periodKeys {
+    final keys = payments
+        .map((payment) => payment.dueId.split('_').first)
+        .toSet()
+        .toList();
+    keys.sort();
+    return keys;
+  }
+
+  PaymentReceipt receipt({
+    required String residenceId,
+    required String residenceName,
+  }) {
+    final payment = payments.first;
+    return PaymentReceipt(
+      id: id,
+      residenceId: residenceId,
+      residenceName: residenceName,
+      apartmentNumber: payment.apartmentNumber,
+      amount: totalAmount,
+      periodKeys: periodKeys,
+      paidAt: payment.paidAt,
+      note: payment.note,
+    );
+  }
 
   ResidenceDocument get attachmentDocument {
     final payment = payments.first;
@@ -207,8 +234,9 @@ abstract interface class ResidenceDuesRepository {
     required List<ResidenceApartment> apartments,
   });
 
-  Future<void> recordApartmentPayment({
+  Future<PaymentReceipt> recordApartmentPayment({
     required String residenceId,
+    required String residenceName,
     required String apartmentId,
     required String apartmentNumber,
     required int amount,
@@ -317,8 +345,9 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
   }
 
   @override
-  Future<void> recordApartmentPayment({
+  Future<PaymentReceipt> recordApartmentPayment({
     required String residenceId,
+    required String residenceName,
     required String apartmentId,
     required String apartmentNumber,
     required int amount,
@@ -399,6 +428,18 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
       }
       final futureDueIds = {for (final due in futureDues) due.id};
       final paymentGroupId = residence.collection('duePayments').doc().id;
+      final receipt = PaymentReceipt(
+        id: paymentGroupId,
+        residenceId: residenceId,
+        residenceName: residenceName,
+        apartmentNumber: apartmentNumber,
+        amount: amount,
+        periodKeys: allocations
+            .map((allocation) => allocation.$1.periodKey)
+            .toList(growable: false),
+        paidAt: paidAt,
+        note: note.trim(),
+      );
       final attachmentData = await _uploadAttachment(
         residenceId: residenceId,
         paymentGroupId: paymentGroupId,
@@ -470,7 +511,21 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
             },
           );
         }
+        transaction.set(
+          _firestore.collection('publicPaymentReceipts').doc(paymentGroupId),
+          {
+            'residenceId': residenceId,
+            'residenceName': residenceName,
+            'apartmentNumber': apartmentNumber,
+            'amount': amount,
+            'periodKeys': receipt.periodKeys,
+            'paidAt': Timestamp.fromDate(paidAt),
+            'note': note.trim(),
+            'createdAt': FieldValue.serverTimestamp(),
+          },
+        );
       });
+      return receipt;
     } on ResidenceDuesFailure {
       rethrow;
     } on FirebaseException catch (error) {
@@ -511,6 +566,10 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
       final currentPeriodKey = residenceDuesPeriodKey(DateTime.now());
       await _firestore.runTransaction((transaction) async {
         final storedDues = <String, ResidenceDue>{};
+        final receiptReference = _firestore
+            .collection('publicPaymentReceipts')
+            .doc(paymentGroupId);
+        final receiptDocument = await transaction.get(receiptReference);
         for (final dueId in amountsByDueId.keys) {
           final document = await transaction.get(duesCollection.doc(dueId));
           if (!document.exists) {
@@ -543,6 +602,7 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
         for (final document in paymentDocuments.docs) {
           transaction.delete(document.reference);
         }
+        if (receiptDocument.exists) transaction.delete(receiptReference);
       });
       final attachmentPath = payments.first.attachmentStoragePath;
       if (attachmentPath.isNotEmpty) {
@@ -729,6 +789,7 @@ final residentDuesProvider = FutureProvider.autoDispose<ResidenceDuesOverview>((
 class ResidenceDuesManagementController
     extends AsyncNotifier<ResidenceDuesOverview> {
   String? _residenceId;
+  String? _residenceName;
   int? _defaultAmount;
 
   @override
@@ -742,6 +803,7 @@ class ResidenceDuesManagementController
       throw const ResidenceDuesFailure('permission-denied');
     }
     _residenceId = activeResidence.id;
+    _residenceName = activeResidence.name;
     final settings = await ref.watch(residenceSettingsProvider.future);
     _defaultAmount = settings.defaultSubscriptionAmount;
     final members = await ref.watch(residenceMembersProvider.future);
@@ -758,7 +820,7 @@ class ResidenceDuesManagementController
     );
   }
 
-  Future<void> recordPayment({
+  Future<PaymentReceipt> recordPayment({
     required String apartmentId,
     required String apartmentNumber,
     required int amount,
@@ -768,15 +830,20 @@ class ResidenceDuesManagementController
     ResidenceDocumentUpload? attachmentUpload,
   }) async {
     final residenceId = _residenceId;
+    final residenceName = _residenceName;
     final defaultAmount = _defaultAmount;
     final user = ref.read(authRepositoryProvider).currentUser;
-    if (residenceId == null || defaultAmount == null || user == null) {
+    if (residenceId == null ||
+        residenceName == null ||
+        defaultAmount == null ||
+        user == null) {
       throw const ResidenceDuesFailure('missing-context');
     }
-    await ref
+    final receipt = await ref
         .read(residenceDuesRepositoryProvider)
         .recordApartmentPayment(
           residenceId: residenceId,
+          residenceName: residenceName,
           apartmentId: apartmentId,
           apartmentNumber: apartmentNumber,
           amount: amount,
@@ -792,6 +859,7 @@ class ResidenceDuesManagementController
     ref.invalidate(residenceFinancesProvider);
     ref.invalidate(residenceTransactionAttachmentsProvider);
     ref.invalidateSelf();
+    return receipt;
   }
 
   Future<void> deletePayment(String paymentGroupId) async {

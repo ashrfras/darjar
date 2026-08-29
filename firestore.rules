@@ -395,6 +395,47 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Receipts deliberately contain only the small, immutable subset that can
+    // be shown through a public /r/{id} link. Residence and payment records
+    // remain protected by their membership rules below.
+    match /publicPaymentReceipts/{receiptId} {
+      allow get: if true;
+      allow list: if false;
+
+      allow create: if canManageResidence(request.resource.data.residenceId)
+        && request.resource.data.keys().hasOnly([
+          'residenceId',
+          'residenceName',
+          'apartmentNumber',
+          'amount',
+          'periodKeys',
+          'paidAt',
+          'note',
+          'createdAt'
+        ])
+        && request.resource.data.residenceId is string
+        && request.resource.data.residenceName
+          == get(
+            residencePath(request.resource.data.residenceId)
+          ).data.name
+        && request.resource.data.apartmentNumber is string
+        && request.resource.data.apartmentNumber.size() > 0
+        && request.resource.data.amount is int
+        && request.resource.data.amount > 0
+        && request.resource.data.periodKeys is list
+        && request.resource.data.periodKeys.size() > 0
+        && request.resource.data.periodKeys.size() <= 60
+        && request.resource.data.periodKeys[0] is string
+        && request.resource.data.paidAt is timestamp
+        && request.resource.data.paidAt <= request.time
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 1000
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if false;
+      allow delete: if canManageResidence(resource.data.residenceId);
+    }
+
     match /directoryRecommendations/{recommendationId} {
       allow read: if signedIn();
 

@@ -13,6 +13,8 @@ import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/documents/presentation/residence_document_picker.dart';
+import 'package:darjar/features/receipts/domain/payment_receipt.dart';
+import 'package:darjar/features/receipts/presentation/payment_receipt_share_dialog.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
@@ -139,11 +141,10 @@ class _ManagementContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final groups = _groupDuesByApartment(overview.dues);
-    final residenceName = ref.watch(
-      residenceContextProvider.select(
-        (state) => state.value?.activeResidence?.name ?? '',
-      ),
+    final activeResidence = ref.watch(
+      residenceContextProvider.select((state) => state.value?.activeResidence),
     );
+    final residenceName = activeResidence?.name ?? '';
     if (groups.isEmpty) {
       return _ManagementEmptyState(
         key: const Key('dues-management-no-apartments'),
@@ -196,6 +197,18 @@ class _ManagementContent extends ConsumerWidget {
                 for (var index = 0; index < paymentGroups.length; index++) ...[
                   _ManagementPaymentRow(
                     paymentGroup: paymentGroups[index],
+                    onOpenReceipt: activeResidence == null
+                        ? null
+                        : () {
+                            final receipt = paymentGroups[index].receipt(
+                              residenceId: activeResidence.id,
+                              residenceName: activeResidence.name,
+                            );
+                            context.push(
+                              AppRoutes.receipt(receipt.id),
+                              extra: receipt,
+                            );
+                          },
                     onDelete: () =>
                         _deletePayment(context, ref, paymentGroups[index]),
                   ),
@@ -447,17 +460,18 @@ Future<void> _showRecordPaymentSheet(
   List<_ApartmentDuesGroup> groups,
   ResidenceDocumentPicker documentPicker,
 ) async {
-  final saved = await showModalBottomSheet<bool>(
+  final receipt = await showModalBottomSheet<PaymentReceipt>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (context) =>
         _RecordPaymentSheet(groups: groups, documentPicker: documentPicker),
   );
-  if (saved == true && context.mounted) {
+  if (receipt != null && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppLocalizations.of(context).duesPaymentSaved)),
     );
+    await showPaymentReceiptShareDialog(context, receipt: receipt);
   }
 }
 
@@ -760,7 +774,7 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
       _saving = true;
     });
     try {
-      await ref
+      final receipt = await ref
           .read(residenceDuesManagementProvider.notifier)
           .recordPayment(
             apartmentId: group.apartmentId,
@@ -771,7 +785,7 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
             supportingDocument: _selectedAttachmentName,
             attachmentUpload: _attachmentUpload,
           );
-      if (mounted) Navigator.of(context).pop(true);
+      if (mounted) Navigator.of(context).pop(receipt);
     } on ResidenceDuesFailure {
       if (mounted) {
         setState(() {
@@ -865,86 +879,94 @@ class _ManagementTotals extends StatelessWidget {
 class _ManagementPaymentRow extends StatelessWidget {
   const _ManagementPaymentRow({
     required this.paymentGroup,
+    required this.onOpenReceipt,
     required this.onDelete,
   });
 
   final ResidenceDuePaymentGroup paymentGroup;
+  final VoidCallback? onOpenReceipt;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final payment = paymentGroup.payments.first;
-    return Padding(
+    return InkWell(
       key: ValueKey('management-payment-${paymentGroup.id}'),
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            backgroundColor: AppColors.residenceSoft,
-            foregroundColor: AppColors.residence,
-            child: Icon(Icons.receipt_long_outlined),
-          ),
-          const SizedBox(width: AppSpacing.medium),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  localizations.duesApartment(payment.apartmentNumber),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  localizations.duesRecordedOn(
-                    DarJarDateFormat.yMMMd(
-                      payment.paidAt,
-                      localizations.localeName,
-                    ),
-                  ),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                if (payment.note.isNotEmpty)
+      onTap: onOpenReceipt,
+      borderRadius: BorderRadius.circular(AppRadius.small),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              backgroundColor: AppColors.residenceSoft,
+              foregroundColor: AppColors.residence,
+              child: Icon(Icons.receipt_long_outlined),
+            ),
+            const SizedBox(width: AppSpacing.medium),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    payment.note,
+                    localizations.duesApartment(payment.apartmentNumber),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Text(
+                    localizations.duesRecordedOn(
+                      DarJarDateFormat.yMMMd(
+                        payment.paidAt,
+                        localizations.localeName,
+                      ),
+                    ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                if (payment.hasAttachment)
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.attach_file_rounded,
-                        size: 16,
-                        color: AppColors.residence,
-                      ),
-                      const SizedBox(width: AppSpacing.xSmall),
-                      Expanded(
-                        child: Text(
-                          payment.attachmentName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.residence),
+                  if (payment.note.isNotEmpty)
+                    Text(
+                      payment.note,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  if (payment.hasAttachment)
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.attach_file_rounded,
+                          size: 16,
+                          color: AppColors.residence,
                         ),
-                      ),
-                    ],
-                  ),
-              ],
+                        const SizedBox(width: AppSpacing.xSmall),
+                        Expanded(
+                          child: Text(
+                            payment.attachmentName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: AppColors.residence),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
-          ),
-          Text(
-            '${_amount(context, paymentGroup.totalAmount)} '
-            '${localizations.currency}',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: AppColors.residence),
-          ),
-          IconButton(
-            key: ValueKey('delete-management-payment-${paymentGroup.id}'),
-            tooltip: localizations.delete,
-            onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline_rounded),
-          ),
-        ],
+            Text(
+              '${_amount(context, paymentGroup.totalAmount)} '
+              '${localizations.currency}',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: AppColors.residence),
+            ),
+            if (onOpenReceipt != null)
+              const Icon(Icons.chevron_left_rounded, color: AppColors.inkMuted),
+            IconButton(
+              key: ValueKey('delete-management-payment-${paymentGroup.id}'),
+              tooltip: localizations.delete,
+              onPressed: onDelete,
+              icon: const Icon(Icons.delete_outline_rounded),
+            ),
+          ],
+        ),
       ),
     );
   }

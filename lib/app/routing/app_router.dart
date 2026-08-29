@@ -15,6 +15,8 @@ import 'package:darjar/features/profile/presentation/privacy_policy_page.dart';
 import 'package:darjar/features/profile/presentation/about_app_page.dart';
 import 'package:darjar/features/profile/presentation/delete_account_page.dart';
 import 'package:darjar/features/profile/presentation/settings_page.dart';
+import 'package:darjar/features/receipts/domain/payment_receipt.dart';
+import 'package:darjar/features/receipts/presentation/payment_receipt_page.dart';
 import 'package:darjar/features/residence/presentation/dues_management_page.dart';
 import 'package:darjar/features/residence/presentation/dues_page.dart';
 import 'package:darjar/features/residence/presentation/finance_transactions_page.dart';
@@ -63,6 +65,7 @@ abstract final class AppRoutes {
   static const profile = '/profile';
   static const privacyPolicy = '/profile/privacy';
   static const publicPrivacyPolicy = '/privacy';
+  static const paymentReceipt = '/r/:receiptId';
   static const deleteAccount = '/delete-account';
   static const aboutApp = '/profile/about';
   static const settings = '/settings';
@@ -71,6 +74,7 @@ abstract final class AppRoutes {
   static String editService(String id) => '/directory/$id/edit';
   static String communityPost(String id) => '/community/post/$id';
   static String residenceInvitation(String code) => '/join/$code';
+  static String receipt(String id) => '/r/$id';
 }
 
 final appInitialLocationProvider = Provider<String>((ref) {
@@ -143,6 +147,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == AppRoutes.onboarding ||
           location == AppRoutes.publicPrivacyPolicy ||
           location == AppRoutes.deleteAccount ||
+          location.startsWith('/r/') ||
           isAuthRoute;
       final user = authRefresh.user;
 
@@ -188,6 +193,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.deleteAccount,
         builder: (context, state) => const DeleteAccountPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.paymentReceipt,
+        builder: (context, state) => PaymentReceiptPage(
+          receiptId: state.pathParameters['receiptId']!,
+          initialReceipt: state.extra is PaymentReceipt
+              ? state.extra! as PaymentReceipt
+              : null,
+        ),
       ),
       GoRoute(
         path: AppRoutes.auth,
