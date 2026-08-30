@@ -490,6 +490,42 @@ void main() {
       expect(moroccanCities.any((city) => city.nameAr == 'الحسيمة'), isTrue);
     });
 
+    test('Amazigh city names fall back to Arabic', () {
+      const city = MoroccanCity(
+        id: '6141010',
+        nameAr: 'الدار البيضاء',
+        nameLatin: 'Casablanca',
+      );
+
+      expect(
+        city.localizedName(lookupAppLocalizations(const Locale('zgh'))),
+        'الدار البيضاء',
+      );
+      expect(
+        city.localizedName(lookupAppLocalizations(const Locale('en'))),
+        'Casablanca',
+      );
+    });
+
+    test('service catalog uses Tifinagh and Arabic as its zgh fallback', () {
+      expect(
+        _testServiceCategories.single.localizedShortName('zgh'),
+        'ⴰⵙⴻⴳⴳⴻⵎ',
+      );
+      expect(
+        _testServiceCategories.single.subcategories.first.localizedName('zgh'),
+        'ⴰⵎⴻⵙⵏⴰⵡ ⵏ ⵜⴰⴼⴰⵜ',
+      );
+      expect(
+        const ServiceSubcategory(
+          id: 'custom-service',
+          nameAr: 'خدمة محلية',
+          nameEn: 'Local service',
+        ).localizedName('zgh'),
+        'خدمة محلية',
+      );
+    });
+
     test('create community posts and directory services', () async {
       final community = MockCommunityRepository();
       final directory = _TestDirectoryRepository();
@@ -637,8 +673,10 @@ void main() {
         category: FeedCategory.finance,
         descriptionAr: 'أضيف مصروف جديد',
         descriptionEn: 'A new expense was added',
+        descriptionZgh: 'ⵢⴻⵜⵜⵡⴰⵔⵏⴰ ⵓⵙⵔⵉⴷ',
         timeLabelAr: 'الآن',
         timeLabelEn: 'Now',
+        timeLabelZgh: 'ⵜⵓⵔⴰ',
         likes: 0,
         occurredAt: DateTime.utc(2026, 8, 15, 11),
       );
@@ -665,8 +703,10 @@ void main() {
         category: FeedCategory.finance,
         descriptionAr: 'نشاط',
         descriptionEn: 'Activity',
+        descriptionZgh: 'ⵜⵉⴳⴰⵡⵜ',
         timeLabelAr: 'الآن',
         timeLabelEn: 'Now',
+        timeLabelZgh: 'ⵜⵓⵔⴰ',
         likes: 0,
       );
 
@@ -702,8 +742,10 @@ void main() {
             category: FeedCategory.finance,
             descriptionAr: 'نشاط',
             descriptionEn: 'Activity',
+            descriptionZgh: 'ⵜⵉⴳⴰⵡⵜ',
             timeLabelAr: 'الآن',
             timeLabelEn: 'Now',
+            timeLabelZgh: 'ⵜⵓⵔⴰ',
             likes: 0,
             occurredAt: DateTime.utc(2026, 8, 15, hour),
           ),
@@ -3892,105 +3934,145 @@ void main() {
     expect(find.byKey(const Key('phone-auth-page')), findsOneWidget);
   });
 
-  testWidgets(
-    'profile changes between Arabic and English from language sheet',
-    (tester) async {
-      await _pumpApp(tester, size: const Size(390, 844));
-      await _enterResidence(tester);
-      await tester.tap(find.byKey(const Key('profile-button')));
-      await tester.pumpAndSettle();
+  testWidgets('profile changes between Arabic, Amazigh, and English', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
 
-      final languageLink = find.byKey(const Key('language-selection-link'));
-      final privacyLink = find.byKey(const Key('privacy-policy-link'));
-      await tester.ensureVisible(privacyLink);
+    final languageLink = find.byKey(const Key('language-selection-link'));
+    final privacyLink = find.byKey(const Key('privacy-policy-link'));
+    await tester.ensureVisible(privacyLink);
 
-      expect(find.text('اختيار اللغة'), findsOneWidget);
-      expect(
-        tester.getTopLeft(languageLink).dy,
-        lessThan(tester.getTopLeft(privacyLink).dy),
-      );
-      final languageCard = find.ancestor(
-        of: languageLink,
-        matching: find.byType(DarJarCard),
-      );
-      final informationCard = find.ancestor(
-        of: privacyLink,
-        matching: find.byType(DarJarCard),
-      );
-      expect(
-        languageCard.evaluate().single,
-        isNot(same(informationCard.evaluate().single)),
-      );
+    expect(find.text('اختيار اللغة'), findsOneWidget);
+    expect(
+      tester.getTopLeft(languageLink).dy,
+      lessThan(tester.getTopLeft(privacyLink).dy),
+    );
+    final languageCard = find.ancestor(
+      of: languageLink,
+      matching: find.byType(DarJarCard),
+    );
+    final informationCard = find.ancestor(
+      of: privacyLink,
+      matching: find.byType(DarJarCard),
+    );
+    expect(
+      languageCard.evaluate().single,
+      isNot(same(informationCard.evaluate().single)),
+    );
 
-      await tester.tap(languageLink);
-      await tester.pumpAndSettle();
+    await tester.tap(languageLink);
+    await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('language-selection-sheet')), findsOneWidget);
-      expect(find.text('العربية'), findsWidgets);
-      expect(find.text('الأمازيغية'), findsOneWidget);
-      expect(find.text('الإنجليزية'), findsOneWidget);
-      for (final flagKey in [
-        'arabic-language-flag',
-        'amazigh-language-flag',
-        'english-language-flag',
-      ]) {
-        expect(
-          find.descendant(
-            of: find.byKey(Key(flagKey)),
-            matching: find.byType(CustomPaint),
-          ),
-          findsOneWidget,
-        );
-      }
-      expect(find.text('قريبًا'), findsOneWidget);
-      expect(
-        tester
-            .widget<ListTile>(
-              find.descendant(
-                of: find.byKey(const Key('language-option-zgh')),
-                matching: find.byType(ListTile),
-              ),
-            )
-            .enabled,
-        isFalse,
-      );
+    expect(find.byKey(const Key('language-selection-sheet')), findsOneWidget);
+    expect(find.text('العربية'), findsWidgets);
+    expect(find.text('الأمازيغية'), findsOneWidget);
+    expect(find.text('الإنجليزية'), findsOneWidget);
+    for (final flagKey in [
+      'arabic-language-flag',
+      'amazigh-language-flag',
+      'english-language-flag',
+    ]) {
       expect(
         find.descendant(
-          of: find.byKey(const Key('language-option-ar')),
-          matching: find.byIcon(Icons.check_circle_rounded),
+          of: find.byKey(Key(flagKey)),
+          matching: find.byType(CustomPaint),
         ),
         findsOneWidget,
       );
+    }
+    expect(
+      tester
+          .widget<ListTile>(
+            find.descendant(
+              of: find.byKey(const Key('language-option-zgh')),
+              matching: find.byType(ListTile),
+            ),
+          )
+          .enabled,
+      isTrue,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('language-option-ar')),
+        matching: find.byIcon(Icons.check_circle_rounded),
+      ),
+      findsOneWidget,
+    );
 
-      await tester.tap(
-        find.descendant(
-          of: find.byKey(const Key('language-option-en')),
-          matching: find.byType(ListTile),
-        ),
-      );
-      await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const Key('language-option-zgh')),
+        matching: find.byType(ListTile),
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('language-selection-sheet')), findsNothing);
-      expect(find.text('Choose language'), findsOneWidget);
-      expect(find.text('Privacy policy'), findsOneWidget);
-      expect(
-        Directionality.of(
-          tester.element(find.byKey(const Key('profile-page'))),
-        ),
-        TextDirection.ltr,
-      );
+    expect(find.byKey(const Key('language-selection-sheet')), findsNothing);
+    expect(find.text('ⴼⵔⴻⵏ ⵜⵓⵜⵍⴰⵢⵜ'), findsOneWidget);
+    expect(
+      Directionality.of(tester.element(find.byKey(const Key('profile-page')))),
+      TextDirection.ltr,
+    );
 
-      await tester.tap(find.byKey(const Key('language-selection-link')));
-      await tester.pumpAndSettle();
-      await tester.tap(
-        find.descendant(
-          of: find.byKey(const Key('language-option-ar')),
-          matching: find.byType(ListTile),
-        ),
-      );
-      await tester.pumpAndSettle();
-    },
-  );
+    await tester.tap(find.byType(NavigationDestination).first);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+    expect(find.text('ⵉⴹⵔⵉⵙⴻⵏ'), findsOneWidget);
+    expect(find.text('ⵜⴰⴷⵔⵉⵎⵜ'), findsOneWidget);
+    expect(find.text('ⵎⴰ ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⴻⴱⴹⵓⴹ?'), findsOneWidget);
+    expect(find.text('Posts'), findsNothing);
+    expect(find.text('Finance'), findsNothing);
+    expect(find.text('Polls'), findsNothing);
+    expect(find.text('What would you like to share?'), findsNothing);
+
+    await tester.drag(
+      find.byKey(const Key('community-filter-list')),
+      const Offset(-300, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('ⵉⵙⴻⵙⵜⴰⵏⴻⵏ'), findsOneWidget);
+
+    await tester.tap(find.byType(NavigationDestination).at(1));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('directory-page')), findsOneWidget);
+    expect(find.text('ⴰⵙⴻⴳⴳⴻⵎ'), findsOneWidget);
+    expect(find.text('Maintenance'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('language-selection-link')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const Key('language-option-en')),
+        matching: find.byType(ListTile),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Choose language'), findsOneWidget);
+    expect(find.text('Privacy policy'), findsOneWidget);
+    expect(
+      Directionality.of(tester.element(find.byKey(const Key('profile-page')))),
+      TextDirection.ltr,
+    );
+
+    await tester.tap(find.byKey(const Key('language-selection-link')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const Key('language-option-ar')),
+        matching: find.byType(ListTile),
+      ),
+    );
+    await tester.pumpAndSettle();
+  });
 
   testWidgets('profile opens privacy policy and about app before sign out', (
     tester,

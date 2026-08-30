@@ -335,11 +335,7 @@ class DirectoryProfilePage extends ConsumerWidget {
                   if (!sheetContext.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        Localizations.localeOf(context).languageCode == 'ar'
-                            ? 'تعذّر نشر التوصية.'
-                            : 'Could not publish the recommendation.',
-                      ),
+                      content: Text(localizations.recommendationPublishFailed),
                     ),
                   );
                   return;

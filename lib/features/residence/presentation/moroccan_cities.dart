@@ -14,7 +14,8 @@ class MoroccanCity {
   final String nameLatin;
 
   String localizedName(AppLocalizations localizations) {
-    return localizations.localeName.startsWith('ar') ? nameAr : nameLatin;
+    final languageCode = localizations.localeName.split(RegExp('[-_]')).first;
+    return languageCode == 'en' ? nameLatin : nameAr;
   }
 }
 

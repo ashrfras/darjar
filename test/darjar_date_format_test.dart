@@ -48,4 +48,12 @@ void main() {
       DateFormat.yMMMd('en').format(date),
     );
   });
+
+  test('formats Amazigh dates with Tifinagh month names', () {
+    final date = DateTime(2026, DateTime.august, 9);
+
+    expect(DarJarDateFormat.mmmm(date, 'zgh'), 'ⵖⵓⵛⵜ');
+    expect(DarJarDateFormat.yMMMM(date, 'zgh_MA'), 'ⵖⵓⵛⵜ 2026');
+    expect(DarJarDateFormat.yMMMd(date, 'zgh'), '9 ⵖⵓⵛⵜ 2026');
+  });
 }

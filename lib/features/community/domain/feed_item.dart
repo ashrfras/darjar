@@ -61,12 +61,15 @@ class ResidenceActivity extends FeedItem {
     required super.category,
     required this.descriptionAr,
     required this.descriptionEn,
+    required this.descriptionZgh,
     required this.timeLabelAr,
     required this.timeLabelEn,
+    required this.timeLabelZgh,
     required this.likes,
     this.isLiked = false,
     this.classificationAr,
     this.classificationEn,
+    this.classificationZgh,
     this.reference,
     this.apartmentNumber,
     this.periodKey,
@@ -76,12 +79,15 @@ class ResidenceActivity extends FeedItem {
   final ResidenceActivityType activityType;
   final String descriptionAr;
   final String descriptionEn;
+  final String descriptionZgh;
   final String timeLabelAr;
   final String timeLabelEn;
+  final String timeLabelZgh;
   final int likes;
   final bool isLiked;
   final String? classificationAr;
   final String? classificationEn;
+  final String? classificationZgh;
   final FeedEntityReference? reference;
   final String? apartmentNumber;
   final String? periodKey;
@@ -91,6 +97,7 @@ class ResidenceActivity extends FeedItem {
     bool? isLiked,
     String? descriptionAr,
     String? descriptionEn,
+    String? descriptionZgh,
     String? periodKey,
   }) {
     return ResidenceActivity(
@@ -99,12 +106,15 @@ class ResidenceActivity extends FeedItem {
       category: category,
       descriptionAr: descriptionAr ?? this.descriptionAr,
       descriptionEn: descriptionEn ?? this.descriptionEn,
+      descriptionZgh: descriptionZgh ?? this.descriptionZgh,
       timeLabelAr: timeLabelAr,
       timeLabelEn: timeLabelEn,
+      timeLabelZgh: timeLabelZgh,
       likes: likes ?? this.likes,
       isLiked: isLiked ?? this.isLiked,
       classificationAr: classificationAr,
       classificationEn: classificationEn,
+      classificationZgh: classificationZgh,
       reference: reference,
       apartmentNumber: apartmentNumber,
       periodKey: periodKey ?? this.periodKey,

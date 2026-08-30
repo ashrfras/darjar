@@ -1,3 +1,4 @@
+import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
@@ -11,16 +12,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 extension CommunityPostKindUi on CommunityPostKind {
   String label(BuildContext context) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final localizations = AppLocalizations.of(context);
     return switch (this) {
-      CommunityPostKind.announcement => ar ? 'إعلان رسمي' : 'Announcement',
-      CommunityPostKind.question => ar ? 'سؤال' : 'Question',
-      CommunityPostKind.complaint => ar ? 'شكوى' : 'Complaint',
-      CommunityPostKind.suggestion => ar ? 'اقتراح' : 'Suggestion',
-      CommunityPostKind.alert => ar ? 'تنبيه' : 'Alert',
-      CommunityPostKind.general => ar ? 'منشور عام' : 'General',
-      CommunityPostKind.poll => ar ? 'استطلاع' : 'Poll',
-      CommunityPostKind.event => ar ? 'مناسبة' : 'Event',
+      CommunityPostKind.announcement => localizations.postKindAnnouncement,
+      CommunityPostKind.question => localizations.postKindQuestion,
+      CommunityPostKind.complaint => localizations.postKindComplaint,
+      CommunityPostKind.suggestion => localizations.postKindSuggestion,
+      CommunityPostKind.alert => localizations.postKindAlert,
+      CommunityPostKind.general => localizations.postKindGeneral,
+      CommunityPostKind.poll => localizations.postKindPoll,
+      CommunityPostKind.event => localizations.postKindEvent,
     };
   }
 
@@ -256,7 +257,11 @@ class _PostHeader extends StatelessWidget {
                     communityMemberRoleLabel(context, post.authorRole)
                   else if (apartmentLabel != null)
                     apartmentLabel,
-                  post.timeLabel,
+                  _localizedCommunityTime(
+                    context,
+                    post.createdAt,
+                    post.timeLabel,
+                  ),
                 ].join(' · '),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -288,11 +293,7 @@ class _PostHeader extends StatelessWidget {
                   children: [
                     const Icon(Icons.delete_outline_rounded),
                     const SizedBox(width: AppSpacing.small),
-                    Text(
-                      Localizations.localeOf(context).languageCode == 'ar'
-                          ? 'حذف المنشور'
-                          : 'Delete post',
-                    ),
+                    Text(AppLocalizations.of(context).deletePost),
                   ],
                 ),
               ),
@@ -304,24 +305,20 @@ class _PostHeader extends StatelessWidget {
   }
 
   Future<void> _confirmArchive(BuildContext context) async {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final localizations = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(ar ? 'حذف المنشور؟' : 'Delete post?'),
-        content: Text(
-          ar
-              ? 'هل تريد حذف هذا المنشور؟ لن يعود ظاهراً لسكان الإقامة.'
-              : 'Delete this post? It will no longer be visible to residents.',
-        ),
+        title: Text(localizations.deletePostTitle),
+        content: Text(localizations.deletePostConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(ar ? 'إلغاء' : 'Cancel'),
+            child: Text(localizations.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(ar ? 'حذف' : 'Delete'),
+            child: Text(localizations.delete),
           ),
         ],
       ),
@@ -345,7 +342,7 @@ String? _communityApartmentLabel(
   CommunityPost post,
   ResidenceMembersData? directory,
 ) {
-  final ar = Localizations.localeOf(context).languageCode == 'ar';
+  final localizations = AppLocalizations.of(context);
   if (post.authorId.isNotEmpty && directory != null) {
     String? apartmentId;
     for (final member in directory.members) {
@@ -357,9 +354,7 @@ String? _communityApartmentLabel(
     if (apartmentId != null) {
       for (final apartment in directory.apartments) {
         if (apartment.id == apartmentId) {
-          return ar
-              ? 'شقة ${apartment.number}'
-              : 'Apartment ${apartment.number}';
+          return localizations.communityApartmentLabel(apartment.number);
         }
       }
     }
@@ -374,7 +369,7 @@ String? _communityApartmentLabel(
   if (apartmentMatch != null) {
     final number = apartmentMatch.group(1)?.trim();
     if (number != null && number.isNotEmpty) {
-      return ar ? 'شقة $number' : 'Apartment $number';
+      return localizations.communityApartmentLabel(number);
     }
   }
   if (unit.contains('إدارة') || unit.toLowerCase().contains('management')) {
@@ -384,14 +379,14 @@ String? _communityApartmentLabel(
 }
 
 String communityMemberRoleLabel(BuildContext context, String role) {
-  final ar = Localizations.localeOf(context).languageCode == 'ar';
+  final localizations = AppLocalizations.of(context);
   return switch (role) {
-    'president' || 'owner' => ar ? 'رئيس' : 'President',
-    'deputy' || 'manager' => ar ? 'نائب الرئيس' : 'Deputy',
-    'treasurer' => ar ? 'أمين المال' : 'Treasurer',
-    'moderator' => ar ? 'مشرف' : 'Moderator',
-    'platformAdmin' => ar ? 'فريق دارجار' : 'DarJar team',
-    _ => ar ? 'ساكن' : 'Resident',
+    'president' || 'owner' => localizations.communityRolePresident,
+    'deputy' || 'manager' => localizations.communityRoleDeputy,
+    'treasurer' => localizations.communityRoleTreasurer,
+    'moderator' => localizations.communityRoleModerator,
+    'platformAdmin' => localizations.communityRoleTeam,
+    _ => localizations.communityRoleResident,
   };
 }
 
@@ -666,9 +661,10 @@ class PollPanel extends StatelessWidget {
           const SizedBox(height: AppSpacing.small),
         ],
         Text(
-          Localizations.localeOf(context).languageCode == 'ar'
-              ? '$total صوت${hasVoted ? ' · تم تسجيل صوتك' : ''}'
-              : '$total votes${hasVoted ? ' · Vote recorded' : ''}',
+          [
+            AppLocalizations.of(context).pollVotes(total),
+            if (hasVoted) AppLocalizations.of(context).pollVoteRecorded,
+          ].join(' · '),
           style: Theme.of(
             context,
           ).textTheme.labelMedium?.copyWith(color: AppColors.inkMuted),
@@ -770,9 +766,7 @@ class _PostActions extends StatelessWidget {
       children: [
         _ActionButton(
           key: ValueKey('like-${post.id}'),
-          icon: post.isLiked
-              ? Icons.thumb_up_rounded
-              : Icons.thumb_up_outlined,
+          icon: post.isLiked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
           label: '${post.likes}',
           color: post.isLiked ? AppColors.danger : AppColors.inkMuted,
           onTap: onLike,
@@ -785,9 +779,7 @@ class _PostActions extends StatelessWidget {
         const Spacer(),
         IconButton(
           key: ValueKey('save-${post.id}'),
-          tooltip: Localizations.localeOf(context).languageCode == 'ar'
-              ? 'حفظ'
-              : 'Save',
+          tooltip: AppLocalizations.of(context).savePost,
           onPressed: onSave,
           color: post.isSaved ? AppColors.primary : AppColors.inkMuted,
           icon: Icon(
@@ -799,6 +791,25 @@ class _PostActions extends StatelessWidget {
       ],
     );
   }
+}
+
+String _localizedCommunityTime(
+  BuildContext context,
+  DateTime? occurredAt,
+  String fallback,
+) {
+  if (occurredAt == null) return fallback;
+  final localizations = AppLocalizations.of(context);
+  final elapsed = DateTime.now().difference(occurredAt);
+  if (elapsed.inMinutes < 1) return localizations.notificationTimeNow;
+  if (elapsed.inMinutes < 60) {
+    return localizations.notificationTimeMinutes(elapsed.inMinutes);
+  }
+  if (elapsed.inHours < 24) {
+    return localizations.notificationTimeHours(elapsed.inHours);
+  }
+  if (elapsed.inDays == 1) return localizations.notificationTimeYesterday;
+  return localizations.notificationTimeDays(elapsed.inDays);
 }
 
 class _ActionButton extends StatelessWidget {

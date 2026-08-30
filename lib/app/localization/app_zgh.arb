@@ -1,0 +1,985 @@
+{
+  "@@locale": "zgh",
+  "appName": "ⴷⴰⵔⵊⴰⵔ",
+  "siteTitle": "ⴷⴰⵔⵊⴰⵔ — ⵜⴰⵣⴷⵓⵖⵜ ⵜⵓⵎⴹⵉⵏⵜ",
+  "dataLoading": "ⴰⵙⴻⴽⵛⴻⵎ ⵏ ⵢⵉⵙⴻⴼⴽⴰ...",
+  "brandLatin": "DarJar",
+  "community": "ⵍⵇⵓⵜ",
+  "directory": "ⵉⵎⴻⵥⵍⴰ",
+  "demoResidence": "ⵜⴰⵣⴻⴷⵖⴰ ⵏ Yasmeen",
+  "selectResidence": "ⴼⵔⴻⵏ ⵜⴰⵣⴻⴷⵖⴰ",
+  "residenceSwitcherDescription": "ⴼⵔⴻⵏ ⵜⴰⵣⴻⴷⵖⴰ ⵉ ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⵜⴼⴻⵔⵏⴻⴹ ⵢⴻⵔⵏⴰ ⴰⴷ ⵜⵜⵜⴻⵙⵙⴻⵍⵃⵓⴹ ⵜⵓⵔⴰ.",
+  "currentResidence": "ⵜⵓⵔⴰ",
+  "acceptInvitation": "ⵜⵜⴻⴽⴽⵉ",
+  "residenceInvitations": "ⵜⵉⵖⵔⵉⵡⵉⵏ ⵜⵉⵎⴰⵢⵏⵓⵜⵉⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "residenceContextLoadError": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⴹⴼⴻⵔ ⵍⵃⵉⵙⴰⴱ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵉⵏ.",
+  "residenceDisplayName": "{name} ⵜⴰⵣⴻⴷⵖⴰ",
+  "@residenceDisplayName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "communityDescription": "ⵜⵉⴳⴰⵡⵜ ⵏ ⵜⵎⴻⵣⴷⵓⵖⵜ, ⵉⵎⵓⴽⴰⵏ ⵏ ⵜⵎⴻⵣⴷⵓⵖⵜ, ⴷ ⵢⵉⵙⴰⵍⴰⵏ.",
+  "shellPreviewDescription": "ⴰⴹⵔⵉⵙ ⵏ ⵜⵎⵓⵖⵍⵉ ⵏ ⵜⴼⴻⵍⵡⵉⵜ ⵏ ⵓⵙⵉⵡⴻⴹ ⵢⴻⵜⵜⵡⴰⵙⵇⴻⴷⵛⴻⵏ. ⵜⴰⵖⴻⵍⵍⵉⵙⵜ ⵏ ⵓⴼⴰⵔⵉⵙ ⵜⴻⵡⵡⴻⴹ ⵖⴻⵔ Milestone 2.",
+  "milestoneTwo": "ⴰⴷ ⴷⵢⴰⵙ ⴷⴻⴳ ⵓⵃⵔⵉⵛ ⵡⵉⵙ 2",
+  "buttons": "ⵜⵉⵇⴱⵓⵛⵉⵏ",
+  "primaryAction": "ⵜⵉⴳⴰⵡⵜ ⵜⴰⵎⴻⵣⵡⴰⵔⵓⵜ",
+  "secondaryAction": "ⵜⵉⴳⴰⵡⵜ ⵜⵉⵙ ⵙⵏⴰⵜ",
+  "disabledAction": "ⵓⵔ ⵢⴻⵜⵜⵡⴰⴼⴽⴰ ⴰⵔⴰ",
+  "fields": "ⵉⴳⵔⴰⵏ",
+  "residenceName": "ⵉⵙⴻⵎ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "residenceNameHint": "ⴰⵎⴻⴷⵢⴰ: Yasmin",
+  "chipsAndBadges": "Chips ⴷ ⵍⴱⴰⴹⵏⴰⵜ",
+  "all": "ⴰⴽⴽ",
+  "announcements": "ⵉⵙⴻⴱⵜⴰⵔⴻⵏ",
+  "newLabel": "ⴰⵎⴰⵢⵏⵓⵜ",
+  "completedLabel": "ⵜⴽⴻⵎⵎⴻⵍ",
+  "processingLabel": "ⴰⵙⴻⴳⴳⴻⵎ",
+  "cards": "ⵜⵉⴽⴰⵔⴹⵉⵡⵉⵏ",
+  "sampleCardTitle": "ⴰⵖⵜⴰⵙ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "sampleCardDescription": "ⴰⵎⴻⴷⵢⴰ ⵏ ⵜⴽⴰⵔⴹⴰ ⵏ ⵓⵙⵎⴻⵍ ⵙ ⵜⵖⴰⵡⵍⴰ, ⵉⴱⴰⵏⴻⵏ ⴷⴻⴳ DarJar.",
+  "onboardingHeadline": "ⵜⵓⴷⵔⵜ ⴷⴻⴳ ⵓⵅⵅⴰⵎ, ⴽⵓⵍⵍⴻⵛ ⴷⴻⴳ ⵢⵉⵡⴻⵏ ⵓⵎⴹⵉⵇ",
+  "onboardingDescription": "ⵇⵇⴻⵏ ⵖⴻⵔ ⵍⴵⵉⵔⴰⵏ, ⴰⴼⴷ ⵉⵣⴻⵔⴼⴰⵏ ⵉⴷⵉⴳⴰⵏⴻⵏ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⵏ, ⴹⴻⴼⴼⴻⵔ ⵜⵉⵎⵙⴰⵍ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵙ ⵜⴻⴼⵙⴻⵙ ⴷ ⵜⴱⴰⴹⵏⵉⵜ.",
+  "landingDarjarTitle": "ⴷⴰⵔⵊⴰⵔ",
+  "landingDarjarDescription": "ⵢⵉⵡⴻⵏ ⵡⴻⵎⴽⴰⵏ ⵢⴻⵜⵜⵡⴰⵙⵓⴷⴷⵙⴻⵏ ⵉ ⵢⵉⵙⴰⵍⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⵉⵙⴰⵍⴰⵏ, ⴷ ⵜⴻⵎⵙⴰⵍ ⵏ ⵢⴰⵍ ⴰⵙⵙ, ⵢⴻⵜⵜⵃⴰⴷⴰⵔ ⵢⴰⵍ ⴰⵎⴻⵣⴷⴰⵖ.",
+  "landingFinanceTitle": "ⵜⴰⴷⵔⵉⵎⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "landingFinanceDescription": "ⵜⴰⵎⵓⵖⵍⵉ ⵉⴱⴰⵏⴻⵏ ⵏ ⵜⴻⴷⵔⵉⵎⵜ, ⵏ ⵜⵎⴻⵚⴽⵉⵡⵜ, ⵏ ⵍⵎⵉⵣⴰⵏ ⵏ ⵡⴰⵙⵙⴰ, ⵏ ⵜⵎⵓⵖⵍⵉⵡⵉⵏ, ⴷ ⵢⵉⴹⵔⵉⵙⴻⵏ ⵏ ⵜⴰⵍⵍⴻⵍⵜ ⵎⵉ ⴰⵔⴰ ⵉⵍⵉⵏ.",
+  "landingCommunityTitle": "ⵍⵇⵓⵜ",
+  "landingCommunityDescription": "ⵜⵉⴳⴰⵡⵜ ⵏ ⵜⵎⴻⵣⴷⵓⵖⵜ, ⵉⵎⵓⴽⴰⵏ ⵏ ⵜⵎⴻⵣⴷⵓⵖⵜ, ⴷ ⵓⵙⵉⵡⴰⴹ ⵢⴻⵜⵜⵡⴰⵙⵓⴷⴷⵙⴻⵏ ⵖⴻⴼ ⵜⵓⴷⴻⵔⵜ ⵢⴻⵜⵜⵡⴰⵙⴷⵓⴽⴽⵍⴻⵏ.",
+  "landingServicesTitle": "ⵉⵎⴻⵥⵍⴰ",
+  "landingServicesDescription": "ⴰⴼⴻⴹⴷ ⵉⵣⴻⵔⴼⴰⵏ ⴷ ⵜⵎⵓⵖⵍⵉⵡⵉⵏ ⵜⵉⴷⴻⵍⵙⴰⵏⵉⵏ ⵏ ⵏⵏⴼⴻⵄ ⵢⴻⵜⵜⵡⴰⴱⴹⴰⵏ ⵙ ⵜⵎⴻⵜⵜⵉ ⵏ DarJar ⵉ ⵜⵖⴰⵡⵙⵉⵡⵉⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵏ ⵢⴰⵍ ⴰⵙⵙ.",
+  "landingManagementTitle": "ⵜⴰⴷⴱⴻⵍⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "landingManagementDescription": "ⴰⵍⵍⴰⵍⴻⵏ ⵉⵙⴻⵀⵍⴻⵏ ⵉ ⵓⵙⵙⵓⴷⴷⴻⵙ ⵏ ⵢⵉⵅⵅⴰⵎⴻⵏ, ⵉⵎⴻⵣⴷⴰⵖ, ⵉⵄⴻⴳⴳⴰⵍⴻⵏ, ⴷ ⵜⵖⴰⵡⵙⵉⵡⵉⵏ ⵏ ⵜⵎⴻⵣⴷⵓⵖⵜ ⵙ ⵍⵃⴻⵇⵇ ⵏ ⵢⴰⵍ ⴰⵙⴻⵇⴷⴰⵛ.",
+  "landingCtaTitle": "ⵙⵇⴻⵔⴱⴻⴷ ⵜⴰⵣⴻⴷⵖⴰⵉⵏⴻⴽ ⵙ DarJar",
+  "landingCtaDescription": "ⴱⴷⵓ ⵜⵓⵔⴰ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴻⵙⵏⵓⵍⴼⵓⴹ ⵜⴰⵣⴻⴷⵖⴰⵉⵏⴻⴽ ⵏⴻⵖ ⴰⴷ ⵜⴽⴻⵎⵍⴻⴹ ⵍⴵⵉⵔⴰⵏⵉⵏⴻⴽ.",
+  "landingSupport": "ⵜⴰⵍⵍⴻⵍⵜ ⴷ ⵓⵙⵉⵡⴻⴹ",
+  "landingDeleteAccount": "ⴽⴽⴻⵙ ⴰⵎⵉⴹⴰⵏ",
+  "landingSupportDescription": "ⵏⴻⵙⵄⴰ ⵍⴼⴻⵔⵃ ⴰⴷ ⵏⵄⵉⵡⴻⵏ ⵢⴻⵔⵏⴰ ⴰⴷ ⴷⵏⴻⵔⵔ ⵉ ⵢⵉⵙⴻⵙⵜⴰⵏⴻⵏⵉⴽ ⵙ ⵜⵎⴰⵛⵉⵏⵉⵏ ⵏ ⵜⵎⴰⵛⵉⵏⵉⵏ.",
+  "landingSupportEmailAction": "ⴰⵣⵏⴻⴹ ⵉⵎⴰⵢⵍ",
+  "landingLearnMore": "ⵍⵎⴻⴷ ⵓⴳⴰⵔ",
+  "getStarted": "ⴱⴷⵓ",
+  "back": "ⵜⵓⵖⴰⵍⵉⵏ",
+  "residenceSetupTitle": "ⴰⵎⴻⴽ ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⴻⴱⴷⵓⴹ?",
+  "residenceSetupDescription": "ⵜⵜⴻⴽⴽⵉⴹ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜⵉⴽ ⵏ ⵜⵓⵔⴰ ⵏⴻⵖ ⵙⵏⵓⵍⴼⵓⴷ ⵜⴰⵎⴰⵢⵏⵓⵜ ⵉ ⵍⴵⵉⵔⴰⵏⵉⴽ.",
+  "residenceSetupSignedInAs": "ⵜⴽⴻⵛⵎⴻⴹ ⵙ",
+  "joinMyResidence": "ⴽⵛⴻⵎ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵜⵉⵡ",
+  "joinMyResidenceDescription": "ⴰⴼⴷ ⵜⴰⵣⴻⴷⵖⴰⵉⵏⴻⴽ ⵙ ⵓⵙⴻⵇⴷⴻⵛ ⵏ ⵍⵇⴰⵏⵓⵏ ⵉ ⴷⵜⴻⵡⵡⵉⴹ.",
+  "createNewResidence": "ⵙⵏⵓⵍⴼⵓⴷ ⵜⴰⵣⴻⴷⵖⴰ ⵜⴰⵎⴰⵢⵏⵓⵜ",
+  "createNewResidenceDescription": "ⵔⵏⵓⴷ ⵜⴰⵣⴻⴷⵖⴰⵉⵏⴻⴽ, ⴱⴷⵓ ⵙ ⵜⵎⴻⵖⵔⴰ ⵏ ⵍⴵⵉⵔⴰⵏⵉⵏⴻⴽ.",
+  "createResidenceFormDescription": "ⵙⵙⴻⴽⵛⴻⵎ ⵉⵙⴰⵍⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴷ ⵢⵉⵙⴰⵍⴰⵏⵉⴽ ⵏ ⵍⵍⵙⴰⵙ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴽⴻⵎⵍⴻⴹ.",
+  "yourInformation": "ⵉⵙⴰⵍⴰⵏⵉⴽ",
+  "createResidence": "ⵙⵏⵓⵍⴼⵓ ⵜⴰⵣⴻⴷⵖⴰ",
+  "joinResidence": "ⴽⵛⴻⵎ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "city": "ⵜⴰⵎⴷⵉⵏⵜ",
+  "cityHint": "ⴰⵎⴻⴷⵢⴰ : Kasablanka",
+  "citySelectHint": "ⴼⵔⴻⵏ ⵜⴰⵎⴷⵉⵏⵜ",
+  "cityPickerTitle": "ⴼⵔⴻⵏ ⵜⴰⵎⴷⵉⵏⵜ",
+  "citySearchLabel": "ⵏⴰⴷⵉ ⵖⴻⴼ ⵜⴻⵎⴷⵉⵏⵜ",
+  "citySearchHint": "ⴰⵔⵓ ⵉⵙⴻⵎ ⵏ ⵜⴻⵎⴷⵉⵏⵜ, ⴰⵎⴻⴷⵢⴰ: Kasablanka",
+  "citySearchPrompt": "ⴱⴷⵓ ⵜⵉⵔⴰ ⵏ ⵢⵉⵙⴻⵎ ⵏ ⵜⴻⵎⴷⵉⵏⵜ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⵡⴰⵍⵉⴹ ⵉⴳⵎⴰⴹ.",
+  "citySearchNoResults": "ⵓⵔ ⵏⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵏⴰⴼ ⵜⴰⵎⴷⵉⵏⵜ ⵢⴻⵙⵄⴰⵏ ⵉⵙⴻⵎ- ⴰⴳⵉ. ⵄⵔⴻⴹ ⵉⵙⴻⵎ ⵏⵏⵉⴹⴻⵏ.",
+  "cityCasablanca": "ⴽⴰⵙⴰⴱⵍⴰⵏⴽⴰ",
+  "cityRabat": "ⵔⴰⴱⴰⵟ",
+  "cityMarrakesh": "ⵎⵔⵔⴰⴽⵉⵛ",
+  "cityTangier": "ⵟⴰⵏⵊⴰ",
+  "cityAgadir": "ⴰⴳⴰⴷⵉⵔ",
+  "cityFes": "ⴼⴰⵙ",
+  "unit": "ⵜⴰⵢⵓⵏⵜ",
+  "unitHint": "ⴰⵎⴻⴷⵢⴰ: Lebni B, ⴰⵅⵅⴰⵎ ⵡⵉⵙ 12",
+  "invitationCode": "ⴰⴽⴰⵔⴰⵎ ⵏ ⵓⵙⵏⴻⴱⴳⵉ",
+  "invitationCodeHint": "ⴰⵎⴻⴷⵢⴰ : 48273165",
+  "createAndContinue": "ⵙⵏⵓⵍⴼⵓ ⵓ ⴽⴻⵎⵎⴻⵍ",
+  "joinAndContinue": "ⵜⵜⴻⴽⴽⵉ ⵓ ⴽⴻⵎⵎⴻⵍ",
+  "residenceAddressHint": "ⴰⵎⴷⵢⴰ : 12 ⴰⵣⵓⴽ ⵏ ⵢⴰⵙⵎⵉⵏ, ⵎⵄⵕⵉⴼ",
+  "countryCode": "ⴰⴽⴰⵔⴰⵎ ⵏ ⵜⵎⵓⵔⵜ",
+  "countryCodePickerTitle": "ⴼⵔⴻⵏ ⴰⴽⴰⵔⴰⵎ ⵏ ⵜⵎⵓⵔⵜ",
+  "countryGroupArab": "ⵜⵉⵎⵓⵔⴰ ⵜⴰⵄⵔⴰⴱⵉⵏ",
+  "countryGroupEurope": "Urupa",
+  "countryGroupNorthAmerica": "ⵜⴰⵎⵔⵉⴽⵜ ⵏ ⵓⴳⴰⴼⴰ",
+  "countryMorocco": "ⵎⴻⵔⵔⵓⴽ",
+  "countryAlgeria": "ⵍⴷⵣⴰⵢⴻⵔ",
+  "countryTunisia": "ⵜⵓⵏⴻⵙ",
+  "countryFrance": "ⴼⵔⴰⵏⵙⴰ",
+  "countrySpain": "ⵙⴱⴰⵏⵢⴰ",
+  "countryUnitedStatesCanada": "ⵉⵡⵓⵏⴰⴽ Yeddukklen ⴷ Kanada",
+  "phoneNumber": "ⵓⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏ",
+  "phoneNumberHint": "ⴰⵎⴷⵢⴰ : 06 12 34 56 78",
+  "localPhoneNumberHint": "ⴰⵎⴷⵢⴰ : 6 12 34 56 78",
+  "firstName": "ⵉⵙⴻⵎ ⴰⵎⴻⵣⵡⴰⵔⵓ",
+  "firstNameHint": "ⵙⴽⵛⵎ ⵉⵙⵎ ⵏⵏⴽ ⴰⵎⵣⵡⴰⵔⵓ",
+  "lastName": "ⵉⵙⴻⵎ ⴰⵏⴻⴳⴳⴰⵔⵓ",
+  "lastNameHint": "ⵙⴽⴻⵛⵎ ⵉⵙⴻⵎ ⵏⵏⴻⴽ ⴰⵏⴻⴳⴳⴰⵔⵓ",
+  "lastNamePrivacyHint": "ⵉⵙⴻⵎⵉⴽ ⴰⵏⴻⴳⴳⴰⵔⵓ ⵓⵔ ⵢⴻⵜⵜⵡⴰⵙⴽⴻⵏ ⴰⵔⴰ ⵉ ⵢⵉⵎⴻⵣⴷⴰⵖ ⵏⵏⵉⴹⴻⵏ.",
+  "joinPhoneDescription": "ⵙⵙⴻⴽⵛⴻⵎ ⵓⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏⵉⴽ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⵡⴰⵍⵉⴹ ⵎⴰ ⵢⴻⵍⵍⴰ ⵢⴻⵇⵇⴻⵏ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "verificationCodeNotice": "ⴰⴷ ⵢⴻⵜⵜⵡⴰⵣⴻⵏ ⵓⴹⵔⵉⵙ ⵏ ⵓⵙⵙⴻⴼⵇⴻⴷ ⵙ ⵓⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏⵉⴽ.",
+  "verificationCode": "ⴰⴽⴰⵔⴰⵎ ⵏ ⵓⵙⴻⴽⵛⴻⵎ",
+  "verificationCodeHint": "ⵙⴽⴻⵛⵎ ⵢⴰⵍ ⴰⴽⴰⵔⴰⵎ ⵉ ⵓⵊⴻⵔⵔⴻⴷ ⵜⵓⵔⴰ",
+  "verify": "ⵙⵙⴻⴽⵏⴻⴹ",
+  "phoneNotRegisteredTitle": "ⵓⵟⵟⵓⵏ ⴰⴷ ⵓⵔ ⵉⵜⵜⵓⵣⵎⵎⴻⵎ ⴳ ⴽⵔⴰ ⵏ ⵜⵣⴷⵓⵖⵜ",
+  "phoneNotRegisteredDescription": "ⵎⴰ ⵢⴻⵍⵍⴰ ⵢⴻⵡⵡⴻⴹⴰⴽⴷ ⵓⵙⵎⴻⵍ ⵏ ⵓⵙⵏⴻⵎⵎⴻⵔ, ⵜⵜⵅⵉⵍⴽ ⵟⵟⴻⴼⵉⵜ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴽⴻⵛⵎⴻⴹ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "joinCodeDescription": "ⵙⵙⴻⴽⵛⴻⵎ ⴰⴽⴰⵔⴰⵎ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⵏⴻⵖ ⵟⵟⴻⴼ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ ⴷⴻⴳ ⵍⵎⵉⴷⴰⴷ ⵏ ⵓⵙⵏⴻⵎⵎⴻⵔ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⵜⴻⵞⵞⴰⵔⴻⴹ ⵙ ⵡⵓⴷⴻⵎ ⴰⵡⵓⵔⵎⴰⵏ.",
+  "searchResidence": "ⴰⴼⴷ ⵜⴰⵣⴻⴷⵖⴰ",
+  "searchingResidence": "ⴰⵏⴰⴷⵉ...",
+  "joinApartmentNumber": "ⵓⵟⵓⵏ ⵏ ⵓⵅⵅⴰⵎ",
+  "joinApartmentHint": "ⴼⵔⴻⵏ ⴰⵅⵅⴰⵎⵉⴽ",
+  "joinApartmentOption": "ⴰⵅⵅⴰⵎ {number} · {building} · {floor}",
+  "@joinApartmentOption": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      },
+      "building": {
+        "type": "String"
+      },
+      "floor": {
+        "type": "String"
+      }
+    }
+  },
+  "joinNoApartments": "ⵓⵔ ⵍⵍⵉⵏ ⴰⵔⴰ ⵢⵉⵅⵅⴰⵎⴻⵏ ⵉ ⴷⵢⴻⵜⵜⵡⴰⴼⴻⵔⵏⴻⵏ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜⴰ. ⵃⴰⴷⴻⵔ ⵉⵎⴹⴻⴱⴱⴻⵔⵉⵙ.",
+  "residenceCodeInvalid": "ⵙⵙⴻⴽⵛⴻⵎ ⴰⴽⴰⵔⴰⵎ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵏ 8 ⵏ ⵢⵉⴹⵔⵉⵙⴻⵏ.",
+  "residenceCodeNotFound": "ⵓⵔ ⵜⴻⵜⵜⵡⴰⴼ ⴰⵔⴰ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵙ ⵓⴽⴰⵔⴰⵎⴰ",
+  "residenceCodeNotFoundDescription": "ⵙⴻⴼⵇⴻⴷ ⴰⴽⴰⵔⴰⵎⵏⵏⵉ ⴰⴽⴽⴻⴷ ⵡⵉⵏ ⵉ ⴽⴷ-ⵉⵛⴻⴳⴳⵄⴻⵏ, ⵙⵢⴻⵏ ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "joinRequestsClosed": "ⴰⵙⵓⵜⴻⵔ ⵏ ⵜⵓⴽⴽⵙⴰ ⵢⴻⵜⵜⵡⴰⵃⴱⴻⵙ ⵜⵓⵔⴰ ⵉ ⵜⵏⴻⵣⴷⵓⵖⵜⴰ.",
+  "sendingJoinRequest": "ⴰⴷ ⵢⴻⴽⵛⴻⵎ...",
+  "joinRequestSent": "ⵜⴽⴻⵛⵎⴻⴹ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "joinRequestSentDescription": "ⴰⵄⴻⴳⴳⴰⵍⵉⴽ ⴷ ⴰⵅⴻⴷⴷⴰⵎ ⵢⴻⵔⵏⴰ ⵜⵣⴻⵎⵔⴻⴹ ⵜⵓⵔⴰ ⴰⴷ ⵜⴽⴻⵛⵎⴻⴹ ⵙ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "creatingResidence": "ⴰⵙⵏⵓⵍⴼⵓ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ...",
+  "setupFieldRequired": "ⵉⵏⴰⵔⴰ ⴷ ⴰⵢⴻⵏ ⵉⵍⴰⵇⴻⵏ.",
+  "setupCompleteRequiredFields": "ⴽⴻⵎⵎⴻⵍ ⴰⴽⴽ ⵉⵃⵔⵉⵛⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⵉⵙⴻⵎ ⴰⵎⴻⵣⵡⴰⵔⵓ, ⴷ ⵢⵉⵙⴻⵎ ⴰⵏⴻⴳⴳⴰⵔⵓ.",
+  "setupCompleteJoinFields": "ⵙⵙⴻⴽⵛⴻⵎ ⵉⵙⴻⵎⵉⴽ ⴰⵎⴻⵣⵡⴰⵔⵓ ⴷ ⵉⵙⴻⵎⵉⴽ ⴰⵏⴻⴳⴳⴰⵔⵓ, ⵙⵢⴻⵏ ⴼⵔⴻⵏ ⵓⵟⵓⵏ ⵏ ⵓⵅⵅⴰⵎⵉⴽ.",
+  "setupUnexpectedError": "ⵓⵔ ⵜⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵜⴽⴻⵎⵎⴻⵍ ⵜⴻⵎⵀⴻⵍⵜⵏⵏⵉ ⵜⵓⵔⴰ ⴽⴰⵏ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "communityFilterPosts": "ⵉⴹⵔⵉⵙⴻⵏ",
+  "communityFilterFinance": "ⵜⴰⴷⵔⵉⵎⵜ",
+  "communityFilterPolls": "ⵉⵙⴻⵙⵜⴰⵏⴻⵏ",
+  "communityComposerPrompt": "ⵎⴰ ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⴻⴱⴹⵓⴹ?",
+  "communityActionFailed": "ⵜⵉⴳⴰⵡⵜ ⵓⵔ ⵜⴻⴽⵎⵉⵍ ⴰⵔⴰ.",
+  "communityLoadFailed": "ⴰⵎⵓⴷ ⵓⵔ ⴷⵢⵓⵍⵉ ⴰⵔⴰ.",
+  "communityPulse": "ⵜⵓⴷⴻⵔⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "communityResidentsStat": "ⵉⵎⴻⵣⴷⴰⵖ",
+  "communityInteractionsThisWeek": "ⵜⵉⵎⵢⴰⵡⵉⵏ ⵏ ⵉⵎⴰⵍⴰⵙⵙⴰ",
+  "communityUpcomingEvents": "ⵜⵉⴷⵢⴰⵏⵉⵏ ⵉ ⴷⵉⵜⴻⴷⴷⵓⵏ",
+  "communityPrivateTitle": "ⵜⴰⵍⵍⵓⵏⵜ ⵜⵓⵙⵍⵉⴳⵜ ⵏ ⵉⵎⴻⵣⴷⴰⵖ",
+  "communityPrivateDescription": "ⵉⵍⵉ ⴷ ⴰⵎⵓⵏⴰⵏ, ⵜⴱⴰⵏⴻⴹ, ⵜⵇⴰⴷⵔⴻⴹ ⵜⴰⴱⴰⴹⵏⵉⵜ ⵏ ⵍⴵⵉⵔⴰⵏⵉⴽ.",
+  "communityEmptyCategory": "ⵓⵍⴰⵛ ⵉⴼⴻⵔⴷⵉⵙⴻⵏ ⴷⴻⴳ ⵜⴰⴳⴳⴰⵢⵜⴰ",
+  "communityShowAll": "ⵡⴰⵍⵉ ⴰⴽⴽ",
+  "communityLike": "ⴰⵙⴻⵎⵀⴻⵙ",
+  "postKindAnnouncement": "ⴰⵍⵖⵓ",
+  "postKindQuestion": "ⴰⵙⴻⵙⵜⴰⵏ",
+  "postKindComplaint": "ⴰⵛⵜⴻⴽⵉ",
+  "postKindSuggestion": "ⴰⵙⵓⵎⴻⵔ",
+  "postKindAlert": "ⴰⵍⵖⵓ",
+  "postKindGeneral": "ⴰⴹⵔⵉⵙ",
+  "postKindPoll": "ⴰⵙⴻⵙⵜⴰⵏ",
+  "postKindEvent": "ⵜⴰⴷⵢⴰⵏⵜ",
+  "deletePost": "ⴽⴽⴻⵙ ⴰⴹⵔⵉⵙ",
+  "deletePostTitle": "ⴽⴽⴻⵙ ⴰⴹⵔⵉⵙ?",
+  "deletePostConfirmation": "ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⴻⴽⴽⵙⴻⴹ ⴰⴹⵔⵉⵙⴰ? ⵓⵔ ⴷⵢⴻⵜⵜⴱⴰⵏ ⴰⵔⴰ ⵉ ⵉⵎⴻⵣⴷⴰⵖ.",
+  "communityApartmentLabel": "ⴰⵅⵅⴰⵎ {number}",
+  "@communityApartmentLabel": {"placeholders": {"number": {"type": "String"}}},
+  "communityRolePresident": "ⴰⵙⴻⵍⵡⴰⵢ",
+  "communityRoleDeputy": "ⴰⵎⴰⵙⵙⴰⴳ",
+  "communityRoleTreasurer": "ⴰⵎⴻⴽⵙⴰ ⵏ ⵜⴻⴷⵔⵉⵎⵜ",
+  "communityRoleModerator": "ⴰⵏⴻⴹⴱⴰⵍ",
+  "communityRoleTeam": "ⵜⴰⵔⴱⴰⵄⵜ ⵏ ⴷⴰⵔⵊⴰⵔ",
+  "communityRoleResident": "ⴰⵎⴻⵣⴷⴰⵖ",
+  "pollVotes": "{count} ⵏ ⵜⴻⴼⵔⴰⵏⵉⵏ",
+  "@pollVotes": {"placeholders": {"count": {"type": "int"}}},
+  "pollVoteRecorded": "ⵜⴰⴼⵔⴰⵏⵜⵉⴽ ⵜⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ",
+  "savePost": "ⵃⵔⴻⵣ",
+  "communityFeedDescription": "ⵜⵉⴳⴰⵡⵜ ⵜⴰⵏⴻⴳⴳⴰⵔⵓⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⵉⴹⵔⵉⵙⴻⵏ, ⴷ ⵢⵉⵙⴰⵍⴰⵏ.",
+  "newPost": "ⴰⴹⵔⵉⵙ ⴰⵎⴰⵢⵏⵓⵜ",
+  "officialAnnouncement": "ⴰⵖⵎⵉⵙ ⵓⵏⵚⵉⴱ",
+  "createPost": "ⵙⵏⵓⵍⴼⵓⴷ ⴰⴹⵔⵉⵙ",
+  "createPostDescription": "ⴱⴹⵓ ⴰⵙⵜⴻⵇⵙⵉ ⵏⴻⵖ ⴰⵙⴻⵏⴼⴰⵔ ⴷ ⵍⴵⵉⵔⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜⵉⴽ.",
+  "postContent": "ⴰⵙⴻⴽⵛⴻⵎ ⵏ ⵓⴳⴱⵓⵔ",
+  "publish": "ⵙⵙⵓⴼⵖⴻⴹ",
+  "cancel": "ⴱⴻⵟⵟⴻⵍ",
+  "directoryPageDescription": "ⵉⵎⴻⵥⵍⴰ ⵉⴷⵉⴳⴰⵏⴻⵏ ⵔⵏⴰⵏⴷ ⵢⴻⵔⵏⴰ ⵜⵜⵡⴰⵄⵙⴻⵄⵙⵉⵏ ⵙⵖⵓⵔ ⵉⵄⴻⴳⴳⴰⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "directorySearchHint": "ⵏⴰⴷⵉ ⵖⴻⴼ ⵢⵉⵡⴻⵏ ⵏ ⵓⵙⴻⵇⴷⴻⵛ...",
+  "addService": "ⵔⵏⵓ ⴰⵙⴻⵇⴷⴻⵛ",
+  "createService": "ⵔⵏⵓ ⴰⵙⴻⵇⴷⴻⵛ ⴰⵎⴰⵢⵏⵓⵜ",
+  "editService": "ⴱⴻⴷⴷⴻⵍ ⴰⵙⴻⵇⴷⴻⵛ",
+  "editServiceDescription": "ⵙⵙⵏⴻⴼⵍⵉ ⵉⵙⴰⵍⴰⵏ ⵏ ⵓⵙⴻⵇⴷⴻⵛ ⵉ ⴷⵜⴻⵔⵏⵉⴹ.",
+  "createServiceDescription": "ⵔⵏⵓ ⵜⵉⴼⵢⴰⵔ ⵏ ⵓⵎⵙⴻⴼⵔⴰⴽ ⴰⴽⴽⴻⵏ ⵉⵄⴻⴳⴳⴰⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴰⴷ ⴷⴰⴼⴻⵏ ⴰⵙⴻⵇⴷⴻⵛ.",
+  "serviceName": "ⵉⵙⴻⵎ ⵏ ⵓⵎⵙⴻⴼⵔⴰⴽ ⵏ ⵓⵙⴻⵇⴷⴻⵛ",
+  "serviceNameHint": "ⴰⵎⴻⴷⵢⴰ : ⵎⵓⵀⴰⵎⴻⴷ ⵜⵔⵉⵙⵉⵜⵉ ⵏⴻⵖ ⵜⴰⴽⴻⴱⴱⴰⵏⵉⵜ ⵏ ⴰⵍ ⴰⵎⴰⵏ",
+  "serviceCategory": "ⵜⴰⴳⴳⴰⵢⵜ ⵜⴰⵎⴻⵣⵡⴰⵔⵓⵜ",
+  "selectServiceCategory": "ⴼⵔⴻⵏ ⵜⴰⴳⴳⴰⵢⵜ ⵜⴰⴳⴻⵏⵙⵉⵜ",
+  "serviceSubcategory": "ⵚⵚⴻⵏⴼ ⵏ ⵓⵙⴻⵇⴷⴻⵛ",
+  "selectServiceSubcategory": "ⴼⵔⴻⵏ ⵚⵚⴻⵏⴼ ⵏ ⵓⵙⴻⵇⴷⴻⵛ",
+  "selectServiceTypesHint": "ⵜⵣⴻⵎⵔⴻⴹ ⴰⴷ ⵜⴼⴻⵔⵏⴻⴹ ⵓⴳⴰⵔ ⵏ ⵢⵉⵡⴻⵏ ⵏ ⵚⵚⴻⵏⴼ ⵏ ⵓⵙⴻⵇⴷⴻⵛ.",
+  "selectServiceCategoryFirst": "ⴼⵔⴻⵏ ⵜⴰⴳⴳⴰⵢⵜ ⵜⴰⵖⴻⵍⵏⴰⵡⵜ ⴷ ⵜⴰⵎⴻⵣⵡⴰⵔⵓⵜ.",
+  "serviceDescription": "ⴰⵙⴻⴼⵀⴻⵎ ⵏ ⵓⵙⴻⵇⴷⴻⵛ (ⴷ ⴰⴼⴻⵔⴷⵉⵙ)",
+  "serviceDescriptionHint": "ⵙⴻⴳⵣⵉⴷ ⵜⴰⵣⵔⴰⵡⵜ ⴷ ⵢⵉⵡⴻⵥⵍⴰ ⵢⴻⵜⵜⵓⵏⴻⴼⴽⴻⵏ",
+  "servicePhone": "ⵓⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏ ⵏ ⵓⵙⴻⵇⴷⴻⵛ",
+  "serviceNeighborhood": "ⵜⴰⵖⵉⵡⴰⵏⵜ ⵏⴻⵖ ⵜⴰⵎⵏⴰⴹⵜ ⵏ ⵓⵙⴻⵇⴷⴻⵛ",
+  "serviceNeighborhoodOptional": "ⵜⴰⵖⵉⵡⴰⵏⵜ ⵏⴻⵖ ⵜⴰⵎⵏⴰⴹⵜ ⵏ ⵓⵙⴻⵇⴷⴻⵛ (ⴷ ⴰⴼⴻⵔⴷⵉⵙ)",
+  "serviceNeighborhoodHint": "ⴰⵎⴷⵢⴰ: ⵎⴰⵔⵉⴼ",
+  "saveService": "ⵔⵏⵓ ⴰⵙⴻⵇⴷⴻⵛ",
+  "updateService": "ⵃⵔⴻⵣ ⵉⴱⴻⴷⴷⴰⵍⴻⵏ",
+  "savingService": "ⵔⵏⵓ ⴰⵙⴻⵇⴷⴻⵛ...",
+  "updatingService": "ⴰⵙⴻⴳⴳⴻⵎ ⵏ ⵉⴱⴻⴷⴷⴰⵍⴻⵏ...",
+  "completeServiceFields": "ⴽⴻⵎⵎⴻⵍ ⵉⵙⴰⵍⴰⵏ ⵏ ⵓⵙⵎⴻⵍ ⵉ ⵉⵍⴰⵇⴻⵏ ⵓ ⵙⵙⴻⴽⵛⴻⵎ ⵓⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏ ⵉⵡⵓⵍⵎⴻⵏ.",
+  "serviceCreated": "ⴰⵙⴻⵇⴷⴻⵛ ⵢⴻⵔⵏⴰⴷ ⵙ ⵔⵔⴱⴻⵃ.",
+  "serviceUpdated": "ⴰⵙⴻⵇⴷⴻⵛ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⴼⵍⵉ ⵙ ⵔⵔⴱⴻⵃ.",
+  "serviceUpdateFailed": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵙⵏⴻⴼⵍⵉ ⴰⵙⴻⵇⴷⴻⵛ. ⵜⵜⵅⵉⵍⴽ ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "serviceCreateFailed": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵔⵏⵓ ⴰⵙⴻⵇⴷⴻⵛ. ⵙⴻⴼⵇⴻⴷ ⵜⵉⴼⵢⴰⵔ ⵓ ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "noServicesYet": "ⵓⵔ ⵜⵜⵡⴰⵔⵏⵓⵏ ⴰⵔⴰ ⵢⵉⵡⴻⵥⵍⴰ ⴰⵔ ⴰⵙⵙⴰ. ⵜⵉⵍⵉⴹ ⴷ ⴰⵎⴻⵣⵡⴰⵔⵓ ⴰⵔⴰ ⵢⴻⵔⵏⵓⵏ ⴰⵙⴻⵍⴽⵉⵎ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⵏ ⵉ ⵍⴵⵉⵔⴰⵏ.",
+  "recommendedServicesEmptyHint": "ⵉⵅⴻⴷⴷⵉⵎⴻⵏ ⵉ ⴷⵙⵙⵓⵎⵔⴻⵏ ⴰⵟⴰⵙ ⵍⴵⵉⵔⴰⵏⵉⴽ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴰⴷ ⴷⴱⴰⵏⴻⵏ ⴷⴰⴳⵉ ⴷⴻⴼⴼⵉⵔ ⵎⴰ ⴱⴹⴰⵏ ⵜⵉⵣⴻⵎⵎⴰⵔⵏⵙⴻⵏ.",
+  "topServicesEmptyHint": "ⵉⵅⴻⴷⴷⵉⵎⴻⵏ ⵢⴻⵜⵜⵡⴰⵄⴻⵔⴹⴻⵏ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵉⵏ ⵢⴻⵔⵏⴰ ⵜⵜⵡⴰⵄⴰⵡⵏⴻⵏ ⵙ ⵍⴻⵡⵚⴰⵢⴰⵜ ⴰⴷ ⴷⴱⴰⵏⴻⵏ ⴷⴰⴳⵉ.",
+  "callFailed": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⴱⴷⵓ ⵓⵙⵉⵡⴻⵍ ⵏ ⵜⵉⵍⵉⴼⵓⵏ ⴷⴻⴳ ⵜⵎⴻⵥⴷⵉⵜⴰ.",
+  "nearby": "ⵇⵔⵉⴱ",
+  "craftspeople": "ⵉⵏⴰⵥⵓⵔⴻⵏ",
+  "restaurants": "ⵉⵔⴻⵛⵟⵓⵃⴻⵏ",
+  "cafes": "ⵍⵇⴰⵀⵡⴰ",
+  "pharmacies": "ⵜⵉⴼⴰⵔⵎⴰⵙⵉⵢⵉⵏ",
+  "nearbyFacilities": "ⵜⵜⴰⵡⵉⵍⴰⵜ",
+  "recommendedByNeighbors": "ⵜⵜⵡⴰⵄⵙⴻⵄⵙⵉⵏ ⵙⵖⵓⵔ ⵍⴵⵉⵔⴰⵏⵉⴽ",
+  "topRatedCraftspeople": "ⴰⵟⴰⵙ ⵏ ⵢⵉⵅⴻⴷⴷⴰⵎⴻⵏ ⵏ ⵓⴼⵓⵙ ⵢⴻⵜⵜⵡⴰⵙⵙⵓⵎⵔⴻⵏ",
+  "exploreNearby": "ⵏⴰⴷⵉ ⵇⵔⵉⴱⵉⴽ",
+  "topRatedServices": "ⴰⵟⴰⵙ ⵏ ⵉⵎⴻⵥⵍⴰ ⵢⴻⵜⵜⵡⴰⵙⵙⵓⵎⵔⴻⵏ",
+  "exploreOtherServices": "ⵏⴰⴷⵉ ⵉⵎⴻⵥⵍⴰ ⵏⵏⵉⴹⴻⵏ",
+  "viewAll": "ⵡⴰⵍⵉ ⴰⴽⴽ",
+  "recommended": "ⵢⴻⵜⵜⵡⴰⵙⵙⵓⵎⵎⴻⵍ",
+  "recommendedFromResidence": "ⵜⵜⵡⴰⵄⵙⴻⵄⵙⵉⵏ ⵙⵖⵓⵔ ⵉⵎⴻⵣⴷⴰⵖ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵏ Yasmeen",
+  "searchResults": "ⵉⴳⵎⴰⴹ ⵏ ⵓⵏⴰⴷⵉ",
+  "noDirectoryResults": "ⵓⵍⴰⵛ ⵉⴳⵎⴰⴷ ⵢⴻⵜⵜⴻⵎⵛⴰⴱⵉⵏ. ⵄⵔⴻⴹ ⴰⵡⴰⵍ ⵏⴻⵖ ⵜⴰⴳⴳⴰⵢⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "localRecommendations": "{count} ⵉⵡⴻⵍⵍⵉⵀⴻⵏ ⵙⴻⴳ ⵍⴵⵉⵔⴰⵏⵉⴽ",
+  "@localRecommendations": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "directoryProfileNotFound": "ⵓⵔ ⵢⴻⵜⵜⵡⴰⴼ ⴰⵔⴰ ⵓⴼⴻⵔⴷⵉⵙ ⵏ ⵓⴹⵔⵉⵙ.",
+  "recommendationScore": "ⵉⵙⵡⵉ ⵏ ⵜⴻⴼⵍⴻⵙⵜ",
+  "recommendations": "ⵉⵙⵓⵎⴰⵔ",
+  "fromYourResidence": "ⵙⴻⴳ ⵜⴻⵣⴷⵓⵖⵜⵉⴽ",
+  "call": "ⵙⵙⵉⵡⴻⵍ",
+  "recommend": "ⵙⵙⵓⵎⴻⵔ",
+  "workedInResidences": "ⵜⵉⵣⴻⵖⵡⴰ ⵜⵜⵡⴰⵇⴻⴷⴷⵛⴻⵏⵜ ⵣⵉⴽ",
+  "recentReviews": "ⴰⵙⴽⴰⵣⴰⵍ ⴰⵏⴻⴳⴳⴰⵔⵓ",
+  "noReviewsYet": "ⵓⵍⴰⵛ ⴰⵙⴽⴰⵣⴰⵍ ⵢⴻⵜⵜⵡⴰⵔⵓⵏ ⴰⵔ ⵜⵓⵔⴰ.",
+  "cityProfileTrustNotice": "ⵡⴰⴷ ⵢⵉⵡⴻⵏ ⵏ ⵓⴼⴻⵔⴷⵉⵙ ⵏ ⵜⴻⵎⴷⵉⵏⵜ ⵢⴻⵜⵜⵡⴰⵙⵇⴻⴷⵛⴻⵏ. ⴷⴰⵔⵊⴰⵔ ⵢⴻⵙⵙⴽⴰⵏⴰⵢⴷ ⵍⴻⵡⵚⴰⵢⴰⵜ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜⵉⴽ ⴷⴻⴳ ⵡⴰⴽⵓⴷ ⴰⵢⴷⴻⴳ ⵢⴻⵜⵜⵃⴰⴷⴰⵔ ⴰⵅⴻⴷⴷⵉⵎ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⵏ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵉⵏ ⵏⵉⴹⴻⵏ.",
+  "recommendEntry": "ⵙⵙⵓⵜⴻⵔⴷ {name}",
+  "@recommendEntry": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recommendationPrompt": "ⴱⴹⵓ ⵜⴰⵊⵎⵉⵍⵜⵉⴽ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⵄⵉⵡⵏⴻⴹ ⵍⴵⵉⵔⴰⵏ ⴰⴷ ⵅⴻⴷⵎⴻⵏ ⴰⴼⵔⴰⵏ ⵙ ⵍⴰⵎⴰⵏ.",
+  "recommendationHint": "ⴷ ⴰⵛⵓ ⵉ ⴷⵢⴻⴼⴼⵖⴻⵏ ⴷⴻⴳ ⵓⵙⵎⴻⵍⵏⵏⵉ?",
+  "publishRecommendation": "ⵙⵙⵓⴼⵖⴻⴹ ⴰⵙⵓⵎⴻⵔ",
+  "recommendationPublished": "ⵜⴰⵏⴻⵎⵎⵉⵔⵜ. ⴰⵙⵙⵎⴻⵔⵙⵉⵉⵏⴻⴽ ⵉⴱⴰⵏⴷ ⵜⵓⵔⴰ ⵉ ⵍⴵⵉⵔⴰⵏ.",
+  "recommendationPublishFailed": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵜⴻⵜⵜⵡⴰⵣⴻⵏ ⵜⵓⵍⵖⴰ.",
+  "residencePageDescription": "ⴽⵓⵍⵛⵉ ⵉⵛⵓⴷⴷⴻⵏ ⵖⴻⵔ ⵜⵎⴻⵀⵍⴰ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴷⴻⴳ ⵢⵉⵡⴻⵏ ⵏ ⵓⵎⴽⴰⵏ.",
+  "myAccount": "ⴰⵎⵉⴹⴰⵏ ⵉⵏⵓ",
+  "residenceFinances": "ⵜⴰⴷⵔⵉⵎⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "residenceFinancesDescription": "ⵜⴰⵎⵓⵖⵍⵉ ⵉⴱⴰⵏⴻⵏ ⵖⴻⴼ ⵜⴻⴷⵔⵉⵎⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⵏ ⵜⵎⴻⵚⴽⵉⵡⵜ, ⴷ ⵡⴰⵎⴻⴽ ⴰⵔⴰ ⵢⴻⵜⵜⵡⴰⵙⴻⵇⴷⴻⵛ ⵜⴻⴷⵔⵉⵎⵜ ⵢⴻⵜⵜⵡⴰⵙⵇⴻⴷⵛⴻⵏ.",
+  "totalIncome": "ⴰⵙⴻⴽⵛⴻⵎ ⵏ ⵓⵙⴻⴳⴳⴰⵙⴰ",
+  "totalExpenses": "ⵜⵉⵎⴻⵔⵏⵉⵡⵉⵏ ⵏ ⵓⵙⴻⴳⴳⴰⵙⴰ",
+  "currentBalance": "ⵍⵎⵉⵣⴰⵏ ⵏ ⵜⵓⵔⴰ",
+  "collectionRate": "ⴰⵣⴰⵍ ⵏ ⵓⵊⵎⴰⵄ",
+  "expenseBreakdown": "ⴰⴱⵔⴻⵣ ⵏ ⵜⵎⴻⵚⴽⵉⵡⵜ",
+  "recentExpenses": "ⵜⵉⵎⴻⵔⵏⵉⵡⵉⵏ ⵜⵉⵏⴻⴳⴳⵓⵔⴰ",
+  "viewAllTransactions": "ⵡⴰⵍⵉ ⴰⴽⴽ ⵜⵉⵎⵍⵉⵍⵉⵢⵉⵏ",
+  "financeTransactions": "ⵜⵉⵎⵍⵉⵍⵉⵢⵉⵏ ⵜⵉⴷⵔⵉⵎⴰⵏⵉⵏ",
+  "financeTransactionsDescription": "ⴰⴹⵔⵉⵙ ⵏ ⵜⴼⴻⵍⵡⵉⵜ ⵏ ⵜⴼⴰⴷⴰ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴷ ⵜⴼⴰⴷⴰ ⵏ ⵜⴰⵍⵍⵉⵜ ⵢⴻⵜⵜⵡⴰⴼⴻⵔⵏⴻⵏ.",
+  "selectPeriod": "ⴼⵔⴻⵏ ⴰⵣⴰⵍ ⵏ ⵓⵣⴻⵎⵣ",
+  "periodFromTo": "ⵙⴻⴳ {start} ⴰⵔ {end}",
+  "@periodFromTo": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "income": "ⵜⴰⴷⵔⵉⵎⵜ",
+  "expense": "ⴰⵚⴻⵔⵔⴻⴼ",
+  "periodIncome": "ⵜⴰⴷⵔⵉⵎⵜ ⵏ ⵜⴰⵍⵍⵉⵜ",
+  "periodExpenses": "ⵜⵉⵎⴻⵔⵏⵉⵡⵉⵏ ⵏ ⵜⴰⵍⵍⵉⵜ",
+  "noTransactionsInPeriod": "ⵓⵍⴰⵛ ⵜⵎⵓⵖⵍⵉⵡⵉⵏ ⴷⴻⴳ ⵜⴰⵍⵍⵉⵜ ⵢⴻⵜⵜⵡⴰⴼⴻⵔⵏⴻⵏ.",
+  "viewFinanceDetails": "ⵡⴰⵍⵉ ⵜⵉⴼⵢⴰⵔ ⵏ ⵜⴻⴷⵔⵉⵎⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "currency": "MAD",
+  "supportingDocument": "ⴰⵙⴻⵇⵇⴰⵎⵓ",
+  "noSupportingDocument": "ⵓⵍⴰⵛ ⴰⴹⵔⵉⵙ ⵢⴻⵜⵜⵡⴰⵇⵇⵏⴻⵏ",
+  "attachSupportingDocument": "ⵇⵇⴻⵏ ⴰⴹⵔⵉⵙ (ⴷ ⴰⴼⴻⵔⴷⵉⵙ)",
+  "attachmentHint": "ⵃⴰⴷⴻⵔ ⵜⴰⴼⴰⴽⵜⵓⵔⵜ, ⴰⵇⴻⴱⴱⴻⵍ, ⵏⴻⵖ ⴽⵔⴰ ⵏ ⵍⴽⴰⵖⴻⴹ ⴰⵔⴰ ⵉⵄⵉⵡⵏⴻⵏ ⵜⴰⵎⵓⵖⵍⵉⴰ.",
+  "replaceAttachment": "ⴱⴻⴷⴷⴻⵍ ⴰⵙⴻⵇⵇⴰⵎⵓ",
+  "attachmentInvalid": "ⴰⴼⴰⵢⵍⵓ ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⵇⵇⴻⵏ. ⴼⵔⴻⵏ PDF ⵏⴻⵖ ⵜⵓⴳⵏⴰ ⴰⵍⴰⵎⵎⴰ ⴷ 15 MB.",
+  "viewAttachment": "ⵡⴰⵍⵉ ⴰⵏⴻⵛⵜ",
+  "expenseCategoryMaintenance": "ⴰⵙⴻⴳⴳⴻⵎ ⴷ ⵓⵙⴻⴳⴳⴻⵎ",
+  "expenseCategoryUtilities": "ⴰⵎⴰⵏ ⴷ ⵜⵔⵉⵙⵉⵜⵉ",
+  "expenseCategoryCleaning": "ⴰⵙⵉⵣⴷⴻⴳ",
+  "expenseCategorySecurity": "ⵜⴰⵖⴻⵍⵍⵉⵙⵜ",
+  "expenseCategoryCustom": "ⴰⵚⴻⵔⵔⴻⴼ ⵏ ⵓⵎⴻⵚⵔⵓⴼ",
+  "financeManagement": "ⵜⴰⴷⴱⴻⵍⵜ ⵏ ⵜⴻⴷⵔⵉⵎⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "financeManagementDescription": "ⵙⵙⴻⴽⵍⴻⵙ ⵉⴷⵔⵉⵎⴻⵏ ⴷ ⵜⵎⴻⵚⴽⵉⵡⵜ ⵏⵏⵉⴹⴻⵏ, ⵓ ⵙⵇⴻⴷⵛⴻⴹ ⵉⴷⵔⵉⵎⴻⵏ ⵏ ⵓⵄⴻⴷⴷⵉ ⵉ ⴷⵢⴻⵔⵏⴰⵏ ⵙ ⵡⵓⴷⴻⵎ ⴰⵡⵓⵔⵎⴰⵏ.",
+  "manageFinanceDescription": "ⵙⵙⴻⴽⵍⴻⵙ ⵍⴼⴰⵢⴷⴰ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴷ ⵜⵎⴻⵚⴽⵉⵡⵜ ⵢⴻⵔⵏⴰ ⴹⴻⴼⴼⴻⵔ ⵍⵎⵉⵣⴰⵏⵉⵙ.",
+  "addFinancialTransaction": "ⵔⵏⵓ ⵜⴰⵎⵓⵖⵍⵉ",
+  "addIncome": "ⵔⵏⵓ ⵜⴰⴷⵔⵉⵎⵜ ⵏⵏⵉⴹⴻⵏ",
+  "addExpense": "ⵔⵏⵓ ⴰⵅⴻⴷⴷⵉⵎ",
+  "transactionType": "ⵚⵚⴻⵏⴼ ⵏ ⵓⵎⵓⵖⵍⵉ",
+  "transactionName": "ⵉⵙⴻⵎ ⵏ ⵜⴰⵎⵓⵖⵍⵉ",
+  "transactionAmount": "ⴰⵣⴰⵍ",
+  "transactionDate": "ⴰⵣⴻⵎⵣ ⵏ ⵓⵎⴰⵡⴰⵍ",
+  "transactionNote": "ⵜⴰⵎⴰⵡⵜ ⵏ ⵓⴼⵔⴰⵏ",
+  "expenseCategory": "ⵜⴰⴳⴳⴰⵢⵜ ⵏ ⵜⵎⴻⵚⴽⵉⵡⵜ",
+  "saveTransaction": "ⵃⵔⴻⵣ ⵜⴰⵎⵓⵖⵍⵉ",
+  "financeTransactionSaved": "ⵜⴰⵎⵓⵖⵍⵉ ⵜⴰⴷⵔⵉⵎⴰⵏⵜ ⵜⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ.",
+  "financeTransactionUpdated": "ⵜⴰⵎⵓⵖⵍⵉ ⵜⴰⴷⵔⵉⵎⴰⵏⵜ ⵜⴻⵜⵜⵡⴰⵙⵏⴻⴼⵍⵉ.",
+  "financeTransactionDeleted": "ⵜⴰⵎⵓⵖⵍⵉ ⵜⴰⴷⵔⵉⵎⴰⵏⵜ ⵜⴻⵜⵜⵡⴰⴽⴽⴻⵙ.",
+  "financeInvalidData": "ⵙⵙⴻⴽⵛⴻⵎ ⵉⵙⴻⵎ ⴷ ⵙⵙⵓⵎⴰ ⵉⵡⴰⵜⴰⵏ, ⵓ ⴼⵔⴻⵏ ⵜⴰⴳⴳⴰⵢⵜ ⵏ ⵜⵎⴻⵚⴽⵉⵡⵜ ⵎⵉ ⴰⵔⴰ ⵜⴻⵃⵡⴰⴵⴻⴹ.",
+  "financeLoadError": "ⵓⵔ ⵣⵎⵉⵔⴻⵏ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⵛⴰⵔⴳⴻⵏ ⵢⵉⵙⴻⴼⴽⴰ ⵏ ⵜⴻⴷⵔⵉⵎⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "noFinancialTransactions": "ⵓⵔ ⵜⵜⵡⴰⵙⴻⴽⴽⵔⴻⵏⵜ ⴰⵔⴰ ⵜⵎⵓⵖⵍⵉⵡⵉⵏ ⵜⵉⴷⵔⵉⵎⴰⵏⵉⵏ.",
+  "noExpensesRecorded": "ⵓⵔ ⵜⵜⵡⴰⵙⴻⴽⴽⵔⴻⵏ ⴰⵔⴰ ⵢⵉⴷⵔⵉⵎⴻⵏ ⴰⵙⴻⴳⴳⴰⵙⴰ.",
+  "manualTransaction": "ⵜⴰⵎⵓⵖⵍⵉ ⵙ ⵓⴼⵓⵙ",
+  "duesIncome": "ⵉⴷⵔⵉⵎⴻⵏ ⵏ ⵓⵄⴻⴷⴷⵉ",
+  "duesIncomeForApartment": "ⴰⵖⵎⵉⵙ ⵏ ⵓⵅⵅⴰⵎ {apartment} ⵉ {period}",
+  "@duesIncomeForApartment": {
+    "placeholders": {
+      "apartment": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "duesIncomeForApartmentRange": "ⴰⵖⵎⵉⵙ ⵏ ⵓⵅⵅⴰⵎ {apartment} ⵙⴻⴳ {start} ⴰⵔ {end}",
+  "@duesIncomeForApartmentRange": {
+    "placeholders": {
+      "apartment": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "editFinancialTransaction": "ⴱⴻⴷⴷⴻⵍ ⵜⴰⵎⵓⵖⵍⵉ ⵜⴰⴷⵔⵉⵎⴰⵏⵜ",
+  "deleteFinancialTransaction": "ⴽⴽⴻⵙ ⵜⴰⵎⵓⵖⵍⵉ ⵜⴰⴷⵔⵉⵎⴰⵏⵜ",
+  "confirmDeleteFinancialTransaction": "ⴽⴽⴻⵙ “{name}”? ⵜⵉⴳⴰⵡⵜⴰ ⵓⵔ ⵜⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵜⴻⵜⵜⵡⴰⴽⴽⴻⵙ.",
+  "@confirmDeleteFinancialTransaction": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "financeTrackingNotice": "ⴷⴰⵔⵊⴰⵔ ⵢⴻⵜⵜⴹⴰⴼⴰⵔ ⴽⴰⵏ ⵉⴷⵔⵉⵎⴻⵏ ⵢⴻⵔⵏⴰ ⵓⵔ ⵢⴻⵜⵜⵇⴰⴷⴰⵔ ⴰⵔⴰ ⵏⴻⵖ ⵓⵔ ⵢⴻⵜⵜⵇⴰⴷⴰⵔ ⴰⵔⴰ ⵍⴻⵅⵍⴰⵚ.",
+  "financeAutomaticDuesNotice": "ⵜⵉⵅⵍⴰⵚⵉⵏ ⵏ ⵓⵄⴻⴷⴷⵉ ⵜⵜⵡⴰⵔⵏⵓⵏⵜ ⵙ ⵡⵓⴷⴻⵎ ⴰⵡⵓⵔⵎⴰⵏ ⵙⴻⴳ ⵜⵎⴻⵀⵍⴰ ⵏ ⵜⴻⴷⵔⵉⵎⵜ ⵢⴻⵔⵏⴰ ⵓⵔ ⵣⵎⵉⵔⴻⵏⵜ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⴱⴻⴷⴷⵍⴻⵏⵜ ⴷⴰⴳⵉ.",
+  "openingBalanceMissingTitle": "ⵓⵔ ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵛⴻⵎ ⴰⵔⴰ ⵍⵎⵉⵣⴰⵏ ⵏ ⵓⵍⴷⵉ.",
+  "openingBalanceMissingDescription": "ⵙⵙⴻⴽⵛⴻⵎ ⵉⴷⵔⵉⵎⴻⵏ ⵉ ⵜⴻⵟⵟⴻⴼ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴰⵙⵎⵉ ⵢⴻⴱⴷⴰ ⵓⴹⴼⴰⵔ ⵏ DarJar ⴰⴽⴽⴻⵏ ⴰⴷ ⵢⵉⵍⵉ ⵍⵎⵉⵣⴰⵏ ⵏ ⵜⵓⵔⴰ ⴷ ⴰⵃⴻⵇⵇⵉ.",
+  "enterOpeningBalance": "ⵙⴽⴻⵛⵎ ⵍⵎⵉⵣⴰⵏ ⵏ ⵓⵍⴷⵉ",
+  "openingBalance": "ⵍⵎⵉⵣⴰⵏ ⵏ ⵓⵍⴷⵉ",
+  "openingBalanceDescription": "ⴰⵙⴻⵏⴼⴰⵔⴰ ⵏ ⵓⵍⴷⵉ ⵢⴻⵜⵜⴰⴹⵙⴰ ⵖⴻⴼ ⵍⵎⵉⵣⴰⵏ ⵏ ⵡⴰⵙⵙⴰ ⵎⴰⵛⴰ ⵓⵔ ⵢⴻⵜⵜⵡⴰⵃⵙⴻⴱ ⴰⵔⴰ ⴷ ⴰⵢⴻⵏ ⴰⵢ ⴷⵉⴽⴻⵞⵞⵎⴻⵏ.",
+  "openingBalanceAmount": "ⵉⴷⵔⵉⵎⴻⵏ ⴷⴻⴳ ⵓⴼⵓⵙ",
+  "openingBalanceDate": "ⴰⵣⴻⵎⵣ ⵏ ⵍⵎⵉⵣⴰⵏ",
+  "openingBalanceZeroHint": "ⵙⵙⴻⴽⵛⴻⵎ zero ⵎⴰ ⵢⴻⵍⵍⴰ ⵜⴰⵣⴻⴷⵖⴰ ⵓⵔ ⵜⴻⵙⵄⵉ ⴰⵔⴰ ⵍⵎⵉⵣⴰⵏ ⵓⵇⴱⴻⵍ.",
+  "saveOpeningBalance": "ⵃⵔⴻⵣ ⵍⵎⵉⵣⴰⵏ ⵏ ⵓⵍⴷⵉ",
+  "openingBalanceSaved": "ⵍⵎⵉⵣⴰⵏ ⵏ ⵓⵍⴷⵉ ⵢⴻⵜⵜⵡⴰⵙⴻⵍⵍⴻⴽ.",
+  "deleteOpeningBalance": "ⴽⴽⴻⵙ ⵍⵎⵉⵣⴰⵏ ⵏ ⵓⵍⴷⵉ",
+  "confirmDeleteOpeningBalance": "ⴽⴽⴻⵙ ⵍⵎⵉⵣⴰⵏ ⵏ ⵓⵍⴷⵉ? ⴰⴷ ⵢⴻⵜⵜⵡⴰⵄⵔⴻⴹ ⵍⵎⵉⵣⴰⵏ ⵏ ⵜⵓⵔⴰ, ⵢⴻⵔⵏⴰ ⵜⵉⴳⴰⵡⵜⴰ ⵓⵔ ⵜⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵜⴻⵜⵜⵡⴰⴽⴽⴻⵙ.",
+  "openingBalanceDeleted": "ⵍⵎⵉⵣⴰⵏ ⵏ ⵓⵍⴷⵉ ⵢⴻⵜⵜⵡⴰⵙⴼⴻⴹ.",
+  "openingSettlement": "ⴰⵙⴻⴳⴳⴻⵎ ⵏ ⵓⵍⴷⵉ",
+  "duesStatus": "ⴰⴷⴻⴳ ⵏ ⵍⴻⵅⵚⴰⵚ",
+  "duesDescription": "ⴰⵙⴻⴽⵛⴻⵎ ⵏ ⵢⵉⴹⵔⵉⵙⴻⵏ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⴼⵍⵉⵏ ⵙ ⵓⴼⵓⵙ.",
+  "managementInformation": "ⵉⵙⴰⵍⵍⴻⵏ ⵏ ⵜⴻⴷⴱⴻⵍⵜ",
+  "managementSettingsDescription": "ⵜⵉⴼⵢⴰⵔ ⵏ ⵓⵃⵔⵉⵛ ⵏ ⵜⴻⴷⴱⴻⵍⵜ ⴷ ⵍⵃⵉⵙⴰⴱ ⵏ ⵍⴱⴰⵏⴽⴰ.",
+  "managementDescription": "ⵉⵙⴰⵍⴰⵏ ⵏ ⵓⵙⵉⵡⴻⴹ ⴷ ⵓⵙⵉⵡⴻⴹ ⵏ ⵜⴱⴰⵏⴽⴰ.",
+  "documents": "ⵉⴹⵔⵉⵙⴻⵏ",
+  "documentsDescription": "ⵉⴹⵔⵉⵙⴻⵏ ⵏ ⵜⴻⴷⴱⴻⵍⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "documentsPageDescription": "ⵉⴹⵔⵉⵙⴻⵏ ⵏ ⵜⴻⴷⴱⴻⵍⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "administrativeDocuments": "ⵉⴹⵔⵉⵙⴻⵏ ⵏ ⵜⴻⴷⴱⴻⵍⵜ",
+  "administrativeDocumentsDescription": "ⵉⴹⵔⵉⵙⴻⵏ ⵓⵏⵚⵉⴱⴻⵏ ⵢⴻⵜⵜⵡⴰⵙⴱⴻⴷⴷⴻⵏ ⵙⵖⵓⵔ ⵜⵎⴻⵀⵍⴰ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "viewAllDocuments": "ⵡⴰⵍⵉ ⴰⴽⴽ ⵉⴹⵔⵉⵙⴻⵏ",
+  "noDocuments": "ⵓⵔ ⵔⵏⴰⵏ ⴰⵔⴰ ⵉⴽⴰⵔⴰⵎⴻⵏ ⵉ ⵜⵏⴻⵣⴷⵓⵖⵜⴰ ⴰⵔ ⴰⵙⵙⴰ.",
+  "documentsLoadError": "ⵓⵔ ⵣⵎⵉⵔⴻⵏ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⵛⴰⵔⴳⴻⵏ ⵢⵉⴹⵔⵉⵙⴻⵏ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "pdfDocument": "PDF",
+  "imageDocument": "ⵜⵓⴳⵏⴰ",
+  "documentOpenError": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵍⴷⵉ ⵓⴷⵍⵉⵙⴰ.",
+  "downloadDocument": "ⵙⵙⴻⴷⵔⴻⵎ ⴰⴽⴰⵔⴰⵎ",
+  "documentDownloaded": "ⵢⴻⵜⵜⵡⴰⴹⴻⴳⴳⴻⵔⴷ ⵓⴷⵍⵉⵙⵏⵏⵉ.",
+  "documentDownloadError": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⴹⴻⴳⴳⴻⵔ ⵓⴹⵔⵉⵙⵏⵏⵉ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "documentsManagement": "ⵜⴰⴷⴱⴻⵍⵜ ⵏ ⵢⵉⴹⵔⵉⵙⴻⵏ",
+  "documentsManagementDescription": "ⵙⵙⵉⵡⴻⴹⴷ ⵉⴹⵔⵉⵙⴻⵏ ⵓⵏⵚⵉⴱⴻⵏ ⵓ ⵙⴱⴻⴷⴷ ⵉⵣⵡⴻⵍⵏⵙⴻⵏ ⵏⴻⵖ ⵙⴼⴻⴹⵉⵜⴻⵏ.",
+  "documentsUploadNotice": "ⵉⴹⵔⵉⵙⴻⵏ ⵜⵜⴱⴰⵏⴻⵏⴷ ⵉ ⵡⴰⴽⴽ ⵉⵎⴻⵣⴷⴰⵖ ⵉⵇⴻⴷⴷⵛⴻⵏ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜⴰ. ⵜⵉⵡⵙⵉⵡⵉⵏ ⵢⴻⵜⵜⵡⴰⵇⴱⴰⵍ ⴷ PDF, JPEG, PNG, ⴷ WebP, ⴰⵍⴰⵎⵎⴰ ⴷ 15 MB.",
+  "documentsPermissionDenied": "ⵓⵔ ⵜⴻⵙⵄⵉⴹ ⴰⵔⴰ ⵜⵜⴻⵙⵔⵉⵃ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴻⵙⵙⴻⵍⵃⵓⴹ ⵉⴽⴰⵔⴰⵎⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜⴰ.",
+  "uploadDocument": "ⵛⴰⵔⵔⴻⴷ ⴰⴽⴰⵔⴰⵎ",
+  "documentUploading": "ⴰⵙⴻⴽⵛⴻⵎ ⵏ ⵓⴷⵍⵉⵙ...",
+  "documentUploadInProgress": "ⴰⵙⴻⴽⵛⴻⵎ ⵏ “{title}”",
+  "@documentUploadInProgress": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "documentUploadProgress": "{percentage}% ⵢⴻⵜⵜⵡⴰⵛⴻⴳⴳⴻⵄ",
+  "@documentUploadProgress": {
+    "placeholders": {
+      "percentage": {
+        "type": "int"
+      }
+    }
+  },
+  "documentTitle": "ⴰⵣⵡⴻⵍ ⵏ ⵓⴷⵍⵉⵙ",
+  "selectDocumentFile": "ⴼⵔⴻⵏ ⵜⵓⴳⵏⴰ ⵏⴻⵖ PDF",
+  "documentFormRequired": "ⵙⵙⴻⴽⵛⴻⵎ ⴰⵣⵡⴻⵍ ⵓ ⴼⵔⴻⵏ ⴰⴼⴰⵢⵍⵓ.",
+  "documentTooLarge": "ⵓⵔ ⵉⵍⴰⵇ ⴰⵔⴰ ⴰⴷ ⵢⴻⵣⴳⴻⵔ 15 MB ⵏ ⵓⴷⵍⵉⵙ.",
+  "documentUnsupportedType": "ⵚⵚⴻⵏⴼ ⵓⵔ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⴼⵍⵉⵏ ⴰⵔⴰ. ⵙⴻⴼⵔⴻⴽ ⴰⴼⴰⵢⵍⵓ PDF, JPEG, PNG ⵏⴻⵖ WebP.",
+  "documentUploaded": "ⴰⴹⵔⵉⵙ ⵢⴻⵜⵜⵡⴰⵛⴰⵔⵔⴻⴳ ⵙ ⵔⵔⴱⴻⵃ.",
+  "documentUploadError": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⵙⴱⴻⴷⴷ ⵓⴷⵍⵉⵙⵏⵏⵉ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "editDocument": "ⴱⴻⴷⴷⴻⵍ ⴰⴹⵔⵉⵙ",
+  "documentUpdated": "ⴰⵣⵡⴻⵍ ⵏ ⵓⴷⵍⵉⵙ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⴼⵍⵉ.",
+  "documentUpdateError": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⴼⵍⵉ ⵓⴷⵍⵉⵙⵏⵏⵉ.",
+  "deleteDocument": "ⴽⴽⴻⵙ ⴰⴹⵔⵉⵙ",
+  "confirmDeleteDocument": "ⴽⴽⴻⵙ “{title}”? ⵜⵉⴳⴰⵡⵜⴰ ⵓⵔ ⵜⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵜⴻⵜⵜⵡⴰⴽⴽⴻⵙ.",
+  "@confirmDeleteDocument": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "documentDeleted": "ⵢⴻⵜⵜⵡⴰⴽⴽⴻⵙ ⵓⴷⵍⵉⵙ.",
+  "documentDeleteError": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⴽⴽⴻⵙ ⵓⴷⵍⵉⵙⵏⵏⵉ.",
+  "duesPageDescription": "ⵜⴰⵎⵓⵖⵍⵉ ⵙ ⵜⵖⴰⵡⵍⴰ ⵏ ⵜⴻⴷⵔⵉⵎⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵉ ⴷⵜⴻⵙⵙⴻⴽⵍⴻⵙ ⵜⵎⴻⵀⵍⴰ.",
+  "manualDuesNotice": "ⴷⴰⵔⵊⴰⵔ ⵓⵔ ⵉⵊⴻⵎⵄ ⴰⵔⴰ ⵉⴷⵔⵉⵎⴻⵏ. ⴰⵅⴻⵍⵍⴻⵚ ⵢⴻⵜⵜⵉⵍⵉⴷ ⴱⴻⵔⵔⴰ ⵏ ⵜⴻⵙⴳⵉⵍⵜ ⵢⴻⵔⵏⴰ ⵜⴰⵏⴻⵎⵀⴰⵍⵜ ⵜⴻⵙⵙⴻⵎⵔⴰⵙ ⴰⵃⵔⵉⵛ ⵙ ⵓⴼⵓⵙ.",
+  "duesManagement": "ⵜⴰⴷⴱⴻⵍⵜ ⵏ ⵜⴻⴷⵔⵉⵎⵜ",
+  "duesManagementDescription": "ⵙⵏⵓⵍⴼⵓⴷ ⵍⵎⵉⵣⴰⵏ ⵏ ⵓⵅⵅⴰⵎ ⵏ ⵢⴰⵍ ⴰⴳⵓⵔ ⵓ ⵙⵙⴻⴽⵍⴻⵙ ⵍⴻⵅⵍⴰⵚ ⵙ ⵓⴼⵓⵙ.",
+  "duesCurrentMonth": "ⵜⵉⵡⵙⵉⵡⵉⵏ ⵏ ⵡⴰⵢⵢⵓⵔⴰ",
+  "duesGeneratedNotice": "ⴰⵢⵢⵓⵔⴻⵏ ⵉⵅⵓⵚⵚⴻⵏ ⵜⵜⵡⴰⵅⴻⵍⵇⴻⵏ ⵙ ⵡⵓⴷⴻⵎ ⴰⵡⵓⵔⵎⴰⵏ ⵙ ⵍⵇⵉⴷⴰⵔ ⵏ ⵓⵄⴻⴷⴷⵉ ⵏ ⵜⵓⵔⴰ, ⵎⴰ ⴷ ⴰⵢⵢⵓⵔⴻⵏ ⵢⴻⵜⵜⵡⴰⵅⴻⵍⵚⴻⵏ ⵓⵇⴱⴻⵍ ⵜⵜⵃⴻⵔⵔⵉⴼⴻⵏ ⵙ ⵍⵇⵉⴷⴰⵔⵏⵏⵉ ⴽⴰⵏ.",
+  "duesApartmentsSummary": "ⴰⴳⵣⵓⵎ ⵏ ⵓⵄⴻⴷⴷⵉ ⵏ ⵓⵅⵅⴰⵎ",
+  "duesOutstandingPeriods": "ⴰⵢⵢⵓⵔⴻⵏ ⵓⵔ ⵢⴻⵜⵜⵡⴰⵅⴻⵍⵍⴻⵚ ⴰⵔⴰ: {count}",
+  "@duesOutstandingPeriods": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duesShareReminderAction": "ⴱⴹⵓ ⴰⵏⴻⴳⴳⴰⵔⵓ",
+  "duesShareReminderTitle": "ⴱⴹⵓ ⴰⵖⵜⴰⵙ ⵢⴻⵄⴹⵉⵍⴻⵏ",
+  "duesShareReminderDescription": "ⴰⵙⴻⵏⵇⴻⴷ ⵢⴻⵔⵏⴰ ⵙⴱⴻⴷⴷ ⴰⵖⵜⴰⵙ ⵏ ⵜⴻⴷⴱⴻⵍⵜ ⵓⵇⴱⴻⵍ ⴰⴷ ⵜⵜⴻⴱⴹⵓⴹ ⴷⴻⴳ WhatsApp.",
+  "duesShareReminderMessageLabel": "ⵉⵣⴻⵏ ⵏ ⵓⵙⵎⴻⴽⵜⵉ",
+  "duesShareReminderPeriodsSeparator": ",",
+  "duesShareReminderMessage": "🏢 *{residence}*\n*ⴰⵖⵜⴰⵙ ⵏ ⵜⴻⴷⵔⵉⵎⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵉⵄⴻⵟⵟⵍⴻⵏ*\n───────────\n\n*ⴰⵅⵅⴰⵎ:* {apartment}\n*ⵜⴰⵍⵍⵉⵜ ⵢⴻⵙⵄⴰⵏ ⴰⵣⴰⵍ:* {periods}\n*ⴰⵣⴰⵍ ⵉ ⴷⵢⴻⵇⵇⵉⵎⴻⵏ:* {amount} {currency}\n*ⴰⵣⴻⵎⵣ ⵏ ⵓⵖⵎⵉⵙ:* {noticeDate}\n\nⵉⵍⴰⵇ ⴰⴷ ⵜⵃⴻⵇⵇⴻⴹ ⴱⴻⵍⵍⵉ ⵍⵎⵉⵣⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵉ ⴷⵢⴻⵜⵜⵡⴰⵙⴱⴻⴳⵏⴻⵏ ⵙⴷⴰⵜⴰ ⵎⴰⵣⴰⵍⵉⵜⴻⵏ ⵜⵜⵡⴰⵙⴻⴽⴽⵔⴻⵏⴷ ⴷ ⵡⵉⴷ ⵓⵔ ⵢⴻⵜⵜⵡⴰⵅⴻⵍⵚⴻⵏ ⴰⵔⴰ. ⵃⴰⴷⴻⵔ ⵉⵎⴰⵏⵉⴽ ⵙⵖⵓⵔ ⵜⵎⴻⵀⵍⴰ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴻⵙⵙⴻⴼⵔⵓⴹ ⵍⵎⵉⵣⴰⵏ, ⵏⴻⵖ ⵉⵏⵉⴰⵙⴻⵏ ⵎⴰ ⵢⴻⵍⵍⴰ ⵢⴻⵅⴷⴻⵎ ⵢⴰⴽⴰⵏ ⵓⵅⴻⵍⵍⴻⵚ.\n\nⵙ ⵙⵙⵍⴰⵎ,\n*Tadbelt {residence}*\n\n_ⴰⵖⵜⴰⵙ ⵏ ⵜⴻⴷⴱⴻⵍⵜ ⵢⴻⵜⵜⵡⴰⵀⴻⴳⴳⴰⵏ ⵙ ⵓⵙⴻⵇⴷⴻⵛ ⵏ ⵜⴻⵙⴳⵉⵍⵜ ⵏ Darjar._",
+  "@duesShareReminderMessage": {
+    "placeholders": {
+      "residence": {
+        "type": "String"
+      },
+      "apartment": {
+        "type": "String"
+      },
+      "periods": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      },
+      "noticeDate": {
+        "type": "String"
+      }
+    }
+  },
+  "duesAllPeriodsPaid": "ⴰⵢⵢⵓⵔⴻⵏ ⴰⴽⴽ ⵜⵜⵡⴰⵅⴻⵍⵚⴻⵏ",
+  "duesPeriodDetailsFor": "ⵜⵜⴼⴰⵚⵉⵍ ⵏ ⵓⵄⴻⴷⴷⵉ ⵉ ⵓⵅⵅⴰⵎ {number}",
+  "@duesPeriodDetailsFor": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "duesSelectApartment": "ⴼⵔⴻⵏ ⴰⵅⵅⴰⵎ",
+  "duesSelectApartmentError": "ⴼⵔⴻⵏ ⵢⵉⵡⴻⵏ ⵏ ⵓⵅⵅⴰⵎ ⴷ ⴰⵎⴻⵣⵡⴰⵔⵓ.",
+  "duesPaymentDistribution": "ⴰⴷ ⵢⴻⵜⵜⵡⴰⵅⴷⴻⵎ ⵙⵙⵓⵎⴰⵏⵏⵉ ⵙ ⵡⵓⴷⴻⵎ ⴰⵡⵓⵔⵎⴰⵏ ⵉ ⵡⴰⵢⵢⵓⵔⴻⵏ ⵉⵇⴱⵓⵔⴻⵏ ⵓⵔ ⵏⴻⵜⵜⵡⴰⵅⴻⵍⵍⴻⵚ ⴰⵔⴰ ⴷ ⴰⵎⴻⵣⵡⴰⵔⵓ.",
+  "duesAdvancePaymentHint": "ⴷⴻⴼⴼⵉⵔ ⵎⴰ ⵜⴼⴻⵀⵎⴻⴹ ⴰⴽⴽ ⵉⴷⵔⵉⵎⴻⵏ, ⴰⵢⵢⵓⵔⴻⵏ ⵉ ⴷⵉⵜⴻⴷⴷⵓⵏ ⵉⴽⴻⵎⵍⴻⵏ ⵣⴻⵎⵔⴻⵏ ⴰⴷ ⵜⵜⵡⴰⵅⴻⵍⵚⴻⵏ ⵙ {amount} MAD ⴷⴻⴳ ⵡⴰⵢⵢⵓⵔ.",
+  "@duesAdvancePaymentHint": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "duesNoApartment": "ⴰⵎⵉⴹⴰⵏⵉⴽ ⵓⵔ ⵢⴻⵜⵜⵡⴰⵇⵇⴻⵏ ⴰⵔⴰ ⵖⴻⵔ ⵢⵉⵡⴻⵏ ⵏ ⵓⵅⵅⴰⵎ. ⵃⴰⴷⴻⵔ ⵉ ⵜⵎⴻⵀⵍⴰ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "duesNoRecords": "ⵓⵔ ⵜⵜⵡⴰⵙⴻⴽⴽⵔⴻⵏ ⴰⵔⴰ ⵢⵉⴷⵔⵉⵎⴻⵏ ⵉ ⵓⵅⵅⴰⵎⴰ ⴰⵔ ⴰⵙⵙⴰ.",
+  "duesNoApartments": "ⵔⵏⵓ ⵉⵅⵅⴰⵎⴻⵏ ⴷ ⴰⵎⴻⵣⵡⴰⵔⵓ ⴰⴽⴽⴻⵏ ⴰⴷ ⴷⵜⴻⵙⵏⵓⵍⴼⵓⴹ ⵉⴷⵔⵉⵎⴻⵏ ⵏ ⵡⴰⵢⵢⵓⵔ.",
+  "duesApartment": "ⴰⵅⵅⴰⵎ {number}",
+  "@duesApartment": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "duesPeriod": "{period} ⵍⴻⵡⵚⴰⵢⴰⵜ",
+  "@duesPeriod": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "duesExpected": "ⵙⵙⵓⵎⴰ ⵢⴻⵜⵜⵡⴰⵕⴵⴰⵏ",
+  "duesCollected": "ⵙⵙⵓⵎⴰ ⵢⴻⵜⵜⵡⴰⵊⴻⵎⵄⴻⵏ",
+  "duesRemaining": "ⵙⵙⵓⵎⴰ ⵉ ⴷⵢⴻⵇⵇⵉⵎⴻⵏ",
+  "duesDebitBalance": "ⵍⵎⵉⵣⴰⵏ ⵏ ⵜⴻⴷⵔⵉⵎⵜ",
+  "duesCreditBalance": "ⵍⵎⵉⵣⴰⵏ ⵏ ⵓⵔⴹⴰⵍ",
+  "duesPrepaidMonths": "ⴰⵢⵢⵓⵔⴻⵏ ⵢⴻⵜⵜⵡⴰⵅⴻⵍⵚⴻⵏ ⵓⵇⴱⴻⵍ",
+  "duesAmountDue": "ⵙⵙⵓⵎⴰ ⵉ ⵉⵍⴰⵇⴻⵏ",
+  "duesAmountPaid": "ⵙⵙⵓⵎⴰ ⵢⴻⵜⵜⵡⴰⵅⴻⵍⵚⴻⵏ",
+  "duesPaymentHistory": "ⴰⵎⴻⵣⵔⵓⵢ ⵏ ⵓⵅⴻⵍⵍⴻⵚ",
+  "showMore": "ⵙⴽⴻⵏⴷ ⵓⴳⴰⵔ",
+  "duesNoPayments": "ⵓⵔ ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ ⴰⵔⴰ ⵓⵅⴻⵍⵍⴻⵚ ⴰⵔ ⴰⵙⵙⴰ.",
+  "duesStatusUnpaid": "ⵓⵔ ⵢⴻⵜⵜⵡⴰⵅⴻⵍⵍⴻⵚ",
+  "duesStatusPartial": "ⵢⴻⵜⵜⵡⴰⵅⴻⵍⵍⴻⵚ ⴰⵎⵓⵔ",
+  "duesStatusPaid": "ⵢⴻⵜⵜⵡⴰⵅⴻⵍⵍⴻⵚ",
+  "duesRecordPayment": "ⴰⵙⴻⴽⵍⴻⵙ ⵏ ⵓⵅⴻⵍⵍⴻⵚ",
+  "duesRecordPaymentFor": "ⴰⵙⴻⴽⵍⴻⵙ ⵏ ⵓⵅⴻⵍⵍⴻⵚ ⵉ ⵓⵅⵅⴰⵎ {number}",
+  "@duesRecordPaymentFor": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "duesPaymentAmount": "ⵙⵙⵓⵎⴰ ⵢⴻⵜⵜⵡⴰⵅⴻⵍⵚⴻⵏ",
+  "duesPaymentDate": "ⴰⵣⴻⵎⵣ ⵏ ⵓⵅⴻⵍⵍⴻⵚ",
+  "duesPaymentNote": "ⵜⴰⵎⴰⵡⵜ ⵏ ⵓⴼⵔⴰⵏ",
+  "duesSavePayment": "ⵃⵔⴻⵣ ⴰⵅⴻⵍⵍⴻⵚ",
+  "duesPaymentSaved": "ⴰⵅⴻⵍⵍⴻⵚ ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ ⵙ ⵔⵔⴱⴻⵃ.",
+  "duesDeletePayment": "ⴽⴽⴻⵙ ⵍⴻⵅⵍⴰⵚ",
+  "duesConfirmDeletePayment": "ⴽⴽⴻⵙ {amount} MAD ⵏ ⵓⵅⴻⵍⵍⴻⵚ ⵏ ⵓⵅⵅⴰⵎ {number}? ⴰⵎⴻⵣⵔⵓⵢ ⵏ ⵓⵄⴻⴷⴷⵉ ⴰⴷ ⵢⴻⵜⵜⵡⴰⵄⵔⴻⴹ ⵢⴻⵔⵏⴰ ⴰⵢⴰ ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⵄⵔⴻⴹ.",
+  "@duesConfirmDeletePayment": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "duesPaymentDeleted": "ⵢⴻⵜⵜⵡⴰⴽⴽⴻⵙ ⵓⵅⴻⵍⵍⴻⵚ ⵢⴻⵔⵏⴰ ⵜⵜⵡⴰⵄⴻⵔⴹⴻⵏ ⵢⵉⵄⴻⴳⴳⴰⵍⴻⵏ.",
+  "duesPaymentDeleteError": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⴽⴽⴻⵙ ⵓⵅⴻⵍⵍⴻⵚ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "duesInvalidPayment": "ⵙⵙⴻⴽⵛⴻⵎ ⴰⵣⴰⵍ ⵉⵡⵓⵍⵎⴻⵏ. ⵢⴰⵍ ⴰⵃⵔⵉⵛ ⵏ ⵜⵎⴻⵣⵡⴰⵔⵓⵜ ⵢⴻⵙⵙⴻⴼⴽ ⴰⴷ ⵢⵉⵍⵉ ⴷ ⵢⵉⵡⴻⵏ ⵏⴻⵖ ⴰⵟⴰⵙ ⵏ ⵢⵉⵄⴻⴳⴳⴰⵍⴻⵏ ⵏ ⵡⴰⵢⵢⵓⵔ ⵉⴽⴻⵎⵍⴻⵏ.",
+  "duesLoadError": "ⵓⵔ ⵣⵎⵉⵔⴻⵏ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⵛⴰⵔⴳⴻⵏ ⵢⵉⵙⴻⴼⴽⴰ ⵏ Dues. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "duesRecordedOn": "ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ ⴷⴻⴳ {date}",
+  "@duesRecordedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "managementPageDescription": "ⵉⴼⴻⵔⴷⵉⵙⴻⵏ ⵏ ⵜⴻⴷⴱⴻⵍⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴷ ⵜⵜⴰⵡⵉⵍⴰⵜ ⵏ ⵓⵙⵉⵡⴰⴹ ⵢⴻⵍⵍⴰⵏ.",
+  "residenceBuildingCount": "ⵉⴱⴻⵏⵏⴰⵏ",
+  "residenceApartmentCount": "ⵉⵅⵅⴰⵎⴻⵏ",
+  "residenceConstructionYear": "ⴰⵙⴻⴳⴳⴰⵙ ⵏ ⵍⴻⴱⵏⵉ",
+  "residenceResidents": "ⵉⵎⴻⵣⴷⴰⵖ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "residenceResidentsDescription": "ⵎⵍⴰⵍ ⴷ ⵍⴵⵉⵔⴰⵏⵉⴽ, ⵥⴻⵔ ⴰⵏⴷⴰ ⵜⵜⵖⵉⵎⵉⵏ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "residenceResidentsCount": "ⵉⵎⴻⵣⴷⴰⵖ: {count}",
+  "@residenceResidentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "residenceNoResidents": "ⵓⵔ ⵜⵜⵡⴰⵙⴻⴽⴽⵔⴻⵏ ⴰⵔⴰ ⵢⵉⵎⴻⵣⴷⴰⵖⴻⵏ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜⴰ ⴰⵔ ⴰⵙⵙⴰ.",
+  "residenceResidentsLoadError": "ⵉⵎⴻⵣⴷⴰⵖ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵓⵔ ⵣⵎⵉⵔⴻⵏ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⵛⴰⵔⴽⴻⵏ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "residentApartment": "ⴰⵅⵅⴰⵎ {number}",
+  "@residentApartment": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "managementCompany": "ⵜⵓⴷⴷⵙⴰ ⵏ ⵜⴻⴷⴱⴻⵍⵜ",
+  "phone": "ⵜⵉⵍⵉⴼⵓⵏ",
+  "officeHours": "ⵙⵡⴰⵢⴻⵄ ⵏ ⵓⵅⴻⴷⴷⵉⵎ",
+  "bankInformation": "ⵉⵙⴰⵍⵍⴻⵏ ⵏ ⵓⵙⵉⵡⴻⴹ ⵏ ⵜⴱⴰⵏⴽⴰ",
+  "bank": "ⵜⴰⴱⴰⵏⴽⴰ",
+  "bankName": "ⵉⵙⴻⵎ ⵏ ⵍⴱⴰⵏⴽⴰ",
+  "bankAccount": "ⵓⵟⵓⵏ ⵏ ⵓⵎⵉⴹⴰⵏ",
+  "externalTransferNotice": "ⴰⵙⵉⵡⴻⴹ ⵢⴻⵜⵜⵉⵍⵉⴷ ⴱⴻⵔⵔⴰ ⵏ DarJar. ⴰⵙⴻⵏⴼⴰⵔ ⵓⵔ ⵢⴻⵜⵜⴽⴻⵎⵎⵉⵍ ⴰⵔⴰ ⵍⴻⵅⵍⴰⵚ.",
+  "profile": "ⴰⴳⴱⵓⵔ",
+  "profileResidences": "ⵜⵉⵣⴻⵖⵡⴰ",
+  "profileNoResidences": "ⵓⵍⴰⵛ ⵜⵉⵣⴻⵖⵡⴰ ⵉⵛⵓⴷⴷⴻⵏ ⵙ ⵍⵃⵉⵙⴰⴱⴰ.",
+  "profileApartmentNumber": "ⴰⵅⵅⴰⵎ {number}",
+  "@profileApartmentNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "profileApartmentNotAssigned": "ⴰⵅⵅⴰⵎ ⵎⴰⵣⴰⵍ ⵓⵔ ⵢⴻⵜⵜⵓⵏⴻⴼⴽ ⴰⵔⴰ",
+  "profileNameRequired": "ⵙⵙⴻⴽⵛⴻⵎ ⵉⵙⴻⵎⵉⴽ ⴰⵎⴻⵣⵡⴰⵔⵓ ⴷ ⵉⵙⴻⵎⵉⴽ ⴰⵏⴻⴳⴳⴰⵔⵓ.",
+  "profileSaved": "ⵉⵙⴰⵍⴰⵏ ⵏ ⵓⵎⵉⴹⴰⵏ ⵜⵜⵡⴰⵃⴻⵔⵣⴻⵏ.",
+  "profileSaving": "ⴰⵙⴻⴳⴳⴻⵎ...",
+  "signOut": "ⴼⴼⴻⵖ",
+  "signOutConfirmationTitle": "ⴼⴼⴻⵖ?",
+  "signOutConfirmationDescription": "ⴰⴷ ⵜⴻⵃⵡⴰⴵⴻⴹ ⴰⴷ ⵜⴽⴻⵛⵎⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴽⴻⵛⵎⴻⴹ ⵙ ⵍⵃⵉⵙⴰⴱⵉⴽ ⴷ ⵜⵏⴻⵣⴷⵓⵖⵉⵏⵉⴽ.",
+  "signingOut": "ⵜⵓⴼⴼⵖⴰ...",
+  "signOutFailed": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⴼⴼⴻⵖ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "resetResidence": "ⵙⴱⴻⴷⴷ ⵜⴰⵣⴻⴷⵖⴰ",
+  "resetResidenceDescription": "ⵔⴻⵙ ⵜⴰⵣⴻⴷⵖⵜ ⵖⴻⵔ ⵜⴻⴳⵏⵉⵜⵉⵙ ⵜⴰⵎⴻⵣⵡⴰⵔⵓⵜ",
+  "resetResidenceConfirmationTitle": "ⵔⴻⵙⴻⵜ ⵜⴰⵣⴻⴷⵖⴰ?",
+  "resetResidenceConfirmationDescription": "ⴰⴷ ⵜⵜⵡⴰⴽⴽⵙⴻⵏ ⵢⵉⵎⴻⵣⴷⴰⵖⴻⵏ, ⵉⵅⵅⴰⵎⴻⵏ, ⵉⴷⵔⵉⵎⴻⵏ, ⵜⵎⵓⵖⵍⵉⵡⵉⵏ, ⴷ ⵢⵉⴹⵔⵉⵙⴻⵏ, ⵢⴻⵔⵏⴰ ⴰⴽⴽ ⵉⴹⵔⵉⵙⴻⵏ ⴰⴷ ⵜⵜⵡⴰⵃⴻⵔⵣⴻⵏ. ⵜⵉⴳⴰⵡⵜⴰ ⵓⵔ ⵜⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵜⴻⵜⵜⵡⴰⴽⴽⴻⵙ.",
+  "resetResidenceSendCode": "ⴰⵣⴻⵏ ⴰⴽⴰⵔⴰⵎ ⵏ ⵓⵙⴻⴱⵜⴻⵔ",
+  "resetResidenceCodeTitle": "ⵙⵙⴻⴽⵏⴻⴹ ⵓⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏⵉⴽ",
+  "resetResidenceCodeDescription": "ⵏⴻⵙⵙⴻⵏⵣⴷ ⴰⴽⴰⵔⴰⵎ ⵏ SMS ⵖⴻⵔ ⵓⵟⵓⵏⵉⴽ. ⵙⵙⴻⴽⵛⴻⵎⵉⵜ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴻⵙⵙⴻⴽⵏⴻⴹ ⴰⵙⴻⵏⵇⴻⵙ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "resetResidenceCodeHint": "ⴰⴽⴰⵔⴰⵎ ⵏ ⵓⵙⴻⴱⵜⴻⵔ",
+  "resetResidenceConfirm": "ⵙⵙⴻⴽⵏⴻⴹ ⵓ ⵙⴱⴻⴷⴷⴷ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ",
+  "resetResidenceSendingCode": "ⴰⵛⴻⴳⴳⴻⵄ ⵏ ⵓⴽⴰⵔⴰⵎ...",
+  "resetResidenceInProgress": "ⴰⵄⵉⵡⴻⴷ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ...",
+  "resetResidenceSuccess": "ⵜⴰⵣⴻⴷⵖⴰⵏⵏⵉ ⵜⵓⵖⴰⵍⴷ ⵖⴻⵔ ⵜⴻⴳⵏⵉⵜⵉⵙ ⵜⴰⵎⴻⵣⵡⴰⵔⵓⵜ.",
+  "resetResidenceFailed": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵔⵔ ⵜⴰⵣⴻⴷⵖⴰ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "resetResidenceInvalidCode": "ⴰⴽⴰⵔⴰⵎ ⵏ ⵓⵙⵏⴻⴼⵍⵉ ⵓⵔ ⵢⴻⵍⵍⵉ ⴰⵔⴰ ⴷ ⴰⵢⴻⵏ ⵢⴻⵍⵀⴰⵏ.",
+  "privacyPolicy": "ⵜⴰⵙⴻⵔⵜⵉⵜ ⵏ ⵜⵓⴼⴼⵔⴰ",
+  "aboutApp": "ⵖⴻⴼ ⵓⵙⵏⴰⵙ",
+  "aboutAppDescription": "ⵜⴰⵖⴻⵔⵖⴻⵔⵜ ⵜⴰⵍⵉⴽⵟⵔⵓⵏⴰⵏⵜ ⵉ ⵢⴻⵜⵜⵄⴰⵡⴰⵏⴻⵏ ⵍⴵⵉⵔⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴰⴷ ⵇⵇⵏⴻⵏ ⵢⴻⵔⵏⴰ ⴰⴷ ⴹⴻⴼⵔⴻⵏ ⵜⵉⵎⵙⴰⵍ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵢⴻⵜⵜⵡⴰⵙⵇⴻⴷⵛⴻⵏ.",
+  "appVersion": "ⵜⴰⵍⵖⴰ",
+  "appRevision": "ⴰⵄⵉⵡⴻⴷ",
+  "appPublisher": "ⴰⵎⵥⴻⵕⵕⵉⴳ",
+  "appCopyright": "ⴰⴽⴽ ⵉⵣⴻⵔⴼⴰⵏ ⵜⵜⵡⴰⵃⴻⵔⵣⴻⵏ © 2026 Raqmain®",
+  "notAvailable": "ⵓⵔ ⵢⴻⵍⵍⵉ ⴰⵔⴰ",
+  "privacyPolicyIntroduction": "ⵔⴰⵇⵎⴰⵉⵏ ⵢⴻⵜⵜⵇⴰⴷⴰⵔ ⵍⴱⴰⴹⵏⴰⵉⵏⴻⴽ. ⵜⴰⵙⴻⵔⵜⵉⵜⴰ ⵜⴻⵙⵙⴻⴼⵀⴰⵎ ⴰⵎⴻⴽ ⴰⵔⴰ ⴷⵢⴻⵙⴷⵓⴽⴽⴻⵍ, ⴰⴷ ⵢⴻⵙⵙⴻⵇⴷⴰⵛ, ⵢⴻⵔⵏⴰ ⴰⴷ ⵢⴻⵜⵜⵃⴰⴷⴰⵔ ⵓⵙⴻⵇⴷⴻⵛ ⵏ DarJar ⵉⵙⴻⴼⴽⴰⵉⵏⴻⴽ ⵎⵉ ⴰⵔⴰ ⵜⴻⵙⵇⴻⴷⵛⴻⴹ ⵉⵣⴻⵔⴼⴰⵏⵉⵙ.",
+  "privacyPolicyLastUpdated": "ⴰⵏⴻⴳⴳⴰⵔⵓ ⵏ ⵓⵙⴻⵖⵣⴻⴼ: 9 ⵖⵓⵛⵜ, 2026",
+  "privacyPolicyDataTitle": "ⵉⵙⴻⴼⴽⴰ ⴰⵢ ⴷⵏⴻⵙⵙⴻⵎⵔⴰⵙ",
+  "privacyPolicyDataBody": "ⵏⴻⵣⵎⴻⵔ ⴰⴷ ⵏⴻⵙⵙⴻⵎⵍⵉⵍ ⵉⵙⴰⵍⴰⵏ ⵏ ⵓⵃⵔⵉⵛ ⴰⵎ ⵉⵙⴻⵎⵉⴽ, ⵓⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏ, ⴷ ⵜⴼⴻⵍⵡⵉⵜ ⵏ ⵜⴼⴻⵍⵡⵉⵜ; ⵜⵏⴻⵣⴷⵓⵖⵜ, ⴰⵅⵅⴰⵎ, ⴷ ⵜⵖⴰⵡⵙⵉⵡⵉⵏ ⵏ ⵜⵖⵉⵡⴰⵏⵜ; ⴰⴳⴱⵓⵔ ⵉ ⵜⵏⴻⵔⵏⵉⴹ ⴰⵎ ⵢⵉⴹⵔⵉⵙⴻⵏ, ⵉⴹⵔⵉⵙⴻⵏ, ⴷ ⵜⵎⵓⵖⵍⵉⵡⵉⵏ ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ ⵙ ⵓⴼⵓⵙ; ⴰⴽⴽⴻⴷ ⵢⵉⵙⴻⴼⴽⴰ ⵉⵜⵡⵉⵍⴰⵏⴻⵏ ⵉⵍⴰⵇⴻⵏ ⵉ ⵓⵙⴻⵇⴷⴻⵛ ⵏ ⵜⴻⵙⴳⵉⵍⵜ, ⴰⵙⴻⵏⵇⴻⴷ ⵏ ⵜⵓⵛⵛⴹⵉⵡⵉⵏ, ⴷ ⵓⵙⵉⵡⴻⴹ ⵏ ⵢⵉⵙⴰⵍⴰⵏ. ⴷⴰⵔⵊⴰⵔ ⵓⵔ ⵢⴻⵜⵜⴰⵟⵟⴰⴼ ⴰⵔⴰ ⵉⴷⵔⵉⵎⴻⵏⵉⴽ ⵏⴻⵖ ⵓⵔ ⵢⴻⵜⵜⵇⴰⴷⴰⵔ ⴰⵔⴰ ⵍⴻⵅⵍⴰⵚⴰⵜ.",
+  "privacyPolicyUseTitle": "ⴰⵎⴻⴽ ⴰⵔⴰ ⵏⴻⵙⵙⴻⵅⴷⴻⵎ ⵉⵙⴻⴼⴽⴰ",
+  "privacyPolicyUseBody": "ⵏⴻⵙⵙⴻⵇⴷⴰⵛ ⵉⵙⴻⴼⴽⴰ ⴰⴽⴽⴻⵏ ⴰⴷ ⴷⵏⴻⵙⵏⵓⵍⴼⵓ ⵢⴻⵔⵏⴰ ⴰⴷ ⵏⴻⵙⵙⴻⴽⵛⴻⵎ ⴰⵎⵉⴹⴰⵏⵉⴽ, ⴰⴷ ⴽⵏⴻⵙⵙⴻⵎⵍⵉⵍ ⵙ ⵜⵏⴻⵣⴷⵓⵖⵜⵉⴽ, ⴰⴷ ⴷⵏⴻⴼⴽ ⵜⵉⵣⴻⵎⵎⴰⵔ ⵏ ⵜⴻⵖⵡⴰⵍⵜ ⴷ ⵜⵎⴻⵀⵍⴰ, ⴰⴷ ⴷⵏⴻⵙⵙⴽⴻⵏ ⵉⵙⴰⵍⴰⵏ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⴼⵍⴻⵏ ⵉ ⵢⵉⵄⴻⴳⴳⴰⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⴰⴷ ⵏⴰⵣⵏⴻⵖ ⵜⵉⵖⵔⵉⵡⵉⵏ, ⴰⴷ ⵏⵃⴰⵔⴻⴱ ⵖⴻⴼ ⵓⵙⴻⵇⴷⴻⵛ ⵢⴻⵔⵏⴰ ⴰⴷ ⵏⵃⴰⵔⴻⴱ ⵖⴻⴼ ⵓⵙⵇⴻⵔⴷⴻⵛ ⵏ ⵜⵖⴰⵡⵙⵉⵡⵉⵏ ⵓⵔ ⵏⴻⵍⵍⵉ ⴰⵔⴰ ⴷ ⵜⵉⴷⴻⵜ, ⵢⴻⵔⵏⴰ ⴰⴷ ⵏⴻⵙⵙⴻⵎⵖⴻⵔ ⴰⵅⴻⴷⴷⵉⵎ ⴷ ⵜⵎⵓⵙⵙⵏⵉ ⵏ ⵓⵙⴻⵇⴷⴻⵛ.",
+  "privacyPolicySharingTitle": "ⴰⴱⴹⵉ ⵏ ⵉⵙⴻⴼⴽⴰ",
+  "privacyPolicySharingBody": "ⵉⵙⴰⵍⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵜⵜⵡⴰⴱⴹⴰⵏ ⴽⴰⵏ ⴷ ⵉⵄⴻⴳⴳⴰⵍⴻⵏ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⵏ ⵙ ⵍⵎⴻⵏⴷⴰⴷ ⵏ ⴷⴷⵓⵕ ⵏ ⵢⴰⵍ ⴰⵙⴻⵇⴷⴰⵛ. ⵏⴻⵣⵎⴻⵔ ⴰⴷ ⵏⴻⵙⵙⴻⵅⴷⴻⵎ ⵉⵎⵙⴻⴼⵜⵉⵢⴻⵏ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⵏ ⵉ ⵓⵙⵎⴻⵍ, ⴰⵙⴻⴽⵛⴻⵎ, ⴰⵃⴻⵣⵣⴻⴱ, ⴰⵙⴻⵖⵜⵉ, ⴷ ⵢⵉⵣⴻⵏ, ⴰⵍⴰⵎⵎⴰ ⴷ ⴰⵢⴻⵏ ⵉⵍⴰⵇⴻⵏ ⴰⴽⴽⴻⵏ ⴰⴷ ⴷⵏⴻⴼⴽ ⴰⵙⴻⵇⴷⴻⵛ. ⵓⵔ ⵏⴻⵙⵙⴻⵏⵣ ⴰⵔⴰ ⵉⵙⴻⴼⴽⴰ ⵏ ⵡⴻⵎⴷⴰⵏ ⵏⴻⵖ ⵓⵔ ⵜⴻⵏⵏⴻⵜⵜⴱⴻⴷⴷⵉⵍⴻⵏ ⴰⵔⴰ ⵉ ⵍⵎⴻⵏⴷ ⵏ ⵓⵙⵎⴻⵍ, ⵢⴻⵔⵏⴰ ⵏⴻⵣⵎⴻⵔ ⴰⴷ ⵜⴻⵏⵏⴻⴱⴹⵓ ⵎⵉ ⴰⵔⴰ ⵜⴻⵏⵉⴷⵢⴻⵙⵙⵓⵜⴻⵔ ⵓⵙⴰⴹⵓⴼ ⵏⴻⵖ ⴰⴽⴽⴻⵏ ⴰⴷ ⵏⵃⴰⵔⴻⴱ ⵖⴻⴼ ⵢⵉⵣⴻⵔⴼⴰⵏ ⴷ ⵜⵖⴻⵍⵍⵉⵙⵜ.",
+  "privacyPolicyRetentionTitle": "ⵜⵓⵟⵟⴼⴰ ⵏ ⵢⵉⵙⴻⴼⴽⴰ",
+  "privacyPolicyRetentionBody": "ⵏⴻⵜⵜⵃⴰⴷⴰⵔ ⵉⵙⴻⴼⴽⴰ ⴷⴻⴳ ⵡⴰⴽⵓⴷ ⵉⴷⴻⴳ ⴰⵎⵉⴹⴰⵏⵉⴽ ⵏⴻⵖ ⴰⵄⴻⴳⴳⴰⵍⵉⴽ ⵢⴻⵜⵜⵡⴰⵅⴷⴻⵎ, ⵏⴻⵖ ⴰⴽⴽⴻⵏ ⵉⵍⴰⵇ ⴰⴽⴽⴻⵏ ⴰⴷ ⴷⵏⴻⴼⴽ ⴰⵙⴻⵇⴷⴻⵛ, ⴰⴷ ⵏⴻⴹⴼⴻⵔ ⵉⵣⴻⵔⴼⴰⵏ ⵏ ⵍⵇⴰⵏⵓⵏ, ⵢⴻⵔⵏⴰ ⴰⴷ ⵏⴻⴼⵔⵓ ⵜⵉⵎⵙⴰⵍ. ⵉⴹⵔⵉⵙⴻⵏ ⵏ ⵓⵙⵎⴻⵍ ⵣⴻⵎⵔⴻⵏ ⴰⴷ ⵇⵇⵉⵎⴻⵏ ⴽⵔⴰ ⵏ ⵜⴰⵍⵍⵉⵜ ⵓⵇⴱⴻⵍ ⵜⵓⴽⴽⵙⴰ ⵏ ⵜⵖⴻⵍⵍⵉⵙⵜ.",
+  "privacyPolicySecurityTitle": "ⵜⴰⵖⴻⵍⵍⵉⵙⵜ ⵏ ⵢⵉⵙⴻⴼⴽⴰ",
+  "privacyPolicySecurityBody": "ⵏⴻⵙⵙⴻⵇⴷⴰⵛ ⵍⵃⴻⵇⵇ ⵏ ⵜⴻⵙⵏⴰⵜⵡⵉⵍⵜ ⴷ ⵜⵓⴷⴷⵙⴰ ⵙ ⵍⵎⴻⵄⵇⵓⵍ ⵎⴳⴰⵍ ⴰⵏⴻⴽⵛⵓⵎ, ⴰⴱⴻⴷⴷⴻⵍ ⵏⴻⵖ ⴰⵅⴻⵙⵙⴰⵔ ⵓⵔ ⵏⴻⵙⵄⵉ ⴰⵔⴰ ⵜⵜⴻⵙⵔⵉⵃ. ⵓⵍⴰⵛ ⴰⴱⵔⵉⴷ ⵏ ⵓⵙⵉⵡⴻⴹ ⵏⴻⵖ ⵏ ⵓⵃⴻⵣⵣⴻⴱ ⴰⵍⵉⴽⵟⵔⵓⵏⴰⵏ ⵉ ⴷⵢⴻⵍⵍⴰⵏ ⵙ ⵍⴻⴽⵎⴰⵍⵉⵙ, ⵉⵀⵉ ⵢⴻⵙⵙⴻⴼⴽ ⴷⴰⵖⴻⵏ ⴰⴷ ⵜⵃⵓⴷⴷⴻⴹ ⴰⵙⴻⵍⴽⵉⵎⵉⴽ ⴷ ⵓⴹⵔⵉⵙ ⵏ ⵓⵙⵙⴻⴼⵇⴻⴷ.",
+  "privacyPolicyRightsTitle": "ⵉⵣⴻⵔⴼⴰⵏⵉⴽ ⴷ ⵉⴼⵔⴰⵏⴻⵏⵉⴽ",
+  "privacyPolicyRightsBody": "ⵜⵣⴻⵎⵔⴻⴹ ⴰⴷ ⵜⵡⴰⵍⵉⴹ ⵢⴻⵔⵏⴰ ⴰⴷ ⵜⴻⵙⵙⴻⴼⵇⴻⴷⴹ ⵉⵙⴻⴼⴽⴰ ⵏ ⵓⵃⵔⵉⵛ ⵢⴻⵔⵏⴰ ⴰⴷ ⵜⴻⵙⵙⵓⵜⵔⴻⴹ ⴰⵄⴻⴷⴷⵉ, ⵜⵓⴽⴽⵙⴰ, ⴰⵃⴱⴰⵙ, ⵏⴻⵖ ⴰⵃⴱⴰⵙ ⴰⵏⴷⴰ ⴰⵢ ⵜⵢⴻⴵⴵⴰ ⵓⵙⴰⴹⵓⴼ. ⵜⵣⴻⵎⵔⴻⴹ ⴰⴷ ⵜⴻⵙⴼⴻⴹ ⵉⵙⴰⵍⴰⵏ ⴷⴻⴳ ⵜⴻⵙⵖⵓⵏⵉⵏ ⵏ ⵡⴰⵍⵍⴰⵍⵉⴽ. ⵏⴻⵣⵎⴻⵔ ⴰⴷ ⵏⴻⵙⵙⴻⴽⵛⴻⵎ ⵜⴰⵎⴰⴳⵉⵜⵉⴽ ⵙⴻⵏⴷ ⴰⴷ ⵏⴻⴹⴼⴻⵔ ⴰⵙⵓⵜⴻⵔ.",
+  "privacyPolicyChildrenTitle": "ⵜⵓⴼⴼⵔⴰ ⵏ ⵡⴰⵔⵔⴰⵛ",
+  "privacyPolicyChildrenBody": "ⴷⴰⵔⵊⴰⵔ ⵓⵔ ⵢⴻⵜⵜⵡⴰⵙⴱⴻⴷⴷ ⴰⵔⴰ ⵉ ⵢⵉⴳⴻⵔⴷⴰⵏ ⴷⴷⴰⵡ ⵏ ⵍⴻⵄⵎⴻⵔ ⵏ ⵍⵇⴰⵏⵓⵏ ⵉ ⵓⵙⴻⵇⴷⴻⵛ ⵙ ⵜⵉⵎⵎⴰⴷⵏⵙⴻⵏ ⵏ ⵢⵉⵡⴻⵥⵍⴰ ⵉⵎⴰⵢⵏⵓⵜⴻⵏ, ⵢⴻⵔⵏⴰ ⵓⵔ ⵏⴻⵙⵙⴻⵎⵔⴰⵙ ⴰⵔⴰ ⵉⵙⴻⴼⴽⴰⵏⵙⴻⵏ ⵙ ⵜⵎⵓⵙⵏⵉ ⵡⴰⵔ ⵍⵙⴰⵙ ⵏ ⵍⵇⴰⵏⵓⵏ ⵏⴻⵖ ⴰⵇⴱⴰⵍ ⵏ ⵢⵉⵎⴰⵡⵍⴰⵏ ⴰⵏⴷⴰ ⵉⵍⴰⵇ. ⵃⴰⴷⴻⵔ ⵉⵎⴰⵏⵉⴽ ⵎⴰ ⵢⴻⵍⵍⴰ ⵜⵖⵉⵍⴻⴹ ⴱⴻⵍⵍⵉ ⵢⵉⵡⴻⵏ ⵏ ⵓⴳⵔⵓⴷ ⵢⴻⴼⴽⴰⴷ ⵉⵙⴻⴼⴽⴰ ⵓⵔ ⵉⵍⴰⵇⴻⵏ ⴰⵔⴰ.",
+  "privacyPolicyChangesTitle": "ⵉⴱⴻⴷⴷⴰⵍⴻⵏ ⴷⴻⴳ ⵜⵙⴻⵔⵜⵉⵜⴰ",
+  "privacyPolicyChangesBody": "ⵏⴻⵣⵎⴻⵔ ⴰⴷ ⵏⴻⵙⵙⴻⵎⵔⴻⵙ ⵜⴰⵙⴻⵔⵜⵉⵜⴰⴳⵉ ⴰⴽⴽⴻⵏ ⴰⵔⴰ ⵢⴻⵜⵜⵏⴻⵔⵏⵉ ⵓⵙⴻⵇⴷⴻⵛ ⵏⴻⵖ ⴰⴽⴽⴻⵏ ⴰⵔⴰ ⴱⴻⴷⴷⵍⴻⵏ ⵉⵃⴻⵣⵣⵉⴱⴻⵏ ⵏ ⵍⵇⴰⵏⵓⵏ. ⴰⴷ ⴷⵏⴻⵙⵙⴽⴻⵏ ⴰⴹⵔⵉⵙ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⵔⵏⴰⵏ ⴷ ⵡⴰⵙⵙ ⵏ ⵜⵎⴻⵥⵍⴰ ⴷⴻⴳ ⵜⴻⵙⴳⵉⵍⵜ ⵢⴻⵔⵏⴰ ⴰⴷ ⴷⵏⴻⴼⴽ ⴰⵖⵜⴰⵙ ⵏ ⵢⵉⴱⴻⴷⴷⵉⵍⴻⵏ ⵏ ⵜⵖⴰⵡⵙⵉⵡⵉⵏ ⵎⵉ ⴰⵔⴰ ⵢⵉⵍⵉ ⵍⵃⴰⵍ.",
+  "privacyPolicyContactTitle": "ⵣⵣⵓ ⵖⵓⵔⵏⴻⵖ",
+  "privacyPolicyContactBody": "ⵉ ⵢⵉⵙⴻⵙⵜⴰⵏⴻⵏ ⵏ ⵜⵖⴻⵍⵍⵉⵙⵜ ⵏⴻⵖ ⵉ ⵓⵙⵇⴻⵔⴷⴻⵛ ⵏ ⵢⵉⵣⴻⵔⴼⴰⵏⵉⴽ, ⵔⵣⵓ ⵖⴻⵔ Raqmain ⵙ support@raqmain.ma. ⴰⴷ ⵏⵡⴰⵍⵉ ⵢⴻⵔⵏⴰ ⴰⴷ ⵏⴻⵔⵔ ⴷⴻⴳ ⵜⴰⵍⵍⵉⵜ ⵏ ⵜⵎⵓⵙⵏⵉ ⵙ ⵍⵇⴰⵏⵓⵏ ⵢⴻⵜⵜⵡⴰⵙⵇⴻⴷⵛⴻⵏ.",
+  "deleteAccountTitle": "ⴽⴽⴻⵙ ⴰⵎⵉⴹⴰⵏⵉⴽ ⵏ DarJar",
+  "deleteAccountIntroduction": "ⵜⵣⴻⵎⵔⴻⴹ ⴰⴷ ⵜⴻⴱⴷⵓⴹ ⵜⵓⴽⴽⵙⴰ ⵏ ⵓⵎⵉⴹⴰⵏⵉⴽ ⴷ ⵢⵉⵙⴻⴼⴽⴰⵉⵏⴻⵙ ⵏ ⵜⵎⴻⵜⵜⵉ ⵉⵛⵓⴷⴷⴻⵏ ⵖⵓⵔⵙ ⵙⵔⵉⴷ ⴷⴰⵅⴻⵍ ⵏ DarJar.",
+  "deleteAccountRequestTitle": "ⴷ ⴰⵛⵓ ⴰⵔⴰ ⴷⵢⴻⴹⵔⵓⵏ ⵎⴱⴻⵄⴷ?",
+  "deleteAccountRequestBody": "ⴷⴻⴼⴼⵉⵔ ⵏ ⵓⵙⵏⴻⴼⵍⵉ, ⴰⵎⵉⴹⴰⵏⵉⴽ ⵢⴻⵜⵜⵡⴰⴼⴼⴻⵔ ⵙⵔⵉⴷ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵉⵏ ⵢⴻⵔⵏⴰ ⵢⴻⵜⵜⵡⴰⵙⵎⴻⴽⵜⴰⴷ ⴰⵎ ⵜⵓⴽⴽⵙⴰ ⵉ ⴷⵢⴻⵜⵜⵡⴰⵙⵓⵜⵔⴻⵏ. ⴰⴷ ⵏⴻⴽⴽⴻⵙ ⵏⴻⵖ ⴰⴷ ⵏⴻⵙⵙⵉⵡⴻⴹ ⵉⵙⴻⴼⴽⴰ ⵢⴻⵜⵜⵡⴰⴹⴻⵍⵎⴻⵏ ⵉ ⵍⴻⴱⴷⴰ ⴷⴻⴳ 30 ⵏ ⵡⵓⵙⵙⴰⵏ ⵢⴻⵔⵏⴰ ⴰⴷ ⴰⴽⴷ-ⵏⴻⴱⴷⴻⵔ ⵎⵉ ⴰⵔⴰ ⵢⴻⴽⴼⵓ ⵓⵙⴻⵍⴽⴻⵎ.",
+  "deleteAccountRequestAction": "ⵙⵙⵓⵜⴻⵔ ⵜⵓⴽⴽⵙⴰ ⵏ ⵓⵎⵉⴹⴰⵏ",
+  "deleteAccountRequesting": "ⴰⵙⴻⴽⵛⴻⵎ ⵏ ⵓⵙⵓⵜⴻⵔ...",
+  "deleteAccountConfirmationTitle": "ⵙⵓⵜⴻⵔ ⵜⵓⴽⴽⵙⴰ ⵏ ⵓⵎⵉⴹⴰⵏ?",
+  "deleteAccountConfirmationBody": "ⴰⵎⵉⴹⴰⵏⵉⴽ ⴰⴷ ⵢⴻⴼⴼⴻⵔ ⵉⵎⵉⵔⴻⵏ ⴽⴰⵏ, ⴰⴷ ⵜⴻⴼⴼⵖⴻⴹ, ⵢⴻⵔⵏⴰ ⴰⴷ ⵢⴻⴱⴷⵓ ⵓⵙⴻⵍⴽⴻⵎ ⵏ ⵜⵓⴽⴽⵙⴰ ⵏ ⵍⴻⴱⴷⴰ. ⵓⵔ ⵜⴻⵣⵎⵉⵔⴻⴹ ⴰⵔⴰ ⴰⴷ ⵜⴽⴻⵛⵎⴻⴹ ⵙ ⵍⵃⵉⵙⴰⴱⵉⴽ ⵏⴻⵖ ⵙ ⵜⵏⴻⵣⴷⵓⵖⵉⵏⵉⴽ ⴷⴻⴼⴼⵉⵔ ⵎⴰ ⵜⵇⴻⴱⵍⴻⴹ.",
+  "deleteAccountConfirmAction": "ⵙⵙⴻⴽⵏⴻⴹ ⴰⵙⵓⵜⴻⵔ ⵏ ⵜⵓⴽⴽⵙⴰ",
+  "deleteAccountRequestSuccess": "ⴰⵙⵓⵜⴻⵔⵉⴽ ⵢⴻⵡⵡⴻⴹⴷ ⵓ ⴰⵎⵉⴹⴰⵏⵉⴽ ⵢⴻⴼⴼⴻⵔ. ⴰⴷ ⵏⴻⴽⴼⵓ ⴰⵅⴻⴷⴷⵉⵎ ⵏ ⵜⵓⴽⴽⵙⴰ ⴷⴻⴳ 30 ⵏ ⵡⵓⵙⵙⴰⵏ ⵢⴻⵔⵏⴰ ⴰⴷ ⴰⴽⴷ-ⵏⴻⴱⴷⴻⵔ ⵎⵉ ⴰⵔⴰ ⵢⴻⴽⴼⵓ.",
+  "deleteAccountRequestFailed": "ⴰⵙⵓⵜⴻⵔ ⵏ ⵜⵓⴽⴽⵙⴰ ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⵇⴻⴷⴷⴻⵎ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "deleteAccountSignInRequired": "ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴻⴱⴷⵓⴹ ⵙ ⵜⵖⴻⵍⵍⵉⵙⵜ, ⵜⴽⴻⵞⵞⵎⴻⴹ ⵙ ⴰⵎⵉⴹⴰⵏ ⵉ ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⵜⴻⵙⴼⴻⴹ, ⵙⵢⴻⵏ ⵍⴷⵉ ⴰⵙⴻⴱⵜⴻⵔⴰⴳⵉ ⵙⴻⴳ Uferdis.",
+  "deleteAccountSignInAction": "ⴽⴻⵛⵎ",
+  "accountDeletionPendingTitle": "ⴰⵙⵓⵜⴻⵔⵉⴽ ⵏ ⵜⵓⴽⴽⵙⴰ ⵢⴻⵜⵜⵡⴰⵙⴻⵇⴷⴻⵛ",
+  "accountDeletionPendingBody": "ⴰⵎⵉⴹⴰⵏⵏⵏⵉ ⵢⴻⴼⴼⴻⵔ ⵢⴻⵔⵏⴰ ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⵙⴻⵇⴷⴻⵛ. ⴰⴷ ⵏⴻⴽⴼⵓ ⴰⵅⴻⴷⴷⵉⵎ ⵏ ⵜⵓⴽⴽⵙⴰ ⴷⴻⴳ 30 ⵏ ⵡⵓⵙⵙⴰⵏ ⵢⴻⵔⵏⴰ ⴰⴷ ⴰⴽⴷ-ⵏⴻⴱⴷⴻⵔ ⵎⵉ ⴰⵔⴰ ⵢⴻⴽⴼⵓ.",
+  "deleteAccountDeletedDataTitle": "ⵉⵙⴻⴼⴽⴰ ⵢⴻⵜⵜⵡⴰⴹⴻⵍⵎⴻⵏ ⵙ ⵓⵙⵓⵜⴻⵔ",
+  "deleteAccountDeletedDataBody": "ⴰⵙⵓⵜⴻⵔⴰ ⵢⴻⵜⵜⵃⴻⵜⵜⵉⵎ ⴰⵎⵉⴹⴰⵏⵉⴽ ⵏ ⵓⵙⵏⴻⴼⵍⵉ, ⴰⴼⴻⵔⴷⵉⵙⵉⴽ, ⵉⵄⴻⴳⴳⴰⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⵜⵉⴼⴻⵍⵡⵉⵢⵉⵏ ⵏ ⵓⵙⵎⴻⵍ, ⴷ ⵜⵖⴰⵡⵙⵉⵡⵉⵏ ⵜⵓⵙⵍⵉⴳⵉⵏ ⵉⵛⵓⴷⴷⴻⵏ ⵖⴻⵔ ⵓⵎⵉⴹⴰⵏⵉⴽ. ⴰⴹⵔⵉⵙ ⵉ ⵢⴻⵙⵙⴻⴼⴽ ⴰⴷ ⵢⴻⵇⵇⵉⵎ ⵢⴻⵜⵜⵡⴰⴼⵀⴻⵎ ⵉ ⵢⵉⵄⴻⴳⴳⴰⵍⴻⵏ ⵏⵏⵉⴹⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵢⴻⵣⵎⴻⵔ ⴰⴷ ⵢⴻⵜⵜⵡⴰⵙⴼⴻⴹ ⴷⴻⴳ ⵓⵎⴽⴰⵏ ⵏ ⵓⵃⵔⴰⵣ ⵏ ⵜⵎⴰⴳⵉⵜⵉⴽ.",
+  "deleteAccountRetentionTitle": "ⵜⵓⵟⵟⴼⴰ ⵜⴰⵎⴻⵛⵟⵓⵃⵜ",
+  "deleteAccountRetentionBody": "ⴽⵔⴰ ⵏ ⵢⵉⴹⵔⵉⵙⴻⵏ ⵣⴻⵎⵔⴻⵏ ⴰⴷ ⵜⵜⵡⴰⵃⴻⵔⵣⴻⵏ ⴽⴰⵏ ⵎⴰ ⵢⴻⵍⵍⴰ ⵉⵃⴻⵜⵜⴻⵎ ⴼⴻⵍⵍⴰⵙⴻⵏ ⵍⵇⴰⵏⵓⵏ ⵏⴻⵖ ⵉ ⵍⵎⴻⵏⴷ ⵏ ⵜⵖⴻⵍⵍⵉⵙⵜ, ⵉ ⵍⵎⴻⵏⴷ ⵏ ⵓⵃⴻⵣⵣⴻⴱ ⵎⴳⴰⵍ ⴰⵖⴻⴹⴹⴻⵎ, ⵉ ⵍⵎⴻⵏⴷ ⵏ ⵜⵉⴼⵔⴰⵜ ⵏ ⵛⵛⵡⴰⵍ ⵏⴻⵖ ⵉ ⵍⵎⴻⵏⴷ ⵏ ⵓⵙⵙⴻⴹⵔⵓ ⵏ ⵍⵇⴰⵏⵓⵏⵏⵏⴻⵖ. ⵢⴰⵍ ⵉⵙⴻⴼⴽⴰ ⵢⴻⵜⵜⵡⴰⵃⴻⵔⵣⴻⵏ ⵜⵜⵡⴰⵃⴻⵔⵣⴻⵏ ⵖⴻⴼ ⵡⴰⵢⴻⵏ ⵉⵍⴰⵇⴻⵏ ⵢⴻⵔⵏⴰ ⵜⵜⵡⴰⴽⴽⵙⴻⵏ ⵎⵉ ⴰⵔⴰ ⵜⴼⴰⴽ ⵜⴰⵍⵍⵉⵜ ⵏ ⵓⵃⵔⴰⵣ ⵢⴻⵜⵜⵡⴰⵙⵇⴻⴷⵛⴻⵏ.",
+  "deleteAccountSafetyNotice": "ⵜⴰⵖⵉⵎⵉⵜⵉⴽ ⵏ ⵓⵙⵎⴻⵍ ⴷ ⵓⵙⵏⴻⴼⵍⵉⵉⵏⴻⴽ ⴷⴻⴳ ⵓⵙⴻⴱⵜⴻⵔⴰ ⵙⵙⴻⴽⵏⴻⵏⴷ ⴰⵙⵓⵜⴻⵔ. ⵓⵔ ⴽⵏⴻⵙⵙⵓⵜⴻⵔ ⴰⵔⴰ ⴰⴷ ⵜⴻⵙⵙⵉⵡⴹⴻⴹ ⵙ ⵍⴻⵎⴰⵉⵍ ⴰⴽⴰⵔⴰⵎ ⵏ ⵓⵙⵙⴻⴼⵇⴻⴷ, ⴰⵡⴰⵍ ⵓⴼⴼⵉⵔ, ⵏⴻⵖ ⴰⴹⵔⵉⵙ ⵏ ⵜⵎⴰⴳⵉⵜ.",
+  "edit": "ⵜⵉⴳⴳⴻⵍ",
+  "editProfileName": "ⴱⴻⴷⴷⴻⵍ ⵉⵙⴻⵎ",
+  "editProfileNameDescription": "ⵙⵙⵏⴻⴼⵍⵉ ⵉⵙⴻⵎ ⵉ ⴷⵢⴻⵜⵜⵡⴰⵙⴱⴻⴳⵏⴻⵏ ⵉ ⵍⴵⵉⵔⴰⵏ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵉⵏⵏⵡⴻⵏ.",
+  "profileRolePresident": "ⴰⵙⴻⵍⵡⴰⵢ",
+  "profileRoleDeputy": "ⴰⵏⵎⴰⵣⵓⵍ",
+  "profileRoleTreasurer": "ⴰⵅⴻⴷⴷⴰⵎ ⵏ ⵜⴱⴰⵏⴽⴰ",
+  "profileRoleResident": "ⴰⵎⴻⵣⴷⴰⵖ",
+  "residenceAdministration": "ⵜⴰⴷⴱⴻⵍⵜ",
+  "residenceAdministrationDescription": "ⴰⵍⵍⴰⵍⴻⵏ ⵏ ⵜⴻⴷⴱⴻⵍⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵉ ⵓⵙⴻⵍⵡⴰⵢ ⴷ ⵢⵉⵎⴷⴰⵏⴻⵏ ⵢⴻⵜⵜⵡⴰⵙⴱⴻⴷⴷⴻⵏ.",
+  "residenceSettings": "ⵉⵙⴻⵖⵡⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "apartments": "ⵉⵅⵅⴰⵎⴻⵏ ⴷ ⵉⵎⴻⵣⴷⴰⵖ",
+  "apartmentsManagementDescription": "ⵙⵙⴻⵍⵃⵓ ⵉⵅⵅⴰⵎⴻⵏ ⴷ ⵍⴻⵛⵖⴰⵍ ⵏ ⵢⵉⵎⴻⵣⴷⴰⵖ",
+  "projects": "ⵉⵙⴻⵏⴼⴰⵔⴻⵏ",
+  "projectsManagementDescription": "ⵉⵙⴻⵏⴼⴰⵔⴻⵏ ⵓⵙⵍⵉⴳⴻⵏ, ⵉⵙⴻⵏⴼⴰⵔⴻⵏ ⵏ ⵓⵙⴻⴳⴳⴻⵎ",
+  "residenceManagementDescription": "ⵜⵓⵚⴽⵉⵡⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⵉⵙⴰⵍⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⴰⵣⴰⵍ ⵏ ⵜⴻⴷⵔⵉⵎⵜ",
+  "email": "ⵉⵎⴰⵢⵍ",
+  "residence": "ⵜⴰⵣⴻⴷⵖⴰ",
+  "settings": "ⴰⵙⴻⵖⵥⴰⵏ",
+  "generalSettings": "ⴰⵙⴻⵖⵥⴰⵏ ⴰⵎⴰⵜⵓ",
+  "professionalSettings": "ⵉⵙⴻⵖⵏⴰⵙⴻⵏ ⵉⵎⵓⵙⵏⴰⵡⴻⵏ",
+  "professionalAccountDescription": "ⵉⵡⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴻⵙⵙⴻⵍⵃⵓⴹ ⴰⵟⴰⵙ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵉⵏ, ⵜⵜⵅⵉⵍⴽ ⴱⴻⴷⴷⴻⵍ ⵖⴻⵔ ⵓⵎⵉⴹⴰⵏ ⴰⵅⴻⴷⴷⴰⵎ.",
+  "switchToProfessionalAccount": "ⴱⴻⴷⴷⴻⵍ ⵖⴻⵔ ⵓⵎⵉⴹⴰⵏ ⴰⵅⴻⴷⴷⴰⵎ",
+  "replayOnboarding": "ⵄⵉⵡⴻⴷ ⵏ ⵓⵔⴰⵔ ⴷⴻⴳ ⵓⵖⴻⵔⵔⴰⴱⵓ",
+  "language": "ⵜⵓⵜⵍⴰⵢⵜ",
+  "chooseLanguage": "ⴼⵔⴻⵏ ⵜⵓⵜⵍⴰⵢⵜ",
+  "arabic": "ⵜⴰⵄⵔⴰⴱⵜ",
+  "amazigh": "ⵜⴰⵎⴰⵣⵉⵖⵜ",
+  "english": "ⵜⴰⵏⴳⵍⵉⵣⵜ",
+  "comingSoon": "ⵇⵔⵉⴱ ⴰⴷ ⴷⵢⴰⵙ",
+  "notifications": "ⵉⴱⴻⴷⴷⵉⵍⴻⵏ",
+  "markAllNotificationsRead": "ⵙⵙⴻⴽⵏⴻⴹ ⴰⴽⴽ ⴰⴽⴽⴻⵏ ⵢⴻⵖⵔⴰ",
+  "noNotifications": "ⵓⵔ ⵍⵍⵉⵏⵜ ⴰⵔⴰ ⵜⵎⵓⵖⵍⵉⵡⵉⵏ ⵜⵓⵔⴰ.",
+  "notificationsLoadError": "ⵓⵔ ⵣⵎⵉⵔⴻⵏ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⵛⴰⵔⴳⴻⵏ ⵢⵉⵙⴰⵍⴰⵏ.",
+  "residentJoinedNotificationTitle": "ⴰⵎⴻⵣⴷⴰⵖ ⴰⵎⴰⵢⵏⵓⵜ",
+  "residentJoinedNotificationBody": "{resident} ⵢⴻⴽⵛⴻⵎ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "@residentJoinedNotificationBody": {
+    "placeholders": {
+      "resident": {
+        "type": "String"
+      }
+    }
+  },
+  "newPostNotificationTitle": "ⴰⴹⵔⵉⵙ ⴰⵎⴰⵢⵏⵓⵜ",
+  "newPostNotificationBody": "{author} ⵢⴻⵔⵏⴰⴷ ⴰⴹⵔⵉⵙ ⴰⵎⴰⵢⵏⵓⵜ.",
+  "@newPostNotificationBody": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "postLikedNotificationTitle": "ⴰⵎⴰⵢⵏⵓⵜ ⴰⵎ",
+  "postLikedNotificationBody": "{actor} ⵉⵄⴵⴻⴱⴰⵙ ⵓⴹⵔⵉⵙⵉⴽ.",
+  "@postLikedNotificationBody": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "postCommentedNotificationTitle": "ⴰⵡⴰⵍ ⴰⵎⴰⵢⵏⵓⵜ",
+  "postCommentedNotificationBody": "{actor} ⵜⵉⴷⵢⴻⵙⵎⴻⴽⵜⵉⵏ ⵙ ⵜⵎⵓⵖⵍⵉⵉⵏⴻⴽ.",
+  "@postCommentedNotificationBody": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "duesOverdueNotificationTitle": "ⵉⴷⵔⵉⵎⴻⵏ ⵉⵄⴻⴹⴹⵍⴻⵏ",
+  "duesOverdueNotificationBody": "ⵉⴷⵔⵉⵎⴻⵏ ⵏ {period} ⵜⵜⵡⴰⵄⴻⵣⵍⴻⵏ.",
+  "@duesOverdueNotificationBody": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetChangedNotificationTitle": "ⴰⵙⵎⴰⵢⵏⵓ ⵏ ⵜⴻⴷⵔⵉⵎⵜ",
+  "budgetChangedNotificationBody": "ⴱⵓⴷⴳⴻⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⴼⵍⵉ.",
+  "duesMarkedPaidNotificationTitle": "ⴰⵅⴻⵍⵍⴻⵚ ⵏ ⵢⵉⴷⵔⵉⵎⴻⵏⵉⴽ ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ",
+  "duesMarkedPaidNotificationBody": "ⵉⴷⵔⵉⵎⴻⵏⵉⴽ ⵏ {period} ⵜⵜⵡⴰⵙⴻⴽⴽⵔⴻⵏⴷ ⴰⵎ ⵡⴰⴽⴽⴻⵏ ⵜⵜⵡⴰⵅⴻⵍⵚⴻⵏ.",
+  "@duesMarkedPaidNotificationBody": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "waterInterruptionNotificationTitle": "ⴰⵖⴻⵍⵍⵓⵢ ⵏ ⵡⴰⵎⴰⵏ ⵢⴻⵜⵜⵡⴰⵀⴻⴳⴳⴰⵏ",
+  "waterInterruptionNotificationBody": "ⴰⵎⴰⵏ ⴰⴷ ⵜⵜⵡⴰⵅⵚⵎⴻⵏ ⴰⵣⴻⴽⴽⴰ ⵙⴻⴳ 6 ⴰⵔ 10 ⵏ ⵜⵎⴻⴷⴷⵉⵜ ⵉ ⵍⵎⴻⵏⴷ ⵏ ⵓⵙⵙⴻⵇⴷⴻⵛ.",
+  "duesReminderNotificationTitle": "ⴰⵙⵎⴻⴽⵜⵉ ⵏ ⵜⴻⴷⵔⵉⵎⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "duesReminderNotificationBody": "ⵜⵜⵅⵉⵍⴽ ⵥⴻⵔ ⵍⵃⴰⵍⴰ ⵏ ⵜⴻⴷⵔⵉⵎⵜ ⵏ ⵡⴰⵢⵢⵓⵔⴰ ⴷⴻⴳ ⵓⵙⴻⴱⵜⴻⵔ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "maintenanceNotificationTitle": "ⴰⵙⴻⴳⴳⴻⵎ ⵏ ⵓⵙⴻⵏⵙⵓ",
+  "maintenanceNotificationBody": "ⴰⵙⴻⴳⴳⴻⵎ ⵏ ⵓⵙⵍⵉⵥⵔⵉ ⵢⴻⴽⴼⴰ ⵢⴻⵔⵏⴰ ⵢⴻⵍⵍⴰ ⵉ ⵓⵙⴻⵇⴷⴻⵛ.",
+  "notificationTimeNow": "ⵜⵓⵔⴰ",
+  "notificationTimeMinutes": "{minutes} ⴷⵇⵉⵇⴰ ⴰⵢⴰ",
+  "@notificationTimeMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationTimeHours": "{hours} ⵙⵙⴰⵄⴰ ⴰⵢⴰ",
+  "@notificationTimeHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationTimeYesterday": "ⵉⴹⴻⵍⵍⵉ",
+  "notificationTimeDays": "{days} ⵓⵙⵙⴰⵏ ⴰⵢⴰ",
+  "@notificationTimeDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "communityNotifications": "ⵉⴱⴻⴷⴷⵉⵍⴻⵏ ⵏ ⵓⵞⵞⵉ",
+  "residenceNotifications": "ⵉⴱⴻⴷⴷⵉⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "importantNotifications": "ⵉⴱⴻⴷⴷⵉⵍⴻⵏ ⵉⴳⴻⵊⴷⴰⵏⴻⵏ",
+  "duesMarkedPaidNotification": "ⵉⴷⵔⵉⵎⴻⵏ ⵏ {period} ⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙⴷ ⴰⵎ ⵡⴰⴽⴽⴻⵏ ⵜⵜⵡⴰⵅⴻⵍⵚⴻⵏ",
+  "@duesMarkedPaidNotification": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "overdueDuesNotification": "ⵜⵉⵡⵙⵉⵡⵉⵏ ⵏ {period} ⵜⵜⵡⴰⵄⴻⴹⴹⵍⴻⵏⵜ",
+  "@overdueDuesNotification": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "membershipApprovedNotification": "ⵢⴻⵇⴱⴻⵍ ⵓⵙⴻⵍⵡⴰⵢ ⴰⵙⵓⵜⴻⵔⵉⴽ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴽⴻⵛⵎⴻⴹ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "residenceSettingsPageDescription": "ⵙⵙⴻⵍⵃⵓ ⵉⵙⴰⵍⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⵜⵓⵚⴽⵉⵡⵜ, ⴷ ⵢⵉⵄⴻⴳⴳⴰⵍⴻⵏ.",
+  "saveChanges": "ⵃⵔⴻⵣ ⵉⴱⴻⴷⴷⴰⵍⴻⵏ",
+  "residenceInformation": "ⵉⵙⴰⵍⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "residenceInformationDescription": "ⵉⵙⴰⵍⴰⵏ ⵉⴳⴻⵊⴷⴰⵏⴻⵏ ⵢⴻⵜⵜⵡⴰⵍⵉⵏ ⵉⵄⴻⴳⴳⴰⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
+  "residenceId": "ⵜⴰⵎⴰⴳⵉⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "copy": "ⵙⵏⵓⵍⴼⵓⴷ",
+  "residenceIdCopied": "ID ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵢⴻⵜⵜⵡⴰⵙⵏⵓⵍⴼⴰⴷ.",
+  "residenceImage": "ⵜⵓⴳⵏⴰ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵏⴻⵖ ⴰⵣⴰⵎⵓⵍ",
+  "squareImageRecommended": "ⵜⵓⴳⵏⴰ ⵏ ⵜⵎⴻⵇⴱⴻⵔⵜ ⵜⴻⵜⵜⵡⴰⵙⵙⵓⵎⵎⴻⵍ ⵉ ⵓⵙⴽⴰⵙⵉ ⵢⴻⵍⵀⴰⵏ.",
+  "addImage": "ⵔⵏⵓ ⵜⵓⴳⵏⴰ",
+  "changeImage": "ⴱⴻⴷⴷⴻⵍ ⵜⵓⴳⵏⴰ",
+  "removeImage": "ⴽⴽⴻⵙ ⵜⵓⴳⵏⴰ",
+  "imageProcessingFailed": "ⵜⵓⴳⵏⴰ ⵓⵔ ⵜⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵜⴻⵜⵜⵡⴰⴼⵔⴻⵏ ⵏⴻⵖ ⴰⴷ ⵜⴻⵜⵜⵡⴰⵙⵙⴻⵇⴷⴻⵛ. ⴼⵔⴻⵏ JPG, PNG, ⵏⴻⵖ WebP ⴷⴷⴰⵡ ⵏ 8MB.",
+  "imageUploadFailed": "ⵜⵓⴳⵏⴰⵏⵏⵉ ⵓⵔ ⵜⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵜⴻⵜⵜⵡⴰⴽⴽⴻⵙ. ⵙⴻⴼⵇⴻⴷ ⵜⵓⵇⵇⵏⴰⵉⵏⴻⴽ ⴷ ⵉⵣⴻⵔⴼⴰⵏⵉⵏⴻⴽ, ⵙⵙⵉⵏ ⴰⴽⵉⵏ ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "profileImageSaved": "ⵜⵓⴳⵏⴰ ⵏ ⵓⴼⴻⵔⴷⵉⵙ ⵜⴻⵜⵜⵡⴰⵙⵏⴻⴼⵍⵉ.",
+  "profileImageRemoved": "ⵜⵓⴳⵏⴰ ⵏ ⵓⴼⴻⵔⴷⵉⵙ ⵜⴻⵜⵜⵡⴰⴽⴽⴻⵙ.",
+  "address": "ⵜⴰⵏⵙⴰ",
+  "establishmentYear": "ⴰⵙⴻⴳⴳⴰⵙ ⵏ ⵓⵙⴱⴻⴷⴷ",
+  "residenceStructure": "ⵜⵓⵚⴽⵉⵡⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "residenceStructureDescription": "ⵙⵏⵓⵍⴼⵓⴷ ⵍⴻⴱⵏⵉ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵢⴻⵔⵏⴰ ⵙⴱⴻⴷⴷ ⵉⵙⴻⵎ ⴷ ⵓⵎⴹⴰⵏ ⵏ ⵢⵉⴹⴰⵔⵔⴻⵏ ⵏⵏⵉⴳ ⵍⵇⴰⵄⴰ ⵉ ⵢⴰⵍ ⵢⵉⵡⴻⵏ.",
+  "buildings": "ⵉⴱⴻⵏⵏⴰⵏ",
+  "floors": "ⵉⴹⴰⵔⵔⴻⵏ",
+  "manageStructure": "ⵙⵙⴻⵍⵃⵓ ⵜⵓⵚⴽⵉⵡⵜ",
+  "buildingName": "ⵉⵙⴻⵎ ⵏ ⵍⴻⴱⵏⵉ",
+  "buildingNameHint": "ⴰⵎⴻⴷⵢⴰ: Afriwen A",
+  "floorCount": "ⵉⴹⴰⵔⵔⴻⵏ ⵏⵏⵉⴳ ⵍⵇⴰⵄⴰ",
+  "buildingFloorCount": "ⵉⴹⴰⵔⵔⴻⵏ ⵏⵏⵉⴳ ⵍⵇⴰⵄⴰ: {count}",
+  "@buildingFloorCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addBuilding": "ⵔⵏⵓ ⵍⴻⴱⵏⵉ",
+  "editBuilding": "ⴱⴻⴷⴷⴻⵍ ⵍⴻⴱⵏⵉ",
+  "deleteBuilding": "ⴽⴽⴻⵙ ⵍⴻⴱⵏⵉ",
+  "atLeastOneBuilding": "ⵜⴰⵣⴻⴷⵖⴰ ⵢⴻⵙⵙⴻⴼⴽ ⴰⴷ ⵜⴻⵙⵄⵓ ⵎⴰ ⵓⵍⴰⵛ ⵢⵉⵡⴻⵏ ⵏ ⵍⴻⴱⵏⵉ.",
+  "checkBuildingFields": "ⵙⵙⴻⴽⵛⴻⵎ ⵉⵙⴻⵎ ⵏ ⵍⴻⴱⵏⵉ ⴷ ⵓⵎⴹⴰⵏ ⵏ ⵢⵉⴹⴰⵔⵔⴻⵏ ⵉⵡⵓⵍⵎⴻⵏ.",
+  "structureContainsApartments": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⴽⴽⴻⵙ ⵍⴻⴱⵏⵉ ⵏⴻⵖ ⵍⵇⴰⵄⴰ ⵉⴷⴻⴳ ⵍⵍⴰⵏ ⵢⵉⵅⵅⴰⵎⴻⵏ. ⴽⴽⴻⵙ ⵉⵅⵅⴰⵎⴻⵏⵉⵙ ⴷ ⴰⵎⴻⵣⵡⴰⵔⵓ.",
+  "confirmDeleteBuilding": "ⴽⴽⴻⵙ {name} ⵙⴻⴳ ⵍⴻⴱⵏⵉ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ?",
+  "@confirmDeleteBuilding": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "delete": "ⴽⴽⴻⵙ",
+  "subscription": "ⴰⵖⵎⵉⵙ",
+  "subscriptionDescription": "ⵙⴻⴳⵣⵉⴷ ⴰⵣⴰⵍ ⵏ ⵓⵄⵉⵡⴻⴷ ⵏ ⵜⵎⴻⵥⵍⴰ ⵉ ⵢⵉⵎⴻⵣⴷⴰⵖ.",
+  "defaultSubscription": "ⴰⵖⴻⵍⵍⴻⵜ ⴰⵎⴻⵙⴱⴰⵟⵍⵉ",
+  "monthly": "ⵢⴰⵍ ⴰⵢⵢⵓⵔ",
+  "amount": "ⴰⵣⴰⵍ",
+  "joiningResidence": "ⴰⴷ ⵢⴻⴽⵛⴻⵎ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "joiningResidenceDescription": "ⴱⴹⵓ ⴰⵄⵔⴰⴹ ⴷ ⵓⴹⴼⴰⵔ ⵏ ⵢⵉⵙⵓⵜⴻⵔ ⵏ ⵢⵉⵎⴻⵣⴷⴰⵖ ⵉⵎⴰⵢⵏⵓⵜⴻⵏ.",
+  "permanentInvitationLink": "ⴰⵙⵙⴰⵖ ⵏ ⵓⵙⵏⴻⴱⴳⵉ ⴰⵍⴻⴱⴷⴰ",
+  "copyLink": "ⵙⵏⵓⵍⴼⵓⴷ ⴰⵙⵙⴰⵖ",
+  "showQrCode": "ⵙⴽⴻⵏ ⴰⴽⴰⵔⴰⵎ QR",
+  "hideQrCode": "ⵢⴻⴼⴼⴻⵔ ⴰⴽⴰⵔⴰⵎ QR",
+  "invitationQrCode": "ⴰⴽⴰⵔⴰⵎ QR ⵏ ⵓⵙⵏⴻⴱⴳⵉ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "close": "ⵖⴻⵍⵇⴻⵏ",
+  "scanToJoin": "ⵙⴽⴰⵏ ⵉⵡⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴽⴻⵛⵎⴻⴹ",
+  "allowJoinRequests": "ⴵⴵ ⵉⵙⵓⵜⴻⵔ ⵏ ⵜⵓⴽⴽⵙⴰ ⵜⴰⵎⴰⵢⵏⵓⵜ",
+  "joinRequestsEnabledDescription": "ⵉⵎⴻⵣⴷⴰⵖ ⵉⵎⴰⵢⵏⵓⵜⴻⵏ ⵣⴻⵎⵔⴻⵏ ⴰⴷ ⴷⵙⵙⵉⵡⴹⴻⵏ ⴰⵙⵓⵜⴻⵔ ⴰⴽⴽⴻⵏ ⴰⴷ ⴽⴻⵛⵎⴻⵏ.",
+  "joinRequestsDisabledDescription": "ⴰⵙⵓⵜⴻⵔ ⵏ ⵜⵓⴽⴽⵙⴰ ⴰⵎⴰⵢⵏⵓⵜ ⵢⴻⵜⵜⵡⴰⵃⴱⴻⵙ ⵜⵓⵔⴰ.",
+  "invitationExplorationNotice": "ⴰⵙⵙⵏⵏⵉ ⵢⴻⵇⵇⵉⵎ ⵢⴻⵜⵜⵡⴰⵇⴱⴻⵍ ⵉ ⵓⴼⴻⵔⵔⵓ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴷⴻⴳ ⵡⴻⴱ, ⵎⴰⵛⴰ ⴰⵙⵓⵜⴻⵔ ⵏ ⵜⵓⴽⴽⵙⴰ ⴰⵎⴰⵢⵏⵓⵜ ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⵇⴻⴷⴷⴻⵎ.",
+  "invitationLinkCopied": "ⴰⵙⴻⵏⵇⴻⴷ ⵏ ⵓⵙⵏⴻⴱⴳⵉ ⵢⴻⵜⵜⵡⴰⵙⵏⵓⵍⴼⴰⴷ.",
+  "residenceSettingsSaved": "ⴰⵙⴻⵖⵥⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵢⴻⵜⵜⵡⴰⵃⵔⴻⵣ.",
+  "unsavedChangesTitle": "ⵉⴱⴻⴷⴷⴰⵍⴻⵏ ⵓⵔ ⵜⵜⵡⴰⵃⴻⵔⵣⴻⵏ ⴰⵔⴰ",
+  "unsavedChangesDescription": "ⵓⵔ ⵜⵜⵡⴰⵙⴻⴽⴽⵔⴻⵏ ⴰⵔⴰ ⵉⴱⴻⴷⴷⴰⵍⴻⵏⵉⴽ. ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⴻⵏⵜⴻⵙⵙⴻⵍⴽⴻⴹ ⵓⵇⴱⴻⵍ ⴰⴷ ⵜⴻⴷⴷⵓⴹ?",
+  "discardChanges": "ⵃⴻⴹⵔ ⵎⴻⴱⵍⴰ ⴰⵙⴻⵍⵍⴻⴽ",
+  "checkResidenceSettingsFields": "ⵙⴻⴼⵇⴻⴷ ⵉⵙⴰⵍⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴷ ⵙⵙⵓⵎⴰ ⵏ ⵓⵄⴻⴷⴷⵉ.",
+  "authPhoneTitle": "ⴽⵛⵎ ⵙ ⵜⵉⵍⵉⴼⵓⵏ ⵏⵏⴽ",
+  "authPhoneDescription": "ⴰⴷ ⵏⴰⵣⵏⴻⵖ ⴰⴽⴰⵔⴰⵎ ⵉⴳⴻⵊⴷⴰⵏⴻⵏ ⴰⴽⴽⴻⵏ ⴰⴷ ⵏⴻⵙⵙⴻⴽⵛⴻⵎ ⵓⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏⵉⴽ ⵢⴻⵔⵏⴰ ⴰⴷ ⵏⵃⴰⵔⴻⴱ ⵖⴻⴼ ⵓⵎⵉⴹⴰⵏⵉⴽ.",
+  "authPhoneHint": "060000001",
+  "authSendCode": "ⴰⵣⴻⵏ ⴰⴽⴰⵔⴰⵎ ⵏ ⵓⵙⴻⴽⵛⴻⵎ",
+  "authSendingCode": "ⴰⵛⴻⴳⴳⴻⵄ ⵏ ⵓⴽⴰⵔⴰⵎ...",
+  "authCodeTitle": "ⵙⴽⴻⵛⵎ ⴰⴽⴰⵔⴰⵎ ⵏ ⵓⵙⴻⴽⵛⴻⵎ",
+  "authCodeDescription": "ⵙⵙⴻⴽⵛⴻⵎ ⴰⴽⴰⵔⴰⵎ ⵏ 6 ⵏ ⵢⵉⴹⵔⵉⵙⴻⵏ ⵢⴻⵜⵜⵡⴰⵣⴻⵏ ⵉ {phoneNumber}.",
+  "@authCodeDescription": {
+    "placeholders": {
+      "phoneNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "authCodeHint": "6 ⵏ ⵡⵓⵟⵟⵓⵏⴻⵏ",
+  "authVerifying": "ⴰⵙⴽⴰⵙⵉ...",
+  "authResendCode": "ⴰⵄⵉⵡⴻⴷ ⵏ ⵓⵛⴻⴳⴳⴻⵄ ⵏ ⵓⴽⴰⵔⴰⵎ",
+  "authResendCodeIn": "ⴰⵄⵉⵡⴻⴷ ⵏ ⵓⵛⴻⴳⴳⴻⵄ ⵏ ⵓⴽⴰⵔⴰⵎ ⴷⴻⴳ {seconds} ⵏ ⵜⴻⵙⴷⵉⴷⵉⵏ",
+  "@authResendCodeIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "authChangePhone": "ⴱⴻⴷⴷⴻⵍ ⵓⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏ",
+  "authPrivacyNotice": "ⵓⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏⵉⴽ ⵢⴻⵜⵜⵡⴰⵙⴻⵇⴷⴻⵛ ⵉ ⵓⵙⴻⴽⵛⴻⵎ ⴷ ⵓⵃⴰⵔⴻⴱ ⵏ ⵓⵎⵉⴹⴰⵏⵉⴽ ⵙ ⵍⵇⴰⵏⵓⵏ ⵏ ⵜⵖⴻⵍⵍⵉⵙⵜ.",
+  "authInvalidPhone": "ⵙⵙⴻⴽⵛⴻⵎ ⵓⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏ ⵉⵡⴰⵜⴰⵏ.",
+  "authInvalidCode": "ⴰⴽⴰⵔⴰⵎ ⵏ ⵓⵙⴽⴰⵙⵉ ⵓⵔ ⵢⴻⵍⵍⵉ ⴰⵔⴰ ⴷ ⴰⵢⴻⵏ ⵢⴻⵍⵀⴰⵏ. ⵙⴻⴼⵇⴻⴷⵉⵜ ⵓ ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "authCodeExpired": "ⵉⴼⵓⴽ ⵍⴰⵡⴰⵏ ⵏ ⵓⴽⴰⵔⴰⵎ. ⵙⵓⵜⴻⵔ ⴰⵎⴰⵢⵏⵓⵜ.",
+  "authTooManyRequests": "ⴰⵟⴰⵙ ⵏ ⵢⵉⵄⴻⵡⵡⵉⵇⴻⵏ. ⵔⴰⴵⵓ ⵛⵡⵉⵟ ⵓ ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "authNetworkError": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵇⵇⴻⵏ. ⵙⴻⴼⵇⴻⴷ ⵜⵓⵇⵇⵏⴰⵉⵏⴻⴽ ⵏ ⵉⵏⵜⴻⵔⵏⴻⵜ ⵓ ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "authLocalDevelopmentNotConfigured": "ⵙⵙⴻⵅⴷⴻⵎ ⴰⵀⵉⵍ ⴰⴷⵉⴳⴰⵏ ⵙ tool/run_web_local.sh ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴽⴻⵛⵎⴻⴹ ⵡⴰⵔ SMS.",
+  "authUnauthorizedDomain": "ⴰⵃⵔⵉⵛⴰ ⵓⵔ ⵢⴻⵜⵜⵓⵏⴻⴼⴽ ⴰⵔⴰ ⵜⵜⴻⵙⵔⵉⵃ ⵉ ⵓⵙⴻⴽⵛⴻⵎ. ⵔⵏⵓⵜ ⵖⴻⵔ ⵢⵉⵃⵔⵉⵛⴻⵏ ⵢⴻⵜⵜⵡⴰⵙⵏⴻⴼⵍⴻⵏ ⵏ ⵓⵙⴻⵖⵥⴰⵏ ⵏ ⴼⵉⵔⴻⴱⴰⵙⴻ.",
+  "authCaptchaFailed": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵉⴽⴻⵎⵎⴻⵍ ⵓⵙⴽⴰⵙⵉ ⵏ ⵜⵖⴻⵍⵍⵉⵙⵜ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ ⵓ ⴽⴻⵎⵎⴻⵍ ⴰⵃⵔⵉⵛ ⵏ reCAPTCHA.",
+  "authPhoneOperationNotAllowed": "ⵓⵔ ⵢⴻⵜⵜⵡⴰⵇⴱⴰⵍ ⴰⵔⴰ ⵓⵙⴻⴽⵛⴻⵎ ⵙ ⵜⵉⵍⵉⴼⵓⵏ. ⵙⵙⴻⵅⴷⴻⵎ ⵎⴰ ⵢⴻⵍⵍⴰ Lmerruk ⵢⴻⵜⵜⵡⴰⵇⴱⴻⵍ ⴷⴻⴳ ⵜⵙⴻⵔⵜⵉⵜ ⵏ ⵜⴻⵎⵏⴰⴹⵜ ⵏ SMS ⵢⴻⵔⵏⴰ ⵎⴰ ⵢⴻⵍⵍⴰ ⵍⴼⴰⴽⵜⵓⵔⴰ ⵜⴻⵇⵇⴻⵏ ⵖⴻⵔ ⵓⵙⴻⵏⴼⴰⵔ.",
+  "authUnexpectedError": "ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⴽⵛⴻⵎ ⵜⵓⵔⴰ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "accountResolutionTitle": "ⵙⵙⴻⴽⵏⴻⴹ ⵉⵙⴰⵍⵍⴻⵏⵉⴽ",
+  "accountResolutionDescription": "ⵙⴻⴼⵇⴻⴷ ⵉⵙⴰⵍⴰⵏⵉⴽ, ⵙⵢⴻⵏⵏⴰ ⴼⵔⴻⵏ ⵜⵉⵣⴻⵖⵡⴰ ⵉⴷⴻⴳ ⵜⴻⵍⵍⵉⴹ.",
+  "accountResolutionFullName": "ⵉⵙⴻⵎ ⴰⴽⴻⵎⵎⴰⵍⵉ",
+  "accountResolutionInvitationsTitle": "ⵜⵜⵡⴰⵄⴻⵔⴹⴻⴹ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵉⵏⴰ",
+  "accountResolutionInvitationsDescription": "ⴼⵔⴻⵏ ⵜⵉⵣⴻⵖⵡⴰ ⵉⴷⴻⴳ ⵜⴻⵍⵍⵉⴹ. ⵉⵏⴻⴹⵔⵓⵢⴻⵏ ⵓⵔ ⵢⴻⵜⵜⵡⴰⴼⴻⵔⵏⴻⵏ ⴰⵔⴰ ⴰⴷ ⵇⵇⵉⵎⴻⵏ ⵜⵜⵡⴰⵄⴻⵍⵇⴻⵏ ⵉ ⵙⴷⴰⵜ.",
+  "accountResolutionRole": "ⵜⴰⵎⵍⵉⵍⵜ: {role}",
+  "@accountResolutionRole": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "accountRoleResident": "ⴰⵎⴻⵣⴷⴰⵖ",
+  "accountRoleModerator": "ⴰⵅⴻⴷⴷⴰⵎ ⵏ ⵜⴱⴰⵏⴽⴰ",
+  "accountRoleManager": "ⴰⵏⵎⴰⵣⵓⵍ",
+  "accountRoleOwner": "ⴰⵙⴻⵍⵡⴰⵢ",
+  "accountResolutionConfirm": "ⵙⵙⴻⴽⵏⴻⴹ ⵓ ⴽⴻⵛⵎ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵉⵏ ⵢⴻⵜⵜⵡⴰⴼⴻⵔⵏⴻⵏ",
+  "accountResolutionAccepting": "ⴰⵙⴻⴽⵛⴻⵎ ⵏ ⵢⵉⵄⴻⴳⴳⴰⵍⴻⵏ...",
+  "accountResolutionPendingNotice": "ⵜⵉⵣⴻⵖⵡⴰ ⵓⵔ ⵢⴻⵜⵜⵡⴰⴼⴻⵔⵏⴻⵏ ⴰⵔⴰ ⵓⵔ ⵜⵜⵡⴰⵇⴱⴰⵍⴻⵏⵜ ⴰⵔⴰ; ⵉⵏⴻⴹⵔⵓⵢⴻⵏⵏⵙⴻⵏ ⴰⴷ ⵇⵇⵉⵎⴻⵏ ⵜⵜⵡⴰⵄⴻⵍⵇⴻⵏ.",
+  "accountResolutionRetry": "ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ",
+  "accountResolutionPermissionDenied": "ⵉⵍⵓⴳⴰⵏ ⵏ ⵜⴱⴰⴹⵏⵉⵜ ⵓⵔ ⵜⵜⴰⴵⴵⴰⵏ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⵖⵔⴻⵏ ⵏⴻⵖ ⴰⴷ ⵜⵜⵡⴰⵇⴱⵍⴻⵏ ⵢⵉⵄⴻⵡⵡⵉⵇⴻⵏⴰ. ⵙⵙⴻⵇⴷⴻⵛ ⵉⵍⵓⴳⴰⵏ ⵉⵎⴰⵢⵏⵓⵜⴻⵏ ⵏ Firestore ⵓ ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "accountResolutionFailedPrecondition": "ⵉⵏⴷⴻⵅ ⵏ ⵜⴱⴰⴹⵏⵉⵜ ⵢⴻⵜⵜⵡⴰⵃⴻⵜⵜⵎⴻⵏ ⵓⵔ ⵢⴻⵜⵜⵡⴰⵀⴻⴳⴳⴰ ⴰⵔⴰ. ⵔⴰⴵⵓ ⴰⴷ ⵢⴻⴽⴼⵓ ⵍⴻⴱⵏⵉ, ⵙⵢⴻⵏ ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "accountResolutionMissingProfile": "ⵙⵙⴻⴽⵛⴻⵎ ⵉⵙⴻⵎⵉⴽ ⴰⵎⴻⵣⵡⴰⵔⵓ ⴷ ⵡⵉⵏ ⵏ ⵜⵡⴰⵛⵓⵍⵜⵉⴽ ⵉⵡⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴽⴻⵎⵍⴻⴹ.",
+  "accountResolutionSignedOut": "ⵜⴻⴽⴼⴰ ⵜⵖⵉⵎⵉⵜⵉⴽ ⵏ ⵓⵙⴻⴽⵍⴻⵙ. ⴽⴻⵛⵎ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "accountResolutionUnexpectedError": "ⵓⵔ ⵣⵎⵉⵔⴻⵏ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⵛⴰⵔⴳⴻⵏ ⵏⴻⵖ ⴰⴷ ⵜⵜⵡⴰⵇⴻⴱⵍⴻⵏ ⵢⵉⵄⴻⵡⵡⵉⵇⴻⵏ ⵜⵓⵔⴰ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ."
+}

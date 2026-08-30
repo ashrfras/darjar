@@ -193,11 +193,13 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                   key: const Key('language-selection-link'),
                   leading: const Icon(Icons.language_rounded),
                   title: Text(localizations.chooseLanguage),
-                  subtitle: Text(
-                    Localizations.localeOf(context).languageCode == 'en'
-                        ? localizations.english
-                        : localizations.arabic,
-                  ),
+                  subtitle: Text(switch (Localizations.localeOf(
+                    context,
+                  ).languageCode) {
+                    'zgh' => localizations.amazigh,
+                    'en' => localizations.english,
+                    _ => localizations.arabic,
+                  }),
                   trailing: const Icon(
                     Icons.chevron_left_rounded,
                     color: AppColors.inkMuted,
@@ -469,8 +471,8 @@ class _LanguageSelectionSheet extends ConsumerWidget {
                   painter: _AmazighFlagPainter(),
                 ),
                 label: localizations.amazigh,
-                selected: false,
-                status: localizations.comingSoon,
+                selected: selectedLanguage == 'zgh',
+                onTap: () => _select(context, ref, const Locale('zgh')),
               ),
               _LanguageOption(
                 key: const Key('language-option-en'),
@@ -500,7 +502,6 @@ class _LanguageOption extends StatelessWidget {
     required this.flag,
     required this.label,
     required this.selected,
-    this.status,
     this.onTap,
     super.key,
   });
@@ -508,7 +509,6 @@ class _LanguageOption extends StatelessWidget {
   final Widget flag;
   final String label;
   final bool selected;
-  final String? status;
   final VoidCallback? onTap;
 
   @override
@@ -518,7 +518,6 @@ class _LanguageOption extends StatelessWidget {
       enabled: onTap != null,
       leading: flag,
       title: Text(label),
-      subtitle: status == null ? null : Text(status!),
       trailing: selected
           ? Icon(Icons.check_circle_rounded, color: AppColors.primary)
           : null,

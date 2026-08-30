@@ -24,7 +24,11 @@ String formatFinanceAmountForInput(num amount) {
 }
 
 String formatFinanceAmount(num amount, String locale) {
-  final formatter = NumberFormat.decimalPattern(locale)
+  // intl does not bundle number symbols for Standard Moroccan Tamazight yet.
+  final intlLocale = locale.split(RegExp('[-_]')).first == 'zgh'
+      ? 'en'
+      : locale;
+  final formatter = NumberFormat.decimalPattern(intlLocale)
     ..minimumFractionDigits = 0
     ..maximumFractionDigits = 2;
   return formatter.format(amount);

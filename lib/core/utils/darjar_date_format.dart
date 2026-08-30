@@ -32,14 +32,32 @@ abstract final class DarJarDateFormat {
     'دجنبر',
   ];
 
-  static String yMMMd(DateTime date, String locale) =>
-      _format(DateFormat.yMMMd(_intlLocale(locale)), date, locale);
+  static const _amazighMonths = <String>[
+    'ⵢⴻⵏⵏⴰⵢⴻⵔ',
+    'ⴼⵓⵔⴰⵔ',
+    'ⵎⴰⵖⵔⴻⵙ',
+    'ⵢⴻⴱⵔⵉⵔ',
+    'ⵎⴰⵢⵓ',
+    'ⵢⵓⵏⵢⵓ',
+    'ⵢⵓⵍⵢⵓ',
+    'ⵖⵓⵛⵜ',
+    'ⵛⵜⴻⵎⴱⴻⵔ',
+    'ⵜⵓⴱⴻⵔ',
+    'ⵏⵡⴰⵏⴱⵉⵔ',
+    'ⴷⵓⵊⴰⵏⴱⵉⵔ',
+  ];
 
-  static String yMMMM(DateTime date, String locale) =>
-      _format(DateFormat.yMMMM(_intlLocale(locale)), date, locale);
+  static String yMMMd(DateTime date, String locale) => _isAmazigh(locale)
+      ? '${date.day} ${_amazighMonths[date.month - 1]} ${date.year}'
+      : _format(DateFormat.yMMMd(_intlLocale(locale)), date, locale);
 
-  static String mmmm(DateTime date, String locale) =>
-      _format(DateFormat.MMMM(_intlLocale(locale)), date, locale);
+  static String yMMMM(DateTime date, String locale) => _isAmazigh(locale)
+      ? '${_amazighMonths[date.month - 1]} ${date.year}'
+      : _format(DateFormat.yMMMM(_intlLocale(locale)), date, locale);
+
+  static String mmmm(DateTime date, String locale) => _isAmazigh(locale)
+      ? _amazighMonths[date.month - 1]
+      : _format(DateFormat.MMMM(_intlLocale(locale)), date, locale);
 
   static String _format(DateFormat formatter, DateTime date, String locale) {
     final formatted = formatter.format(date);
@@ -58,4 +76,7 @@ abstract final class DarJarDateFormat {
 
   static bool _isArabic(String locale) =>
       Intl.canonicalizedLocale(locale).split('_').first == 'ar';
+
+  static bool _isAmazigh(String locale) =>
+      Intl.canonicalizedLocale(locale).split('_').first == 'zgh';
 }

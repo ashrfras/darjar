@@ -1,5 +1,6 @@
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/localization/app_locale_controller.dart';
+import 'package:darjar/app/localization/zgh_framework_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_theme.dart';
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
@@ -24,7 +25,10 @@ class DarJarApp extends ConsumerWidget {
       ),
       debugShowCheckedModeBanner: false,
       locale: locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: [
+        ...ZghFrameworkLocalizations.delegates,
+        ...AppLocalizations.localizationsDelegates,
+      ],
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
       theme: AppTheme.light,

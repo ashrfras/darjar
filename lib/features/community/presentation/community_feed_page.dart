@@ -300,12 +300,9 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
       await action();
     } on CommunityFailure {
       if (!mounted) return;
-      final ar = Localizations.localeOf(context).languageCode == 'ar';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            ar ? 'تعذّر تنفيذ الإجراء.' : 'Could not complete the action.',
-          ),
+          content: Text(AppLocalizations.of(context).communityActionFailed),
         ),
       );
     }
@@ -319,16 +316,16 @@ class _CommunityLoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final localizations = AppLocalizations.of(context);
     return DarJarCard(
       child: Column(
         children: [
           const Icon(Icons.cloud_off_outlined, color: AppColors.danger),
           const SizedBox(height: AppSpacing.small),
-          Text(ar ? 'تعذّر تحميل الموجز.' : 'Could not load the feed.'),
+          Text(localizations.communityLoadFailed),
           TextButton(
             onPressed: onRetry,
-            child: Text(ar ? 'إعادة المحاولة' : 'Retry'),
+            child: Text(localizations.accountResolutionRetry),
           ),
         ],
       ),
@@ -404,13 +401,13 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
 
 extension on CommunityFeedFilter {
   String label(BuildContext context) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final localizations = AppLocalizations.of(context);
     return switch (this) {
-      CommunityFeedFilter.all => ar ? 'الكل' : 'All',
-      CommunityFeedFilter.posts => ar ? 'المنشورات' : 'Posts',
-      CommunityFeedFilter.finance => ar ? 'المالية' : 'Finance',
-      CommunityFeedFilter.announcements => ar ? 'الإعلانات' : 'Announcements',
-      CommunityFeedFilter.polls => ar ? 'الاستطلاعات' : 'Polls',
+      CommunityFeedFilter.all => localizations.all,
+      CommunityFeedFilter.posts => localizations.communityFilterPosts,
+      CommunityFeedFilter.finance => localizations.communityFilterFinance,
+      CommunityFeedFilter.announcements => localizations.announcements,
+      CommunityFeedFilter.polls => localizations.communityFilterPolls,
     };
   }
 
@@ -527,7 +524,7 @@ class _Composer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final localizations = AppLocalizations.of(context);
     final userId = ref.watch(authRepositoryProvider).currentUser?.uid ?? '';
     return DarJarCard(
       key: const Key('community-composer'),
@@ -553,9 +550,7 @@ class _Composer extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
               child: Text(
-                ar
-                    ? 'بماذا تريد مشاركة السكان؟'
-                    : 'What would you like to share?',
+                localizations.communityComposerPrompt,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: AppColors.inkMuted),
@@ -579,7 +574,7 @@ class _CommunitySidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final localizations = AppLocalizations.of(context);
     return Column(
       children: [
         DarJarCard(
@@ -587,26 +582,26 @@ class _CommunitySidebar extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                ar ? 'نبض الإقامة' : 'Residence pulse',
+                localizations.communityPulse,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: AppSpacing.large),
               _Stat(
                 icon: Icons.people_rounded,
                 value: '128',
-                label: ar ? 'ساكناً' : 'residents',
+                label: localizations.communityResidentsStat,
               ),
               const SizedBox(height: AppSpacing.medium),
               _Stat(
                 icon: Icons.forum_rounded,
                 value: '24',
-                label: ar ? 'تفاعلاً هذا الأسبوع' : 'interactions this week',
+                label: localizations.communityInteractionsThisWeek,
               ),
               const SizedBox(height: AppSpacing.medium),
               _Stat(
                 icon: Icons.event_available_rounded,
                 value: '2',
-                label: ar ? 'موعدين قادمين' : 'upcoming events',
+                label: localizations.communityUpcomingEvents,
               ),
             ],
           ),
@@ -619,14 +614,12 @@ class _CommunitySidebar extends StatelessWidget {
               Icon(Icons.shield_outlined, color: AppColors.primary, size: 30),
               const SizedBox(height: AppSpacing.small),
               Text(
-                ar ? 'مساحة خاصة بسكان الإقامة' : 'Private to your residence',
+                localizations.communityPrivateTitle,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: 4),
               Text(
-                ar
-                    ? 'كن ودوداً، واضحاً، واحترم خصوصية جيرانك.'
-                    : 'Be kind, clear, and respect your neighbors’ privacy.',
+                localizations.communityPrivateDescription,
                 style: Theme.of(
                   context,
                 ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
@@ -667,20 +660,16 @@ class _EmptyFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final localizations = AppLocalizations.of(context);
     return DarJarCard(
       child: Column(
         children: [
           const Icon(Icons.inbox_outlined, size: 44, color: AppColors.inkMuted),
           const SizedBox(height: AppSpacing.medium),
-          Text(
-            ar
-                ? 'لا توجد عناصر في هذه الفئة'
-                : 'No feed items in this category',
-          ),
+          Text(localizations.communityEmptyCategory),
           TextButton(
             onPressed: onReset,
-            child: Text(ar ? 'عرض الكل' : 'Show all'),
+            child: Text(localizations.communityShowAll),
           ),
         ],
       ),

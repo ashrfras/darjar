@@ -105,10 +105,13 @@ class FirebaseFeedActivityRepository implements FeedActivityRepository {
       category: _category(data['category']) ?? _categoryFor(type),
       descriptionAr: copy.descriptionAr,
       descriptionEn: copy.descriptionEn,
+      descriptionZgh: copy.descriptionZgh,
       timeLabelAr: _timeLabel(occurredAt, arabic: true),
       timeLabelEn: _timeLabel(occurredAt, arabic: false),
+      timeLabelZgh: _timeLabelZgh(occurredAt),
       classificationAr: copy.classificationAr,
       classificationEn: copy.classificationEn,
+      classificationZgh: copy.classificationZgh,
       likes: data['likesCount'] as int? ?? likedBy.length,
       isLiked: likedBy.contains(userId),
       occurredAt: occurredAt,
@@ -375,6 +378,9 @@ List<ResidenceActivity> groupConsecutiveDueActivities(
           descriptionEn:
               'Dues from $start to $finish were recorded for apartment '
               '$apartment',
+          descriptionZgh:
+              'ⵜⵉⵡⵙⵉⵡⵉⵏ ⵙⴻⴳ $start ⴰⵔ $finish '
+              'ⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙⴻⵏⵜ ⵉ ⵓⵅⵅⴰⵎ $apartment',
           periodKey: finish,
         ),
       );
@@ -418,10 +424,13 @@ const _initialActivities = <ResidenceActivity>[
     category: FeedCategory.finance,
     descriptionAr: 'تمت إضافة مصروف للتنظيف بقيمة 450 د',
     descriptionEn: 'A cleaning expense of 450 MAD was added',
+    descriptionZgh: 'ⵢⴻⵜⵜⵡⴰⵔⵏⴰ ⵓⵙⵔⵉⴷ ⵏ ⵓⵙⵉⵣⴷⴻⴳ ⵙ 450 MAD',
     timeLabelAr: 'منذ 35 دقيقة',
     timeLabelEn: '35 min ago',
+    timeLabelZgh: 'ⵙⴻⴳ 35 ⵏ ⵜⵓⵙⴷⵉⴷⵉⵏ',
     classificationAr: 'مصروف',
     classificationEn: 'Expense',
+    classificationZgh: 'ⴰⵙⵔⵉⴷ',
     likes: 3,
     reference: FeedEntityReference(type: FeedEntityType.transaction),
   ),
@@ -431,10 +440,13 @@ const _initialActivities = <ResidenceActivity>[
     category: FeedCategory.finance,
     descriptionAr: 'تم تسجيل أداء اشتراك شهر أغسطس للشقة 12',
     descriptionEn: 'The August due was recorded for apartment 12',
+    descriptionZgh: 'ⵜⵉⵡⵙⴰ ⵏ ⵖⵓⵛⵜ ⵜⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ ⵉ ⵓⵅⵅⴰⵎ 12',
     timeLabelAr: 'منذ ساعتين',
     timeLabelEn: '2 hours ago',
+    timeLabelZgh: 'ⵙⴻⴳ 2 ⵏ ⵜⵙⵔⴰⴳⵉⵏ',
     classificationAr: 'الاشتراكات',
     classificationEn: 'Dues',
+    classificationZgh: 'ⵜⵉⵡⵙⵉⵡⵉⵏ',
     likes: 1,
     reference: FeedEntityReference(type: FeedEntityType.dues),
   ),
@@ -444,10 +456,13 @@ const _initialActivities = <ResidenceActivity>[
     category: FeedCategory.documents,
     descriptionAr: 'تمت إضافة وثيقة جديدة: محضر الجمع العام',
     descriptionEn: 'A new document was added: General assembly minutes',
+    descriptionZgh: 'ⵜⴻⵜⵜⵡⴰⵔⵏⴰ ⵜⴰⵙⴻⵎⵍⵉⵍⵜ: ⴰⵖⵎⵉⵙ ⵏ ⵜⴳⵔⴰⵡⵜ',
     timeLabelAr: 'منذ يوم',
     timeLabelEn: 'Yesterday',
+    timeLabelZgh: 'ⵉⴹⴻⵍⵍⵉ',
     classificationAr: 'وثيقة',
     classificationEn: 'Document',
+    classificationZgh: 'ⵜⴰⵙⴻⵎⵍⵉⵍⵜ',
     likes: 5,
     reference: FeedEntityReference(
       type: FeedEntityType.document,
@@ -460,10 +475,13 @@ const _initialActivities = <ResidenceActivity>[
     category: FeedCategory.polls,
     descriptionAr: 'تم إنشاء استطلاع جديد حول تهيئة الحديقة',
     descriptionEn: 'A new poll was created about improving the garden',
+    descriptionZgh: 'ⵢⴻⵜⵜⵡⴰⵔⵏⴰ ⵓⵙⴻⵙⵜⴰⵏ ⴰⵎⴰⵢⵏⵓ ⵖⴻⴼ ⵓⵙⴻⴳⴳⴻⵎ ⵏ ⵜⴱⵃⵉⵔⵜ',
     timeLabelAr: 'منذ يومين',
     timeLabelEn: '2 days ago',
+    timeLabelZgh: 'ⵙⴻⴳ 2 ⵏ ⵡⵓⵙⵙⴰⵏ',
     classificationAr: 'استطلاع',
     classificationEn: 'Poll',
+    classificationZgh: 'ⴰⵙⴻⵙⵜⴰⵏ',
     likes: 2,
     reference: FeedEntityReference(
       type: FeedEntityType.post,
@@ -496,8 +514,10 @@ FeedCategory _categoryFor(ResidenceActivityType type) => switch (type) {
 ({
   String descriptionAr,
   String descriptionEn,
+  String descriptionZgh,
   String classificationAr,
   String classificationEn,
+  String classificationZgh,
 })
 _activityCopy(
   ResidenceActivityType type,
@@ -507,9 +527,11 @@ _activityCopy(
   final abbreviatedActor = abbreviatedPersonName(actorName);
   final actorAr = actorName.isEmpty ? 'المسؤول' : abbreviatedActor;
   final actorEn = actorName.isEmpty ? 'Management' : abbreviatedActor;
+  final actorZgh = actorName.isEmpty ? 'ⵜⴰⴷⴱⴻⵍⵜ' : abbreviatedActor;
   final title = payload['title']?.toString() ?? '';
   final expenseTitleAr = _localizedExpenseTitle(payload, arabic: true);
   final expenseTitleEn = _localizedExpenseTitle(payload, arabic: false);
+  final expenseTitleZgh = _localizedExpenseTitleZgh(payload);
   final expensePurposeAr = expenseTitleAr.startsWith('ال')
       ? 'ل${expenseTitleAr.substring(1)}'
       : 'لـ$expenseTitleAr';
@@ -522,46 +544,62 @@ _activityCopy(
     ResidenceActivityType.expenseAdded => (
       descriptionAr: 'تمت إضافة مصروف $expensePurposeAr بقيمة $amount د',
       descriptionEn: 'A $expenseTitleEn expense of $amount MAD was added',
+      descriptionZgh: 'ⵢⴻⵜⵜⵡⴰⵔⵏⴰ ⵓⵙⵔⵉⴷ ⵏ $expenseTitleZgh ⵙ $amount MAD',
       classificationAr: 'مصروف',
       classificationEn: 'Expense',
+      classificationZgh: 'ⴰⵙⵔⵉⴷ',
     ),
     ResidenceActivityType.duePaid => (
       descriptionAr: 'تم تسجيل أداء اشتراك $period للشقة $apartment',
       descriptionEn: 'The $period due was recorded for apartment $apartment',
+      descriptionZgh: 'ⵜⵉⵡⵙⴰ ⵏ $period ⵜⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ ⵉ ⵓⵅⵅⴰⵎ $apartment',
       classificationAr: 'الاشتراكات',
       classificationEn: 'Dues',
+      classificationZgh: 'ⵜⵉⵡⵙⵉⵡⵉⵏ',
     ),
     ResidenceActivityType.monthlyDueChanged => (
       descriptionAr:
           'تم تعديل قيمة الاشتراك الشهري من $previousAmount إلى $newAmount د',
       descriptionEn:
           'The monthly due changed from $previousAmount to $newAmount MAD',
+      descriptionZgh:
+          'ⵜⴻⵜⵜⵡⴰⵙⴻⵏⴼⴻⵍ ⵜⵉⵡⵙⴰ ⵏ ⵡⴰⵢⵢⵓⵔ '
+          'ⵙⴻⴳ $previousAmount ⴰⵔ $newAmount MAD',
       classificationAr: 'الاشتراكات',
       classificationEn: 'Dues',
+      classificationZgh: 'ⵜⵉⵡⵙⵉⵡⵉⵏ',
     ),
     ResidenceActivityType.documentAdded => (
       descriptionAr: 'تمت إضافة وثيقة جديدة: $title',
       descriptionEn: 'A new document was added: $title',
+      descriptionZgh: 'ⵜⴻⵜⵜⵡⴰⵔⵏⴰ ⵜⴰⵙⴻⵎⵍⵉⵍⵜ: $title',
       classificationAr: 'وثيقة',
       classificationEn: 'Document',
+      classificationZgh: 'ⵜⴰⵙⴻⵎⵍⵉⵍⵜ',
     ),
     ResidenceActivityType.serviceAdded => (
       descriptionAr: 'أضاف $actorAr خدمة جديدة: $title',
       descriptionEn: '$actorEn added a new service: $title',
+      descriptionZgh: '$actorZgh ⵢⴻⵔⵏⴰ ⵜⴰⵏⴰⴼⵓⵜ: $title',
       classificationAr: 'خدمة',
       classificationEn: 'Service',
+      classificationZgh: 'ⵜⴰⵏⴰⴼⵓⵜ',
     ),
     ResidenceActivityType.announcementPublished => (
       descriptionAr: 'نشر المسؤول تنبيهاً جديداً: $title',
       descriptionEn: 'Management published a new announcement: $title',
+      descriptionZgh: 'ⵜⴰⴷⴱⴻⵍⵜ ⵜⴻⵙⵙⵓⴼⴻⵖⴷ ⴰⵍⵖⵓ: $title',
       classificationAr: 'إعلان',
       classificationEn: 'Announcement',
+      classificationZgh: 'ⴰⵍⵖⵓ',
     ),
     ResidenceActivityType.pollCreated => (
       descriptionAr: 'تم إنشاء استطلاع جديد: $title',
       descriptionEn: 'A new poll was created: $title',
+      descriptionZgh: 'ⵢⴻⵜⵜⵡⴰⵔⵏⴰ ⵓⵙⴻⵙⵜⴰⵏ: $title',
       classificationAr: 'استطلاع',
       classificationEn: 'Poll',
+      classificationZgh: 'ⴰⵙⴻⵙⵜⴰⵏ',
     ),
   };
 }
@@ -594,6 +632,23 @@ String _localizedExpenseTitle(
   return localized[normalized] ?? title;
 }
 
+String _localizedExpenseTitleZgh(Map<String, Object?> payload) {
+  final title = payload['title']?.toString() ?? '';
+  final category =
+      (payload['expenseCategory']?.toString().trim().isNotEmpty ?? false)
+      ? payload['expenseCategory']!.toString()
+      : title;
+  final normalized = category.trim().toLowerCase();
+  return const {
+        'maintenance': 'ⵓⵙⴻⴳⴳⴻⵎ ⴷ ⵜⵔⵓⵚⵉ',
+        'utilities': 'ⵡⴰⵎⴰⵏ ⴷ ⵜⵔⵉⵙⵉⵜⵉ',
+        'cleaning': 'ⵓⵙⵉⵣⴷⴻⴳ',
+        'security': 'ⵓⵄⴰⵙⵙⴰ',
+        'custom': 'ⵓⵙⵔⵉⴷ ⵓⵙⵍⵉⴳ',
+      }[normalized] ??
+      title;
+}
+
 String _timeLabel(DateTime? value, {required bool arabic}) {
   if (value == null) return arabic ? 'الآن' : 'Now';
   final elapsed = DateTime.now().difference(value);
@@ -607,4 +662,17 @@ String _timeLabel(DateTime? value, {required bool arabic}) {
     return arabic ? 'منذ ${elapsed.inHours} س' : '${elapsed.inHours} h ago';
   }
   return arabic ? 'منذ ${elapsed.inDays} يوم' : '${elapsed.inDays} d ago';
+}
+
+String _timeLabelZgh(DateTime? value) {
+  if (value == null) return 'ⵜⵓⵔⴰ';
+  final elapsed = DateTime.now().difference(value);
+  if (elapsed.inMinutes < 1) return 'ⵜⵓⵔⴰ';
+  if (elapsed.inMinutes < 60) {
+    return 'ⵙⴻⴳ ${elapsed.inMinutes} ⵏ ⵜⵓⵙⴷⵉⴷⵉⵏ';
+  }
+  if (elapsed.inHours < 24) {
+    return 'ⵙⴻⴳ ${elapsed.inHours} ⵏ ⵜⵙⵔⴰⴳⵉⵏ';
+  }
+  return 'ⵙⴻⴳ ${elapsed.inDays} ⵏ ⵡⵓⵙⵙⴰⵏ';
 }

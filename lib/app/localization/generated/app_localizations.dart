@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_ar.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_zgh.dart';
 
 // ignore_for_file: type=lint
 
@@ -96,6 +97,7 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
+    Locale('zgh'),
   ];
 
   /// No description provided for @appName.
@@ -884,6 +886,222 @@ abstract class AppLocalizations {
   /// **'تعذر إكمال العملية الآن. حاول مجدداً.'**
   String get setupUnexpectedError;
 
+  /// No description provided for @communityFilterPosts.
+  ///
+  /// In ar, this message translates to:
+  /// **'المنشورات'**
+  String get communityFilterPosts;
+
+  /// No description provided for @communityFilterFinance.
+  ///
+  /// In ar, this message translates to:
+  /// **'المالية'**
+  String get communityFilterFinance;
+
+  /// No description provided for @communityFilterPolls.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاستطلاعات'**
+  String get communityFilterPolls;
+
+  /// No description provided for @communityComposerPrompt.
+  ///
+  /// In ar, this message translates to:
+  /// **'بماذا تريد مشاركة السكان؟'**
+  String get communityComposerPrompt;
+
+  /// No description provided for @communityActionFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تنفيذ الإجراء.'**
+  String get communityActionFailed;
+
+  /// No description provided for @communityLoadFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل الموجز.'**
+  String get communityLoadFailed;
+
+  /// No description provided for @communityPulse.
+  ///
+  /// In ar, this message translates to:
+  /// **'نبض الإقامة'**
+  String get communityPulse;
+
+  /// No description provided for @communityResidentsStat.
+  ///
+  /// In ar, this message translates to:
+  /// **'ساكناً'**
+  String get communityResidentsStat;
+
+  /// No description provided for @communityInteractionsThisWeek.
+  ///
+  /// In ar, this message translates to:
+  /// **'تفاعلاً هذا الأسبوع'**
+  String get communityInteractionsThisWeek;
+
+  /// No description provided for @communityUpcomingEvents.
+  ///
+  /// In ar, this message translates to:
+  /// **'موعدين قادمين'**
+  String get communityUpcomingEvents;
+
+  /// No description provided for @communityPrivateTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مساحة خاصة بسكان الإقامة'**
+  String get communityPrivateTitle;
+
+  /// No description provided for @communityPrivateDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'كن ودوداً، واضحاً، واحترم خصوصية جيرانك.'**
+  String get communityPrivateDescription;
+
+  /// No description provided for @communityEmptyCategory.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد عناصر في هذه الفئة'**
+  String get communityEmptyCategory;
+
+  /// No description provided for @communityShowAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض الكل'**
+  String get communityShowAll;
+
+  /// No description provided for @communityLike.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعجاب'**
+  String get communityLike;
+
+  /// No description provided for @postKindAnnouncement.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعلان رسمي'**
+  String get postKindAnnouncement;
+
+  /// No description provided for @postKindQuestion.
+  ///
+  /// In ar, this message translates to:
+  /// **'سؤال'**
+  String get postKindQuestion;
+
+  /// No description provided for @postKindComplaint.
+  ///
+  /// In ar, this message translates to:
+  /// **'شكوى'**
+  String get postKindComplaint;
+
+  /// No description provided for @postKindSuggestion.
+  ///
+  /// In ar, this message translates to:
+  /// **'اقتراح'**
+  String get postKindSuggestion;
+
+  /// No description provided for @postKindAlert.
+  ///
+  /// In ar, this message translates to:
+  /// **'تنبيه'**
+  String get postKindAlert;
+
+  /// No description provided for @postKindGeneral.
+  ///
+  /// In ar, this message translates to:
+  /// **'منشور عام'**
+  String get postKindGeneral;
+
+  /// No description provided for @postKindPoll.
+  ///
+  /// In ar, this message translates to:
+  /// **'استطلاع'**
+  String get postKindPoll;
+
+  /// No description provided for @postKindEvent.
+  ///
+  /// In ar, this message translates to:
+  /// **'مناسبة'**
+  String get postKindEvent;
+
+  /// No description provided for @deletePost.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف المنشور'**
+  String get deletePost;
+
+  /// No description provided for @deletePostTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف المنشور؟'**
+  String get deletePostTitle;
+
+  /// No description provided for @deletePostConfirmation.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد حذف هذا المنشور؟ لن يعود ظاهراً لسكان الإقامة.'**
+  String get deletePostConfirmation;
+
+  /// No description provided for @communityApartmentLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'شقة {number}'**
+  String communityApartmentLabel(String number);
+
+  /// No description provided for @communityRolePresident.
+  ///
+  /// In ar, this message translates to:
+  /// **'رئيس'**
+  String get communityRolePresident;
+
+  /// No description provided for @communityRoleDeputy.
+  ///
+  /// In ar, this message translates to:
+  /// **'نائب الرئيس'**
+  String get communityRoleDeputy;
+
+  /// No description provided for @communityRoleTreasurer.
+  ///
+  /// In ar, this message translates to:
+  /// **'أمين المال'**
+  String get communityRoleTreasurer;
+
+  /// No description provided for @communityRoleModerator.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشرف'**
+  String get communityRoleModerator;
+
+  /// No description provided for @communityRoleTeam.
+  ///
+  /// In ar, this message translates to:
+  /// **'فريق دارجار'**
+  String get communityRoleTeam;
+
+  /// No description provided for @communityRoleResident.
+  ///
+  /// In ar, this message translates to:
+  /// **'ساكن'**
+  String get communityRoleResident;
+
+  /// No description provided for @pollVotes.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count} صوت'**
+  String pollVotes(int count);
+
+  /// No description provided for @pollVoteRecorded.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تسجيل صوتك'**
+  String get pollVoteRecorded;
+
+  /// No description provided for @savePost.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظ'**
+  String get savePost;
+
   /// No description provided for @communityFeedDescription.
   ///
   /// In ar, this message translates to:
@@ -1327,6 +1545,12 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'شكراً، نُشرت توصيتك لجيرانك.'**
   String get recommendationPublished;
+
+  /// No description provided for @recommendationPublishFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر نشر التوصية.'**
+  String get recommendationPublishFailed;
 
   /// No description provided for @residencePageDescription.
   ///
@@ -3925,7 +4149,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['ar', 'en'].contains(locale.languageCode);
+      <String>['ar', 'en', 'zgh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -3938,6 +4162,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsAr();
     case 'en':
       return AppLocalizationsEn();
+    case 'zgh':
+      return AppLocalizationsZgh();
   }
 
   throw FlutterError(

@@ -19,6 +19,11 @@ void main() {
       grouped.single.descriptionEn,
       'Dues from 2026-04 to 2026-06 were recorded for apartment 16',
     );
+    expect(
+      grouped.single.descriptionZgh,
+      'ⵜⵉⵡⵙⵉⵡⵉⵏ ⵙⴻⴳ 2026-04 ⴰⵔ 2026-06 '
+      'ⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙⴻⵏⵜ ⵉ ⵓⵅⵅⴰⵎ 16',
+    );
     expect(grouped.single.id, 'june');
   });
 
@@ -87,8 +92,10 @@ ResidenceActivity _due(
     category: FeedCategory.finance,
     descriptionAr: 'due',
     descriptionEn: 'due',
+    descriptionZgh: 'ⵜⵉⵡⵙⴰ',
     timeLabelAr: 'الآن',
     timeLabelEn: 'Now',
+    timeLabelZgh: 'ⵜⵓⵔⴰ',
     likes: 0,
     apartmentNumber: apartment,
     periodKey: period,
@@ -103,8 +110,10 @@ ResidenceActivity _expense(String id) {
     category: FeedCategory.finance,
     descriptionAr: 'expense',
     descriptionEn: 'expense',
+    descriptionZgh: 'ⴰⵙⵔⵉⴷ',
     timeLabelAr: 'الآن',
     timeLabelEn: 'Now',
+    timeLabelZgh: 'ⵜⵓⵔⴰ',
     likes: 0,
   );
 }

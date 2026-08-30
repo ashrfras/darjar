@@ -437,6 +437,120 @@ class AppLocalizationsEn extends AppLocalizations {
       'The operation could not be completed right now. Try again.';
 
   @override
+  String get communityFilterPosts => 'Posts';
+
+  @override
+  String get communityFilterFinance => 'Finance';
+
+  @override
+  String get communityFilterPolls => 'Polls';
+
+  @override
+  String get communityComposerPrompt => 'What would you like to share?';
+
+  @override
+  String get communityActionFailed => 'Could not complete the action.';
+
+  @override
+  String get communityLoadFailed => 'Could not load the feed.';
+
+  @override
+  String get communityPulse => 'Residence pulse';
+
+  @override
+  String get communityResidentsStat => 'residents';
+
+  @override
+  String get communityInteractionsThisWeek => 'interactions this week';
+
+  @override
+  String get communityUpcomingEvents => 'upcoming events';
+
+  @override
+  String get communityPrivateTitle => 'Private to your residence';
+
+  @override
+  String get communityPrivateDescription =>
+      'Be kind, clear, and respect your neighbors’ privacy.';
+
+  @override
+  String get communityEmptyCategory => 'No feed items in this category';
+
+  @override
+  String get communityShowAll => 'Show all';
+
+  @override
+  String get communityLike => 'Like';
+
+  @override
+  String get postKindAnnouncement => 'Announcement';
+
+  @override
+  String get postKindQuestion => 'Question';
+
+  @override
+  String get postKindComplaint => 'Complaint';
+
+  @override
+  String get postKindSuggestion => 'Suggestion';
+
+  @override
+  String get postKindAlert => 'Alert';
+
+  @override
+  String get postKindGeneral => 'General';
+
+  @override
+  String get postKindPoll => 'Poll';
+
+  @override
+  String get postKindEvent => 'Event';
+
+  @override
+  String get deletePost => 'Delete post';
+
+  @override
+  String get deletePostTitle => 'Delete post?';
+
+  @override
+  String get deletePostConfirmation =>
+      'Delete this post? It will no longer be visible to residents.';
+
+  @override
+  String communityApartmentLabel(String number) {
+    return 'Apartment $number';
+  }
+
+  @override
+  String get communityRolePresident => 'President';
+
+  @override
+  String get communityRoleDeputy => 'Deputy';
+
+  @override
+  String get communityRoleTreasurer => 'Treasurer';
+
+  @override
+  String get communityRoleModerator => 'Moderator';
+
+  @override
+  String get communityRoleTeam => 'DarJar team';
+
+  @override
+  String get communityRoleResident => 'Resident';
+
+  @override
+  String pollVotes(int count) {
+    return '$count votes';
+  }
+
+  @override
+  String get pollVoteRecorded => 'Vote recorded';
+
+  @override
+  String get savePost => 'Save';
+
+  @override
   String get communityFeedDescription =>
       'The latest residence activity, posts, and announcements.';
 
@@ -681,6 +795,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get recommendationPublished =>
       'Thanks. Your recommendation is now visible to neighbors.';
+
+  @override
+  String get recommendationPublishFailed =>
+      'Could not publish the recommendation.';
 
   @override
   String get residencePageDescription =>

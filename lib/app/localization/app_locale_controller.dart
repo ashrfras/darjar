@@ -19,7 +19,7 @@ class AppLocaleController extends AsyncNotifier<Locale> {
   }
 
   Future<void> select(Locale locale) async {
-    if (locale.languageCode != 'ar' && locale.languageCode != 'en') return;
+    if (!const {'ar', 'zgh', 'en'}.contains(locale.languageCode)) return;
     _selectedDuringLoad = locale;
     state = AsyncData(locale);
     final preferences = await SharedPreferences.getInstance();
@@ -27,6 +27,7 @@ class AppLocaleController extends AsyncNotifier<Locale> {
   }
 
   Locale _supportedLocale(String? languageCode) => switch (languageCode) {
+    'zgh' => const Locale('zgh'),
     'en' => const Locale('en'),
     _ => const Locale('ar'),
   };

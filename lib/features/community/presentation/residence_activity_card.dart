@@ -1,3 +1,4 @@
+import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
@@ -19,11 +20,23 @@ class ResidenceActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final languageCode = Localizations.localeOf(context).languageCode;
     final visual = _visualFor(activity.activityType);
-    final classification = ar
-        ? activity.classificationAr
-        : activity.classificationEn;
+    final classification = switch (languageCode) {
+      'ar' => activity.classificationAr,
+      'zgh' => activity.classificationZgh,
+      _ => activity.classificationEn,
+    };
+    final description = switch (languageCode) {
+      'ar' => activity.descriptionAr,
+      'zgh' => activity.descriptionZgh,
+      _ => activity.descriptionEn,
+    };
+    final timeLabel = switch (languageCode) {
+      'ar' => activity.timeLabelAr,
+      'zgh' => activity.timeLabelZgh,
+      _ => activity.timeLabelEn,
+    };
 
     return DarJarCard(
       key: ValueKey('feed-activity-${activity.id}'),
@@ -47,7 +60,7 @@ class ResidenceActivityCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  ar ? activity.descriptionAr : activity.descriptionEn,
+                  description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.ink,
                     fontWeight: FontWeight.w600,
@@ -60,7 +73,7 @@ class ResidenceActivityCard extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
-                      ar ? activity.timeLabelAr : activity.timeLabelEn,
+                      timeLabel,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.inkMuted,
                       ),
@@ -92,7 +105,9 @@ class ResidenceActivityCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsetsDirectional.only(start: 2, top: 9),
               child: Icon(
-                ar ? Icons.chevron_right_rounded : Icons.chevron_left_rounded,
+                languageCode == 'ar'
+                    ? Icons.chevron_right_rounded
+                    : Icons.chevron_left_rounded,
                 size: 18,
                 color: AppColors.inkMuted,
               ),
@@ -111,11 +126,10 @@ class _ActivityLikeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
     return Semantics(
       button: true,
       selected: activity.isLiked,
-      label: ar ? 'إعجاب' : 'Like',
+      label: AppLocalizations.of(context).communityLike,
       child: InkWell(
         key: ValueKey('activity-like-${activity.id}'),
         onTap: onPressed,

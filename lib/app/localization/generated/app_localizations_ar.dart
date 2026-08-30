@@ -431,6 +431,120 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setupUnexpectedError => 'تعذر إكمال العملية الآن. حاول مجدداً.';
 
   @override
+  String get communityFilterPosts => 'المنشورات';
+
+  @override
+  String get communityFilterFinance => 'المالية';
+
+  @override
+  String get communityFilterPolls => 'الاستطلاعات';
+
+  @override
+  String get communityComposerPrompt => 'بماذا تريد مشاركة السكان؟';
+
+  @override
+  String get communityActionFailed => 'تعذّر تنفيذ الإجراء.';
+
+  @override
+  String get communityLoadFailed => 'تعذّر تحميل الموجز.';
+
+  @override
+  String get communityPulse => 'نبض الإقامة';
+
+  @override
+  String get communityResidentsStat => 'ساكناً';
+
+  @override
+  String get communityInteractionsThisWeek => 'تفاعلاً هذا الأسبوع';
+
+  @override
+  String get communityUpcomingEvents => 'موعدين قادمين';
+
+  @override
+  String get communityPrivateTitle => 'مساحة خاصة بسكان الإقامة';
+
+  @override
+  String get communityPrivateDescription =>
+      'كن ودوداً، واضحاً، واحترم خصوصية جيرانك.';
+
+  @override
+  String get communityEmptyCategory => 'لا توجد عناصر في هذه الفئة';
+
+  @override
+  String get communityShowAll => 'عرض الكل';
+
+  @override
+  String get communityLike => 'إعجاب';
+
+  @override
+  String get postKindAnnouncement => 'إعلان رسمي';
+
+  @override
+  String get postKindQuestion => 'سؤال';
+
+  @override
+  String get postKindComplaint => 'شكوى';
+
+  @override
+  String get postKindSuggestion => 'اقتراح';
+
+  @override
+  String get postKindAlert => 'تنبيه';
+
+  @override
+  String get postKindGeneral => 'منشور عام';
+
+  @override
+  String get postKindPoll => 'استطلاع';
+
+  @override
+  String get postKindEvent => 'مناسبة';
+
+  @override
+  String get deletePost => 'حذف المنشور';
+
+  @override
+  String get deletePostTitle => 'حذف المنشور؟';
+
+  @override
+  String get deletePostConfirmation =>
+      'هل تريد حذف هذا المنشور؟ لن يعود ظاهراً لسكان الإقامة.';
+
+  @override
+  String communityApartmentLabel(String number) {
+    return 'شقة $number';
+  }
+
+  @override
+  String get communityRolePresident => 'رئيس';
+
+  @override
+  String get communityRoleDeputy => 'نائب الرئيس';
+
+  @override
+  String get communityRoleTreasurer => 'أمين المال';
+
+  @override
+  String get communityRoleModerator => 'مشرف';
+
+  @override
+  String get communityRoleTeam => 'فريق دارجار';
+
+  @override
+  String get communityRoleResident => 'ساكن';
+
+  @override
+  String pollVotes(int count) {
+    return '$count صوت';
+  }
+
+  @override
+  String get pollVoteRecorded => 'تم تسجيل صوتك';
+
+  @override
+  String get savePost => 'حفظ';
+
+  @override
   String get communityFeedDescription => 'آخر نشاط ومنشورات وإعلانات الإقامة.';
 
   @override
@@ -666,6 +780,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recommendationPublished => 'شكراً، نُشرت توصيتك لجيرانك.';
+
+  @override
+  String get recommendationPublishFailed => 'تعذّر نشر التوصية.';
 
   @override
   String get residencePageDescription =>

@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 
 abstract final class AppTypography {
   static const fontFamily = 'IBM Plex Sans Arabic';
+  static const fontFamilyFallback = ['Noto Sans Tifinagh'];
   static const brandArabic = TextStyle(
     fontFamily: 'Cairo',
+    fontFamilyFallback: fontFamilyFallback,
     fontWeight: FontWeight.w800,
   );
   static const brandLatin = TextStyle(
     fontFamily: 'Cairo',
+    fontFamilyFallback: fontFamilyFallback,
     fontWeight: FontWeight.w400,
     letterSpacing: 2.5,
   );
@@ -17,6 +20,7 @@ abstract final class AppTypography {
     return const TextTheme(
       displaySmall: TextStyle(
         fontFamily: fontFamily,
+        fontFamilyFallback: fontFamilyFallback,
         color: AppColors.ink,
         fontSize: 34,
         fontWeight: FontWeight.w700,
@@ -24,6 +28,7 @@ abstract final class AppTypography {
       ),
       headlineMedium: TextStyle(
         fontFamily: fontFamily,
+        fontFamilyFallback: fontFamilyFallback,
         color: AppColors.ink,
         fontSize: 26,
         fontWeight: FontWeight.w700,
@@ -31,6 +36,7 @@ abstract final class AppTypography {
       ),
       headlineSmall: TextStyle(
         fontFamily: fontFamily,
+        fontFamilyFallback: fontFamilyFallback,
         color: AppColors.ink,
         fontSize: 21,
         fontWeight: FontWeight.w700,
@@ -38,6 +44,7 @@ abstract final class AppTypography {
       ),
       titleLarge: TextStyle(
         fontFamily: fontFamily,
+        fontFamilyFallback: fontFamilyFallback,
         color: AppColors.ink,
         fontSize: 17,
         fontWeight: FontWeight.w700,
@@ -45,6 +52,7 @@ abstract final class AppTypography {
       ),
       titleMedium: TextStyle(
         fontFamily: fontFamily,
+        fontFamilyFallback: fontFamilyFallback,
         color: AppColors.ink,
         fontSize: 15,
         fontWeight: FontWeight.w700,
@@ -52,6 +60,7 @@ abstract final class AppTypography {
       ),
       bodyLarge: TextStyle(
         fontFamily: fontFamily,
+        fontFamilyFallback: fontFamilyFallback,
         color: AppColors.ink,
         fontSize: 15,
         fontWeight: FontWeight.w400,
@@ -59,6 +68,7 @@ abstract final class AppTypography {
       ),
       bodyMedium: TextStyle(
         fontFamily: fontFamily,
+        fontFamilyFallback: fontFamilyFallback,
         color: AppColors.inkMuted,
         fontSize: 13,
         fontWeight: FontWeight.w400,
@@ -66,6 +76,7 @@ abstract final class AppTypography {
       ),
       labelLarge: TextStyle(
         fontFamily: fontFamily,
+        fontFamilyFallback: fontFamilyFallback,
         color: AppColors.ink,
         fontSize: 13,
         fontWeight: FontWeight.w700,
@@ -73,6 +84,7 @@ abstract final class AppTypography {
       ),
       labelMedium: TextStyle(
         fontFamily: fontFamily,
+        fontFamilyFallback: fontFamilyFallback,
         color: AppColors.inkMuted,
         fontSize: 11,
         fontWeight: FontWeight.w600,
