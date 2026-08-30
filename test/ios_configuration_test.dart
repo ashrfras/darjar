@@ -5,6 +5,33 @@ import 'package:darjar/features/onboarding/presentation/android_app_launcher.dar
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('iOS push notification entitlements match each signing environment', () {
+    final developmentEntitlements = File(
+      'ios/Runner/RunnerDevelopment.entitlements',
+    ).readAsStringSync();
+    final releaseEntitlements = File(
+      'ios/Runner/Runner.entitlements',
+    ).readAsStringSync();
+    final project = File(
+      'ios/Runner.xcodeproj/project.pbxproj',
+    ).readAsStringSync();
+    final infoPlist = File('ios/Runner/Info.plist').readAsStringSync();
+
+    expect(developmentEntitlements, contains('<string>development</string>'));
+    expect(releaseEntitlements, contains('<string>production</string>'));
+    expect(
+      project,
+      contains(
+        'CODE_SIGN_ENTITLEMENTS = Runner/RunnerDevelopment.entitlements',
+      ),
+    );
+    expect(
+      project,
+      contains('CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements'),
+    );
+    expect(infoPlist, contains('<string>remote-notification</string>'));
+  });
+
   test('iOS no longer registers the Firebase phone auth callback scheme', () {
     final infoPlist = File('ios/Runner/Info.plist').readAsStringSync();
 

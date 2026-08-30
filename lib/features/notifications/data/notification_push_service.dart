@@ -12,6 +12,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const _webPushVapidKey = String.fromEnvironment('DARJAR_WEB_PUSH_VAPID_KEY');
+const _apnsTokenPollInterval = Duration(milliseconds: 250);
+const _apnsTokenPollAttempts = 20;
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -78,26 +80,29 @@ class NotificationPushService {
     required List<String> residenceIds,
     required ValueChanged<DarJarNotification> onOpened,
   }) async {
-    if (_userId == userId) return;
+    final normalizedResidenceIds = [...residenceIds]..sort();
+    final registrationIsCurrent =
+        _userId == userId && listEquals(_residenceIds, normalizedResidenceIds);
+    if (registrationIsCurrent) return;
     _userId = userId;
-    _residenceIds = residenceIds;
+    _residenceIds = normalizedResidenceIds;
 
-    await _messaging.requestPermission(alert: true, badge: true, sound: true);
+    final permission = await _messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
     await _messaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    if (!kIsWeb || _webPushVapidKey.isNotEmpty) {
-      final token = await _messaging.getToken(
-        vapidKey: kIsWeb ? _webPushVapidKey : null,
-      );
-      if (token != null) await _storeToken(token);
-    }
-
     await _tokenSubscription?.cancel();
-    _tokenSubscription = _messaging.onTokenRefresh.listen(_storeToken);
+    _tokenSubscription = _messaging.onTokenRefresh.listen(
+      _storeToken,
+      onError: _reportRegistrationError,
+    );
 
     await _foregroundSubscription?.cancel();
     _foregroundSubscription = FirebaseMessaging.onMessage.listen((message) {
@@ -121,6 +126,37 @@ class NotificationPushService {
     if (initialNotification != null) {
       onOpened(initialNotification);
     }
+
+    if (_canReceiveNotifications(permission.authorizationStatus)) {
+      await _registerCurrentToken();
+    }
+  }
+
+  Future<void> _registerCurrentToken() async {
+    if (kIsWeb && _webPushVapidKey.isEmpty) return;
+
+    try {
+      if (_isApplePlatform && !await _waitForApnsToken()) {
+        debugPrint(
+          'DarJar push registration is waiting for an APNs device token.',
+        );
+        return;
+      }
+      final token = await _messaging.getToken(
+        vapidKey: kIsWeb ? _webPushVapidKey : null,
+      );
+      if (token != null) await _storeToken(token);
+    } on FirebaseException catch (error, stackTrace) {
+      _reportRegistrationError(error, stackTrace);
+    }
+  }
+
+  Future<bool> _waitForApnsToken() async {
+    for (var attempt = 0; attempt < _apnsTokenPollAttempts; attempt++) {
+      if (await _messaging.getAPNSToken() != null) return true;
+      await Future<void>.delayed(_apnsTokenPollInterval);
+    }
+    return false;
   }
 
   Future<void> _storeToken(String token) {
@@ -179,6 +215,20 @@ class NotificationPushService {
     _tokenSubscription?.cancel();
     _foregroundSubscription?.cancel();
     _openedSubscription?.cancel();
+  }
+
+  bool get _isApplePlatform =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
+
+  bool _canReceiveNotifications(AuthorizationStatus status) {
+    return status == AuthorizationStatus.authorized ||
+        status == AuthorizationStatus.provisional;
+  }
+
+  void _reportRegistrationError(Object error, [StackTrace? stackTrace]) {
+    debugPrint('DarJar push registration failed: $error');
   }
 }
 
