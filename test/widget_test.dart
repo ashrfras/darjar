@@ -4172,6 +4172,15 @@ void main() {
 
     await tester.tap(find.text('حالة الواجبات'));
     await tester.pumpAndSettle();
+    final paymentChevron = tester.widget<Icon>(
+      find.descendant(
+        of: find.byKey(
+          const ValueKey('resident-payment-payment-group-attachment'),
+        ),
+        matching: find.byIcon(Icons.chevron_left_rounded),
+      ),
+    );
+    expect(paymentChevron.textDirection, TextDirection.rtl);
     expect(
       find.descendant(
         of: find.byKey(const Key('dues-total-credit')),
@@ -4241,12 +4250,10 @@ void main() {
     expect(find.byKey(const Key('finance-transactions-page')), findsOneWidget);
   });
 
-  testWidgets('dues status initially shows only the latest twelve months', (
-    tester,
-  ) async {
+  testWidgets('dues status loads three months at a time', (tester) async {
     final now = DateTime.now();
     final dues = [
-      for (var index = 0; index < 13; index++)
+      for (var index = 0; index < 7; index++)
         ResidenceDue(
           id:
               '${residenceDuesPeriodKey(DateTime(now.year, now.month - index))}'
@@ -4288,9 +4295,15 @@ void main() {
     await tester.tap(find.text('حالة الواجبات'));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(ValueKey('resident-due-${dues.last.id}')), findsNothing);
+    expect(find.byKey(ValueKey('resident-due-${dues[2].id}')), findsOneWidget);
+    expect(find.byKey(ValueKey('resident-due-${dues[3].id}')), findsNothing);
     final showMore = find.byKey(const Key('show-more-dues'));
     expect(showMore, findsOneWidget);
+    await tester.ensureVisible(showMore);
+    await tester.tap(showMore);
+    await tester.pumpAndSettle();
+    expect(find.byKey(ValueKey('resident-due-${dues[5].id}')), findsOneWidget);
+    expect(find.byKey(ValueKey('resident-due-${dues.last.id}')), findsNothing);
     await tester.ensureVisible(showMore);
     await tester.tap(showMore);
     await tester.pumpAndSettle();
@@ -4298,6 +4311,7 @@ void main() {
       find.byKey(ValueKey('resident-due-${dues.last.id}')),
       findsOneWidget,
     );
+    expect(showMore, findsNothing);
   });
 
   testWidgets('management allocates arrears first and prepays future months', (

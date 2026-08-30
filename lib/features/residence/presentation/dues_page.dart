@@ -14,7 +14,7 @@ import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show Bidi, NumberFormat;
 
 class DuesPage extends ConsumerWidget {
   const DuesPage({super.key});
@@ -86,7 +86,7 @@ class _ResidentDuesContent extends ConsumerStatefulWidget {
 }
 
 class _ResidentDuesContentState extends ConsumerState<_ResidentDuesContent> {
-  static const _duesPageSize = 12;
+  static const _duesPageSize = 3;
   static const _paymentsPageSize = 10;
 
   var _visibleDues = _duesPageSize;
@@ -472,7 +472,13 @@ class _PaymentRow extends StatelessWidget {
               ),
             ),
             if (onOpenReceipt != null)
-              const Icon(Icons.chevron_left_rounded, color: AppColors.inkMuted),
+              Icon(
+                Icons.chevron_left_rounded,
+                color: AppColors.inkMuted,
+                textDirection: Bidi.isRtlLanguage(localizations.localeName)
+                    ? TextDirection.rtl
+                    : TextDirection.ltr,
+              ),
           ],
         ),
       ),
