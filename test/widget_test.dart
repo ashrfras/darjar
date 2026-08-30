@@ -56,8 +56,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:image/image.dart' as test_image;
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  SharedPreferences.setMockInitialValues({});
+
   group('residence profile image synchronization', () {
     test('repairs a membership created without the existing profile image', () {
       expect(
@@ -3888,6 +3891,106 @@ void main() {
     expect(authRepository.currentUser, isNull);
     expect(find.byKey(const Key('phone-auth-page')), findsOneWidget);
   });
+
+  testWidgets(
+    'profile changes between Arabic and English from language sheet',
+    (tester) async {
+      await _pumpApp(tester, size: const Size(390, 844));
+      await _enterResidence(tester);
+      await tester.tap(find.byKey(const Key('profile-button')));
+      await tester.pumpAndSettle();
+
+      final languageLink = find.byKey(const Key('language-selection-link'));
+      final privacyLink = find.byKey(const Key('privacy-policy-link'));
+      await tester.ensureVisible(privacyLink);
+
+      expect(find.text('اختيار اللغة'), findsOneWidget);
+      expect(
+        tester.getTopLeft(languageLink).dy,
+        lessThan(tester.getTopLeft(privacyLink).dy),
+      );
+      final languageCard = find.ancestor(
+        of: languageLink,
+        matching: find.byType(DarJarCard),
+      );
+      final informationCard = find.ancestor(
+        of: privacyLink,
+        matching: find.byType(DarJarCard),
+      );
+      expect(
+        languageCard.evaluate().single,
+        isNot(same(informationCard.evaluate().single)),
+      );
+
+      await tester.tap(languageLink);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('language-selection-sheet')), findsOneWidget);
+      expect(find.text('العربية'), findsWidgets);
+      expect(find.text('الأمازيغية'), findsOneWidget);
+      expect(find.text('الإنجليزية'), findsOneWidget);
+      for (final flagKey in [
+        'arabic-language-flag',
+        'amazigh-language-flag',
+        'english-language-flag',
+      ]) {
+        expect(
+          find.descendant(
+            of: find.byKey(Key(flagKey)),
+            matching: find.byType(CustomPaint),
+          ),
+          findsOneWidget,
+        );
+      }
+      expect(find.text('قريبًا'), findsOneWidget);
+      expect(
+        tester
+            .widget<ListTile>(
+              find.descendant(
+                of: find.byKey(const Key('language-option-zgh')),
+                matching: find.byType(ListTile),
+              ),
+            )
+            .enabled,
+        isFalse,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('language-option-ar')),
+          matching: find.byIcon(Icons.check_circle_rounded),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('language-option-en')),
+          matching: find.byType(ListTile),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('language-selection-sheet')), findsNothing);
+      expect(find.text('Choose language'), findsOneWidget);
+      expect(find.text('Privacy policy'), findsOneWidget);
+      expect(
+        Directionality.of(
+          tester.element(find.byKey(const Key('profile-page'))),
+        ),
+        TextDirection.ltr,
+      );
+
+      await tester.tap(find.byKey(const Key('language-selection-link')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('language-option-ar')),
+          matching: find.byType(ListTile),
+        ),
+      );
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets('profile opens privacy policy and about app before sign out', (
     tester,

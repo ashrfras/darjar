@@ -1,4 +1,5 @@
 import 'package:darjar/app/localization/generated/app_localizations.dart';
+import 'package:darjar/app/localization/app_locale_controller.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_theme.dart';
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
@@ -11,6 +12,7 @@ class DarJarApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    final locale = ref.watch(appLocaleProvider).value ?? const Locale('ar');
     ref.watch(notificationPushRegistrationProvider);
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).siteTitle,
@@ -21,9 +23,9 @@ class DarJarApp extends ConsumerWidget {
         child: child ?? const SizedBox.shrink(),
       ),
       debugShowCheckedModeBanner: false,
-      locale: const Locale('ar'),
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: const [Locale('ar')],
+      supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
       theme: AppTheme.light,
     );

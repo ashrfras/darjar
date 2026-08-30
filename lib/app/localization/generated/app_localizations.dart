@@ -3067,17 +3067,35 @@ abstract class AppLocalizations {
   /// **'اللغة'**
   String get language;
 
+  /// No description provided for @chooseLanguage.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار اللغة'**
+  String get chooseLanguage;
+
   /// No description provided for @arabic.
   ///
   /// In ar, this message translates to:
   /// **'العربية'**
   String get arabic;
 
+  /// No description provided for @amazigh.
+  ///
+  /// In ar, this message translates to:
+  /// **'الأمازيغية'**
+  String get amazigh;
+
   /// No description provided for @english.
   ///
   /// In ar, this message translates to:
-  /// **'English'**
+  /// **'الإنجليزية'**
   String get english;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In ar, this message translates to:
+  /// **'قريبًا'**
+  String get comingSoon;
 
   /// No description provided for @notifications.
   ///

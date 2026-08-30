@@ -1,4 +1,5 @@
 import 'package:darjar/app/localization/generated/app_localizations.dart';
+import 'package:darjar/app/localization/app_locale_controller.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
@@ -186,6 +187,27 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
               ),
               const SizedBox(height: AppSpacing.large),
               DarJarCard(
+                key: const Key('profile-language-card'),
+                padding: EdgeInsets.zero,
+                child: ListTile(
+                  key: const Key('language-selection-link'),
+                  leading: const Icon(Icons.language_rounded),
+                  title: Text(localizations.chooseLanguage),
+                  subtitle: Text(
+                    Localizations.localeOf(context).languageCode == 'en'
+                        ? localizations.english
+                        : localizations.arabic,
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_left_rounded,
+                    color: AppColors.inkMuted,
+                    textDirection: TextDirection.ltr,
+                  ),
+                  onTap: _showLanguageSheet,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.large),
+              DarJarCard(
                 key: const Key('profile-information-links-card'),
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -256,6 +278,18 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
       useSafeArea: true,
       constraints: const BoxConstraints(maxWidth: 560),
       builder: (context) => _EditProfileNameSheet(profile: widget.profile),
+    );
+  }
+
+  Future<void> _showLanguageSheet() {
+    return showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: AppColors.ink.withValues(alpha: 0.34),
+      isScrollControlled: true,
+      useSafeArea: true,
+      constraints: const BoxConstraints(maxWidth: 560),
+      builder: (context) => const _LanguageSelectionSheet(),
     );
   }
 
@@ -381,6 +415,262 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
   }
+}
+
+class _LanguageSelectionSheet extends ConsumerWidget {
+  const _LanguageSelectionSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final localizations = AppLocalizations.of(context);
+    final selectedLanguage =
+        ref.watch(appLocaleProvider).value?.languageCode ??
+        Localizations.localeOf(context).languageCode;
+
+    return Material(
+      key: const Key('language-selection-sheet'),
+      color: AppColors.surface,
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(AppRadius.large),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.large,
+            AppSpacing.large,
+            AppSpacing.large,
+            AppSpacing.xLarge,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                localizations.chooseLanguage,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: AppSpacing.medium),
+              _LanguageOption(
+                key: const Key('language-option-ar'),
+                flag: const _LanguageFlag(
+                  key: Key('arabic-language-flag'),
+                  painter: _ArabicFlagPainter(),
+                ),
+                label: localizations.arabic,
+                selected: selectedLanguage == 'ar',
+                onTap: () => _select(context, ref, const Locale('ar')),
+              ),
+              _LanguageOption(
+                key: const Key('language-option-zgh'),
+                flag: const _LanguageFlag(
+                  key: Key('amazigh-language-flag'),
+                  painter: _AmazighFlagPainter(),
+                ),
+                label: localizations.amazigh,
+                selected: false,
+                status: localizations.comingSoon,
+              ),
+              _LanguageOption(
+                key: const Key('language-option-en'),
+                flag: const _LanguageFlag(
+                  key: Key('english-language-flag'),
+                  painter: _BritishFlagPainter(),
+                ),
+                label: localizations.english,
+                selected: selectedLanguage == 'en',
+                onTap: () => _select(context, ref, const Locale('en')),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _select(BuildContext context, WidgetRef ref, Locale locale) {
+    ref.read(appLocaleProvider.notifier).select(locale);
+    Navigator.of(context).pop();
+  }
+}
+
+class _LanguageOption extends StatelessWidget {
+  const _LanguageOption({
+    required this.flag,
+    required this.label,
+    required this.selected,
+    this.status,
+    this.onTap,
+    super.key,
+  });
+
+  final Widget flag;
+  final String label;
+  final bool selected;
+  final String? status;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      enabled: onTap != null,
+      leading: flag,
+      title: Text(label),
+      subtitle: status == null ? null : Text(status!),
+      trailing: selected
+          ? Icon(Icons.check_circle_rounded, color: AppColors.primary)
+          : null,
+      onTap: onTap,
+    );
+  }
+}
+
+class _LanguageFlag extends StatelessWidget {
+  const _LanguageFlag({required this.painter, super.key});
+
+  final CustomPainter painter;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(3),
+      child: SizedBox(
+        width: 40,
+        height: 28,
+        child: CustomPaint(painter: painter),
+      ),
+    );
+  }
+}
+
+class _ArabicFlagPainter extends CustomPainter {
+  const _ArabicFlagPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()..color = const Color(0xFF178A55),
+    );
+
+    final symbol = TextPainter(
+      text: const TextSpan(
+        text: 'ع',
+        style: TextStyle(
+          color: Colors.white,
+          fontFamily: 'IBM Plex Sans Arabic',
+          fontSize: 17,
+          fontWeight: FontWeight.w700,
+          height: 1,
+        ),
+      ),
+      textDirection: TextDirection.rtl,
+    )..layout();
+    symbol.paint(
+      canvas,
+      Offset(
+        (size.width - symbol.width) / 2,
+        (size.height - symbol.height) / 2,
+      ),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _ArabicFlagPainter oldDelegate) => false;
+}
+
+class _AmazighFlagPainter extends CustomPainter {
+  const _AmazighFlagPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bandHeight = size.height / 3;
+    canvas
+      ..drawRect(
+        Rect.fromLTWH(0, 0, size.width, bandHeight),
+        Paint()..color = const Color(0xFF2F72B7),
+      )
+      ..drawRect(
+        Rect.fromLTWH(0, bandHeight, size.width, bandHeight),
+        Paint()..color = const Color(0xFF4BAE4F),
+      )
+      ..drawRect(
+        Rect.fromLTWH(0, bandHeight * 2, size.width, bandHeight),
+        Paint()..color = const Color(0xFFF3D64E),
+      );
+
+    final symbol = TextPainter(
+      text: const TextSpan(
+        text: 'ⵣ',
+        style: TextStyle(
+          color: Color(0xFFD3222A),
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          height: 1,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    symbol.paint(
+      canvas,
+      Offset(
+        (size.width - symbol.width) / 2,
+        (size.height - symbol.height) / 2,
+      ),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _AmazighFlagPainter oldDelegate) => false;
+}
+
+class _BritishFlagPainter extends CustomPainter {
+  const _BritishFlagPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()..color = const Color(0xFF21468B),
+    );
+
+    final whiteDiagonal = Paint()
+      ..color = Colors.white
+      ..strokeWidth = size.height * 0.22
+      ..strokeCap = StrokeCap.square;
+    final redDiagonal = Paint()
+      ..color = const Color(0xFFC8102E)
+      ..strokeWidth = size.height * 0.09
+      ..strokeCap = StrokeCap.square;
+    canvas
+      ..drawLine(Offset.zero, Offset(size.width, size.height), whiteDiagonal)
+      ..drawLine(Offset(size.width, 0), Offset(0, size.height), whiteDiagonal)
+      ..drawLine(Offset.zero, Offset(size.width, size.height), redDiagonal)
+      ..drawLine(Offset(size.width, 0), Offset(0, size.height), redDiagonal);
+
+    canvas
+      ..drawRect(
+        Rect.fromLTWH(0, size.height * 0.36, size.width, size.height * 0.28),
+        Paint()..color = Colors.white,
+      )
+      ..drawRect(
+        Rect.fromLTWH(size.width * 0.39, 0, size.width * 0.22, size.height),
+        Paint()..color = Colors.white,
+      )
+      ..drawRect(
+        Rect.fromLTWH(0, size.height * 0.42, size.width, size.height * 0.16),
+        Paint()..color = const Color(0xFFC8102E),
+      )
+      ..drawRect(
+        Rect.fromLTWH(size.width * 0.44, 0, size.width * 0.12, size.height),
+        Paint()..color = const Color(0xFFC8102E),
+      );
+  }
+
+  @override
+  bool shouldRepaint(covariant _BritishFlagPainter oldDelegate) => false;
 }
 
 class _EditableProfileAvatar extends ConsumerWidget {
