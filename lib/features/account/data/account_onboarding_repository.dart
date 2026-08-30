@@ -52,12 +52,14 @@ class AccountResolution {
     required this.profile,
     required this.invitations,
     this.acceptedResidenceIds = const [],
+    this.deletionRequested = false,
   });
 
   final String phoneNumber;
   final UserProfile? profile;
   final List<ResidenceInvitation> invitations;
   final List<String> acceptedResidenceIds;
+  final bool deletionRequested;
 
   UserProfile? get displayedProfile {
     if (profile != null) {
@@ -163,11 +165,18 @@ class FirestoreAccountOnboardingRepository
 
       return AccountResolution(
         phoneNumber: phoneNumber,
-        profile: userDocument.exists
+        profile:
+            userDocument.exists &&
+                userDocument.data()?['accountStatus'] != 'deletionRequested'
             ? _profileFromData(userDocument.data()!, phoneNumber)
             : null,
-        invitations: invitations,
+        invitations:
+            userDocument.data()?['accountStatus'] == 'deletionRequested'
+            ? const []
+            : invitations,
         acceptedResidenceIds: acceptedResidenceIds,
+        deletionRequested:
+            userDocument.data()?['accountStatus'] == 'deletionRequested',
       );
     } on AccountOnboardingFailure {
       rethrow;

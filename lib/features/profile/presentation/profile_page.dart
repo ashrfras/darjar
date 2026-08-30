@@ -228,6 +228,18 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                   ],
                 ),
               ),
+              const SizedBox(height: AppSpacing.large),
+              DarJarCard(
+                key: const Key('delete-account-card'),
+                padding: EdgeInsets.zero,
+                child: _ProfileLink(
+                  key: const Key('delete-account-link'),
+                  icon: Icons.delete_outline_rounded,
+                  title: localizations.deleteAccountTitle,
+                  route: AppRoutes.deleteAccount,
+                  isDestructive: true,
+                ),
+              ),
             ],
           ),
         ),
@@ -750,18 +762,23 @@ class _ProfileLink extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.route,
+    this.isDestructive = false,
     super.key,
   });
 
   final IconData icon;
   final String title;
   final String route;
+  final bool isDestructive;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
+      leading: Icon(icon, color: isDestructive ? AppColors.danger : null),
+      title: Text(
+        title,
+        style: isDestructive ? const TextStyle(color: AppColors.danger) : null,
+      ),
       trailing: const Icon(
         Icons.chevron_left_rounded,
         color: AppColors.inkMuted,

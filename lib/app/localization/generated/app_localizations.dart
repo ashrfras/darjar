@@ -2812,26 +2812,86 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountIntroduction.
   ///
   /// In ar, this message translates to:
-  /// **'يمكنك طلب الحذف النهائي لحسابك في دارجار والبيانات الشخصية المرتبطة به، حتى إذا لم يعد التطبيق مثبتاً على جهازك.'**
+  /// **'يمكنك بدء حذف حسابك والبيانات الشخصية المرتبطة به مباشرة من داخل دارجار.'**
   String get deleteAccountIntroduction;
 
   /// No description provided for @deleteAccountRequestTitle.
   ///
   /// In ar, this message translates to:
-  /// **'كيفية طلب الحذف'**
+  /// **'ما الذي سيحدث؟'**
   String get deleteAccountRequestTitle;
 
   /// No description provided for @deleteAccountRequestBody.
   ///
   /// In ar, this message translates to:
-  /// **'راسل {email} واذكر اسمك الكامل ورقم الهاتف المسجل في دارجار مع رمز البلد. سنؤكد استلام الطلب، ونتحقق من ملكيتك للحساب، ونستكمل الحذف خلال 30 يوماً.'**
-  String deleteAccountRequestBody(String email);
+  /// **'بعد التأكيد، سيُخفى حسابك فوراً عن الإقامات وتُسجّل عليه حالة «مطلوب للحذف». سنعالج الحذف النهائي أو إخفاء الهوية خلال 30 يوماً، ثم نبلغك عند اكتماله.'**
+  String get deleteAccountRequestBody;
 
   /// No description provided for @deleteAccountRequestAction.
   ///
   /// In ar, this message translates to:
-  /// **'إرسال طلب الحذف'**
+  /// **'طلب حذف الحساب'**
   String get deleteAccountRequestAction;
+
+  /// No description provided for @deleteAccountRequesting.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تسجيل الطلب…'**
+  String get deleteAccountRequesting;
+
+  /// No description provided for @deleteAccountConfirmationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلب حذف الحساب؟'**
+  String get deleteAccountConfirmationTitle;
+
+  /// No description provided for @deleteAccountConfirmationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيُخفى حسابك فوراً، وسيتم تسجيل خروجك وبدء معالجة الحذف النهائي. لن تتمكن من الوصول إلى حسابك أو إقاماتك بعد التأكيد.'**
+  String get deleteAccountConfirmationBody;
+
+  /// No description provided for @deleteAccountConfirmAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد طلب الحذف'**
+  String get deleteAccountConfirmAction;
+
+  /// No description provided for @deleteAccountRequestSuccess.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم استلام طلبك وإخفاء حسابك. سنستكمل معالجة الحذف خلال 30 يوماً ونبلغك عند اكتماله.'**
+  String get deleteAccountRequestSuccess;
+
+  /// No description provided for @deleteAccountRequestFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تسجيل طلب الحذف. حاول مجدداً.'**
+  String get deleteAccountRequestFailed;
+
+  /// No description provided for @deleteAccountSignInRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'لبدء الطلب بأمان، سجّل الدخول إلى الحساب الذي تريد حذفه ثم افتح هذه الصفحة من «حسابي».'**
+  String get deleteAccountSignInRequired;
+
+  /// No description provided for @deleteAccountSignInAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسجيل الدخول'**
+  String get deleteAccountSignInAction;
+
+  /// No description provided for @accountDeletionPendingTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلب حذف حسابك قيد المعالجة'**
+  String get accountDeletionPendingTitle;
+
+  /// No description provided for @accountDeletionPendingBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إخفاء الحساب ولا يمكن استخدامه الآن. سنستكمل معالجة الحذف خلال 30 يوماً ونبلغك عند اكتماله.'**
+  String get accountDeletionPendingBody;
 
   /// No description provided for @deleteAccountDeletedDataTitle.
   ///
@@ -2860,7 +2920,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountSafetyNotice.
   ///
   /// In ar, this message translates to:
-  /// **'لا ترسل رمز تحقق أو كلمة مرور أو وثيقة هوية أو أي معلومة سرية في رسالتك الأولى. سنرسل إليك تعليمات تحقق آمنة عند الحاجة.'**
+  /// **'يُعد تسجيل دخولك وتأكيدك في هذه الصفحة إثباتاً للطلب. لن نطلب منك إرسال رمز تحقق أو كلمة مرور أو وثيقة هوية عبر البريد.'**
   String get deleteAccountSafetyNotice;
 
   /// No description provided for @edit.

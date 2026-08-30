@@ -247,7 +247,8 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
 
-      allow update: if verifiedPhone()
+      allow update: if (
+        verifiedPhone()
         && request.auth.uid == userId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'firstName',
@@ -275,7 +276,23 @@ service cloud.firestore {
             ).data.status == 'active'
           )
         )
-        && request.resource.data.updatedAt == request.time;
+        && request.resource.data.updatedAt == request.time
+      ) || (
+        verifiedPhone()
+        && request.auth.uid == userId
+        && !resource.data.keys().hasAny(['accountStatus'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'accountStatus',
+          'deletionRequestedAt',
+          'deletionDueAt',
+          'updatedAt'
+        ])
+        && request.resource.data.accountStatus == 'deletionRequested'
+        && request.resource.data.deletionRequestedAt == request.time
+        && request.resource.data.deletionDueAt is timestamp
+        && request.resource.data.deletionDueAt > request.time
+        && request.resource.data.updatedAt == request.time
+      );
     }
 
     match /users/{userId}/pushTokens/{tokenId} {
@@ -693,6 +710,19 @@ service cloud.firestore {
               'treasurer',
               'resident'
             ]
+            && request.resource.data.updatedAt == request.time
+          )
+          || (
+            signedIn()
+            && memberId == request.auth.uid
+            && resource.data.status == 'active'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status',
+              'hasPresidentPermissions',
+              'updatedAt'
+            ])
+            && request.resource.data.status == 'deletionRequested'
+            && request.resource.data.hasPresidentPermissions == false
             && request.resource.data.updatedAt == request.time
           )
           || (

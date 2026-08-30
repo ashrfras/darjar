@@ -1501,18 +1501,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deleteAccountIntroduction =>
-      'يمكنك طلب الحذف النهائي لحسابك في دارجار والبيانات الشخصية المرتبطة به، حتى إذا لم يعد التطبيق مثبتاً على جهازك.';
+      'يمكنك بدء حذف حسابك والبيانات الشخصية المرتبطة به مباشرة من داخل دارجار.';
 
   @override
-  String get deleteAccountRequestTitle => 'كيفية طلب الحذف';
+  String get deleteAccountRequestTitle => 'ما الذي سيحدث؟';
 
   @override
-  String deleteAccountRequestBody(String email) {
-    return 'راسل $email واذكر اسمك الكامل ورقم الهاتف المسجل في دارجار مع رمز البلد. سنؤكد استلام الطلب، ونتحقق من ملكيتك للحساب، ونستكمل الحذف خلال 30 يوماً.';
-  }
+  String get deleteAccountRequestBody =>
+      'بعد التأكيد، سيُخفى حسابك فوراً عن الإقامات وتُسجّل عليه حالة «مطلوب للحذف». سنعالج الحذف النهائي أو إخفاء الهوية خلال 30 يوماً، ثم نبلغك عند اكتماله.';
 
   @override
-  String get deleteAccountRequestAction => 'إرسال طلب الحذف';
+  String get deleteAccountRequestAction => 'طلب حذف الحساب';
+
+  @override
+  String get deleteAccountRequesting => 'جارٍ تسجيل الطلب…';
+
+  @override
+  String get deleteAccountConfirmationTitle => 'طلب حذف الحساب؟';
+
+  @override
+  String get deleteAccountConfirmationBody =>
+      'سيُخفى حسابك فوراً، وسيتم تسجيل خروجك وبدء معالجة الحذف النهائي. لن تتمكن من الوصول إلى حسابك أو إقاماتك بعد التأكيد.';
+
+  @override
+  String get deleteAccountConfirmAction => 'تأكيد طلب الحذف';
+
+  @override
+  String get deleteAccountRequestSuccess =>
+      'تم استلام طلبك وإخفاء حسابك. سنستكمل معالجة الحذف خلال 30 يوماً ونبلغك عند اكتماله.';
+
+  @override
+  String get deleteAccountRequestFailed =>
+      'تعذّر تسجيل طلب الحذف. حاول مجدداً.';
+
+  @override
+  String get deleteAccountSignInRequired =>
+      'لبدء الطلب بأمان، سجّل الدخول إلى الحساب الذي تريد حذفه ثم افتح هذه الصفحة من «حسابي».';
+
+  @override
+  String get deleteAccountSignInAction => 'تسجيل الدخول';
+
+  @override
+  String get accountDeletionPendingTitle => 'طلب حذف حسابك قيد المعالجة';
+
+  @override
+  String get accountDeletionPendingBody =>
+      'تم إخفاء الحساب ولا يمكن استخدامه الآن. سنستكمل معالجة الحذف خلال 30 يوماً ونبلغك عند اكتماله.';
 
   @override
   String get deleteAccountDeletedDataTitle => 'البيانات التي يشملها الطلب';
@@ -1530,7 +1564,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deleteAccountSafetyNotice =>
-      'لا ترسل رمز تحقق أو كلمة مرور أو وثيقة هوية أو أي معلومة سرية في رسالتك الأولى. سنرسل إليك تعليمات تحقق آمنة عند الحاجة.';
+      'يُعد تسجيل دخولك وتأكيدك في هذه الصفحة إثباتاً للطلب. لن نطلب منك إرسال رمز تحقق أو كلمة مرور أو وثيقة هوية عبر البريد.';
 
   @override
   String get edit => 'تعديل';

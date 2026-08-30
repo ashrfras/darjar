@@ -35,7 +35,7 @@ import 'package:darjar/features/notifications/data/notifications_repository.dart
 import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/profile/data/app_package_info.dart';
-import 'package:darjar/features/profile/presentation/delete_account_page.dart';
+import 'package:darjar/features/profile/data/account_deletion_repository.dart';
 import 'package:darjar/features/receipts/data/payment_receipt_repository.dart';
 import 'package:darjar/features/receipts/domain/payment_receipt.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
@@ -223,16 +223,59 @@ void main() {
 
       expect(find.byKey(const Key('delete-account-page')), findsOneWidget);
       expect(find.byKey(const Key('delete-account-content')), findsOneWidget);
-      expect(find.textContaining(accountDeletionRequestEmail), findsOneWidget);
       expect(
-        find.byKey(const Key('send-delete-account-request')),
+        find.byKey(const Key('delete-account-sign-in-button')),
         findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('request-account-deletion-button')),
+        findsNothing,
       );
       expect(find.byKey(const Key('phone-auth-page')), findsNothing);
       expect(find.byKey(const Key('onboarding-page')), findsNothing);
       expect(find.byKey(const Key('public-legal-brand')), findsOneWidget);
       expect(find.byKey(const Key('public-legal-back-button')), findsOneWidget);
       expect(find.byKey(const Key('landing-footer')), findsOneWidget);
+    });
+
+    testWidgets('signed-in user requests deletion inside the app', (
+      tester,
+    ) async {
+      final authRepository = _FakeAuthRepository();
+      final deletionRepository = _FakeAccountDeletionRepository();
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: AppRoutes.deleteAccount,
+        authRepository: authRepository,
+        accountDeletionRepository: deletionRepository,
+      );
+
+      final requestButton = find.byKey(
+        const Key('request-account-deletion-button'),
+      );
+      await tester.ensureVisible(requestButton);
+      await tester.tap(requestButton);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('account-deletion-confirmation-dialog')),
+        findsOneWidget,
+      );
+      expect(deletionRepository.requestedUser, isNull);
+
+      await tester.tap(
+        find.byKey(const Key('confirm-account-deletion-button')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(deletionRepository.requestedUser?.uid, 'test-user');
+      expect(deletionRepository.requestedResidenceIds, ['test-residence']);
+      expect(authRepository.currentUser, isNull);
+      expect(
+        find.byKey(const Key('account-deletion-requested-notice')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('payment receipt opens directly without authentication', (
@@ -3857,7 +3900,8 @@ void main() {
     final privacyLink = find.byKey(const Key('privacy-policy-link'));
     final aboutLink = find.byKey(const Key('about-app-link'));
     final signOutButton = find.byKey(const Key('sign-out-button'));
-    await tester.ensureVisible(signOutButton);
+    final deleteAccountLink = find.byKey(const Key('delete-account-link'));
+    await tester.ensureVisible(deleteAccountLink);
 
     final informationCard = find.ancestor(
       of: privacyLink,
@@ -3867,9 +3911,17 @@ void main() {
       of: signOutButton,
       matching: find.byType(DarJarCard),
     );
+    final deleteAccountCard = find.ancestor(
+      of: deleteAccountLink,
+      matching: find.byType(DarJarCard),
+    );
     expect(
       informationCard.evaluate().single,
       same(signOutCard.evaluate().single),
+    );
+    expect(
+      deleteAccountCard.evaluate().single,
+      isNot(same(informationCard.evaluate().single)),
     );
 
     expect(
@@ -3879,6 +3931,10 @@ void main() {
     expect(
       tester.getTopLeft(aboutLink).dy,
       lessThan(tester.getTopLeft(signOutButton).dy),
+    );
+    expect(
+      tester.getTopLeft(signOutButton).dy,
+      lessThan(tester.getTopLeft(deleteAccountLink).dy),
     );
 
     await tester.tap(privacyLink);
@@ -6098,6 +6154,7 @@ Future<void> _pumpApp(
   ServicePhoneLauncher? servicePhoneLauncher,
   DirectoryRecommendationsRepository? directoryRecommendationsRepository,
   ProfileRepository? profileRepository,
+  AccountDeletionRepository? accountDeletionRepository,
   NotificationsRepository? notificationsRepository,
   PaymentReceiptRepository? paymentReceiptRepository,
   ResidenceContext? residenceContext,
@@ -6221,6 +6278,10 @@ Future<void> _pumpApp(
             residenceDocumentPicker,
           ),
         profileRepositoryProvider.overrideWithValue(currentProfileRepository),
+        if (accountDeletionRepository != null)
+          accountDeletionRepositoryProvider.overrideWithValue(
+            accountDeletionRepository,
+          ),
         appPackageInfoProvider.overrideWith(
           (ref) async =>
               const AppPackageInfo(version: '0.0.0', buildNumber: '1'),
@@ -6489,6 +6550,20 @@ class _FakeAccountOnboardingRepository implements AccountOnboardingRepository {
     acceptedFirstName = firstName;
     acceptedLastName = lastName;
     acceptedApartmentId = apartmentId;
+  }
+}
+
+class _FakeAccountDeletionRepository implements AccountDeletionRepository {
+  AuthUser? requestedUser;
+  List<String> requestedResidenceIds = const [];
+
+  @override
+  Future<void> requestDeletion({
+    required AuthUser user,
+    required List<String> residenceIds,
+  }) async {
+    requestedUser = user;
+    requestedResidenceIds = List.unmodifiable(residenceIds);
   }
 }
 

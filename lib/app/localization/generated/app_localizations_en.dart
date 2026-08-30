@@ -1534,18 +1534,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountIntroduction =>
-      'You can request permanent deletion of your DarJar account and the personal data associated with it, even if you no longer have the application installed.';
+      'You can initiate deletion of your account and its associated personal data directly inside DarJar.';
 
   @override
-  String get deleteAccountRequestTitle => 'How to request deletion';
+  String get deleteAccountRequestTitle => 'What happens next?';
 
   @override
-  String deleteAccountRequestBody(String email) {
-    return 'Email $email and include your full name and the phone number registered with DarJar, including the country code. We will acknowledge your request, verify that you own the account, and complete the deletion within 30 days.';
-  }
+  String get deleteAccountRequestBody =>
+      'After confirmation, your account is immediately hidden from residences and marked as deletion requested. We will permanently delete or anonymize the covered data within 30 days and notify you when processing is complete.';
 
   @override
-  String get deleteAccountRequestAction => 'Send deletion request';
+  String get deleteAccountRequestAction => 'Request account deletion';
+
+  @override
+  String get deleteAccountRequesting => 'Submitting request…';
+
+  @override
+  String get deleteAccountConfirmationTitle => 'Request account deletion?';
+
+  @override
+  String get deleteAccountConfirmationBody =>
+      'Your account will be hidden immediately, you will be signed out, and permanent deletion processing will begin. You will no longer be able to access your account or residences after confirming.';
+
+  @override
+  String get deleteAccountConfirmAction => 'Confirm deletion request';
+
+  @override
+  String get deleteAccountRequestSuccess =>
+      'Your request was received and your account was hidden. We will complete deletion processing within 30 days and notify you when it is complete.';
+
+  @override
+  String get deleteAccountRequestFailed =>
+      'The deletion request could not be submitted. Try again.';
+
+  @override
+  String get deleteAccountSignInRequired =>
+      'To start securely, sign in to the account you want to delete, then open this page from Profile.';
+
+  @override
+  String get deleteAccountSignInAction => 'Sign in';
+
+  @override
+  String get accountDeletionPendingTitle =>
+      'Your deletion request is being processed';
+
+  @override
+  String get accountDeletionPendingBody =>
+      'The account is hidden and can no longer be used. We will complete deletion processing within 30 days and notify you when it is complete.';
 
   @override
   String get deleteAccountDeletedDataTitle => 'Data covered by the request';
@@ -1563,7 +1598,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountSafetyNotice =>
-      'Never send a verification code, password, identity document, or other secret in your first email. We will provide secure verification instructions if needed.';
+      'Your signed-in session and confirmation on this page verify the request. We will not ask you to email a verification code, password, or identity document.';
 
   @override
   String get edit => 'Edit';

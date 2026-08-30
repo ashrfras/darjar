@@ -64,6 +64,9 @@ class _AccountResolutionPageState extends ConsumerState<AccountResolutionPage> {
             onRetry: () => ref.invalidate(accountResolutionProvider),
           ),
           data: (data) {
+            if (data.deletionRequested) {
+              return _DeletionPending(onSignOut: _signOut);
+            }
             if (data.profile != null || data.invitations.isEmpty) {
               return _ResolutionRedirect(
                 destination: data.profile == null
@@ -190,6 +193,61 @@ class _AccountResolutionPageState extends ConsumerState<AccountResolutionPage> {
         ? code
         : '$code: $details';
     return '$message\n[$technicalDetails]';
+  }
+}
+
+class _DeletionPending extends StatelessWidget {
+  const _DeletionPending({required this.onSignOut});
+
+  final VoidCallback onSignOut;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.xLarge),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: DarJarCard(
+            key: const Key('account-deletion-pending-card'),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Icon(
+                  Icons.schedule_rounded,
+                  size: 48,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(height: AppSpacing.large),
+                Text(
+                  localizations.accountDeletionPendingTitle,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: AppSpacing.small),
+                Text(
+                  localizations.accountDeletionPendingBody,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    height: 1.7,
+                    color: AppColors.inkMuted,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.large),
+                DarJarButton(
+                  key: const Key('deletion-pending-sign-out-button'),
+                  label: localizations.signOut,
+                  icon: Icons.logout_rounded,
+                  onPressed: onSignOut,
+                  expanded: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
