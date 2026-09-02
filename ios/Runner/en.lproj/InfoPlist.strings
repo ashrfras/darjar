@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "Darjar";
 "CFBundleName" = "Darjar";
+"NSPhotoLibraryUsageDescription" = "Choose photos for your profile, residence, and community posts.";

@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>DarJar needs access to your photo library so you can choose profile, residence, and post images.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

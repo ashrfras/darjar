@@ -1,6 +1,6 @@
 import 'package:darjar/core/images/app_image_processing.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AppImageSelection {
   const AppImageSelection(this.bytes);
@@ -14,19 +14,53 @@ class AppImageSelectionFailure implements Exception {
   final String code;
 }
 
-Future<AppImageSelection?> pickAndCompressAppImage() async {
-  final file = await openFile(
-    acceptedTypeGroups: const [
-      XTypeGroup(
-        label: 'Images',
-        extensions: ['jpg', 'jpeg', 'png', 'webp'],
-        mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
-      ),
-    ],
-  );
-  if (file == null) return null;
+class AppPickedImage {
+  const AppPickedImage({
+    required this.name,
+    required this.mimeType,
+    required this.bytes,
+  });
 
-  final source = await file.readAsBytes();
+  final String name;
+  final String? mimeType;
+  final Uint8List bytes;
+}
+
+Future<List<AppPickedImage>> pickAppImages({required int limit}) async {
+  final picker = ImagePicker();
+  final List<XFile> files;
+  if (limit == 1) {
+    final file = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 100,
+      requestFullMetadata: false,
+    );
+    files = [?file];
+  } else {
+    files = await picker.pickMultiImage(
+      imageQuality: 100,
+      requestFullMetadata: false,
+      limit: limit,
+    );
+  }
+
+  return Future.wait(
+    files.map(
+      (file) async => AppPickedImage(
+        name: file.name,
+        mimeType: file.mimeType,
+        bytes: await file.readAsBytes(),
+      ),
+    ),
+  );
+}
+
+Future<AppImageSelection?> pickAndCompressAppImage() async {
+  final files = await pickAppImages(limit: 1);
+  if (files.isEmpty) return null;
+  final file = files.single;
+
+  final source = file.bytes;
   final extension = file.name.split('.').last.toLowerCase();
   final acceptedType =
       appImageSourceTypes.contains(file.mimeType) ||

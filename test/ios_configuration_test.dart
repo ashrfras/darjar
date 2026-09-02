@@ -61,6 +61,20 @@ void main() {
     expect(iosArabic, contains('"CFBundleDisplayName" = "دارجار";'));
   });
 
+  test('iOS declares localized photo library access', () {
+    final infoPlist = File('ios/Runner/Info.plist').readAsStringSync();
+    final english = File(
+      'ios/Runner/en.lproj/InfoPlist.strings',
+    ).readAsStringSync();
+    final arabic = File(
+      'ios/Runner/ar.lproj/InfoPlist.strings',
+    ).readAsStringSync();
+
+    expect(infoPlist, contains('<key>NSPhotoLibraryUsageDescription</key>'));
+    expect(english, contains('"NSPhotoLibraryUsageDescription"'));
+    expect(arabic, contains('"NSPhotoLibraryUsageDescription"'));
+  });
+
   test('web uses the professional Arabic browser title', () {
     final indexHtml = File('web/index.html').readAsStringSync();
 

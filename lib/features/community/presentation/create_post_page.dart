@@ -3,12 +3,12 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/core/images/app_image_picker.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -309,21 +309,25 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     final remaining =
         FirebaseCommunityRepository.maxImages - _selectedImages.length;
     if (remaining <= 0) return;
-    final files = await openFiles(
-      acceptedTypeGroups: const [
-        XTypeGroup(
-          label: 'Images',
-          extensions: ['jpg', 'jpeg', 'png', 'webp'],
-          mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
-        ),
-      ],
-    );
+    List<AppPickedImage> files;
+    try {
+      files = await pickAppImages(limit: remaining);
+    } catch (_) {
+      if (mounted) {
+        _showError(
+          ar
+              ? 'تعذّر فتح مكتبة الصور. تحقق من صلاحية الوصول إلى الصور.'
+              : 'Could not open the photo library. Check photo access.',
+        );
+      }
+      return;
+    }
     if (files.isEmpty) return;
     final additions = <CommunityPostImageUpload>[];
     setState(() => _processingImages = true);
     try {
       for (final file in files.take(remaining)) {
-        final bytes = await file.readAsBytes();
+        final bytes = file.bytes;
         final contentType = _imageContentType(file.name, file.mimeType);
         if (contentType.isEmpty ||
             bytes.isEmpty ||
