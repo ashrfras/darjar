@@ -49,6 +49,7 @@ import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:darjar/features/shell/presentation/darjar_shell.dart';
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -92,11 +93,17 @@ void main() {
       expect(AppTheme.light.dialogTheme.surfaceTintColor, Colors.transparent);
     });
 
-    test('uses one short direction-neutral page transition', () {
+    test('uses the native iOS transition and short transitions elsewhere', () {
       final transitions = AppTheme.light.pageTransitionsTheme.builders;
 
       expect(transitions.keys, containsAll(TargetPlatform.values));
-      for (final builder in transitions.values) {
+      expect(
+        transitions[TargetPlatform.iOS],
+        isA<CupertinoPageTransitionsBuilder>(),
+      );
+      for (final platform in TargetPlatform.values) {
+        if (platform == TargetPlatform.iOS) continue;
+        final builder = transitions[platform]!;
         expect(builder.transitionDuration, const Duration(milliseconds: 180));
         expect(
           builder.reverseTransitionDuration,

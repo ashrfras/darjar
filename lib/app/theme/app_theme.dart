@@ -2,6 +2,7 @@ import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_typography.dart';
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 abstract final class AppTheme {
@@ -23,7 +24,7 @@ abstract final class AppTheme {
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: _DarJarPageTransitionsBuilder(),
-          TargetPlatform.iOS: _DarJarPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
           TargetPlatform.macOS: _DarJarPageTransitionsBuilder(),
           TargetPlatform.windows: _DarJarPageTransitionsBuilder(),
           TargetPlatform.linux: _DarJarPageTransitionsBuilder(),
