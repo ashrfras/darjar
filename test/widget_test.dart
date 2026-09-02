@@ -4155,7 +4155,7 @@ void main() {
     );
   });
 
-  testWidgets('resident sees stored dues without creating records while opening', (
+  testWidgets('resident keeps the current month due up to date while opening', (
     tester,
   ) async {
     final now = DateTime.now();
@@ -4165,12 +4165,12 @@ void main() {
           for (var index = 0; index < 3; index++)
             ResidenceDue(
               id:
-                  '${residenceDuesPeriodKey(DateTime(now.year, now.month - index))}'
+                  '${residenceDuesPeriodKey(DateTime(now.year, now.month - index - 1))}'
                   '_apartment-01',
               apartmentId: 'apartment-01',
               apartmentNumber: '01',
               periodKey: residenceDuesPeriodKey(
-                DateTime(now.year, now.month - index),
+                DateTime(now.year, now.month - index - 1),
               ),
               amountDue: 150,
               amountPaid: 0,
@@ -4201,11 +4201,12 @@ void main() {
     await _enterResidence(tester);
     await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
-    expect(duesRepository.overview.dues, hasLength(3));
+    expect(duesRepository.overview.dues, hasLength(4));
+    expect(duesRepository.ensurePeriodCallCount, 1);
     expect(
       find.descendant(
         of: find.byKey(const Key('account-dues-status')),
-        matching: find.text('المبلغ المتبقي: 450 د'),
+        matching: find.text('المبلغ المتبقي: 600 د'),
       ),
       findsOneWidget,
     );
@@ -7529,6 +7530,7 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
   }
 
   late ResidenceDuesOverview overview;
+  int ensurePeriodCallCount = 0;
 
   @override
   Future<void> ensurePeriod({
@@ -7537,6 +7539,7 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
     required int defaultAmount,
     required List<ResidenceApartment> apartments,
   }) async {
+    ensurePeriodCallCount++;
     final existingApartmentIds = {
       for (final due in overview.dues)
         if (due.periodKey == periodKey) due.apartmentId,

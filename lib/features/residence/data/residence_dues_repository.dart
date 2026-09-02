@@ -777,6 +777,19 @@ final residentDuesProvider = FutureProvider.autoDispose<ResidenceDuesOverview>((
       return ResidenceDuesOverview.empty;
     }
     final repository = ref.watch(residenceDuesRepositoryProvider);
+    final directory = await ref.watch(residenceDirectoryProvider.future);
+    final apartment = directory.apartments
+        .where((item) => item.id == activeResidence.apartmentId)
+        .firstOrNull;
+    if (apartment != null && apartment.isDuesTrackingActive) {
+      final settings = await ref.watch(residenceSettingsProvider.future);
+      await repository.ensurePeriod(
+        residenceId: activeResidence.id,
+        periodKey: residenceDuesPeriodKey(DateTime.now()),
+        defaultAmount: settings.defaultSubscriptionAmount,
+        apartments: [apartment],
+      );
+    }
     return repository
         .load(
           residenceId: activeResidence.id,
