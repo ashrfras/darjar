@@ -37,6 +37,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose the residence you want to browse and manage now.';
 
   @override
+  String get switchingResidence => 'Switching residence…';
+
+  @override
   String get currentResidence => 'Current';
 
   @override

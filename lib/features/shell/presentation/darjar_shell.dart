@@ -894,12 +894,16 @@ class _ResidenceSelector extends ConsumerWidget {
       builder: (context) =>
           _ResidenceSwitcherSheet(residenceContext: residenceContext),
     );
-    if (residenceId != null) {
-      await _select(ref, residenceId);
+    if (residenceId != null && context.mounted) {
+      await _select(context, ref, residenceId);
     }
   }
 
-  Future<void> _select(WidgetRef ref, String residenceId) async {
+  Future<void> _select(
+    BuildContext context,
+    WidgetRef ref,
+    String residenceId,
+  ) async {
     if (residenceId == residenceContext.activeResidenceId) {
       return;
     }
@@ -907,23 +911,92 @@ class _ResidenceSelector extends ConsumerWidget {
     if (user == null) {
       return;
     }
+    final localizations = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final overlay = Overlay.of(context, rootOverlay: true);
+    final transition = OverlayEntry(
+      builder: (context) =>
+          _ResidenceSwitchingOverlay(label: localizations.switchingResidence),
+    );
+    overlay.insert(transition);
+    final minimumVisibility = Future<void>.delayed(
+      const Duration(milliseconds: 550),
+    );
     try {
       await ref
           .read(residenceContextRepositoryProvider)
           .setActiveResidence(user: user, residenceId: residenceId);
-      ref.invalidate(residenceContextProvider);
-    } catch (_) {
-      final context = ref.context;
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context).accountResolutionUnexpectedError,
-            ),
-          ),
+      final updatedContext = await ref.refresh(residenceContextProvider.future);
+      if (updatedContext.activeResidence == null) {
+        throw StateError(
+          'The refreshed residence context has no active residence.',
         );
       }
+      await minimumVisibility;
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(localizations.accountResolutionUnexpectedError),
+          ),
+        );
+    } finally {
+      transition.remove();
     }
+  }
+}
+
+class _ResidenceSwitchingOverlay extends StatelessWidget {
+  const _ResidenceSwitchingOverlay({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: ColoredBox(
+        color: AppColors.ink.withValues(alpha: 0.34),
+        child: AbsorbPointer(
+          child: Center(
+            child: Semantics(
+              liveRegion: true,
+              label: label,
+              child: Container(
+                key: const Key('residence-switching-overlay'),
+                constraints: const BoxConstraints(minWidth: 220),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xLarge,
+                  vertical: AppSpacing.large,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.large),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x2417151D),
+                      blurRadius: 36,
+                      offset: Offset(0, 16),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox.square(
+                      dimension: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                    ),
+                    const SizedBox(width: AppSpacing.medium),
+                    Text(label, style: Theme.of(context).textTheme.titleSmall),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

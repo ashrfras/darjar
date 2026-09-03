@@ -37,6 +37,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'اختر الإقامة التي تريد تصفحها وإدارتها الآن.';
 
   @override
+  String get switchingResidence => 'جارٍ تغيير الإقامة…';
+
+  @override
   String get currentResidence => 'الحالية';
 
   @override

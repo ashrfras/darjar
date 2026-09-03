@@ -154,6 +154,12 @@ abstract class AppLocalizations {
   /// **'اختر الإقامة التي تريد تصفحها وإدارتها الآن.'**
   String get residenceSwitcherDescription;
 
+  /// No description provided for @switchingResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تغيير الإقامة…'**
+  String get switchingResidence;
+
   /// No description provided for @currentResidence.
   ///
   /// In ar, this message translates to:

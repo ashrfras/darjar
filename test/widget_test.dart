@@ -2800,7 +2800,10 @@ void main() {
         activeResidenceId: 'yasmine',
         invitations: [invitation],
       );
-      final contextRepository = _FakeResidenceContextRepository();
+      final switchBarrier = Completer<void>();
+      final contextRepository = _FakeResidenceContextRepository(
+        setActiveResidenceBarrier: switchBarrier,
+      );
       final accountRepository = _FakeAccountOnboardingRepository(
         resolution: const AccountResolution(
           phoneNumber: '+212600000001',
@@ -2828,8 +2831,23 @@ void main() {
       await tester.tap(find.byKey(const Key('residence-selector')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('إقامة الأندلس'));
+
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
+      expect(
+        find.byKey(const Key('residence-switching-overlay')),
+        findsOneWidget,
+      );
+      expect(find.text('جارٍ تغيير الإقامة…'), findsOneWidget);
+      expect(contextRepository.selectedResidenceId, isNull);
+
+      switchBarrier.complete();
       await tester.pumpAndSettle();
       expect(contextRepository.selectedResidenceId, 'andalous');
+      expect(
+        find.byKey(const Key('residence-switching-overlay')),
+        findsNothing,
+      );
 
       await tester.tap(find.byKey(const Key('notifications-button')));
       await tester.pumpAndSettle();
@@ -7817,9 +7835,13 @@ class _FakeResidenceSettingsRepository implements ResidenceSettingsRepository {
 }
 
 class _FakeResidenceContextRepository implements ResidenceContextRepository {
-  _FakeResidenceContextRepository({this.context = _defaultResidenceContext});
+  _FakeResidenceContextRepository({
+    this.context = _defaultResidenceContext,
+    this.setActiveResidenceBarrier,
+  });
 
   ResidenceContext context;
+  final Completer<void>? setActiveResidenceBarrier;
   String? selectedResidenceId;
 
   @override
@@ -7838,6 +7860,7 @@ class _FakeResidenceContextRepository implements ResidenceContextRepository {
     required AuthUser user,
     required String residenceId,
   }) async {
+    await setActiveResidenceBarrier?.future;
     selectedResidenceId = residenceId;
   }
 }
