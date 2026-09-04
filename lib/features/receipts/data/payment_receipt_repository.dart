@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/receipts/domain/payment_receipt.dart';
@@ -42,7 +44,12 @@ final paymentReceiptRepositoryProvider = Provider<PaymentReceiptRepository>(
       FirestorePaymentReceiptRepository(ref.watch(firebaseFirestoreProvider)),
 );
 
+const paymentReceiptLoadTimeout = Duration(seconds: 15);
+
 final paymentReceiptProvider = FutureProvider.autoDispose
     .family<PaymentReceipt, String>((ref, receiptId) {
-      return ref.watch(paymentReceiptRepositoryProvider).load(receiptId);
+      return ref
+          .watch(paymentReceiptRepositoryProvider)
+          .load(receiptId)
+          .timeout(paymentReceiptLoadTimeout);
     });

@@ -47,7 +47,11 @@ class PaymentReceiptPage extends ConsumerWidget {
           ),
         ),
         body: state.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Center(
+            child: CircularProgressIndicator(
+              key: Key('payment-receipt-loading'),
+            ),
+          ),
           error: (error, stackTrace) => _ReceiptUnavailable(
             onRetry: () => ref.invalidate(paymentReceiptProvider(receiptId)),
           ),
@@ -312,6 +316,7 @@ class _ReceiptUnavailable extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.large),
               OutlinedButton.icon(
+                key: const Key('retry-payment-receipt-button'),
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh_rounded),
                 label: Text(copy.retry),

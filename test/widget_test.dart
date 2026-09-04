@@ -307,6 +307,25 @@ void main() {
       expect(find.text('غشت 2026'), findsOneWidget);
       expect(find.byKey(const Key('phone-auth-page')), findsNothing);
     });
+
+    testWidgets('payment receipt stops loading when its request times out', (
+      tester,
+    ) async {
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: AppRoutes.receipt('7Kx92'),
+        authRepository: _FakeAuthRepository(signedIn: false),
+        paymentReceiptRepository:
+            const _NeverCompletingPaymentReceiptRepository(),
+      );
+
+      expect(find.byKey(const Key('payment-receipt-loading')), findsNothing);
+      expect(
+        find.byKey(const Key('retry-payment-receipt-button')),
+        findsOneWidget,
+      );
+    });
   });
 
   group('mock repositories', () {
@@ -7515,6 +7534,15 @@ class _FakePaymentReceiptRepository implements PaymentReceiptRepository {
   }
 }
 
+class _NeverCompletingPaymentReceiptRepository
+    implements PaymentReceiptRepository {
+  const _NeverCompletingPaymentReceiptRepository();
+
+  @override
+  Future<PaymentReceipt> load(String receiptId) =>
+      Completer<PaymentReceipt>().future;
+}
+
 class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
   _FakeResidenceDuesRepository() {
     final periodKey = residenceDuesPeriodKey(DateTime.now());
@@ -7553,6 +7581,13 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
       ],
     );
   }
+
+  @override
+  Future<void> publishMissingReceipts({
+    required String residenceId,
+    required String residenceName,
+    required List<ResidenceDuePaymentGroup> paymentGroups,
+  }) async {}
 
   late ResidenceDuesOverview overview;
   int ensurePeriodCallCount = 0;

@@ -249,6 +249,12 @@ abstract interface class ResidenceDuesRepository {
     ResidenceDocumentUpload? attachmentUpload,
   });
 
+  Future<void> publishMissingReceipts({
+    required String residenceId,
+    required String residenceName,
+    required List<ResidenceDuePaymentGroup> paymentGroups,
+  });
+
   Future<void> deletePaymentGroup({
     required String residenceId,
     required String paymentGroupId,
@@ -339,6 +345,48 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
         }
       }
       await _createMissingDues(dues, seeds, defaultAmount);
+    } on FirebaseException catch (error) {
+      throw ResidenceDuesFailure(error.code, error.message);
+    }
+  }
+
+  @override
+  Future<void> publishMissingReceipts({
+    required String residenceId,
+    required String residenceName,
+    required List<ResidenceDuePaymentGroup> paymentGroups,
+  }) async {
+    if (paymentGroups.isEmpty) return;
+    try {
+      final receipts = _firestore.collection('publicPaymentReceipts');
+      for (var offset = 0; offset < paymentGroups.length; offset += 400) {
+        final end = (offset + 400).clamp(0, paymentGroups.length);
+        final chunk = paymentGroups.sublist(offset, end);
+        final documents = await Future.wait([
+          for (final group in chunk) receipts.doc(group.id).get(),
+        ]);
+        final batch = _firestore.batch();
+        var writes = 0;
+        for (var index = 0; index < chunk.length; index++) {
+          if (documents[index].exists) continue;
+          final receipt = chunk[index].receipt(
+            residenceId: residenceId,
+            residenceName: residenceName,
+          );
+          batch.set(receipts.doc(receipt.id), {
+            'residenceId': receipt.residenceId,
+            'residenceName': receipt.residenceName,
+            'apartmentNumber': receipt.apartmentNumber,
+            'amount': receipt.amount,
+            'periodKeys': receipt.periodKeys,
+            'paidAt': Timestamp.fromDate(receipt.paidAt),
+            'note': receipt.note,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+          writes++;
+        }
+        if (writes > 0) await batch.commit();
+      }
     } on FirebaseException catch (error) {
       throw ResidenceDuesFailure(error.code, error.message);
     }
@@ -828,9 +876,15 @@ class ResidenceDuesManagementController
       apartments: members.apartments,
     );
     final overview = await repository.load(residenceId: activeResidence.id);
-    return overview.forActiveApartments(
+    final activeOverview = overview.forActiveApartments(
       members.apartments.map((apartment) => apartment.id),
     );
+    await repository.publishMissingReceipts(
+      residenceId: activeResidence.id,
+      residenceName: activeResidence.name,
+      paymentGroups: activeOverview.paymentGroups,
+    );
+    return activeOverview;
   }
 
   Future<PaymentReceipt> recordPayment({
