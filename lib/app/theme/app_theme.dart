@@ -3,6 +3,7 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/app/theme/app_typography.dart';
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 abstract final class AppTheme {
@@ -23,12 +24,24 @@ abstract final class AppTheme {
       textTheme: AppTypography.textTheme,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
-          TargetPlatform.android: _DarJarPageTransitionsBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.macOS: _DarJarPageTransitionsBuilder(),
-          TargetPlatform.windows: _DarJarPageTransitionsBuilder(),
-          TargetPlatform.linux: _DarJarPageTransitionsBuilder(),
-          TargetPlatform.fuchsia: _DarJarPageTransitionsBuilder(),
+          TargetPlatform.android: kIsWeb
+              ? _DarJarWebPageTransitionsBuilder()
+              : _DarJarPageTransitionsBuilder(),
+          TargetPlatform.iOS: kIsWeb
+              ? _DarJarWebPageTransitionsBuilder()
+              : _DarJarCupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: kIsWeb
+              ? _DarJarWebPageTransitionsBuilder()
+              : _DarJarPageTransitionsBuilder(),
+          TargetPlatform.windows: kIsWeb
+              ? _DarJarWebPageTransitionsBuilder()
+              : _DarJarPageTransitionsBuilder(),
+          TargetPlatform.linux: kIsWeb
+              ? _DarJarWebPageTransitionsBuilder()
+              : _DarJarPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: kIsWeb
+              ? _DarJarWebPageTransitionsBuilder()
+              : _DarJarPageTransitionsBuilder(),
         },
       ),
       appBarTheme: const AppBarTheme(
@@ -108,6 +121,44 @@ abstract final class AppTheme {
         color: AppColors.outline,
         thickness: 1,
         space: 1,
+      ),
+    );
+  }
+}
+
+class _DarJarCupertinoPageTransitionsBuilder
+    extends CupertinoPageTransitionsBuilder {
+  const _DarJarCupertinoPageTransitionsBuilder();
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 250);
+
+  @override
+  Duration get reverseTransitionDuration => const Duration(milliseconds: 250);
+}
+
+class _DarJarWebPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _DarJarWebPageTransitionsBuilder();
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 140);
+
+  @override
+  Duration get reverseTransitionDuration => const Duration(milliseconds: 140);
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return ColoredBox(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: FadeTransition(
+        opacity: animation.drive(CurveTween(curve: Curves.easeOutCubic)),
+        child: child,
       ),
     );
   }

@@ -93,13 +93,21 @@ void main() {
       expect(AppTheme.light.dialogTheme.surfaceTintColor, Colors.transparent);
     });
 
-    test('uses the native iOS transition and short transitions elsewhere', () {
+    test('uses a short native iOS transition and short transitions elsewhere', () {
       final transitions = AppTheme.light.pageTransitionsTheme.builders;
 
       expect(transitions.keys, containsAll(TargetPlatform.values));
       expect(
         transitions[TargetPlatform.iOS],
         isA<CupertinoPageTransitionsBuilder>(),
+      );
+      expect(
+        transitions[TargetPlatform.iOS]!.transitionDuration,
+        const Duration(milliseconds: 250),
+      );
+      expect(
+        transitions[TargetPlatform.iOS]!.reverseTransitionDuration,
+        const Duration(milliseconds: 250),
       );
       for (final platform in TargetPlatform.values) {
         if (platform == TargetPlatform.iOS) continue;
