@@ -483,13 +483,19 @@ class _PostTypePicker extends StatelessWidget {
             key: ValueKey('post-type-${kind.name}'),
             avatar: Icon(
               kind.icon,
-              size: 18,
+              size: 16,
               color: selected == kind ? Colors.white : kind.color,
             ),
             label: Text(kind.label(context)),
             selected: selected == kind,
+            showCheckmark: false,
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            labelPadding: const EdgeInsetsDirectional.only(start: 2, end: 6),
             selectedColor: kind.color,
             labelStyle: TextStyle(
+              fontSize: 13,
               color: selected == kind ? Colors.white : AppColors.ink,
             ),
             side: BorderSide(

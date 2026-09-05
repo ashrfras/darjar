@@ -717,6 +717,18 @@ class _EditableProfileAvatar extends ConsumerWidget {
               key: const Key('profile-image-menu-button'),
               tooltip: localizations.edit,
               enabled: !processing,
+              color: AppColors.surface,
+              surfaceTintColor: Colors.transparent,
+              elevation: 10,
+              position: PopupMenuPosition.under,
+              menuPadding: const EdgeInsets.all(AppSpacing.xSmall),
+              constraints: const BoxConstraints(minWidth: 224, maxWidth: 248),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.large),
+                side: BorderSide(
+                  color: AppColors.outline.withValues(alpha: .7),
+                ),
+              ),
               onSelected: (action) {
                 switch (action) {
                   case _ProfileImageAction.select:
@@ -731,24 +743,25 @@ class _EditableProfileAvatar extends ConsumerWidget {
                 PopupMenuItem(
                   key: const Key('select-profile-image-button'),
                   value: _ProfileImageAction.select,
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.add_a_photo_outlined),
-                    title: Text(
-                      imagePath.isEmpty
-                          ? localizations.addImage
-                          : localizations.changeImage,
-                    ),
+                  height: 50,
+                  padding: EdgeInsets.zero,
+                  child: _ProfileImageMenuLabel(
+                    icon: Icons.add_a_photo_outlined,
+                    label: imagePath.isEmpty
+                        ? localizations.addImage
+                        : localizations.changeImage,
                   ),
                 ),
                 if (onRemove != null)
                   PopupMenuItem(
                     key: const Key('remove-profile-image-button'),
                     value: _ProfileImageAction.remove,
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.delete_outline_rounded),
-                      title: Text(localizations.removeImage),
+                    height: 50,
+                    padding: EdgeInsets.zero,
+                    child: _ProfileImageMenuLabel(
+                      icon: Icons.delete_outline_rounded,
+                      label: localizations.removeImage,
+                      danger: true,
                     ),
                   ),
               ],
@@ -784,6 +797,50 @@ class _EditableProfileAvatar extends ConsumerWidget {
 }
 
 enum _ProfileImageAction { select, remove }
+
+class _ProfileImageMenuLabel extends StatelessWidget {
+  const _ProfileImageMenuLabel({
+    required this.icon,
+    required this.label,
+    this.danger = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool danger;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = danger ? AppColors.danger : AppColors.ink;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.small),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: danger
+                  ? AppColors.danger.withValues(alpha: .08)
+                  : AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(AppRadius.small),
+            ),
+            child: Icon(icon, size: 19, color: color),
+          ),
+          const SizedBox(width: AppSpacing.medium),
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _ResidenceItem extends StatelessWidget {
   const _ResidenceItem({
