@@ -24,6 +24,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+const _showLanguageSelection = false;
+
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
@@ -185,27 +187,34 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                         ],
                       ),
               ),
-              const SizedBox(height: AppSpacing.large),
-              DarJarCard(
-                key: const Key('profile-language-card'),
-                padding: EdgeInsets.zero,
-                child: ListTile(
-                  key: const Key('language-selection-link'),
-                  leading: const Icon(Icons.language_rounded),
-                  title: Text(localizations.chooseLanguage),
-                  subtitle: Text(switch (Localizations.localeOf(
-                    context,
-                  ).languageCode) {
-                    'zgh' => localizations.amazigh,
-                    'en' => localizations.english,
-                    _ => localizations.arabic,
-                  }),
-                  trailing: const Icon(
-                    Icons.chevron_left_rounded,
-                    color: AppColors.inkMuted,
-                    textDirection: TextDirection.ltr,
-                  ),
-                  onTap: _showLanguageSheet,
+              Visibility(
+                visible: _showLanguageSelection,
+                child: Column(
+                  children: [
+                    const SizedBox(height: AppSpacing.large),
+                    DarJarCard(
+                      key: const Key('profile-language-card'),
+                      padding: EdgeInsets.zero,
+                      child: ListTile(
+                        key: const Key('language-selection-link'),
+                        leading: const Icon(Icons.language_rounded),
+                        title: Text(localizations.chooseLanguage),
+                        subtitle: Text(switch (Localizations.localeOf(
+                          context,
+                        ).languageCode) {
+                          'zgh' => localizations.amazigh,
+                          'en' => localizations.english,
+                          _ => localizations.arabic,
+                        }),
+                        trailing: const Icon(
+                          Icons.chevron_left_rounded,
+                          color: AppColors.inkMuted,
+                          textDirection: TextDirection.ltr,
+                        ),
+                        onTap: _showLanguageSheet,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: AppSpacing.large),

@@ -532,48 +532,73 @@ class _ImageTile extends ConsumerWidget {
             child: InkWell(
               onTap: () => showDialog<void>(
                 context: context,
-                builder: (context) => Dialog.fullscreen(
-                  backgroundColor: Colors.black,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: InteractiveViewer(
-                          child: Center(
-                            child: path.startsWith('assets/')
-                                ? Image.asset(path, fit: BoxFit.contain)
-                                : ref
-                                      .read(communityPostImageProvider(path))
-                                      .when(
-                                        data: (bytes) => Image.memory(
-                                          bytes,
-                                          fit: BoxFit.contain,
-                                        ),
-                                        loading: () =>
-                                            const CircularProgressIndicator(),
-                                        error: (error, stackTrace) =>
-                                            const Icon(
-                                              Icons.broken_image_outlined,
-                                              color: Colors.white,
-                                            ),
-                                      ),
-                          ),
-                        ),
-                      ),
-                      PositionedDirectional(
-                        top: AppSpacing.large,
-                        end: AppSpacing.large,
-                        child: SafeArea(
-                          child: IconButton.filledTonal(
-                            tooltip: MaterialLocalizations.of(
-                              context,
-                            ).closeButtonTooltip,
-                            onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(Icons.close_rounded),
-                          ),
-                        ),
-                      ),
-                    ],
+                builder: (context) => _PostImageDialog(
+                  path: path,
+                  image: path.startsWith('assets/')
+                      ? Image.asset(path, fit: BoxFit.contain)
+                      : ref
+                            .read(communityPostImageProvider(path))
+                            .when(
+                              data: (bytes) =>
+                                  Image.memory(bytes, fit: BoxFit.contain),
+                              loading: () => const CircularProgressIndicator(),
+                              error: (error, stackTrace) => const Icon(
+                                Icons.broken_image_outlined,
+                                color: AppColors.surface,
+                              ),
+                            ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PostImageDialog extends StatelessWidget {
+  const _PostImageDialog({required this.path, required this.image});
+
+  final String path;
+  final Widget image;
+
+  @override
+  Widget build(BuildContext context) {
+    final interactiveRegion = Object();
+    void close() => Navigator.of(context).pop();
+
+    return Dialog.fullscreen(
+      key: ValueKey('post-image-dialog-$path'),
+      backgroundColor: Colors.black,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: InteractiveViewer(
+              child: Center(
+                child: TapRegion(
+                  groupId: interactiveRegion,
+                  onTapOutside: (_) => close(),
+                  child: image,
+                ),
+              ),
+            ),
+          ),
+          PositionedDirectional(
+            top: AppSpacing.large,
+            end: AppSpacing.large,
+            child: SafeArea(
+              child: TapRegion(
+                groupId: interactiveRegion,
+                child: IconButton(
+                  key: const Key('close-post-image-dialog'),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColors.surface,
+                    foregroundColor: AppColors.ink,
                   ),
+                  onPressed: close,
+                  icon: const Icon(Icons.close_rounded),
                 ),
               ),
             ),

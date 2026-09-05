@@ -13,3 +13,7 @@ DarJar is the daily digital space of an apartment building or residential commun
 1. Community
 2. Directory
 3. Residence
+
+## Documentation
+
+- [Quick commands (Arabic)](docs/QUICK_COMMANDS.md)

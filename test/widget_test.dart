@@ -3081,6 +3081,37 @@ void main() {
     );
     expect(find.byKey(const ValueKey('post-images-alert-water')), findsNothing);
 
+    final announcementImages = find.byKey(
+      const ValueKey('post-images-announcement-elevator'),
+    );
+    await tester.ensureVisible(announcementImages);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find
+          .descendant(of: announcementImages, matching: find.byType(InkWell))
+          .first,
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(
+        const ValueKey(
+          'post-image-dialog-assets/images/community/elevator-maintenance.jpg',
+        ),
+      ),
+      findsOneWidget,
+    );
+    final closeImageButton = tester.widget<IconButton>(
+      find.byKey(const Key('close-post-image-dialog')),
+    );
+    expect(
+      closeImageButton.style?.backgroundColor?.resolve({}),
+      AppColors.surface,
+    );
+    expect(closeImageButton.style?.foregroundColor?.resolve({}), AppColors.ink);
+    await tester.tapAt(const Offset(8, 8));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('close-post-image-dialog')), findsNothing);
+
     await tester.drag(find.byType(CustomScrollView), const Offset(0, 10000));
     await tester.pumpAndSettle();
 
@@ -3983,144 +4014,19 @@ void main() {
     expect(find.byKey(const Key('phone-auth-page')), findsOneWidget);
   });
 
-  testWidgets('profile changes between Arabic, Amazigh, and English', (
-    tester,
-  ) async {
+  testWidgets('profile hides language selection', (tester) async {
     await _pumpApp(tester, size: const Size(390, 844));
     await _enterResidence(tester);
     await tester.tap(find.byKey(const Key('profile-button')));
     await tester.pumpAndSettle();
 
-    final languageLink = find.byKey(const Key('language-selection-link'));
     final privacyLink = find.byKey(const Key('privacy-policy-link'));
     await tester.ensureVisible(privacyLink);
 
-    expect(find.text('اختيار اللغة'), findsOneWidget);
-    expect(
-      tester.getTopLeft(languageLink).dy,
-      lessThan(tester.getTopLeft(privacyLink).dy),
-    );
-    final languageCard = find.ancestor(
-      of: languageLink,
-      matching: find.byType(DarJarCard),
-    );
-    final informationCard = find.ancestor(
-      of: privacyLink,
-      matching: find.byType(DarJarCard),
-    );
-    expect(
-      languageCard.evaluate().single,
-      isNot(same(informationCard.evaluate().single)),
-    );
-
-    await tester.tap(languageLink);
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('language-selection-sheet')), findsOneWidget);
-    expect(find.text('العربية'), findsWidgets);
-    expect(find.text('الأمازيغية'), findsOneWidget);
-    expect(find.text('الإنجليزية'), findsOneWidget);
-    for (final flagKey in [
-      'arabic-language-flag',
-      'amazigh-language-flag',
-      'english-language-flag',
-    ]) {
-      expect(
-        find.descendant(
-          of: find.byKey(Key(flagKey)),
-          matching: find.byType(CustomPaint),
-        ),
-        findsOneWidget,
-      );
-    }
-    expect(
-      tester
-          .widget<ListTile>(
-            find.descendant(
-              of: find.byKey(const Key('language-option-zgh')),
-              matching: find.byType(ListTile),
-            ),
-          )
-          .enabled,
-      isTrue,
-    );
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('language-option-ar')),
-        matching: find.byIcon(Icons.check_circle_rounded),
-      ),
-      findsOneWidget,
-    );
-
-    await tester.tap(
-      find.descendant(
-        of: find.byKey(const Key('language-option-zgh')),
-        matching: find.byType(ListTile),
-      ),
-    );
-    await tester.pumpAndSettle();
-
+    expect(find.byKey(const Key('profile-language-card')), findsNothing);
+    expect(find.byKey(const Key('language-selection-link')), findsNothing);
     expect(find.byKey(const Key('language-selection-sheet')), findsNothing);
-    expect(find.text('ⴼⵔⴻⵏ ⵜⵓⵜⵍⴰⵢⵜ'), findsOneWidget);
-    expect(
-      Directionality.of(tester.element(find.byKey(const Key('profile-page')))),
-      TextDirection.ltr,
-    );
-
-    await tester.tap(find.byType(NavigationDestination).first);
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
-    expect(find.text('ⵉⴹⵔⵉⵙⴻⵏ'), findsOneWidget);
-    expect(find.text('ⵜⴰⴷⵔⵉⵎⵜ'), findsOneWidget);
-    expect(find.text('ⵎⴰ ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⴻⴱⴹⵓⴹ?'), findsOneWidget);
-    expect(find.text('Posts'), findsNothing);
-    expect(find.text('Finance'), findsNothing);
-    expect(find.text('Polls'), findsNothing);
-    expect(find.text('What would you like to share?'), findsNothing);
-
-    await tester.drag(
-      find.byKey(const Key('community-filter-list')),
-      const Offset(-300, 0),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('ⵉⵙⴻⵙⵜⴰⵏⴻⵏ'), findsOneWidget);
-
-    await tester.tap(find.byType(NavigationDestination).at(1));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('directory-page')), findsOneWidget);
-    expect(find.text('ⴰⵙⴻⴳⴳⴻⵎ'), findsOneWidget);
-    expect(find.text('Maintenance'), findsNothing);
-
-    await tester.tap(find.byKey(const Key('profile-button')));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key('language-selection-link')));
-    await tester.pumpAndSettle();
-    await tester.tap(
-      find.descendant(
-        of: find.byKey(const Key('language-option-en')),
-        matching: find.byType(ListTile),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Choose language'), findsOneWidget);
-    expect(find.text('Privacy policy'), findsOneWidget);
-    expect(
-      Directionality.of(tester.element(find.byKey(const Key('profile-page')))),
-      TextDirection.ltr,
-    );
-
-    await tester.tap(find.byKey(const Key('language-selection-link')));
-    await tester.pumpAndSettle();
-    await tester.tap(
-      find.descendant(
-        of: find.byKey(const Key('language-option-ar')),
-        matching: find.byType(ListTile),
-      ),
-    );
-    await tester.pumpAndSettle();
+    expect(find.text('اختيار اللغة'), findsNothing);
   });
 
   testWidgets('profile opens privacy policy and about app before sign out', (
