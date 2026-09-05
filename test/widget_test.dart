@@ -3699,6 +3699,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('download-document-button')), findsOneWidget);
     expect(find.byIcon(Icons.download_rounded), findsOneWidget);
+    final downloadButton = tester.widget<FloatingActionButton>(
+      find.byKey(const Key('download-document-button')),
+    );
+    expect(downloadButton.backgroundColor, AppColors.surface);
+    expect(downloadButton.foregroundColor, AppColors.primary);
     expect(find.byIcon(Icons.share_outlined), findsNothing);
     await tester.tap(find.byIcon(Icons.close_rounded).last);
     await tester.pumpAndSettle();

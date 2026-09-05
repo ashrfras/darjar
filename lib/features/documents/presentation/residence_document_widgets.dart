@@ -187,14 +187,17 @@ class _ResidenceDocumentPreviewState
                     children: [
                       Positioned.fill(
                         child: widget.document.isPdf
-                            ? PdfPreview(
+                            ? PdfPreview.builder(
                                 build: (_) async => bytes,
                                 allowPrinting: false,
                                 allowSharing: false,
                                 canChangeOrientation: false,
                                 canChangePageFormat: false,
                                 canDebug: false,
+                                useActions: false,
                                 pdfFileName: widget.document.originalFileName,
+                                pagesBuilder: (context, pages) =>
+                                    _InteractivePdfPages(pages: pages),
                                 onError: (context, error) => _PreviewError(
                                   message: localizations.documentOpenError,
                                 ),
@@ -222,6 +225,8 @@ class _ResidenceDocumentPreviewState
                         child: FloatingActionButton.small(
                           key: const Key('download-document-button'),
                           tooltip: localizations.downloadDocument,
+                          backgroundColor: AppColors.surface,
+                          foregroundColor: AppColors.primary,
                           onPressed: _saving ? null : () => _save(bytes),
                           child: _saving
                               ? const SizedBox.square(
@@ -277,6 +282,64 @@ class _ResidenceDocumentPreviewState
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+}
+
+class _InteractivePdfPages extends StatelessWidget {
+  const _InteractivePdfPages({required this.pages});
+
+  final List<PdfPreviewPageData> pages;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return InteractiveViewer(
+          key: const Key('pdf-interactive-viewer'),
+          alignment: Alignment.topCenter,
+          boundaryMargin: const EdgeInsets.all(AppSpacing.large),
+          constrained: false,
+          minScale: 0.5,
+          maxScale: 5,
+          child: SizedBox(
+            width: constraints.maxWidth,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final page in pages)
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 820),
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(
+                          AppSpacing.medium,
+                          AppSpacing.small,
+                          AppSpacing.medium,
+                          AppSpacing.medium,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: AppColors.surface,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0x26000000),
+                              blurRadius: 8,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: AspectRatio(
+                          aspectRatio: page.aspectRatio,
+                          child: Image(image: page.image, fit: BoxFit.contain),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
