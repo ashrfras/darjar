@@ -1376,6 +1376,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duesPaymentSaved => 'Payment recorded successfully.';
 
   @override
+  String get duesShareReceipt => 'Share receipt';
+
+  @override
   String get duesDeletePayment => 'Delete payment';
 
   @override

@@ -568,6 +568,7 @@
   "duesPaymentNote": "ⵜⴰⵎⴰⵡⵜ ⵏ ⵓⴼⵔⴰⵏ",
   "duesSavePayment": "ⵃⵔⴻⵣ ⴰⵅⴻⵍⵍⴻⵚ",
   "duesPaymentSaved": "ⴰⵅⴻⵍⵍⴻⵚ ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ ⵙ ⵔⵔⴱⴻⵃ.",
+  "duesShareReceipt": "ⴱⴹⵓ ⵍⵡⵙⵍ",
   "duesDeletePayment": "ⴽⴽⴻⵙ ⵍⴻⵅⵍⴰⵚ",
   "duesConfirmDeletePayment": "ⴽⴽⴻⵙ {amount} MAD ⵏ ⵓⵅⴻⵍⵍⴻⵚ ⵏ ⵓⵅⵅⴰⵎ {number}? ⴰⵎⴻⵣⵔⵓⵢ ⵏ ⵓⵄⴻⴷⴷⵉ ⴰⴷ ⵢⴻⵜⵜⵡⴰⵄⵔⴻⴹ ⵢⴻⵔⵏⴰ ⴰⵢⴰ ⵓⵔ ⵢⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵢⴻⵜⵜⵡⴰⵄⵔⴻⴹ.",
   "@duesConfirmDeletePayment": {

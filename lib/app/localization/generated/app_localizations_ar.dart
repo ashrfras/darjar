@@ -1348,6 +1348,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get duesPaymentSaved => 'تم تسجيل الأداء بنجاح.';
 
   @override
+  String get duesShareReceipt => 'مشاركة الوصل';
+
+  @override
   String get duesDeletePayment => 'حذف الأداء';
 
   @override

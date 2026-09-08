@@ -427,6 +427,7 @@
   "duesPaymentNote": "Optional note",
   "duesSavePayment": "Save payment",
   "duesPaymentSaved": "Payment recorded successfully.",
+  "duesShareReceipt": "Share receipt",
   "duesDeletePayment": "Delete payment",
   "duesConfirmDeletePayment": "Delete the {amount} MAD payment for apartment {number}? The subscription history will be recalculated and this cannot be undone.",
   "@duesConfirmDeletePayment": {"placeholders": {"number": {"type": "String"}, "amount": {"type": "String"}}},

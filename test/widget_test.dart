@@ -93,32 +93,35 @@ void main() {
       expect(AppTheme.light.dialogTheme.surfaceTintColor, Colors.transparent);
     });
 
-    test('uses a short native iOS transition and short transitions elsewhere', () {
-      final transitions = AppTheme.light.pageTransitionsTheme.builders;
+    test(
+      'uses a short native iOS transition and short transitions elsewhere',
+      () {
+        final transitions = AppTheme.light.pageTransitionsTheme.builders;
 
-      expect(transitions.keys, containsAll(TargetPlatform.values));
-      expect(
-        transitions[TargetPlatform.iOS],
-        isA<CupertinoPageTransitionsBuilder>(),
-      );
-      expect(
-        transitions[TargetPlatform.iOS]!.transitionDuration,
-        const Duration(milliseconds: 250),
-      );
-      expect(
-        transitions[TargetPlatform.iOS]!.reverseTransitionDuration,
-        const Duration(milliseconds: 250),
-      );
-      for (final platform in TargetPlatform.values) {
-        if (platform == TargetPlatform.iOS) continue;
-        final builder = transitions[platform]!;
-        expect(builder.transitionDuration, const Duration(milliseconds: 180));
+        expect(transitions.keys, containsAll(TargetPlatform.values));
         expect(
-          builder.reverseTransitionDuration,
-          const Duration(milliseconds: 180),
+          transitions[TargetPlatform.iOS],
+          isA<CupertinoPageTransitionsBuilder>(),
         );
-      }
-    });
+        expect(
+          transitions[TargetPlatform.iOS]!.transitionDuration,
+          const Duration(milliseconds: 250),
+        );
+        expect(
+          transitions[TargetPlatform.iOS]!.reverseTransitionDuration,
+          const Duration(milliseconds: 250),
+        );
+        for (final platform in TargetPlatform.values) {
+          if (platform == TargetPlatform.iOS) continue;
+          final builder = transitions[platform]!;
+          expect(builder.transitionDuration, const Duration(milliseconds: 180));
+          expect(
+            builder.reverseTransitionDuration,
+            const Duration(milliseconds: 180),
+          );
+        }
+      },
+    );
 
     testWidgets('profile images preserve aspect ratio and crop to the avatar', (
       tester,
@@ -313,6 +316,19 @@ void main() {
       expect(find.text('إقامة الاختبار'), findsOneWidget);
       expect(find.text('300 د'), findsOneWidget);
       expect(find.text('غشت 2026'), findsOneWidget);
+      expect(
+        find.byKey(const Key('download-payment-receipt-button')),
+        findsOneWidget,
+      );
+      expect(
+        find.text('يتم تحميل نسخة رسمية معتمدة من هذا الوصل مع ختم الإدارة'),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('share-payment-receipt-button')),
+        findsNothing,
+      );
+      expect(find.byIcon(Icons.ios_share_rounded), findsNothing);
       expect(find.byKey(const Key('phone-auth-page')), findsNothing);
     });
 
@@ -4511,6 +4527,10 @@ void main() {
     expect(find.byKey(const Key('management-dues-expected')), findsOneWidget);
     expect(find.byKey(const Key('management-dues-collected')), findsOneWidget);
     expect(find.byKey(const Key('management-dues-remaining')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('share-management-payment-')),
+      findsOneWidget,
+    );
     final expectedCard = find.byKey(const Key('management-dues-expected'));
     final collectedCard = find.byKey(const Key('management-dues-collected'));
     final remainingCard = find.byKey(const Key('management-dues-remaining'));
@@ -7505,6 +7525,8 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
   Future<void> publishMissingReceipts({
     required String residenceId,
     required String residenceName,
+    required String residenceAddress,
+    required String residenceCity,
     required List<ResidenceDuePaymentGroup> paymentGroups,
   }) async {}
 
@@ -7562,6 +7584,8 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
   Future<PaymentReceipt> recordApartmentPayment({
     required String residenceId,
     required String residenceName,
+    required String residenceAddress,
+    required String residenceCity,
     required String apartmentId,
     required String apartmentNumber,
     required int amount,
@@ -7662,6 +7686,7 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
       id: paymentGroupId,
       residenceId: residenceId,
       residenceName: residenceName,
+      residenceAddress: residenceAddress,
       apartmentNumber: apartmentNumber,
       amount: amount,
       periodKeys: payments

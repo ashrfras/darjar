@@ -2553,6 +2553,12 @@ abstract class AppLocalizations {
   /// **'تم تسجيل الأداء بنجاح.'**
   String get duesPaymentSaved;
 
+  /// No description provided for @duesShareReceipt.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشاركة الوصل'**
+  String get duesShareReceipt;
+
   /// No description provided for @duesDeletePayment.
   ///
   /// In ar, this message translates to:

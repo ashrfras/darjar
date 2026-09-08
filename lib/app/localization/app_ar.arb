@@ -427,6 +427,7 @@
   "duesPaymentNote": "ملاحظة اختيارية",
   "duesSavePayment": "حفظ الأداء",
   "duesPaymentSaved": "تم تسجيل الأداء بنجاح.",
+  "duesShareReceipt": "مشاركة الوصل",
   "duesDeletePayment": "حذف الأداء",
   "duesConfirmDeletePayment": "هل تريد حذف أداء الشقة رقم {number} بقيمة {amount} د؟ سيُعاد احتساب سجل الاشتراكات ولا يمكن التراجع عن ذلك.",
   "@duesConfirmDeletePayment": {"placeholders": {"number": {"type": "String"}, "amount": {"type": "String"}}},

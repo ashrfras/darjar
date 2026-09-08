@@ -26,10 +26,28 @@ class FirestorePaymentReceiptRepository implements PaymentReceiptRepository {
         .get();
     final data = document.data();
     if (data == null) throw const PaymentReceiptNotFound();
+    final residenceId = data['residenceId'] as String;
+    var residenceName = data['residenceName'] as String;
+    var residenceAddress = data['residenceAddress'] as String? ?? '';
+    var residenceCity = data['residenceCity'] as String? ?? '';
+    try {
+      final publicResidence = await _firestore
+          .collection('publicResidences')
+          .doc(residenceId)
+          .get();
+      final publicData = publicResidence.data();
+      residenceName = publicData?['name'] as String? ?? residenceName;
+      residenceAddress = publicData?['address'] as String? ?? residenceAddress;
+      residenceCity = publicData?['city'] as String? ?? residenceCity;
+    } on FirebaseException {
+      // Keep legacy receipt links available during a staggered rules rollout.
+    }
     return PaymentReceipt(
       id: document.id,
-      residenceId: data['residenceId'] as String,
-      residenceName: data['residenceName'] as String,
+      residenceId: residenceId,
+      residenceName: residenceName,
+      residenceAddress: residenceAddress,
+      residenceCity: residenceCity,
       apartmentNumber: data['apartmentNumber'] as String,
       amount: data['amount'] as int,
       periodKeys: List<String>.from(data['periodKeys'] as List),

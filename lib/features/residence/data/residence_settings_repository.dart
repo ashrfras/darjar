@@ -223,6 +223,15 @@ class FirestoreResidenceSettingsRepository
         'joinRequestsEnabled': settings.joinRequestsEnabled,
         'updatedAt': FieldValue.serverTimestamp(),
       });
+      batch.set(
+        _firestore.collection('publicResidences').doc(settings.residenceId),
+        {
+          'name': settings.name,
+          'address': settings.address,
+          'city': settings.city,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+      );
       batch.update(residence.collection('settings').doc('private'), {
         'managementOrganization': settings.managementOrganization,
         'managementPhone': settings.managementPhone,

@@ -10,12 +10,14 @@ import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/features/onboarding/presentation/android_app_launcher.dart';
 import 'package:darjar/features/receipts/data/payment_receipt_repository.dart';
 import 'package:darjar/features/receipts/domain/payment_receipt.dart';
-import 'package:darjar/features/receipts/presentation/payment_receipt_share_dialog.dart';
+import 'package:darjar/features/receipts/presentation/payment_receipt_document.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PaymentReceiptPage extends ConsumerWidget {
@@ -62,14 +64,22 @@ class PaymentReceiptPage extends ConsumerWidget {
   }
 }
 
-class _ReceiptBody extends StatelessWidget {
+class _ReceiptBody extends StatefulWidget {
   const _ReceiptBody({required this.receipt});
 
   final PaymentReceipt receipt;
 
   @override
+  State<_ReceiptBody> createState() => _ReceiptBodyState();
+}
+
+class _ReceiptBodyState extends State<_ReceiptBody> {
+  bool _downloading = false;
+
+  @override
   Widget build(BuildContext context) {
     final copy = _ReceiptCopy.of(context);
+    final receipt = widget.receipt;
     final width = MediaQuery.sizeOf(context).width;
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
@@ -199,12 +209,22 @@ class _ReceiptBody extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.large),
               DarJarButton(
-                key: const Key('share-payment-receipt-button'),
-                label: copy.share,
-                icon: Icons.ios_share_rounded,
+                key: const Key('download-payment-receipt-button'),
+                label: copy.download,
+                icon: _downloading
+                    ? Icons.hourglass_top_rounded
+                    : Icons.download_rounded,
                 expanded: true,
-                onPressed: () =>
-                    showPaymentReceiptShareDialog(context, receipt: receipt),
+                onPressed: _downloading ? null : _download,
+              ),
+              const SizedBox(height: AppSpacing.xSmall),
+              Text(
+                copy.officialDownloadNotice,
+                key: const Key('payment-receipt-official-download-notice'),
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
               ),
               if (kIsWeb) ...[
                 const SizedBox(height: AppSpacing.medium),
@@ -240,6 +260,45 @@ class _ReceiptBody extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _download() async {
+    final copy = _ReceiptCopy.of(context);
+    setState(() => _downloading = true);
+    try {
+      final bytes = await buildPaymentReceiptPdf(
+        widget.receipt,
+        localeName: copy.localeName,
+      );
+      final fileName = 'darjar-receipt-${widget.receipt.id}.pdf';
+      final file = XFile.fromData(
+        bytes,
+        mimeType: 'application/pdf',
+        name: fileName,
+      );
+      if (kIsWeb ||
+          (defaultTargetPlatform != TargetPlatform.android &&
+              defaultTargetPlatform != TargetPlatform.iOS)) {
+        final location = await getSaveLocation(suggestedName: fileName);
+        if (location == null) return;
+        await file.saveTo(location.path);
+      } else {
+        final directory = await getDownloadsDirectory();
+        if (directory == null) throw StateError('downloads-unavailable');
+        await file.saveTo('${directory.path}/$fileName');
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(copy.downloaded)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(copy.downloadError)));
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
   }
 }
 
@@ -368,7 +427,15 @@ class _ReceiptCopy {
   String get manualNotice => arabic
       ? 'يوثّق هذا الوصل أداءً مسجلاً يدوياً. دارجار لا يحتفظ بالأموال ولا يعالج الدفعات.'
       : 'This receipt documents a manually recorded payment. DarJar does not hold money or process payments.';
-  String get share => arabic ? 'مشاركة الوصل' : 'Share receipt';
+  String get download => arabic ? 'تحميل الوصل' : 'Download receipt';
+  String get officialDownloadNotice => arabic
+      ? 'يتم تحميل نسخة رسمية معتمدة من هذا الوصل مع ختم الإدارة'
+      : 'An officially certified copy of this receipt is downloaded with the management stamp.';
+  String get downloaded =>
+      arabic ? 'تم تحميل الوصل.' : 'The receipt was downloaded.';
+  String get downloadError => arabic
+      ? 'تعذر تحميل الوصل. حاول مجدداً.'
+      : 'The receipt could not be downloaded. Try again.';
   String get installPrompt => arabic
       ? 'ثبّت تطبيق دارجار للوصول إلى خدمات إقامتك بسهولة.'
       : 'Install DarJar for easy access to your residence services.';

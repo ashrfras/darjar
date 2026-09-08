@@ -3,6 +3,8 @@ class PaymentReceipt {
     required this.id,
     required this.residenceId,
     required this.residenceName,
+    this.residenceAddress = '',
+    this.residenceCity = '',
     required this.apartmentNumber,
     required this.amount,
     required this.periodKeys,
@@ -13,6 +15,8 @@ class PaymentReceipt {
   final String id;
   final String residenceId;
   final String residenceName;
+  final String residenceAddress;
+  final String residenceCity;
   final String apartmentNumber;
   final int amount;
   final List<String> periodKeys;

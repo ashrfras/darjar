@@ -163,6 +163,8 @@ class _ResidentDuesContentState extends ConsumerState<_ResidentDuesContent> {
                             final receipt = visiblePaymentGroups[index].receipt(
                               residenceId: activeResidence.id,
                               residenceName: activeResidence.name,
+                              residenceAddress: activeResidence.address,
+                              residenceCity: activeResidence.city,
                             );
                             context.push(
                               AppRoutes.receipt(receipt.id),

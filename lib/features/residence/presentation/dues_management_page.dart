@@ -203,10 +203,26 @@ class _ManagementContent extends ConsumerWidget {
                             final receipt = paymentGroups[index].receipt(
                               residenceId: activeResidence.id,
                               residenceName: activeResidence.name,
+                              residenceAddress: activeResidence.address,
+                              residenceCity: activeResidence.city,
                             );
                             context.push(
                               AppRoutes.receipt(receipt.id),
                               extra: receipt,
+                            );
+                          },
+                    onShare: activeResidence == null
+                        ? null
+                        : () {
+                            final receipt = paymentGroups[index].receipt(
+                              residenceId: activeResidence.id,
+                              residenceName: activeResidence.name,
+                              residenceAddress: activeResidence.address,
+                              residenceCity: activeResidence.city,
+                            );
+                            showPaymentReceiptShareDialog(
+                              context,
+                              receipt: receipt,
                             );
                           },
                     onDelete: () =>
@@ -880,11 +896,13 @@ class _ManagementPaymentRow extends StatelessWidget {
   const _ManagementPaymentRow({
     required this.paymentGroup,
     required this.onOpenReceipt,
+    required this.onShare,
     required this.onDelete,
   });
 
   final ResidenceDuePaymentGroup paymentGroup;
   final VoidCallback? onOpenReceipt;
+  final VoidCallback? onShare;
   final VoidCallback onDelete;
 
   @override
@@ -959,6 +977,13 @@ class _ManagementPaymentRow extends StatelessWidget {
             ),
             if (onOpenReceipt != null)
               const Icon(Icons.chevron_left_rounded, color: AppColors.inkMuted),
+            if (onShare != null)
+              IconButton(
+                key: ValueKey('share-management-payment-${paymentGroup.id}'),
+                tooltip: localizations.duesShareReceipt,
+                onPressed: onShare,
+                icon: const Icon(Icons.ios_share_rounded),
+              ),
             IconButton(
               key: ValueKey('delete-management-payment-${paymentGroup.id}'),
               tooltip: localizations.delete,

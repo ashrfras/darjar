@@ -727,3 +727,10 @@ String localizedMoroccanCityName(
       .firstWhere((city) => city.id == cityId)
       .localizedName(localizations);
 }
+
+String moroccanCityNameForLocale(String cityId, String localeName) {
+  final city = moroccanCities.where((item) => item.id == cityId).firstOrNull;
+  if (city == null) return '';
+  final languageCode = localeName.split(RegExp('[-_]')).first;
+  return languageCode == 'en' ? city.nameLatin : city.nameAr;
+}

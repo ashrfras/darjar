@@ -149,6 +149,9 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
     for (var attempt = 0; attempt < 5; attempt++) {
       final joinCode = _generateJoinCode();
       final residenceReference = _firestore.collection('residences').doc();
+      final publicResidenceReference = _firestore
+          .collection('publicResidences')
+          .doc(residenceReference.id);
       final codeReference = _firestore
           .collection('residenceCodes')
           .doc(joinCode);
@@ -182,6 +185,12 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
             'presidentId': user.uid,
             'joinRequestsEnabled': true,
             'createdAt': FieldValue.serverTimestamp(),
+          });
+          transaction.set(publicResidenceReference, {
+            'name': normalizedInput.name,
+            'address': normalizedInput.address,
+            'city': normalizedInput.city,
+            'updatedAt': FieldValue.serverTimestamp(),
           });
           transaction.set(codeReference, {
             'residenceId': residenceReference.id,

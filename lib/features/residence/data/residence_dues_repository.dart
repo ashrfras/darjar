@@ -115,12 +115,16 @@ class ResidenceDuePaymentGroup {
   PaymentReceipt receipt({
     required String residenceId,
     required String residenceName,
+    required String residenceAddress,
+    required String residenceCity,
   }) {
     final payment = payments.first;
     return PaymentReceipt(
       id: id,
       residenceId: residenceId,
       residenceName: residenceName,
+      residenceAddress: residenceAddress,
+      residenceCity: residenceCity,
       apartmentNumber: payment.apartmentNumber,
       amount: totalAmount,
       periodKeys: periodKeys,
@@ -237,6 +241,8 @@ abstract interface class ResidenceDuesRepository {
   Future<PaymentReceipt> recordApartmentPayment({
     required String residenceId,
     required String residenceName,
+    required String residenceAddress,
+    required String residenceCity,
     required String apartmentId,
     required String apartmentNumber,
     required int amount,
@@ -252,6 +258,8 @@ abstract interface class ResidenceDuesRepository {
   Future<void> publishMissingReceipts({
     required String residenceId,
     required String residenceName,
+    required String residenceAddress,
+    required String residenceCity,
     required List<ResidenceDuePaymentGroup> paymentGroups,
   });
 
@@ -354,10 +362,18 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
   Future<void> publishMissingReceipts({
     required String residenceId,
     required String residenceName,
+    required String residenceAddress,
+    required String residenceCity,
     required List<ResidenceDuePaymentGroup> paymentGroups,
   }) async {
     if (paymentGroups.isEmpty) return;
     try {
+      await _firestore.collection('publicResidences').doc(residenceId).set({
+        'name': residenceName,
+        'address': residenceAddress,
+        'city': residenceCity,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
       final receipts = _firestore.collection('publicPaymentReceipts');
       for (var offset = 0; offset < paymentGroups.length; offset += 400) {
         final end = (offset + 400).clamp(0, paymentGroups.length);
@@ -368,14 +384,36 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
         final batch = _firestore.batch();
         var writes = 0;
         for (var index = 0; index < chunk.length; index++) {
-          if (documents[index].exists) continue;
+          if (documents[index].exists) {
+            final data = documents[index].data();
+            final updates = <String, Object>{};
+            if ((data?['residenceName'] as String? ?? '') != residenceName) {
+              updates['residenceName'] = residenceName;
+            }
+            if ((data?['residenceAddress'] as String? ?? '') !=
+                residenceAddress) {
+              updates['residenceAddress'] = residenceAddress;
+            }
+            if ((data?['residenceCity'] as String? ?? '') != residenceCity) {
+              updates['residenceCity'] = residenceCity;
+            }
+            if (updates.isNotEmpty) {
+              batch.update(receipts.doc(chunk[index].id), updates);
+              writes++;
+            }
+            continue;
+          }
           final receipt = chunk[index].receipt(
             residenceId: residenceId,
             residenceName: residenceName,
+            residenceAddress: residenceAddress,
+            residenceCity: residenceCity,
           );
           batch.set(receipts.doc(receipt.id), {
             'residenceId': receipt.residenceId,
             'residenceName': receipt.residenceName,
+            'residenceAddress': receipt.residenceAddress,
+            'residenceCity': receipt.residenceCity,
             'apartmentNumber': receipt.apartmentNumber,
             'amount': receipt.amount,
             'periodKeys': receipt.periodKeys,
@@ -396,6 +434,8 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
   Future<PaymentReceipt> recordApartmentPayment({
     required String residenceId,
     required String residenceName,
+    required String residenceAddress,
+    required String residenceCity,
     required String apartmentId,
     required String apartmentNumber,
     required int amount,
@@ -480,6 +520,8 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
         id: paymentGroupId,
         residenceId: residenceId,
         residenceName: residenceName,
+        residenceAddress: residenceAddress,
+        residenceCity: residenceCity,
         apartmentNumber: apartmentNumber,
         amount: amount,
         periodKeys: allocations
@@ -559,11 +601,20 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
             },
           );
         }
+        transaction
+            .set(_firestore.collection('publicResidences').doc(residenceId), {
+              'name': residenceName,
+              'address': residenceAddress,
+              'city': residenceCity,
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
         transaction.set(
           _firestore.collection('publicPaymentReceipts').doc(paymentGroupId),
           {
             'residenceId': residenceId,
             'residenceName': residenceName,
+            'residenceAddress': residenceAddress,
+            'residenceCity': residenceCity,
             'apartmentNumber': apartmentNumber,
             'amount': amount,
             'periodKeys': receipt.periodKeys,
@@ -851,6 +902,8 @@ class ResidenceDuesManagementController
     extends AsyncNotifier<ResidenceDuesOverview> {
   String? _residenceId;
   String? _residenceName;
+  String? _residenceAddress;
+  String? _residenceCity;
   int? _defaultAmount;
 
   @override
@@ -865,6 +918,8 @@ class ResidenceDuesManagementController
     }
     _residenceId = activeResidence.id;
     _residenceName = activeResidence.name;
+    _residenceAddress = activeResidence.address;
+    _residenceCity = activeResidence.city;
     final settings = await ref.watch(residenceSettingsProvider.future);
     _defaultAmount = settings.defaultSubscriptionAmount;
     final members = await ref.watch(residenceMembersProvider.future);
@@ -879,11 +934,18 @@ class ResidenceDuesManagementController
     final activeOverview = overview.forActiveApartments(
       members.apartments.map((apartment) => apartment.id),
     );
-    await repository.publishMissingReceipts(
-      residenceId: activeResidence.id,
-      residenceName: activeResidence.name,
-      paymentGroups: activeOverview.paymentGroups,
-    );
+    try {
+      await repository.publishMissingReceipts(
+        residenceId: activeResidence.id,
+        residenceName: activeResidence.name,
+        residenceAddress: activeResidence.address,
+        residenceCity: activeResidence.city,
+        paymentGroups: activeOverview.paymentGroups,
+      );
+    } on ResidenceDuesFailure {
+      // Public receipt synchronization must never prevent management from
+      // viewing or recording the residence's internal dues.
+    }
     return activeOverview;
   }
 
@@ -898,10 +960,14 @@ class ResidenceDuesManagementController
   }) async {
     final residenceId = _residenceId;
     final residenceName = _residenceName;
+    final residenceAddress = _residenceAddress;
+    final residenceCity = _residenceCity;
     final defaultAmount = _defaultAmount;
     final user = ref.read(authRepositoryProvider).currentUser;
     if (residenceId == null ||
         residenceName == null ||
+        residenceAddress == null ||
+        residenceCity == null ||
         defaultAmount == null ||
         user == null) {
       throw const ResidenceDuesFailure('missing-context');
@@ -911,6 +977,8 @@ class ResidenceDuesManagementController
         .recordApartmentPayment(
           residenceId: residenceId,
           residenceName: residenceName,
+          residenceAddress: residenceAddress,
+          residenceCity: residenceCity,
           apartmentId: apartmentId,
           apartmentNumber: apartmentNumber,
           amount: amount,

@@ -1369,6 +1369,9 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get duesPaymentSaved => 'ⴰⵅⴻⵍⵍⴻⵚ ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ ⵙ ⵔⵔⴱⴻⵃ.';
 
   @override
+  String get duesShareReceipt => 'ⴱⴹⵓ ⵍⵡⵙⵍ';
+
+  @override
   String get duesDeletePayment => 'ⴽⴽⴻⵙ ⵍⴻⵅⵍⴰⵚ';
 
   @override

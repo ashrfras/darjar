@@ -50,6 +50,29 @@ service cloud.firestore {
       return /databases/$(database)/documents/residences/$(residenceId)/settings/private;
     }
 
+    function validPublicResidence(residenceId) {
+      return request.resource.data.keys().hasOnly([
+          'name',
+          'address',
+          'city',
+          'updatedAt'
+        ])
+        && request.resource.data.name
+          == getAfter(residencePath(residenceId)).data.name
+        && request.resource.data.address
+          == getAfter(residencePath(residenceId)).data.address
+        && request.resource.data.city
+          == getAfter(residencePath(residenceId)).data.city
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 160
+        && request.resource.data.address is string
+        && request.resource.data.address.size() > 0
+        && request.resource.data.address.size() <= 300
+        && validMoroccanCity(request.resource.data.city)
+        && request.resource.data.updatedAt == request.time;
+    }
+
     function isResidenceMember(residenceId) {
       return signedIn()
         && get(
@@ -415,6 +438,30 @@ service cloud.firestore {
     // Receipts deliberately contain only the small, immutable subset that can
     // be shown through a public /r/{id} link. Residence and payment records
     // remain protected by their membership rules below.
+    match /publicResidences/{residenceId} {
+      allow get: if true;
+      allow list: if false;
+
+      allow create: if verifiedPhone()
+        && (
+          (
+            exists(residencePath(residenceId))
+            && canManageResidence(residenceId)
+          )
+          || (
+            !exists(residencePath(residenceId))
+            && getAfter(residencePath(residenceId)).data.presidentId
+              == request.auth.uid
+          )
+        )
+        && validPublicResidence(residenceId);
+
+      allow update: if canManageResidence(residenceId)
+        && validPublicResidence(residenceId);
+
+      allow delete: if false;
+    }
+
     match /publicPaymentReceipts/{receiptId} {
       allow get: if true;
       allow list: if false;
@@ -423,6 +470,8 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           'residenceId',
           'residenceName',
+          'residenceAddress',
+          'residenceCity',
           'apartmentNumber',
           'amount',
           'periodKeys',
@@ -435,6 +484,16 @@ service cloud.firestore {
           == get(
             residencePath(request.resource.data.residenceId)
           ).data.name
+        && request.resource.data.residenceAddress is string
+        && request.resource.data.residenceAddress
+          == get(
+            residencePath(request.resource.data.residenceId)
+          ).data.address
+        && request.resource.data.residenceAddress.size() <= 300
+        && request.resource.data.residenceCity
+          == get(
+            residencePath(request.resource.data.residenceId)
+          ).data.city
         && request.resource.data.apartmentNumber is string
         && request.resource.data.apartmentNumber.size() > 0
         && request.resource.data.amount is int
@@ -449,7 +508,20 @@ service cloud.firestore {
         && request.resource.data.note.size() <= 1000
         && request.resource.data.createdAt == request.time;
 
-      allow update: if false;
+      allow update: if canManageResidence(resource.data.residenceId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'residenceName',
+          'residenceAddress',
+          'residenceCity'
+        ])
+        && request.resource.data.residenceName
+          == get(residencePath(resource.data.residenceId)).data.name
+        && request.resource.data.residenceAddress is string
+        && request.resource.data.residenceAddress
+          == get(residencePath(resource.data.residenceId)).data.address
+        && request.resource.data.residenceAddress.size() <= 300
+        && request.resource.data.residenceCity
+          == get(residencePath(resource.data.residenceId)).data.city;
       allow delete: if canManageResidence(resource.data.residenceId);
     }
 
