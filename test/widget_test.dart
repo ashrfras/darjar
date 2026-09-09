@@ -229,6 +229,12 @@ void main() {
       expect(find.byKey(const Key('public-legal-brand')), findsOneWidget);
       expect(find.byKey(const Key('public-legal-back-button')), findsOneWidget);
       expect(find.byKey(const Key('landing-footer')), findsOneWidget);
+
+      await tester.ensureVisible(find.text('الدعم والتواصل'));
+      await tester.tap(find.text('الدعم والتواصل'));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('public-support-page')), findsOneWidget);
     });
 
     testWidgets('account deletion opens directly without authentication', (
@@ -252,6 +258,29 @@ void main() {
         find.byKey(const Key('request-account-deletion-button')),
         findsNothing,
       );
+      expect(find.byKey(const Key('phone-auth-page')), findsNothing);
+      expect(find.byKey(const Key('onboarding-page')), findsNothing);
+      expect(find.byKey(const Key('public-legal-brand')), findsOneWidget);
+      expect(find.byKey(const Key('public-legal-back-button')), findsOneWidget);
+      expect(find.byKey(const Key('landing-footer')), findsOneWidget);
+    });
+
+    testWidgets('support opens directly without authentication', (
+      tester,
+    ) async {
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: null,
+        platformInitialLocation: AppRoutes.support,
+        authRepository: _FakeAuthRepository(signedIn: false),
+      );
+
+      expect(find.byKey(const Key('public-support-page')), findsOneWidget);
+      expect(find.byKey(const Key('support-page-content')), findsOneWidget);
+      expect(find.text('الدعم والتواصل'), findsWidgets);
+      expect(find.text('support@raqmain.ma'), findsOneWidget);
+      expect(find.byKey(const Key('support-email-button')), findsOneWidget);
       expect(find.byKey(const Key('phone-auth-page')), findsNothing);
       expect(find.byKey(const Key('onboarding-page')), findsNothing);
       expect(find.byKey(const Key('public-legal-brand')), findsOneWidget);
@@ -2402,13 +2431,6 @@ void main() {
       findsNWidgets(5),
     );
     expect(find.byIcon(Icons.chevron_left_rounded), findsNothing);
-
-    await tester.ensureVisible(find.text('الدعم والتواصل'));
-    await tester.tap(find.text('الدعم والتواصل'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('support-contact-dialog')), findsOneWidget);
-    expect(find.text('support@raqmain.ma'), findsOneWidget);
-    expect(find.byKey(const Key('support-email-button')), findsOneWidget);
   });
 
   testWidgets('native onboarding does not build Web landing sections', (

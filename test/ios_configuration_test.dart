@@ -191,6 +191,7 @@ void main() {
       rewrites,
       containsAll([
         {'source': '/privacy', 'destination': '/index.html'},
+        {'source': '/support', 'destination': '/index.html'},
         {'source': '/delete-account', 'destination': '/index.html'},
       ]),
     );

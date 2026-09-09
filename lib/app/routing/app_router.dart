@@ -15,6 +15,7 @@ import 'package:darjar/features/profile/presentation/privacy_policy_page.dart';
 import 'package:darjar/features/profile/presentation/about_app_page.dart';
 import 'package:darjar/features/profile/presentation/delete_account_page.dart';
 import 'package:darjar/features/profile/presentation/settings_page.dart';
+import 'package:darjar/features/profile/presentation/support_page.dart';
 import 'package:darjar/features/receipts/domain/payment_receipt.dart';
 import 'package:darjar/features/receipts/presentation/payment_receipt_page.dart';
 import 'package:darjar/features/residence/presentation/dues_management_page.dart';
@@ -65,6 +66,7 @@ abstract final class AppRoutes {
   static const profile = '/profile';
   static const privacyPolicy = '/profile/privacy';
   static const publicPrivacyPolicy = '/privacy';
+  static const support = '/support';
   static const paymentReceipt = '/r/:receiptId';
   static const deleteAccount = '/delete-account';
   static const aboutApp = '/profile/about';
@@ -146,6 +148,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == AppRoutes.root ||
           location == AppRoutes.onboarding ||
           location == AppRoutes.publicPrivacyPolicy ||
+          location == AppRoutes.support ||
           location == AppRoutes.deleteAccount ||
           location.startsWith('/r/') ||
           isAuthRoute;
@@ -189,6 +192,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.publicPrivacyPolicy,
         builder: (context, state) => const PrivacyPolicyPage(isPublic: true),
+      ),
+      GoRoute(
+        path: AppRoutes.support,
+        builder: (context, state) => const SupportPage(),
       ),
       GoRoute(
         path: AppRoutes.deleteAccount,
