@@ -975,20 +975,43 @@ class _ManagementPaymentRow extends StatelessWidget {
                 context,
               ).textTheme.titleMedium?.copyWith(color: AppColors.residence),
             ),
-            if (onOpenReceipt != null)
-              const Icon(Icons.chevron_left_rounded, color: AppColors.inkMuted),
-            if (onShare != null)
-              IconButton(
-                key: ValueKey('share-management-payment-${paymentGroup.id}'),
-                tooltip: localizations.duesShareReceipt,
-                onPressed: onShare,
-                icon: const Icon(Icons.ios_share_rounded),
+            const SizedBox(width: AppSpacing.xSmall),
+            Row(
+              key: ValueKey(
+                'management-payment-actions-${paymentGroup.id}',
               ),
-            IconButton(
-              key: ValueKey('delete-management-payment-${paymentGroup.id}'),
-              tooltip: localizations.delete,
-              onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline_rounded),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (onShare != null)
+                  IconButton(
+                    key: ValueKey(
+                      'share-management-payment-${paymentGroup.id}',
+                    ),
+                    tooltip: localizations.duesShareReceipt,
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints.tightFor(
+                      width: 40,
+                      height: 40,
+                    ),
+                    padding: EdgeInsets.zero,
+                    onPressed: onShare,
+                    icon: const Icon(Icons.ios_share_rounded, size: 22),
+                  ),
+                IconButton(
+                  key: ValueKey(
+                    'delete-management-payment-${paymentGroup.id}',
+                  ),
+                  tooltip: localizations.delete,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints.tightFor(
+                    width: 40,
+                    height: 40,
+                  ),
+                  padding: EdgeInsets.zero,
+                  onPressed: onDelete,
+                  icon: const Icon(Icons.delete_outline_rounded, size: 22),
+                ),
+              ],
             ),
           ],
         ),

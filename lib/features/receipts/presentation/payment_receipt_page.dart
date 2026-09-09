@@ -17,7 +17,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 import 'package:url_launcher/url_launcher.dart';
 
 class PaymentReceiptPage extends ConsumerWidget {
@@ -219,7 +219,9 @@ class _ReceiptBodyState extends State<_ReceiptBody> {
               ),
               const SizedBox(height: AppSpacing.xSmall),
               Text(
-                copy.officialDownloadNotice,
+                _usesMobileSaveSheet
+                    ? copy.mobileDownloadNotice
+                    : copy.officialDownloadNotice,
                 key: const Key('payment-receipt-official-download-notice'),
                 textAlign: TextAlign.center,
                 style: Theme.of(
@@ -276,21 +278,31 @@ class _ReceiptBodyState extends State<_ReceiptBody> {
         mimeType: 'application/pdf',
         name: fileName,
       );
-      if (kIsWeb ||
-          (defaultTargetPlatform != TargetPlatform.android &&
-              defaultTargetPlatform != TargetPlatform.iOS)) {
+      if (!mounted) return;
+      if (_usesMobileSaveSheet) {
+        final renderObject = context.findRenderObject();
+        final shareOrigin = renderObject is RenderBox
+            ? renderObject.localToGlobal(Offset.zero) & renderObject.size
+            : null;
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [file],
+            fileNameOverrides: [fileName],
+            subject: copy.title,
+            sharePositionOrigin: shareOrigin,
+          ),
+        );
+      } else {
         final location = await getSaveLocation(suggestedName: fileName);
         if (location == null) return;
         await file.saveTo(location.path);
-      } else {
-        final directory = await getDownloadsDirectory();
-        if (directory == null) throw StateError('downloads-unavailable');
-        await file.saveTo('${directory.path}/$fileName');
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(copy.downloaded)));
+      if (!_usesMobileSaveSheet) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(copy.downloaded)));
+      }
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -300,6 +312,11 @@ class _ReceiptBodyState extends State<_ReceiptBody> {
       if (mounted) setState(() => _downloading = false);
     }
   }
+
+  bool get _usesMobileSaveSheet =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
 }
 
 class _ReceiptDetail extends StatelessWidget {
@@ -431,6 +448,9 @@ class _ReceiptCopy {
   String get officialDownloadNotice => arabic
       ? 'يتم تحميل نسخة رسمية معتمدة من هذا الوصل مع ختم الإدارة'
       : 'An officially certified copy of this receipt is downloaded with the management stamp.';
+  String get mobileDownloadNotice => arabic
+      ? 'ستفتح خيارات النظام. اختر حفظ في الملفات للاحتفاظ بنسخة رسمية معتمدة مع ختم الإدارة'
+      : 'System options will open. Choose Save to Files to keep an officially certified copy with the management stamp.';
   String get downloaded =>
       arabic ? 'تم تحميل الوصل.' : 'The receipt was downloaded.';
   String get downloadError => arabic

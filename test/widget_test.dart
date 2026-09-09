@@ -350,7 +350,9 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.text('يتم تحميل نسخة رسمية معتمدة من هذا الوصل مع ختم الإدارة'),
+        find.text(
+          'ستفتح خيارات النظام. اختر حفظ في الملفات للاحتفاظ بنسخة رسمية معتمدة مع ختم الإدارة',
+        ),
         findsOneWidget,
       );
       expect(
@@ -4553,6 +4555,19 @@ void main() {
       find.byKey(const ValueKey('share-management-payment-')),
       findsOneWidget,
     );
+    final paymentRow = find.byKey(const ValueKey('management-payment-'));
+    final paymentActions = find.byKey(
+      const ValueKey('management-payment-actions-'),
+    );
+    expect(
+      find.descendant(
+        of: paymentRow,
+        matching: find.byIcon(Icons.chevron_left_rounded),
+      ),
+      findsNothing,
+    );
+    expect(tester.widget<InkWell>(paymentRow).onTap, isNotNull);
+    expect(tester.getSize(paymentActions).width, 80);
     final expectedCard = find.byKey(const Key('management-dues-expected'));
     final collectedCard = find.byKey(const Key('management-dues-collected'));
     final remainingCard = find.byKey(const Key('management-dues-remaining'));
