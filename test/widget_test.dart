@@ -4369,7 +4369,7 @@ void main() {
         matching: find.byIcon(Icons.chevron_left_rounded),
       ),
     );
-    expect(paymentChevron.textDirection, TextDirection.rtl);
+    expect(paymentChevron.textDirection, TextDirection.ltr);
     expect(
       find.descendant(
         of: find.byKey(const Key('dues-total-credit')),

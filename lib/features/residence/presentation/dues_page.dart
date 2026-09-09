@@ -478,8 +478,8 @@ class _PaymentRow extends StatelessWidget {
                 Icons.chevron_left_rounded,
                 color: AppColors.inkMuted,
                 textDirection: Bidi.isRtlLanguage(localizations.localeName)
-                    ? TextDirection.rtl
-                    : TextDirection.ltr,
+                    ? TextDirection.ltr
+                    : TextDirection.rtl,
               ),
           ],
         ),
