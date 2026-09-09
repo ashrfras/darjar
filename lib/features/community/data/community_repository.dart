@@ -194,6 +194,17 @@ class CommunityFailure implements Exception {
   final String? details;
 }
 
+String currentCommunityAuthorName({
+  required String storedName,
+  Map<String, dynamic>? memberData,
+}) {
+  final currentName = memberData == null
+      ? ''
+      : '${memberData['firstName'] ?? ''} ${memberData['lastName'] ?? ''}'
+            .trim();
+  return currentName.isEmpty ? storedName : currentName;
+}
+
 abstract interface class CommunityRepository {
   Stream<List<CommunityPost>> watchPosts({
     required String residenceId,
@@ -594,9 +605,19 @@ class FirebaseCommunityRepository implements CommunityRepository {
         .limit(limit)
         .snapshots()
         .asyncMap((snapshot) async {
+          final memberDataById = await _loadMemberData(
+            residenceId,
+            snapshot.docs.map((document) => document.data()['authorId']),
+          );
           return Future.wait([
             for (final document in snapshot.docs)
-              _postFromDocument(document, userId, includeComments: false),
+              _postFromDocument(
+                document,
+                residenceId,
+                userId,
+                includeComments: false,
+                memberDataById: memberDataById,
+              ),
           ]);
         })
         .handleError((Object error) => throw _failure(error));
@@ -615,7 +636,12 @@ class FirebaseCommunityRepository implements CommunityRepository {
           if (!document.exists || document.data()?['archivedAt'] != null) {
             return null;
           }
-          return _postFromDocument(document, userId, includeComments: true);
+          return _postFromDocument(
+            document,
+            residenceId,
+            userId,
+            includeComments: true,
+          );
         })
         .handleError((Object error) => throw _failure(error));
   }
@@ -885,8 +911,10 @@ class FirebaseCommunityRepository implements CommunityRepository {
 
   Future<CommunityPost> _postFromDocument(
     DocumentSnapshot<Map<String, dynamic>> document,
+    String residenceId,
     String userId, {
     required bool includeComments,
+    Map<String, Map<String, dynamic>>? memberDataById,
   }) async {
     final data = document.data()!;
     final commentsSnapshot = includeComments
@@ -896,6 +924,13 @@ class FirebaseCommunityRepository implements CommunityRepository {
               .limit(100)
               .get()
         : null;
+    final currentMemberData =
+        memberDataById ??
+        await _loadMemberData(residenceId, [
+          data['authorId'],
+          for (final comment in commentsSnapshot?.docs ?? const [])
+            comment.data()['authorId'],
+        ]);
     final likedBy = List<String>.from(data['likedBy'] as List? ?? const []);
     final savedBy = List<String>.from(data['savedBy'] as List? ?? const []);
     final authorRole = data['authorRole'] as String;
@@ -907,7 +942,10 @@ class FirebaseCommunityRepository implements CommunityRepository {
     final content = _postContentFromData(data);
     return CommunityPost(
       id: document.id,
-      author: data['authorName'] as String? ?? '',
+      author: currentCommunityAuthorName(
+        storedName: data['authorName'] as String? ?? '',
+        memberData: currentMemberData[data['authorId']],
+      ),
       authorId: data['authorId'] as String? ?? '',
       authorUnit: _nullableString(data['authorUnit']),
       authorRole: authorRole,
@@ -920,7 +958,10 @@ class FirebaseCommunityRepository implements CommunityRepository {
         for (final comment in commentsSnapshot?.docs ?? const [])
           CommunityComment(
             id: comment.id,
-            author: comment.data()['authorName'] as String? ?? '',
+            author: currentCommunityAuthorName(
+              storedName: comment.data()['authorName'] as String? ?? '',
+              memberData: currentMemberData[comment.data()['authorId']],
+            ),
             authorId: comment.data()['authorId'] as String? ?? '',
             body: comment.data()['body'] as String? ?? '',
             timeLabel: _relativeTime(comment.data()['createdAt']),
@@ -948,6 +989,23 @@ class FirebaseCommunityRepository implements CommunityRepository {
       eventLocation: _nullableString(data['eventLocation']),
       commentCountOverride: data['commentCount'] as int? ?? 0,
     );
+  }
+
+  Future<Map<String, Map<String, dynamic>>> _loadMemberData(
+    String residenceId,
+    Iterable<Object?> rawUserIds,
+  ) async {
+    final userIds = rawUserIds
+        .whereType<String>()
+        .where((userId) => userId.isNotEmpty)
+        .toSet();
+    final documents = await Future.wait([
+      for (final userId in userIds) _member(residenceId, userId).get(),
+    ]);
+    return {
+      for (final document in documents)
+        if (document.exists) document.id: document.data()!,
+    };
   }
 
   CollectionReference<Map<String, dynamic>> _posts(String residenceId) =>

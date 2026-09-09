@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -221,6 +222,8 @@ class ResidentProfileController extends AsyncNotifier<ResidentProfile> {
           lastName: lastName,
         );
     ref.invalidate(residenceMembersProvider);
+    ref.invalidate(communityPostsProvider);
+    ref.invalidate(communityPostProvider);
     ref.invalidateSelf();
   }
 }

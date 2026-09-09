@@ -62,6 +62,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   SharedPreferences.setMockInitialValues({});
 
+  group('community author names', () {
+    test('uses the current residence member name for an existing post', () {
+      expect(
+        currentCommunityAuthorName(
+          storedName: 'الاسم القديم',
+          memberData: const {'firstName': 'الاسم', 'lastName': 'الجديد'},
+        ),
+        'الاسم الجديد',
+      );
+    });
+
+    test('keeps the stored name when the member no longer exists', () {
+      expect(
+        currentCommunityAuthorName(storedName: 'الاسم المحفوظ'),
+        'الاسم المحفوظ',
+      );
+    });
+  });
+
   group('residence profile image synchronization', () {
     test('repairs a membership created without the existing profile image', () {
       expect(
