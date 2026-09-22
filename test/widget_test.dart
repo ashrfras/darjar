@@ -4520,6 +4520,87 @@ void main() {
     expect(showMore, findsNothing);
   });
 
+  for (final openingPaid in [false, true]) {
+    testWidgets(
+      'management excludes opening balances from collections (paid: $openingPaid)',
+      (tester) async {
+        final repository = _FakeResidenceDuesRepository();
+        final members = _FakeResidenceMembersRepository();
+        final building = members.data.buildings.first;
+        members.data = ResidenceMembersData(
+          buildings: [
+            ResidenceBuilding(
+              id: building.id,
+              nameAr: building.nameAr,
+              nameEn: building.nameEn,
+              floors: [building.floors.first],
+            ),
+          ],
+          members: members.data.members,
+        );
+        final period = residenceDuesPeriodKey(DateTime.now());
+        repository.overview = ResidenceDuesOverview(
+          dues: [
+            ResidenceDue(
+              id: '${period}_apartment-01',
+              apartmentId: 'apartment-01',
+              apartmentNumber: '01',
+              periodKey: period,
+              amountDue: 150,
+              amountPaid: openingPaid ? 150 : 0,
+              status: openingPaid
+                  ? ResidenceDueStatus.paid
+                  : ResidenceDueStatus.unpaid,
+            ),
+            ...repository.overview.dues.where(
+              (due) => due.apartmentId == 'apartment-02',
+            ),
+          ],
+          payments: repository.overview.payments,
+        );
+        await _pumpApp(
+          tester,
+          size: const Size(390, 844),
+          residenceDuesRepository: repository,
+          residenceMembersRepository: members,
+        );
+        await _enterResidence(tester);
+        await _openAdministration(tester);
+        await tester.ensureVisible(find.byKey(const Key('manage-dues-link')));
+        await tester.tap(find.byKey(const Key('manage-dues-link')));
+        await tester.pumpAndSettle();
+
+        void expectTotal(String key, int amount) {
+          expect(
+            find.descendant(
+              of: find.byKey(Key('management-dues-$key')),
+              matching: find.text('$amount د'),
+            ),
+            findsOneWidget,
+          );
+        }
+
+        expectTotal('collected', 150);
+        expectTotal('remaining', openingPaid ? 0 : 150);
+        expectTotal('expected', openingPaid ? 150 : 300);
+
+        // With no recorded payments, settled opening dues are still not cash.
+        repository.overview = ResidenceDuesOverview(
+          dues: repository.overview.dues,
+          payments: const [],
+        );
+        final container = ProviderScope.containerOf(
+          tester.element(find.byKey(const Key('dues-management-page'))),
+        );
+        container.invalidate(residenceDuesManagementProvider);
+        await tester.pumpAndSettle();
+        expectTotal('collected', 0);
+        expectTotal('remaining', openingPaid ? 0 : 150);
+        expectTotal('expected', openingPaid ? 0 : 150);
+      },
+    );
+  }
+
   testWidgets('management allocates arrears first and prepays future months', (
     tester,
   ) async {
@@ -4751,6 +4832,14 @@ void main() {
         .where((due) => due.apartmentId == 'apartment-01')
         .toList();
     expect(apartmentOneDues, hasLength(5));
+    // The full recorded payment counts, including its two prepaid months.
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('management-dues-collected')),
+        matching: find.text('900 د'),
+      ),
+      findsOneWidget,
+    );
     expect(
       apartmentOneDues.every(
         (due) => due.amountPaid == 150 && due.status == ResidenceDueStatus.paid,

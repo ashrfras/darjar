@@ -152,14 +152,17 @@ class _ManagementContent extends ConsumerWidget {
         icon: Icons.apartment_outlined,
       );
     }
-    final expected = overview.dues.fold(
+    final remaining = overview.dues.fold(
       0,
-      (total, due) => total + due.amountDue,
+      (total, due) => total + due.remainingAmount,
     );
-    final collected = overview.dues.fold(
+    final collected = overview.payments.fold(
       0,
-      (total, due) => total + due.amountPaid,
+      (total, payment) => total + payment.amount,
     );
+    // Opening paid balances settle dues without recording a collection.
+    // Exclude them from expected as well, while retaining actual prepayments.
+    final expected = collected + remaining;
     final paymentGroups = overview.paymentGroups;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -172,7 +175,7 @@ class _ManagementContent extends ConsumerWidget {
         _ManagementTotals(
           expected: expected,
           collected: collected,
-          remaining: expected - collected,
+          remaining: remaining,
         ),
         const SizedBox(height: AppSpacing.large),
         for (final group in groups) ...[
@@ -977,9 +980,7 @@ class _ManagementPaymentRow extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.xSmall),
             Row(
-              key: ValueKey(
-                'management-payment-actions-${paymentGroup.id}',
-              ),
+              key: ValueKey('management-payment-actions-${paymentGroup.id}'),
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (onShare != null)
@@ -998,9 +999,7 @@ class _ManagementPaymentRow extends StatelessWidget {
                     icon: const Icon(Icons.ios_share_rounded, size: 22),
                   ),
                 IconButton(
-                  key: ValueKey(
-                    'delete-management-payment-${paymentGroup.id}',
-                  ),
+                  key: ValueKey('delete-management-payment-${paymentGroup.id}'),
                   tooltip: localizations.delete,
                   visualDensity: VisualDensity.compact,
                   constraints: const BoxConstraints.tightFor(
