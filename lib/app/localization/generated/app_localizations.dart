@@ -4220,6 +4220,18 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'لا توجد أشهر مستحقة'**
   String get duesNoOutstandingPeriods;
+
+  /// No description provided for @deleteFeedActivityTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الحدث؟'**
+  String get deleteFeedActivityTitle;
+
+  /// No description provided for @deleteFeedActivityConfirmation.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيتم حذف هذا الحدث من الموجز لدى جميع السكان. لن يتم حذف العملية أو الوثيقة المرتبطة به.'**
+  String get deleteFeedActivityConfirmation;
 }
 
 class _AppLocalizationsDelegate

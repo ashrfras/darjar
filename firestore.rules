@@ -1244,7 +1244,8 @@ service cloud.firestore {
         allow read: if isResidenceMember(residenceId);
 
         // Activities are created by the trusted Eventarc backend only.
-        allow create, delete: if false;
+        allow create: if false;
+        allow delete: if canManageResidence(residenceId);
 
         allow update: if isResidenceMember(residenceId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([

@@ -725,5 +725,7 @@
   "duesExemptConfirm": "تأكيد الإعفاء",
   "duesExemptSaved": "تم إعفاء الأشهر وتحديث الإحصائيات.",
   "duesExemptError": "تعذر إتمام الإعفاء. حدّث البيانات وحاول مجددًا.",
-  "duesNoOutstandingPeriods": "لا توجد أشهر مستحقة"
+  "duesNoOutstandingPeriods": "لا توجد أشهر مستحقة",
+  "deleteFeedActivityTitle": "حذف الحدث؟",
+  "deleteFeedActivityConfirmation": "سيتم حذف هذا الحدث من الموجز لدى جميع السكان. لن يتم حذف العملية أو الوثيقة المرتبطة به."
 }

@@ -7,12 +7,14 @@ class DarJarCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(14),
     this.onTap,
+    this.onLongPress,
     super.key,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +37,7 @@ class DarJarCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
+          onLongPress: onLongPress,
           child: Padding(padding: padding, child: child),
         ),
       ),

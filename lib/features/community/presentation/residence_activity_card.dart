@@ -11,12 +11,14 @@ class ResidenceActivityCard extends StatelessWidget {
     required this.activity,
     required this.onLike,
     this.onOpen,
+    this.onLongPress,
     super.key,
   });
 
   final ResidenceActivity activity;
   final VoidCallback onLike;
   final VoidCallback? onOpen;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +44,7 @@ class ResidenceActivityCard extends StatelessWidget {
       key: ValueKey('feed-activity-${activity.id}'),
       padding: const EdgeInsets.all(AppSpacing.medium),
       onTap: onOpen,
+      onLongPress: onLongPress,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

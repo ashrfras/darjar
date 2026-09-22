@@ -19,6 +19,11 @@ abstract interface class FeedActivityRepository {
     required int limit,
   });
 
+  Future<void> deleteActivity({
+    required String residenceId,
+    required String activityId,
+  });
+
   Future<void> toggleLike({
     required String residenceId,
     required String userId,
@@ -74,6 +79,18 @@ class FirebaseFeedActivityRepository implements FeedActivityRepository {
     } catch (error) {
       if (error is CommunityFailure) rethrow;
       throw CommunityFailure('activity-like-failed', error.toString());
+    }
+  }
+
+  @override
+  Future<void> deleteActivity({
+    required String residenceId,
+    required String activityId,
+  }) async {
+    try {
+      await _activities(residenceId).doc(activityId).delete();
+    } catch (error) {
+      throw CommunityFailure('activity-delete-failed', error.toString());
     }
   }
 
@@ -159,6 +176,15 @@ class MockFeedActivityRepository implements FeedActivityRepository {
     _changes.add(List.unmodifiable(_activities));
   }
 
+  @override
+  Future<void> deleteActivity({
+    required String residenceId,
+    required String activityId,
+  }) async {
+    _activities.removeWhere((activity) => activity.id == activityId);
+    _changes.add(List.unmodifiable(_activities));
+  }
+
   void dispose() => _changes.close();
 }
 
@@ -210,6 +236,24 @@ class FeedActivityActions {
   FeedActivityActions(this._ref);
 
   final Ref _ref;
+
+  Future<void> deleteActivity({
+    required String residenceId,
+    required String activityId,
+  }) async {
+    final context = await _ref.read(residenceContextProvider.future);
+    final residence = context.activeResidence;
+    final user = _ref.read(authRepositoryProvider).currentUser;
+    if (user == null ||
+        residence == null ||
+        residence.id != residenceId ||
+        !residence.canManageResidence) {
+      throw const CommunityFailure('activity-delete-forbidden');
+    }
+    await _ref
+        .read(feedActivityRepositoryProvider)
+        .deleteActivity(residenceId: residenceId, activityId: activityId);
+  }
 
   Future<void> toggleLike(String activityId) async {
     final context = await _ref.read(residenceContextProvider.future);

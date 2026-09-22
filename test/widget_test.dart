@@ -3321,6 +3321,57 @@ void main() {
     expect(find.byKey(const Key('residence-finances-page')), findsOneWidget);
   });
 
+  for (final role in ['president', 'delegate', 'resident']) {
+    testWidgets('$role long press activity deletion permissions', (
+      tester,
+    ) async {
+      final allowed = role != 'resident';
+      await _pumpApp(
+        tester,
+        size: const Size(1280, 900),
+        residenceContext: ResidenceContext(
+          residences: [
+            UserResidence(
+              id: 'test-residence',
+              name: 'إقامة الاختبار',
+              address: 'شارع الاختبار',
+              city: '6141010',
+              role: role == 'president' ? 'president' : 'resident',
+              apartmentId: '',
+              hasPresidentPermissions: role == 'delegate',
+            ),
+          ],
+          activeResidenceId: 'test-residence',
+        ),
+      );
+      await _enterResidence(tester);
+      final activity = find.byKey(
+        const ValueKey('feed-activity-activity-cleaning-expense'),
+      );
+      await tester.ensureVisible(activity);
+      await tester.pumpAndSettle();
+      await tester.longPress(activity);
+      await tester.pumpAndSettle();
+      if (!allowed) {
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(
+          find.byKey(const Key('residence-finances-page')),
+          findsOneWidget,
+        );
+        return;
+      }
+      expect(find.text('حذف الحدث؟'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, 'إلغاء'));
+      await tester.pumpAndSettle();
+      expect(activity, findsOneWidget);
+      await tester.longPress(activity);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'حذف'));
+      await tester.pumpAndSettle();
+      expect(activity, findsNothing);
+    });
+  }
+
   testWidgets('author can archive their community post', (tester) async {
     await _pumpApp(tester, size: const Size(1280, 900));
     await _enterResidence(tester);

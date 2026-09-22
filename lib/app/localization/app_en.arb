@@ -725,5 +725,7 @@
   "duesExemptConfirm": "Confirm exemption",
   "duesExemptSaved": "Months exempted and statistics updated.",
   "duesExemptError": "Could not exempt dues. Refresh the data and try again.",
-  "duesNoOutstandingPeriods": "No outstanding months"
+  "duesNoOutstandingPeriods": "No outstanding months",
+  "deleteFeedActivityTitle": "Delete activity?",
+  "deleteFeedActivityConfirmation": "This activity will be removed from the feed for all residents. The related transaction or document will not be deleted."
 }

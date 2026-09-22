@@ -2330,4 +2330,11 @@ class AppLocalizationsZgh extends AppLocalizations {
 
   @override
   String get duesNoOutstandingPeriods => 'لا توجد أشهر مستحقة';
+
+  @override
+  String get deleteFeedActivityTitle => 'ⴽⴽⵙ ⴰⵎⵙⴰⵔ؟';
+
+  @override
+  String get deleteFeedActivityConfirmation =>
+      'ⴰⴷ ⵉⵜⵜⵡⴰⴽⴽⵙ ⵓⵎⵙⴰⵔ ⴰⴷ ⵙⴳ ⵓⵙⵓⴷⴷⵉⵙ ⵏ ⵎⴰⵕⵕⴰ ⵉⵎⵣⴷⴰⵖ. ⵓⵔ ⵜⵜⵡⴰⴽⴽⵙⵏ ⵉⴷⵔⵉⵎⵏ ⵏⵖ ⵜⴰⵡⵔⵉⵇⵜ ⵉⵇⵇⵏⵏ ⵖⵓⵔⵙ.';
 }

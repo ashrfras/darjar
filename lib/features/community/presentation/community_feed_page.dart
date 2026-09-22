@@ -168,6 +168,9 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                     ),
                                   ResidenceActivity() => ResidenceActivityCard(
                                     activity: item,
+                                    onLongPress: canManageResidence
+                                        ? () => _confirmDeleteActivity(item)
+                                        : null,
                                     onLike: () => _runAction(
                                       () => ref
                                           .read(feedActivityActionsProvider)
@@ -205,6 +208,36 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _confirmDeleteActivity(ResidenceActivity activity) async {
+    final residence = ref.read(residenceContextProvider).value?.activeResidence;
+    if (residence == null || !residence.canManageResidence) return;
+    final localizations = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(localizations.deleteFeedActivityTitle),
+        content: Text(localizations.deleteFeedActivityConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(localizations.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            child: Text(localizations.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _runAction(
+      () => ref
+          .read(feedActivityActionsProvider)
+          .deleteActivity(residenceId: residence.id, activityId: activity.id),
     );
   }
 

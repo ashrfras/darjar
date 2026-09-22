@@ -2336,4 +2336,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get duesNoOutstandingPeriods => 'No outstanding months';
+
+  @override
+  String get deleteFeedActivityTitle => 'Delete activity?';
+
+  @override
+  String get deleteFeedActivityConfirmation =>
+      'This activity will be removed from the feed for all residents. The related transaction or document will not be deleted.';
 }

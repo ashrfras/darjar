@@ -2293,4 +2293,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get duesNoOutstandingPeriods => 'لا توجد أشهر مستحقة';
+
+  @override
+  String get deleteFeedActivityTitle => 'حذف الحدث؟';
+
+  @override
+  String get deleteFeedActivityConfirmation =>
+      'سيتم حذف هذا الحدث من الموجز لدى جميع السكان. لن يتم حذف العملية أو الوثيقة المرتبطة به.';
 }
