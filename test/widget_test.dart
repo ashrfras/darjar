@@ -369,9 +369,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.text(
-          'ستفتح خيارات النظام. اختر حفظ في الملفات للاحتفاظ بنسخة رسمية معتمدة مع ختم الإدارة',
-        ),
+        find.text('تنزيل نسخة ورقية رسمية معتمدة مع ختم الإدارة'),
         findsOneWidget,
       );
       expect(
@@ -5024,7 +5022,7 @@ void main() {
       of: find.byKey(const Key('residence-management-section')),
       matching: find.byIcon(Icons.chevron_left_rounded),
     );
-    expect(chevrons, findsNWidgets(5));
+    expect(chevrons, findsNWidgets(6));
     for (final icon in tester.widgetList<Icon>(chevrons)) {
       expect(icon.textDirection, TextDirection.ltr);
     }
@@ -5034,6 +5032,7 @@ void main() {
       (link: 'manage-apartments-link', page: 'apartments-management-page'),
       (link: 'manage-dues-link', page: 'dues-management-page'),
       (link: 'manage-finances-link', page: 'finance-management-page'),
+      (link: 'manage-reports-link', page: 'residence-reports-page'),
       (link: 'manage-documents-link', page: 'documents-management-page'),
     ]) {
       await tester.ensureVisible(find.byKey(Key(navigation.link)));

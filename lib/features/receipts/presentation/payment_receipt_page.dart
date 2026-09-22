@@ -219,9 +219,7 @@ class _ReceiptBodyState extends State<_ReceiptBody> {
               ),
               const SizedBox(height: AppSpacing.xSmall),
               Text(
-                _usesMobileSaveSheet
-                    ? copy.mobileDownloadNotice
-                    : copy.officialDownloadNotice,
+                copy.officialDownloadNotice,
                 key: const Key('payment-receipt-official-download-notice'),
                 textAlign: TextAlign.center,
                 style: Theme.of(
@@ -446,11 +444,8 @@ class _ReceiptCopy {
       : 'This receipt documents a manually recorded payment. DarJar does not hold money or process payments.';
   String get download => arabic ? 'تحميل الوصل' : 'Download receipt';
   String get officialDownloadNotice => arabic
-      ? 'يتم تحميل نسخة رسمية معتمدة من هذا الوصل مع ختم الإدارة'
-      : 'An officially certified copy of this receipt is downloaded with the management stamp.';
-  String get mobileDownloadNotice => arabic
-      ? 'ستفتح خيارات النظام. اختر حفظ في الملفات للاحتفاظ بنسخة رسمية معتمدة مع ختم الإدارة'
-      : 'System options will open. Choose Save to Files to keep an officially certified copy with the management stamp.';
+      ? 'تنزيل نسخة ورقية رسمية معتمدة مع ختم الإدارة'
+      : 'Download an officially certified paper copy with the management stamp.';
   String get downloaded =>
       arabic ? 'تم تحميل الوصل.' : 'The receipt was downloaded.';
   String get downloadError => arabic

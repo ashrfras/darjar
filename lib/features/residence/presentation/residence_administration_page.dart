@@ -1,3 +1,4 @@
+import 'package:darjar/features/reports/presentation/financial_report_copy.dart';
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
@@ -29,6 +30,9 @@ class _ResidenceAdministrationPageState
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final reportCopy = FinancialReportCopy(
+      Localizations.localeOf(context).languageCode == 'ar',
+    );
     final activeResidence = ref
         .watch(residenceContextProvider)
         .value
@@ -95,6 +99,14 @@ class _ResidenceAdministrationPageState
                       title: localizations.financeManagement,
                       description: localizations.manageFinanceDescription,
                       route: AppRoutes.manageFinances,
+                    ),
+                    const Divider(),
+                    _ManagementLink(
+                      key: const Key('manage-reports-link'),
+                      icon: Icons.assessment_outlined,
+                      title: reportCopy.reports,
+                      description: reportCopy.reportsDescription,
+                      route: AppRoutes.reports,
                     ),
                     const Divider(),
                     _ManagementLink(

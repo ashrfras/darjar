@@ -1,3 +1,4 @@
+import 'package:darjar/features/reports/presentation/financial_report_page.dart';
 import 'package:darjar/features/account/presentation/account_resolution_page.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/auth/presentation/phone_auth_page.dart';
@@ -58,6 +59,8 @@ abstract final class AppRoutes {
   static const administration = '/administration';
   static const manageApartments = '/residence/admin/apartments';
   static const manageDues = '/residence/admin/dues';
+  static const reports = '/residence/admin/reports';
+  static const financialReport = '/residence/admin/reports/financial';
   static const manageFinances = '/residence/admin/finances';
   static const manageDocuments = '/residence/admin/documents';
   static const groupInvitation = '/residence/admin/apartments/invitation';
@@ -307,6 +310,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.manageDues,
             builder: (context, state) => const DuesManagementPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.reports,
+            builder: (context, state) => const ResidenceReportsPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.financialReport,
+            builder: (context, state) =>
+                const ResidenceReportsPage(financial: true),
           ),
           GoRoute(
             path: AppRoutes.manageFinances,
