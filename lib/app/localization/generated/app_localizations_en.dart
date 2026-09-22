@@ -2297,4 +2297,43 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get accountResolutionUnexpectedError =>
       'Invitations could not be loaded or confirmed right now. Try again.';
+
+  @override
+  String get duesStatusExempt => 'Exempt';
+
+  @override
+  String get duesExemptAction => 'Exempt';
+
+  @override
+  String get duesExemptTitle => 'Exempt apartment dues';
+
+  @override
+  String get duesExemptWarning =>
+      'Warning: Exemption starts with the oldest unpaid month and removes exempt months from expected dues, arrears, and collection statistics. Partially paid months are excluded. No income is recorded.';
+
+  @override
+  String get duesExemptAll => 'Exempt all unpaid months';
+
+  @override
+  String get duesExemptSome => 'Choose a number of months';
+
+  @override
+  String get duesExemptCount => 'Number of months';
+
+  @override
+  String get duesExemptInvalidCount =>
+      'Enter a whole number between 1 and the number of unpaid months.';
+
+  @override
+  String get duesExemptConfirm => 'Confirm exemption';
+
+  @override
+  String get duesExemptSaved => 'Months exempted and statistics updated.';
+
+  @override
+  String get duesExemptError =>
+      'Could not exempt dues. Refresh the data and try again.';
+
+  @override
+  String get duesNoOutstandingPeriods => 'No outstanding months';
 }

@@ -4148,6 +4148,78 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تعذر تحميل الدعوات أو تأكيدها الآن. حاول مجدداً.'**
   String get accountResolutionUnexpectedError;
+
+  /// No description provided for @duesStatusExempt.
+  ///
+  /// In ar, this message translates to:
+  /// **'معفى'**
+  String get duesStatusExempt;
+
+  /// No description provided for @duesExemptAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعفاء'**
+  String get duesExemptAction;
+
+  /// No description provided for @duesExemptTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعفاء اشتراكات الشقة'**
+  String get duesExemptTitle;
+
+  /// No description provided for @duesExemptWarning.
+  ///
+  /// In ar, this message translates to:
+  /// **'تنبيه: سيتم إعفاء الشقة بدءًا من أقدم شهر غير مؤدى، وإزالة الأشهر المعفاة من المبالغ المطلوبة والمتأخرة وإحصائيات التحصيل. لا يشمل الإعفاء الأشهر المؤداة جزئيًا، ولا يسجل أي مبلغ كمداخيل.'**
+  String get duesExemptWarning;
+
+  /// No description provided for @duesExemptAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعفاء جميع الأشهر غير المؤداة'**
+  String get duesExemptAll;
+
+  /// No description provided for @duesExemptSome.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحديد عدد الأشهر'**
+  String get duesExemptSome;
+
+  /// No description provided for @duesExemptCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'عدد الأشهر'**
+  String get duesExemptCount;
+
+  /// No description provided for @duesExemptInvalidCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل عددًا صحيحًا بين 1 وعدد الأشهر غير المؤداة.'**
+  String get duesExemptInvalidCount;
+
+  /// No description provided for @duesExemptConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد الإعفاء'**
+  String get duesExemptConfirm;
+
+  /// No description provided for @duesExemptSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إعفاء الأشهر وتحديث الإحصائيات.'**
+  String get duesExemptSaved;
+
+  /// No description provided for @duesExemptError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر إتمام الإعفاء. حدّث البيانات وحاول مجددًا.'**
+  String get duesExemptError;
+
+  /// No description provided for @duesNoOutstandingPeriods.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد أشهر مستحقة'**
+  String get duesNoOutstandingPeriods;
 }
 
 class _AppLocalizationsDelegate

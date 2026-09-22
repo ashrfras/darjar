@@ -713,5 +713,17 @@
   "accountResolutionFailedPrecondition": "فهرس قاعدة البيانات المطلوب غير جاهز بعد. انتظر اكتمال بنائه ثم حاول مجدداً.",
   "accountResolutionMissingProfile": "أدخل الاسم والنسب للمتابعة.",
   "accountResolutionSignedOut": "انتهت جلسة تسجيل الدخول. سجّل الدخول مجدداً.",
-  "accountResolutionUnexpectedError": "تعذر تحميل الدعوات أو تأكيدها الآن. حاول مجدداً."
+  "accountResolutionUnexpectedError": "تعذر تحميل الدعوات أو تأكيدها الآن. حاول مجدداً.",
+  "duesStatusExempt": "معفى",
+  "duesExemptAction": "إعفاء",
+  "duesExemptTitle": "إعفاء اشتراكات الشقة",
+  "duesExemptWarning": "تنبيه: سيتم إعفاء الشقة بدءًا من أقدم شهر غير مؤدى، وإزالة الأشهر المعفاة من المبالغ المطلوبة والمتأخرة وإحصائيات التحصيل. لا يشمل الإعفاء الأشهر المؤداة جزئيًا، ولا يسجل أي مبلغ كمداخيل.",
+  "duesExemptAll": "إعفاء جميع الأشهر غير المؤداة",
+  "duesExemptSome": "تحديد عدد الأشهر",
+  "duesExemptCount": "عدد الأشهر",
+  "duesExemptInvalidCount": "أدخل عددًا صحيحًا بين 1 وعدد الأشهر غير المؤداة.",
+  "duesExemptConfirm": "تأكيد الإعفاء",
+  "duesExemptSaved": "تم إعفاء الأشهر وتحديث الإحصائيات.",
+  "duesExemptError": "تعذر إتمام الإعفاء. حدّث البيانات وحاول مجددًا.",
+  "duesNoOutstandingPeriods": "لا توجد أشهر مستحقة"
 }

@@ -5,6 +5,7 @@ import 'package:darjar/features/account/data/account_onboarding_repository.dart'
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/receipts/domain/payment_receipt.dart';
+import 'package:darjar/features/reports/data/financial_report_data.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
@@ -12,7 +13,7 @@ import 'package:darjar/features/residence/data/residence_settings_repository.dar
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
-enum ResidenceDueStatus { unpaid, partial, paid }
+enum ResidenceDueStatus { unpaid, partial, paid, exempt }
 
 class ResidenceDue {
   const ResidenceDue({
@@ -33,7 +34,21 @@ class ResidenceDue {
   final int amountPaid;
   final ResidenceDueStatus status;
 
-  int get remainingAmount => amountDue - amountPaid;
+  bool get isExempt => status == ResidenceDueStatus.exempt;
+  bool get canExempt =>
+      status == ResidenceDueStatus.unpaid && amountPaid == 0 && amountDue > 0;
+  int get collectibleAmount => isExempt ? 0 : amountDue;
+  int get remainingAmount => isExempt ? 0 : amountDue - amountPaid;
+
+  ResidenceDue copyWithExemption() => ResidenceDue(
+    id: id,
+    apartmentId: apartmentId,
+    apartmentNumber: apartmentNumber,
+    periodKey: periodKey,
+    amountDue: amountDue,
+    amountPaid: amountPaid,
+    status: ResidenceDueStatus.exempt,
+  );
 
   ResidenceDue copyWithPayment(int paymentAmount) {
     final paid = amountPaid + paymentAmount;
@@ -49,6 +64,24 @@ class ResidenceDue {
           : ResidenceDueStatus.partial,
     );
   }
+}
+
+/// A null count means all currently unpaid months, never future months.
+List<ResidenceDue> selectDuesForExemption(
+  Iterable<ResidenceDue> dues, {
+  required String apartmentId,
+  int? monthCount,
+}) {
+  final eligible =
+      dues
+          .where((due) => due.apartmentId == apartmentId && due.canExempt)
+          .toList()
+        ..sort((a, b) => a.periodKey.compareTo(b.periodKey));
+  final count = monthCount ?? eligible.length;
+  if (count <= 0 || count > eligible.length) {
+    throw const ResidenceDuesFailure('invalid-exemption-count');
+  }
+  return eligible.take(count).toList(growable: false);
 }
 
 class ResidenceDuePayment {
@@ -176,7 +209,7 @@ class ResidenceDuesOverview {
   int expectedForPeriod(String periodKey) {
     return duesForPeriod(
       periodKey,
-    ).fold(0, (total, due) => total + due.amountDue);
+    ).fold(0, (total, due) => total + due.collectibleAmount);
   }
 
   int collectedForPeriod(String periodKey) {
@@ -253,6 +286,12 @@ abstract interface class ResidenceDuesRepository {
     required String recordedBy,
     String supportingDocument = '',
     ResidenceDocumentUpload? attachmentUpload,
+  });
+
+  Future<void> exemptApartmentDues({
+    required String residenceId,
+    required String apartmentId,
+    int? monthCount,
   });
 
   Future<void> publishMissingReceipts({
@@ -353,6 +392,48 @@ class FirestoreResidenceDuesRepository implements ResidenceDuesRepository {
         }
       }
       await _createMissingDues(dues, seeds, defaultAmount);
+    } on FirebaseException catch (error) {
+      throw ResidenceDuesFailure(error.code, error.message);
+    }
+  }
+
+  @override
+  Future<void> exemptApartmentDues({
+    required String residenceId,
+    required String apartmentId,
+    int? monthCount,
+  }) async {
+    try {
+      final collection = _firestore
+          .collection('residences')
+          .doc(residenceId)
+          .collection('dues');
+      final documents = await collection
+          .where('apartmentId', isEqualTo: apartmentId)
+          .get();
+      final selected = selectDuesForExemption(
+        documents.docs.map(_dueFromDocument),
+        apartmentId: apartmentId,
+        monthCount: monthCount,
+      );
+      // Keep the exemption atomic: never leave an apartment partially updated.
+      if (selected.length > 450) {
+        throw const ResidenceDuesFailure('too-many-exemptions');
+      }
+      await _firestore.runTransaction((transaction) async {
+        for (final due in selected) {
+          final current = await transaction.get(collection.doc(due.id));
+          if (!current.exists || !_dueFromDocument(current).canExempt) {
+            throw const ResidenceDuesFailure('dues-changed');
+          }
+        }
+        for (final due in selected) {
+          transaction.update(collection.doc(due.id), {
+            'status': ResidenceDueStatus.exempt.name,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+      });
     } on FirebaseException catch (error) {
       throw ResidenceDuesFailure(error.code, error.message);
     }
@@ -995,6 +1076,27 @@ class ResidenceDuesManagementController
     ref.invalidate(residenceTransactionAttachmentsProvider);
     ref.invalidateSelf();
     return receipt;
+  }
+
+  Future<void> exemptApartment({
+    required String apartmentId,
+    int? monthCount,
+  }) async {
+    final residenceId = _residenceId;
+    if (residenceId == null) {
+      throw const ResidenceDuesFailure('missing-context');
+    }
+    await ref
+        .read(residenceDuesRepositoryProvider)
+        .exemptApartmentDues(
+          residenceId: residenceId,
+          apartmentId: apartmentId,
+          monthCount: monthCount,
+        );
+    ref.invalidate(residentDuesProvider);
+    ref.invalidate(residenceFinancesProvider);
+    ref.invalidate(financialReportDataProvider);
+    ref.invalidateSelf();
   }
 
   Future<void> deletePayment(String paymentGroupId) async {

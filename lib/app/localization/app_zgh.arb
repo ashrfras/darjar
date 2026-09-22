@@ -983,5 +983,17 @@
   "accountResolutionFailedPrecondition": "ⵉⵏⴷⴻⵅ ⵏ ⵜⴱⴰⴹⵏⵉⵜ ⵢⴻⵜⵜⵡⴰⵃⴻⵜⵜⵎⴻⵏ ⵓⵔ ⵢⴻⵜⵜⵡⴰⵀⴻⴳⴳⴰ ⴰⵔⴰ. ⵔⴰⴵⵓ ⴰⴷ ⵢⴻⴽⴼⵓ ⵍⴻⴱⵏⵉ, ⵙⵢⴻⵏ ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
   "accountResolutionMissingProfile": "ⵙⵙⴻⴽⵛⴻⵎ ⵉⵙⴻⵎⵉⴽ ⴰⵎⴻⵣⵡⴰⵔⵓ ⴷ ⵡⵉⵏ ⵏ ⵜⵡⴰⵛⵓⵍⵜⵉⴽ ⵉⵡⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴽⴻⵎⵍⴻⴹ.",
   "accountResolutionSignedOut": "ⵜⴻⴽⴼⴰ ⵜⵖⵉⵎⵉⵜⵉⴽ ⵏ ⵓⵙⴻⴽⵍⴻⵙ. ⴽⴻⵛⵎ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
-  "accountResolutionUnexpectedError": "ⵓⵔ ⵣⵎⵉⵔⴻⵏ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⵛⴰⵔⴳⴻⵏ ⵏⴻⵖ ⴰⴷ ⵜⵜⵡⴰⵇⴻⴱⵍⴻⵏ ⵢⵉⵄⴻⵡⵡⵉⵇⴻⵏ ⵜⵓⵔⴰ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ."
+  "accountResolutionUnexpectedError": "ⵓⵔ ⵣⵎⵉⵔⴻⵏ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⵛⴰⵔⴳⴻⵏ ⵏⴻⵖ ⴰⴷ ⵜⵜⵡⴰⵇⴻⴱⵍⴻⵏ ⵢⵉⵄⴻⵡⵡⵉⵇⴻⵏ ⵜⵓⵔⴰ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
+  "duesStatusExempt": "معفى",
+  "duesExemptAction": "إعفاء",
+  "duesExemptTitle": "إعفاء اشتراكات الشقة",
+  "duesExemptWarning": "تنبيه: سيتم إعفاء الشقة بدءًا من أقدم شهر غير مؤدى، وإزالة الأشهر المعفاة من المبالغ المطلوبة والمتأخرة وإحصائيات التحصيل. لا يشمل الإعفاء الأشهر المؤداة جزئيًا، ولا يسجل أي مبلغ كمداخيل.",
+  "duesExemptAll": "إعفاء جميع الأشهر غير المؤداة",
+  "duesExemptSome": "تحديد عدد الأشهر",
+  "duesExemptCount": "عدد الأشهر",
+  "duesExemptInvalidCount": "أدخل عددًا صحيحًا بين 1 وعدد الأشهر غير المؤداة.",
+  "duesExemptConfirm": "تأكيد الإعفاء",
+  "duesExemptSaved": "تم إعفاء الأشهر وتحديث الإحصائيات.",
+  "duesExemptError": "تعذر إتمام الإعفاء. حدّث البيانات وحاول مجددًا.",
+  "duesNoOutstandingPeriods": "لا توجد أشهر مستحقة"
 }

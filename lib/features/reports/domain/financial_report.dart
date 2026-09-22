@@ -56,7 +56,7 @@ class FinancialReport {
     final firstMonth = residenceDuesPeriodKey(this.from);
     final lastMonth = residenceDuesPeriodKey(this.to);
     for (final due in dues.dues) {
-      if (due.periodKey.compareTo(lastMonth) > 0) continue;
+      if (due.isExempt || due.periodKey.compareTo(lastMonth) > 0) continue;
       final dueCents = due.amountDue * 100;
       final paid = (paidByDue[due.id] ?? 0).clamp(0, dueCents);
       arrearsCents += dueCents - paid;

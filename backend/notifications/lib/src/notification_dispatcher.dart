@@ -214,6 +214,7 @@ class NotificationDispatcher {
         if (periodKey.isEmpty ||
             periodKey.compareTo(currentPeriod) >= 0 ||
             status == 'paid' ||
+            status == 'exempt' ||
             amountPaid >= amountDue) {
           continue;
         }

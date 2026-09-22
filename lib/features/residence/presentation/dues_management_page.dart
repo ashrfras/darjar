@@ -279,7 +279,9 @@ class _ApartmentDuesCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xSmall),
                     Text(
                       group.outstandingPeriods == 0
-                          ? localizations.duesAllPeriodsPaid
+                          ? group.dues.any((due) => due.isExempt)
+                                ? localizations.duesNoOutstandingPeriods
+                                : localizations.duesAllPeriodsPaid
                           : localizations.duesOutstandingPeriods(
                               group.outstandingPeriods,
                             ),
@@ -362,14 +364,24 @@ Future<void> _showPeriodDetailsSheet(
   );
 }
 
-class _PeriodDetailsSheet extends StatelessWidget {
+class _PeriodDetailsSheet extends ConsumerWidget {
   const _PeriodDetailsSheet({required this.group, required this.residenceName});
 
   final _ApartmentDuesGroup group;
   final String residenceName;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final overview = ref.watch(residenceDuesManagementProvider).value;
+    final group = overview == null
+        ? this.group
+        : _ApartmentDuesGroup(
+            apartmentId: this.group.apartmentId,
+            apartmentNumber: this.group.apartmentNumber,
+            dues: overview.dues
+                .where((due) => due.apartmentId == this.group.apartmentId)
+                .toList(),
+          );
     final localizations = AppLocalizations.of(context);
     return Directionality(
       textDirection: ui.TextDirection.rtl,
@@ -453,16 +465,38 @@ class _PeriodDetailsSheet extends StatelessWidget {
                       AppSpacing.xLarge,
                       AppSpacing.xLarge,
                     ),
-                    child: DarJarButton(
-                      key: ValueKey('share-dues-reminder-${group.apartmentId}'),
-                      label: localizations.duesShareReminderAction,
-                      icon: Icons.ios_share_rounded,
-                      expanded: true,
-                      onPressed: () => _showDuesReminderDialog(
-                        context,
-                        group,
-                        residenceName: residenceName,
-                      ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: DarJarButton(
+                            key: ValueKey(
+                              'share-dues-reminder-${group.apartmentId}',
+                            ),
+                            label: localizations.duesShareReminderAction,
+                            icon: Icons.ios_share_rounded,
+                            expanded: true,
+                            onPressed: () => _showDuesReminderDialog(
+                              context,
+                              group,
+                              residenceName: residenceName,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.small),
+                        DarJarButton(
+                          key: ValueKey('exempt-dues-${group.apartmentId}'),
+                          label: localizations.duesExemptAction,
+                          variant: DarJarButtonVariant.secondary,
+                          onPressed: group.dues.any((due) => due.canExempt)
+                              ? () => showDialog<void>(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) =>
+                                      _ExemptDuesDialog(group: group),
+                                )
+                              : null,
+                        ),
+                      ],
                     ),
                   ),
               ],
@@ -471,6 +505,145 @@ class _PeriodDetailsSheet extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _ExemptDuesDialog extends ConsumerStatefulWidget {
+  const _ExemptDuesDialog({required this.group});
+  final _ApartmentDuesGroup group;
+
+  @override
+  ConsumerState<_ExemptDuesDialog> createState() => _ExemptDuesDialogState();
+}
+
+class _ExemptDuesDialogState extends ConsumerState<_ExemptDuesDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _count = TextEditingController();
+  bool _all = true;
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _count.dispose();
+    super.dispose();
+  }
+
+  int? get _monthCount => int.tryParse(
+    _count.text.trim().replaceAllMapped(RegExp('[٠-٩۰-۹]'), (match) {
+      final code = match[0]!.codeUnitAt(0);
+      return '${code - (code >= 0x6f0 ? 0x6f0 : 0x660)}';
+    }),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return PopScope(
+      canPop: !_saving,
+      child: AlertDialog(
+        title: Text(l.duesExemptTitle),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l.duesApartment(widget.group.apartmentNumber)),
+                const SizedBox(height: AppSpacing.medium),
+                Text(l.duesExemptWarning),
+                const SizedBox(height: AppSpacing.medium),
+                DropdownButtonFormField<bool>(
+                  initialValue: _all,
+                  isExpanded: true,
+                  items: [
+                    DropdownMenuItem(value: true, child: Text(l.duesExemptAll)),
+                    DropdownMenuItem(
+                      value: false,
+                      child: Text(l.duesExemptSome),
+                    ),
+                  ],
+                  onChanged: _saving
+                      ? null
+                      : (value) => setState(() => _all = value!),
+                ),
+                if (!_all)
+                  TextFormField(
+                    key: const Key('exemption-month-count'),
+                    controller: _count,
+                    enabled: !_saving,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: l.duesExemptCount),
+                    validator: (_) {
+                      final count = _monthCount;
+                      final available = widget.group.dues
+                          .where((due) => due.canExempt)
+                          .length;
+                      return count == null || count < 1 || count > available
+                          ? l.duesExemptInvalidCount
+                          : null;
+                    },
+                  ),
+                if (_error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.medium),
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(color: AppColors.danger),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: _saving ? null : () => Navigator.pop(context),
+            child: Text(l.cancel),
+          ),
+          FilledButton(
+            key: const Key('confirm-dues-exemption'),
+            onPressed: _saving ? null : _save,
+            child: _saving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(l.duesExemptConfirm),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await ref
+          .read(residenceDuesManagementProvider.notifier)
+          .exemptApartment(
+            apartmentId: widget.group.apartmentId,
+            monthCount: _all ? null : _monthCount,
+          );
+      if (!mounted) return;
+      final message = AppLocalizations.of(context).duesExemptSaved;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _error = AppLocalizations.of(context).duesExemptError;
+      });
+    }
   }
 }
 
@@ -1075,6 +1248,10 @@ class _ManagementStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final (label, tone) = switch (status) {
+      ResidenceDueStatus.exempt => (
+        localizations.duesStatusExempt,
+        DarJarBadgeTone.info,
+      ),
       ResidenceDueStatus.unpaid => (
         localizations.duesStatusUnpaid,
         DarJarBadgeTone.warning,

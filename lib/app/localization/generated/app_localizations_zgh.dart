@@ -2291,4 +2291,43 @@ class AppLocalizationsZgh extends AppLocalizations {
   @override
   String get accountResolutionUnexpectedError =>
       'ⵓⵔ ⵣⵎⵉⵔⴻⵏ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⵛⴰⵔⴳⴻⵏ ⵏⴻⵖ ⴰⴷ ⵜⵜⵡⴰⵇⴻⴱⵍⴻⵏ ⵢⵉⵄⴻⵡⵡⵉⵇⴻⵏ ⵜⵓⵔⴰ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.';
+
+  @override
+  String get duesStatusExempt => 'معفى';
+
+  @override
+  String get duesExemptAction => 'إعفاء';
+
+  @override
+  String get duesExemptTitle => 'إعفاء اشتراكات الشقة';
+
+  @override
+  String get duesExemptWarning =>
+      'تنبيه: سيتم إعفاء الشقة بدءًا من أقدم شهر غير مؤدى، وإزالة الأشهر المعفاة من المبالغ المطلوبة والمتأخرة وإحصائيات التحصيل. لا يشمل الإعفاء الأشهر المؤداة جزئيًا، ولا يسجل أي مبلغ كمداخيل.';
+
+  @override
+  String get duesExemptAll => 'إعفاء جميع الأشهر غير المؤداة';
+
+  @override
+  String get duesExemptSome => 'تحديد عدد الأشهر';
+
+  @override
+  String get duesExemptCount => 'عدد الأشهر';
+
+  @override
+  String get duesExemptInvalidCount =>
+      'أدخل عددًا صحيحًا بين 1 وعدد الأشهر غير المؤداة.';
+
+  @override
+  String get duesExemptConfirm => 'تأكيد الإعفاء';
+
+  @override
+  String get duesExemptSaved => 'تم إعفاء الأشهر وتحديث الإحصائيات.';
+
+  @override
+  String get duesExemptError =>
+      'تعذر إتمام الإعفاء. حدّث البيانات وحاول مجددًا.';
+
+  @override
+  String get duesNoOutstandingPeriods => 'لا توجد أشهر مستحقة';
 }

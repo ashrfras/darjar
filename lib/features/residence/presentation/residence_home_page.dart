@@ -364,6 +364,7 @@ class _AccountCard extends StatelessWidget {
     );
     final paymentGroup = overview?.paymentGroups.firstOrNull;
     final status = switch (due?.status) {
+      ResidenceDueStatus.exempt => localizations.duesStatusExempt,
       ResidenceDueStatus.unpaid => localizations.duesStatusUnpaid,
       ResidenceDueStatus.partial => localizations.duesStatusPartial,
       ResidenceDueStatus.paid => localizations.duesStatusPaid,
@@ -389,11 +390,13 @@ class _AccountCard extends StatelessWidget {
                   : '${localizations.duesRemaining}: '
                         '$remainingThroughCurrentPeriod '
                         '${localizations.currency}',
-              status: due?.status == ResidenceDueStatus.paid,
+              status:
+                  due?.status == ResidenceDueStatus.paid ||
+                  due?.isExempt == true,
             ),
             _FinancialMetric(
               label: 'المبلغ الشهري',
-              value: due == null ? '—' : '${due.amountDue}',
+              value: due == null ? '—' : '${due.collectibleAmount}',
               suffix: localizations.currency,
               detail: due == null
                   ? localizations.duesNoRecords

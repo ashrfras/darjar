@@ -231,7 +231,7 @@ class _ResidentDueCard extends StatelessWidget {
               Expanded(
                 child: _AmountLabel(
                   label: localizations.duesAmountDue,
-                  amount: due.amountDue,
+                  amount: due.collectibleAmount,
                 ),
               ),
               Expanded(
@@ -497,6 +497,10 @@ class _DueStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final (label, tone) = switch (status) {
+      ResidenceDueStatus.exempt => (
+        localizations.duesStatusExempt,
+        DarJarBadgeTone.info,
+      ),
       ResidenceDueStatus.unpaid => (
         localizations.duesStatusUnpaid,
         DarJarBadgeTone.warning,

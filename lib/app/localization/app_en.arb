@@ -713,5 +713,17 @@
   "accountResolutionFailedPrecondition": "The required database index is not ready yet. Wait for it to finish building, then try again.",
   "accountResolutionMissingProfile": "Enter your first and last name to continue.",
   "accountResolutionSignedOut": "Your sign-in session ended. Sign in again.",
-  "accountResolutionUnexpectedError": "Invitations could not be loaded or confirmed right now. Try again."
+  "accountResolutionUnexpectedError": "Invitations could not be loaded or confirmed right now. Try again.",
+  "duesStatusExempt": "Exempt",
+  "duesExemptAction": "Exempt",
+  "duesExemptTitle": "Exempt apartment dues",
+  "duesExemptWarning": "Warning: Exemption starts with the oldest unpaid month and removes exempt months from expected dues, arrears, and collection statistics. Partially paid months are excluded. No income is recorded.",
+  "duesExemptAll": "Exempt all unpaid months",
+  "duesExemptSome": "Choose a number of months",
+  "duesExemptCount": "Number of months",
+  "duesExemptInvalidCount": "Enter a whole number between 1 and the number of unpaid months.",
+  "duesExemptConfirm": "Confirm exemption",
+  "duesExemptSaved": "Months exempted and statistics updated.",
+  "duesExemptError": "Could not exempt dues. Refresh the data and try again.",
+  "duesNoOutstandingPeriods": "No outstanding months"
 }

@@ -942,11 +942,19 @@ service cloud.firestore {
             'status',
             'updatedAt'
           ])
+          && resource.data.status != 'exempt'
           && request.resource.data.amountPaid is int
           && request.resource.data.amountPaid >= 0
           && request.resource.data.amountPaid <= resource.data.amountDue
           && (
             (
+              resource.data.status == 'unpaid'
+              && resource.data.amountPaid == 0
+              && resource.data.amountDue > 0
+              && request.resource.data.amountPaid == 0
+              && request.resource.data.status == 'exempt'
+            )
+            || (
               request.resource.data.amountPaid == 0
               && request.resource.data.status == 'unpaid'
             )

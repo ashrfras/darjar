@@ -301,6 +301,13 @@ void main() {
           }),
         ])
         ..collection('residences/home/dues', [
+          _document('2026-05_apartment-a', {
+            'periodKey': '2026-05',
+            'apartmentId': 'apartment-a',
+            'status': 'exempt',
+            'amountDue': 150,
+            'amountPaid': 0,
+          }),
           _document('2026-06_apartment-a', {
             'apartmentId': 'apartment-a',
             'periodKey': '2026-06',

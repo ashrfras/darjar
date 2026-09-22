@@ -1,3 +1,4 @@
+import 'package:darjar/features/residence/presentation/dues_management_page.dart';
 import 'dart:async';
 
 import 'package:darjar/app/app.dart';
@@ -4601,6 +4602,127 @@ void main() {
     );
   }
 
+  for (final allMonths in [false, true]) {
+    testWidgets(
+      'management exempts oldest dues and refreshes totals (all: $allMonths)',
+      (tester) async {
+        final repository = _FakeResidenceDuesRepository();
+        final now = DateTime.now();
+        final periods = [
+          for (var offset = 0; offset < 3; offset++)
+            residenceDuesPeriodKey(DateTime(now.year, now.month - offset)),
+        ];
+        repository.overview = ResidenceDuesOverview(
+          dues: [
+            for (final period in periods)
+              ResidenceDue(
+                id: '${period}_apartment-01',
+                apartmentId: 'apartment-01',
+                apartmentNumber: '01',
+                periodKey: period,
+                amountDue: 150,
+                amountPaid: 0,
+                status: ResidenceDueStatus.unpaid,
+              ),
+            ...repository.overview.dues.where(
+              (due) => due.apartmentId != 'apartment-01',
+            ),
+          ],
+          payments: repository.overview.payments,
+        );
+        await _pumpApp(
+          tester,
+          size: const Size(390, 844),
+          residenceDuesRepository: repository,
+        );
+        await _enterResidence(tester);
+        await _openAdministration(tester);
+        await tester.ensureVisible(find.byKey(const Key('manage-dues-link')));
+        await tester.tap(find.byKey(const Key('manage-dues-link')));
+        await tester.pumpAndSettle();
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DuesManagementPage)),
+        );
+        final before = await container.read(
+          residenceDuesManagementProvider.future,
+        );
+        final remainingBefore = before.dues.fold<int>(
+          0,
+          (total, due) => total + due.remainingAmount,
+        );
+        await tester.tap(
+          find.byKey(const ValueKey('open-periods-apartment-01')),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const ValueKey('exempt-dues-apartment-01')),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('إعفاء اشتراكات الشقة'), findsOneWidget);
+        if (!allMonths) {
+          await tester.tap(find.byType(DropdownButtonFormField<bool>));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('تحديد عدد الأشهر').last);
+          await tester.pumpAndSettle();
+          await tester.enterText(
+            find.byKey(const Key('exemption-month-count')),
+            '4',
+          );
+          await tester.tap(find.byKey(const Key('confirm-dues-exemption')));
+          await tester.pumpAndSettle();
+          expect(
+            find.text('أدخل عددًا صحيحًا بين 1 وعدد الأشهر غير المؤداة.'),
+            findsOneWidget,
+          );
+          expect(repository.overview.dues.any((due) => due.isExempt), isFalse);
+          await tester.enterText(
+            find.byKey(const Key('exemption-month-count')),
+            '٢',
+          );
+        }
+        await tester.tap(find.byKey(const Key('confirm-dues-exemption')));
+        await tester.pumpAndSettle();
+        final exemptCount = allMonths ? 3 : 2;
+        expect(find.text('معفى'), findsNWidgets(exemptCount));
+        expect(
+          repository.overview.dues
+              .singleWhere((due) => due.id == '${periods.last}_apartment-01')
+              .isExempt,
+          isTrue,
+        );
+        expect(
+          repository.overview.dues
+              .singleWhere((due) => due.id == '${periods.first}_apartment-01')
+              .isExempt,
+          allMonths,
+        );
+        expect(repository.overview.payments, hasLength(1));
+        final after = await container.read(
+          residenceDuesManagementProvider.future,
+        );
+        expect(
+          after.dues.fold<int>(0, (total, due) => total + due.remainingAmount),
+          remainingBefore - exemptCount * 150,
+        );
+        await tester.tap(
+          find.descendant(
+            of: find.byKey(const Key('period-details-sheet')),
+            matching: find.byIcon(Icons.close_rounded),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('management-dues-remaining')),
+            matching: find.text('${remainingBefore - exemptCount * 150} د'),
+          ),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
   testWidgets('management allocates arrears first and prepays future months', (
     tester,
   ) async {
@@ -7662,6 +7784,27 @@ class _FakeResidenceDuesRepository implements ResidenceDuesRepository {
           recordedBy: 'test-user',
         ),
       ],
+    );
+  }
+
+  @override
+  Future<void> exemptApartmentDues({
+    required String residenceId,
+    required String apartmentId,
+    int? monthCount,
+  }) async {
+    final selected = selectDuesForExemption(
+      overview.dues,
+      apartmentId: apartmentId,
+      monthCount: monthCount,
+    ).map((due) => due.id).toSet();
+    overview = ResidenceDuesOverview(
+      dues: overview.dues
+          .map(
+            (due) => selected.contains(due.id) ? due.copyWithExemption() : due,
+          )
+          .toList(),
+      payments: overview.payments,
     );
   }
 

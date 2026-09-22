@@ -318,8 +318,15 @@ class FirestoreResidenceFinanceRepository
           results[0] as QuerySnapshot<Map<String, dynamic>>;
       final manualDocuments = results[1] as QuerySnapshot<Map<String, dynamic>>;
       final currentDues = results[2] as QuerySnapshot<Map<String, dynamic>>;
+      final exemptApartmentIds = currentDues.docs
+          .where((document) => document.data()['status'] == 'exempt')
+          .map((document) => document.data()['apartmentId'] as String)
+          .toSet();
+      final collectibleApartmentIds = activeTrackedApartmentIds.difference(
+        exemptApartmentIds,
+      );
       final paidTrackedApartments = countPaidActiveApartments(
-        activeTrackedApartmentIds: activeTrackedApartmentIds,
+        activeTrackedApartmentIds: collectibleApartmentIds,
         paidApartmentIds: currentDues.docs
             .where((document) {
               return document.data()['status'] == 'paid';
@@ -343,7 +350,7 @@ class FirestoreResidenceFinanceRepository
       return ResidenceFinances.fromTransactions(
         transactions: transactions,
         paidResidents: paidTrackedApartments,
-        totalResidents: activeTrackedApartmentIds.length,
+        totalResidents: collectibleApartmentIds.length,
       );
     } on FirebaseException catch (error) {
       throw ResidenceFinanceFailure(error.code, error.message);
