@@ -7,6 +7,8 @@ import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/reports/data/financial_report_data.dart';
 import 'package:darjar/features/reports/domain/financial_report.dart';
+import 'package:darjar/features/reports/domain/account_statement.dart';
+import 'package:darjar/features/reports/presentation/account_statement_document.dart';
 import 'package:darjar/features/reports/presentation/financial_report_copy.dart';
 import 'package:darjar/features/reports/presentation/financial_report_document.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
@@ -19,8 +21,13 @@ import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
 class ResidenceReportsPage extends ConsumerWidget {
-  const ResidenceReportsPage({super.key, this.financial = false});
+  const ResidenceReportsPage({
+    super.key,
+    this.financial = false,
+    this.statement = false,
+  });
   final bool financial;
+  final bool statement;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final residence = ref
@@ -29,6 +36,7 @@ class ResidenceReportsPage extends ConsumerWidget {
         ?.activeResidence;
     final copy = FinancialReportCopy(
       Localizations.localeOf(context).languageCode == 'ar',
+      statement: statement,
     );
     if (residence?.canManageResidence != true) {
       return Center(
@@ -40,9 +48,9 @@ class ResidenceReportsPage extends ConsumerWidget {
         ),
       );
     }
-    if (financial) {
+    if (financial || statement) {
       return _FinancialReportForm(
-        key: ValueKey('${residence!.id}-${copy.locale}'),
+        key: ValueKey('${residence!.id}-${copy.locale}-$statement'),
         copy: copy,
       );
     }
@@ -83,6 +91,26 @@ class ResidenceReportsPage extends ConsumerWidget {
                   onTap: () => context.push(AppRoutes.financialReport),
                 ),
               ),
+              const SizedBox(height: 12),
+              DarJarCard(
+                padding: EdgeInsets.zero,
+                child: ListTile(
+                  key: const Key('account-statement-link'),
+                  leading: const Icon(
+                    Icons.receipt_long_outlined,
+                    color: AppColors.primary,
+                  ),
+                  title: Text(copy.t('كشف الحساب', 'Account statement')),
+                  subtitle: Text(
+                    FinancialReportCopy(
+                      copy.arabic,
+                      statement: true,
+                    ).description,
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push(AppRoutes.accountStatement),
+                ),
+              ),
             ],
           ),
         ),
@@ -117,10 +145,11 @@ class _FinancialReportFormState extends ConsumerState<_FinancialReportForm> {
   @override
   Widget build(BuildContext context) {
     final copy = widget.copy;
+    final reportKey = copy.statement ? 'account-statement' : 'financial-report';
     ref.watch(financialReportDataProvider);
     final compact = MediaQuery.sizeOf(context).width < 600;
     return SingleChildScrollView(
-      key: const Key('financial-report-page'),
+      key: Key('$reportKey-page'),
       padding: EdgeInsets.fromLTRB(
         compact ? 12 : AppSpacing.xLarge,
         compact ? AppSpacing.small : AppSpacing.xLarge,
@@ -151,7 +180,7 @@ class _FinancialReportFormState extends ConsumerState<_FinancialReportForm> {
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
-                      key: const Key('financial-report-date-range'),
+                      key: Key('$reportKey-date-range'),
                       onPressed: _busy ? null : _pickRange,
                       icon: const Icon(Icons.date_range_outlined),
                       label: Padding(
@@ -163,12 +192,12 @@ class _FinancialReportFormState extends ConsumerState<_FinancialReportForm> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      copy.duesBasis,
+                      copy.statement ? copy.basis : copy.duesBasis,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 16),
                     DarJarButton(
-                      key: const Key('generate-financial-report'),
+                      key: Key('generate-$reportKey'),
                       label: _busy
                           ? copy.t('جارٍ الإعداد…', 'Preparing…')
                           : copy.generate,
@@ -192,7 +221,7 @@ class _FinancialReportFormState extends ConsumerState<_FinancialReportForm> {
               if (_pdf != null) ...[
                 const SizedBox(height: 20),
                 DarJarButton(
-                  key: const Key('download-financial-report'),
+                  key: Key('download-$reportKey'),
                   label: copy.download,
                   icon: Icons.download_outlined,
                   onPressed: _busy ? null : _save,
@@ -270,13 +299,25 @@ class _FinancialReportFormState extends ConsumerState<_FinancialReportForm> {
         transactions: data.finances.transactions,
         dues: data.dues,
       );
-      final bytes = await buildFinancialReportPdf(
-        report: report,
-        residenceName: data.residence.name,
-        residenceAddress: data.residence.address,
-        residenceCity: data.residence.city,
-        localeName: widget.copy.locale,
-      );
+      final bytes = widget.copy.statement
+          ? await buildAccountStatementPdf(
+              statement: AccountStatement(
+                from: _range.start,
+                to: _range.end,
+                transactions: data.finances.transactions,
+              ),
+              residenceName: data.residence.name,
+              residenceAddress: data.residence.address,
+              residenceCity: data.residence.city,
+              localeName: widget.copy.locale,
+            )
+          : await buildFinancialReportPdf(
+              report: report,
+              residenceName: data.residence.name,
+              residenceAddress: data.residence.address,
+              residenceCity: data.residence.city,
+              localeName: widget.copy.locale,
+            );
       if (mounted) setState(() => _pdf = bytes);
     } catch (_) {
       if (mounted) setState(() => _error = widget.copy.error);
@@ -295,7 +336,7 @@ class _FinancialReportFormState extends ConsumerState<_FinancialReportForm> {
     try {
       String stamp(DateTime value) => value.toIso8601String().substring(0, 10);
       final filename =
-          'darjar-financial-report-${stamp(_range.start)}-${stamp(_range.end)}.pdf';
+          'darjar-${widget.copy.statement ? 'account-statement' : 'financial-report'}-${stamp(_range.start)}-${stamp(_range.end)}.pdf';
       final file = XFile.fromData(
         bytes,
         mimeType: 'application/pdf',

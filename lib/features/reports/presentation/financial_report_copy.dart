@@ -1,20 +1,28 @@
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 
 class FinancialReportCopy {
-  const FinancialReportCopy(this.arabic);
+  const FinancialReportCopy(this.arabic, {this.statement = false});
+  final bool statement;
   final bool arabic;
   String get locale => arabic ? 'ar' : 'en';
   String t(String ar, String en) => arabic ? ar : en;
   String get reports => t('التقارير', 'Reports');
-  String get title => t('التقرير المالي', 'Financial report');
+  String get title => statement
+      ? t('كشف الحساب', 'Account statement')
+      : t('التقرير المالي', 'Financial report');
   String get reportsDescription => t(
     'استخراج تقارير الإقامة واستعراضها ومشاركتها.',
     'Generate, review, and share residence reports.',
   );
-  String get description => t(
-    'عرض الأرصدة والمداخيل والمصاريف وتحصيل الواجبات خلال فترة محددة.',
-    'Review balances, income, expenses, and dues collection for a selected period.',
-  );
+  String get description => statement
+      ? t(
+          'كشف تفصيلي لمداخيل ومصاريف الإقامة خلال الفترة المختارة.',
+          'Detailed residence income and expenses for the selected period.',
+        )
+      : t(
+          'عرض الأرصدة والمداخيل والمصاريف وتحصيل الواجبات خلال فترة محددة.',
+          'Review balances, income, expenses, and dues collection for a selected period.',
+        );
   String get opening => t('رصيد بداية الفترة', 'Opening balance');
   String get closing => t('رصيد نهاية الفترة', 'Closing balance');
   String get income => t('مداخيل الفترة', 'Period income');

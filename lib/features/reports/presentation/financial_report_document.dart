@@ -1,18 +1,12 @@
-import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/features/reports/domain/financial_report.dart';
 import 'package:darjar/features/reports/presentation/financial_report_copy.dart';
 import 'package:darjar/features/residence/domain/finance_amount.dart';
-import 'package:darjar/features/residence/data/residence_setup_repository.dart';
-import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
+import 'package:darjar/features/reports/presentation/residence_report_template.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-const _teal = PdfColor.fromInt(0xFF0F766E);
 const _soft = PdfColor.fromInt(0xFFE5F3F1);
-const _ink = PdfColor.fromInt(0xFF17151D);
-const _muted = PdfColor.fromInt(0xFF6D6976);
-const _outline = PdfColor.fromInt(0xFFE7E3EA);
 const _canvas = PdfColor.fromInt(0xFFF8F6F2);
 const _orange = PdfColor.fromInt(0xFFE97824);
 
@@ -25,54 +19,19 @@ Future<Uint8List> buildFinancialReportPdf({
   DateTime? generatedAt,
 }) async {
   final copy = FinancialReportCopy(localeName == 'ar');
-  final name = normalizeResidenceName(residenceName);
-  final displayName = copy.t('إقامة $name', '$name Residence');
-  final city = moroccanCityNameForLocale(residenceCity, copy.locale);
-  final address = residenceAddress.trim();
-  final addressLine = [
-    if (address.isNotEmpty) address,
-    if (city.isNotEmpty && !address.endsWith(city)) city,
-  ].join(copy.arabic ? '، ' : ', ');
-  final regular = pw.Font.ttf(
-    await rootBundle.load('assets/fonts/IBMPlexSansArabic-Regular.ttf'),
+  final template = await ResidenceReportTemplate.load(
+    copy: copy,
+    residenceName: residenceName,
+    residenceAddress: residenceAddress,
+    residenceCity: residenceCity,
+    generatedAt: generatedAt,
   );
-  final bold = pw.Font.ttf(
-    await rootBundle.load('assets/fonts/IBMPlexSansArabic-Bold.ttf'),
-  );
-  final logo = pw.MemoryImage(
-    (await rootBundle.load(
-      'assets/images/branding/3.0x/darjar-logo-header.png',
-    )).buffer.asUint8List(),
-  );
-  final doc = pw.Document(
-    title: '${copy.title} - $displayName',
-    author: 'DarJar',
-    theme: pw.ThemeData.withFont(base: regular, bold: bold),
-  );
+  final doc = template.doc;
   String amount(int cents) => formatFinanceAmount(cents / 100, 'en');
-  String date(DateTime value) => DarJarDateFormat.yMMMd(value, copy.locale);
-  pw.Widget text(
-    String value, {
-    double size = 10,
-    bool bold = false,
-    PdfColor color = _ink,
-    int? maxLines,
-  }) => pw.Text(
-    value,
-    maxLines: maxLines,
-    textDirection: RegExp(r'[\u0600-\u06ff]').hasMatch(value)
-        ? pw.TextDirection.rtl
-        : pw.TextDirection.ltr,
-    style: pw.TextStyle(
-      fontSize: size,
-      color: color,
-      fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-    ),
-  );
   pw.Widget number(
     int cents, {
     double size = 13,
-    PdfColor color = _ink,
+    PdfColor color = reportInk,
     double width = 82,
   }) {
     final value = amount(cents);
@@ -97,27 +56,28 @@ Future<Uint8List> buildFinancialReportPdf({
     );
   }
 
-  pw.Widget row(String label, int cents, {PdfColor color = _ink}) => pw.Padding(
-    padding: const pw.EdgeInsets.symmetric(vertical: 4),
-    child: pw.Row(
-      children: [
-        pw.Expanded(flex: 3, child: text(label, size: 9)),
-        pw.SizedBox(width: 8),
-        number(cents, size: 12, color: color),
-      ],
-    ),
-  );
+  pw.Widget row(String label, int cents, {PdfColor color = reportInk}) =>
+      pw.Padding(
+        padding: const pw.EdgeInsets.symmetric(vertical: 4),
+        child: pw.Row(
+          children: [
+            pw.Expanded(flex: 3, child: reportText(label, size: 9)),
+            pw.SizedBox(width: 8),
+            number(cents, size: 12, color: color),
+          ],
+        ),
+      );
   pw.Widget panel(String title, List<pw.Widget> children) => pw.Container(
     padding: const pw.EdgeInsets.all(12),
     decoration: pw.BoxDecoration(
-      border: pw.Border.all(color: _outline),
+      border: pw.Border.all(color: reportOutline),
       borderRadius: pw.BorderRadius.circular(12),
     ),
     child: pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
-        text(title, size: 13, bold: true, color: _teal),
+        reportText(title, size: 13, bold: true, color: reportTeal),
         pw.SizedBox(height: 10),
         ...children,
       ],
@@ -130,7 +90,7 @@ Future<Uint8List> buildFinancialReportPdf({
           height: 84,
           padding: const pw.EdgeInsets.all(10),
           decoration: pw.BoxDecoration(
-            color: accent ? _teal : _canvas,
+            color: accent ? reportTeal : _canvas,
             borderRadius: pw.BorderRadius.circular(10),
           ),
           child: pw.Column(
@@ -138,18 +98,22 @@ Future<Uint8List> buildFinancialReportPdf({
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,
             mainAxisAlignment: pw.MainAxisAlignment.center,
             children: [
-              text(label, size: 8.5, color: accent ? PdfColors.white : _muted),
+              reportText(
+                label,
+                size: 8.5,
+                color: accent ? PdfColors.white : reportMuted,
+              ),
               pw.SizedBox(height: 7),
               number(
                 cents,
                 size: 21,
                 width: 100,
-                color: accent ? PdfColors.white : _ink,
+                color: accent ? PdfColors.white : reportInk,
               ),
-              text(
+              reportText(
                 copy.t('درهم', 'MAD'),
                 size: 8,
-                color: accent ? PdfColors.white : _muted,
+                color: accent ? PdfColors.white : reportMuted,
               ),
             ],
           ),
@@ -180,46 +144,7 @@ Future<Uint8List> buildFinancialReportPdf({
               mainAxisSize: pw.MainAxisSize.min,
               crossAxisAlignment: pw.CrossAxisAlignment.stretch,
               children: [
-                pw.Container(height: 4, color: _teal),
-                pw.SizedBox(height: 18),
-                pw.Row(
-                  children: [
-                    pw.Expanded(
-                      child: pw.Column(
-                        mainAxisSize: pw.MainAxisSize.min,
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          text(displayName, size: 17, bold: true, maxLines: 2),
-                          if (addressLine.isNotEmpty)
-                            text(
-                              addressLine,
-                              size: 9,
-                              color: _muted,
-                              maxLines: 2,
-                            ),
-                        ],
-                      ),
-                    ),
-                    pw.SizedBox(width: 18),
-                    pw.Image(
-                      logo,
-                      width: 91,
-                      height: 42,
-                      fit: pw.BoxFit.contain,
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 20),
-                text(copy.title, size: 26, bold: true),
-                pw.SizedBox(height: 3),
-                text(
-                  copy.t(
-                    'من ${date(report.from)} إلى ${date(report.to)}',
-                    '${date(report.from)} - ${date(report.to)}',
-                  ),
-                  color: _muted,
-                ),
-                pw.SizedBox(height: 17),
+                template.header(report.from, report.to),
                 pw.Row(
                   children: [
                     metric(copy.opening, report.openingCents),
@@ -248,7 +173,7 @@ Future<Uint8List> buildFinancialReportPdf({
                       row(
                         copy.t('صافي الحركة خلال الفترة', 'Net cash movement'),
                         report.netCents,
-                        color: _teal,
+                        color: reportTeal,
                       ),
                       if (report.introducedBalanceCents != 0)
                         row(copy.introduced, report.introducedBalanceCents),
@@ -262,7 +187,11 @@ Future<Uint8List> buildFinancialReportPdf({
                     pw.Expanded(
                       child: panel(copy.categories, [
                         if (expenses.isEmpty)
-                          text(copy.emptyExpenses, size: 9, color: _muted),
+                          reportText(
+                            copy.emptyExpenses,
+                            size: 9,
+                            color: reportMuted,
+                          ),
                         for (final entry in expenses) ...[
                           row(copy.category(entry.key), entry.value),
                           pw.Row(
@@ -274,7 +203,7 @@ Future<Uint8List> buildFinancialReportPdf({
                                   child: pw.LinearProgressIndicator(
                                     value: entry.value / report.expenseCents,
                                     minHeight: 5,
-                                    valueColor: _teal,
+                                    valueColor: reportTeal,
                                     backgroundColor: _soft,
                                   ),
                                 ),
@@ -282,17 +211,17 @@ Future<Uint8List> buildFinancialReportPdf({
                               pw.SizedBox(width: 8),
                               pw.Directionality(
                                 textDirection: pw.TextDirection.ltr,
-                                child: text(
+                                child: reportText(
                                   '${(entry.value * 100 / report.expenseCents).toStringAsFixed(1)}%',
                                   size: 8,
-                                  color: _muted,
+                                  color: reportMuted,
                                 ),
                               ),
                             ],
                           ),
                         ],
                         pw.SizedBox(height: 9),
-                        pw.Divider(color: _outline),
+                        pw.Divider(color: reportOutline),
                         row(copy.expenses, report.expenseCents),
                       ]),
                     ),
@@ -307,7 +236,7 @@ Future<Uint8List> buildFinancialReportPdf({
                             row(
                               copy.collected,
                               report.collectedCents,
-                              color: _teal,
+                              color: reportTeal,
                             ),
                             row(
                               copy.unpaid,
@@ -315,21 +244,21 @@ Future<Uint8List> buildFinancialReportPdf({
                               color: _orange,
                             ),
                             pw.SizedBox(height: 6),
-                            text(
+                            reportText(
                               '${copy.rate}: ${report.collectionRate == null ? copy.t('غير متاحة', 'N/A') : '${(report.collectionRate! * 100).toStringAsFixed(1)}%'}',
                               size: 10,
                               bold: true,
-                              color: _teal,
+                              color: reportTeal,
                             ),
                             pw.SizedBox(height: 8),
                             pw.LinearProgressIndicator(
                               value: report.collectionRate ?? 0,
                               minHeight: 7,
-                              valueColor: _teal,
+                              valueColor: reportTeal,
                               backgroundColor: _soft,
                             ),
                             pw.SizedBox(height: 8),
-                            pw.Divider(color: _outline),
+                            pw.Divider(color: reportOutline),
                             row(copy.arrears, report.arrearsCents),
                           ]),
                           pw.SizedBox(height: 12),
@@ -343,29 +272,14 @@ Future<Uint8List> buildFinancialReportPdf({
                   ],
                 ),
                 pw.SizedBox(height: 14),
-                text(copy.notes, size: 11, bold: true),
+                reportText(copy.notes, size: 11, bold: true),
                 pw.SizedBox(height: 5),
                 for (final note in notes)
                   pw.Padding(
                     padding: const pw.EdgeInsets.only(bottom: 3),
-                    child: text(note, size: 8, color: _muted),
+                    child: reportText(note, size: 8, color: reportMuted),
                   ),
-                pw.SizedBox(height: 24),
-                pw.Divider(color: _outline),
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    text(
-                      copy.t(
-                        'أُنشئ بواسطة دارجار • ${date(generatedAt ?? DateTime.now())}',
-                        'Created with DarJar • ${date(generatedAt ?? DateTime.now())}',
-                      ),
-                      size: 7,
-                      color: _muted,
-                    ),
-                    text('1 / 1', size: 7, color: _muted),
-                  ],
-                ),
+                template.footer(1, 1),
               ],
             ),
           ),

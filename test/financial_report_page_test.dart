@@ -13,15 +13,23 @@ void main() {
     WidgetTester tester, {
     required String role,
     bool financial = false,
+    bool statement = false,
   }) async {
     final router = GoRouter(
-      initialLocation: financial
+      initialLocation: statement
+          ? AppRoutes.accountStatement
+          : financial
           ? AppRoutes.financialReport
           : AppRoutes.reports,
       routes: [
         GoRoute(
           path: AppRoutes.reports,
           builder: (_, _) => const Scaffold(body: ResidenceReportsPage()),
+        ),
+        GoRoute(
+          path: AppRoutes.accountStatement,
+          builder: (_, _) =>
+              const Scaffold(body: ResidenceReportsPage(statement: true)),
         ),
         GoRoute(
           path: AppRoutes.financialReport,
@@ -64,6 +72,30 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('account statement opens from menu and handles load failure', (
+    tester,
+  ) async {
+    await pump(tester, role: 'owner');
+    await tester.tap(find.byKey(const Key('account-statement-link')));
+    await tester.pumpAndSettle();
+    expect(find.text('كشف الحساب'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('account-statement-date-range')));
+    await tester.pumpAndSettle();
+    expect(find.byType(DateRangePickerDialog), findsOneWidget);
+    await tester.tap(find.byTooltip('إغلاق'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('generate-account-statement')));
+    await tester.pumpAndSettle();
+    expect(find.text('تعذر إعداد التقرير. حاول مجددًا.'), findsOneWidget);
+    expect(find.byKey(const Key('download-account-statement')), findsNothing);
+  });
+  testWidgets('ordinary resident cannot access account statement directly', (
+    tester,
+  ) async {
+    await pump(tester, role: 'resident', statement: true);
+    expect(find.byKey(const Key('generate-account-statement')), findsNothing);
+    expect(find.text('التقارير متاحة لإدارة الإقامة فقط.'), findsOneWidget);
+  });
   testWidgets('reports menu opens date range form', (tester) async {
     await pump(tester, role: 'owner');
     await tester.tap(find.byKey(const Key('financial-report-link')));
