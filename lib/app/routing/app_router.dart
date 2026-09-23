@@ -60,6 +60,8 @@ abstract final class AppRoutes {
   static const manageApartments = '/residence/admin/apartments';
   static const manageDues = '/residence/admin/dues';
   static const reports = '/residence/admin/reports';
+  static const monthlyDuesReport = '/residence/admin/reports/monthly-dues';
+  static const apartmentDuesReport = '/residence/admin/reports/apartment-dues';
   static const accountStatement = '/residence/admin/reports/account-statement';
   static const financialReport = '/residence/admin/reports/financial';
   static const manageFinances = '/residence/admin/finances';
@@ -315,6 +317,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.reports,
             builder: (context, state) => const ResidenceReportsPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.monthlyDuesReport,
+            builder: (context, state) =>
+                const ResidenceReportsPage(monthlyDues: true),
+          ),
+          GoRoute(
+            path: AppRoutes.apartmentDuesReport,
+            builder: (context, state) =>
+                const ResidenceReportsPage(apartmentDues: true),
           ),
           GoRoute(
             path: AppRoutes.accountStatement,

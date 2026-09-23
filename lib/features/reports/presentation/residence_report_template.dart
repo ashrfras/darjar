@@ -72,7 +72,7 @@ class ResidenceReportTemplate {
       )).buffer.asUint8List(),
     );
     final doc = pw.Document(
-      title: '${copy.title} - $displayName',
+      title: '${copy.pdfTitle} - $displayName',
       author: 'DarJar',
       theme: pw.ThemeData.withFont(base: regular, bold: bold),
     );
@@ -116,7 +116,7 @@ class ResidenceReportTemplate {
         ],
       ),
       pw.SizedBox(height: 20),
-      reportText(copy.title, size: 26, bold: true),
+      reportText(copy.pdfTitle, size: 26, bold: true),
       pw.SizedBox(height: 3),
       reportText(
         copy.t(

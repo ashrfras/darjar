@@ -1,3 +1,4 @@
+import 'package:darjar/features/reports/data/apartment_dues_report_data.dart';
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/features/reports/data/financial_report_data.dart';
@@ -14,14 +15,30 @@ void main() {
     required String role,
     bool financial = false,
     bool statement = false,
+    bool apartmentDues = false,
+    bool monthlyDues = false,
   }) async {
     final router = GoRouter(
-      initialLocation: statement
+      initialLocation: monthlyDues
+          ? AppRoutes.monthlyDuesReport
+          : apartmentDues
+          ? AppRoutes.apartmentDuesReport
+          : statement
           ? AppRoutes.accountStatement
           : financial
           ? AppRoutes.financialReport
           : AppRoutes.reports,
       routes: [
+        GoRoute(
+          path: AppRoutes.monthlyDuesReport,
+          builder: (_, _) =>
+              const Scaffold(body: ResidenceReportsPage(monthlyDues: true)),
+        ),
+        GoRoute(
+          path: AppRoutes.apartmentDuesReport,
+          builder: (_, _) =>
+              const Scaffold(body: ResidenceReportsPage(apartmentDues: true)),
+        ),
         GoRoute(
           path: AppRoutes.reports,
           builder: (_, _) => const Scaffold(body: ResidenceReportsPage()),
@@ -42,6 +59,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          apartmentDuesReportDataProvider.overrideWith(
+            (ref) async => throw Exception('offline'),
+          ),
           residenceContextProvider.overrideWith(
             (ref) async => ResidenceContext(
               residences: [
@@ -72,6 +92,56 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('monthly report opens, changes year and handles failure', (
+    tester,
+  ) async {
+    await pump(tester, role: 'owner');
+    await tester.ensureVisible(
+      find.byKey(const Key('monthly-dues-report-link')),
+    );
+    await tester.tap(find.byKey(const Key('monthly-dues-report-link')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('monthly-dues-report-year')), findsOneWidget);
+    expect(
+      find.byKey(const Key('monthly-dues-report-date-range')),
+      findsNothing,
+    );
+    await tester.tap(find.byKey(const Key('monthly-dues-report-year')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('${DateTime.now().year - 1}').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('generate-monthly-dues-report')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('download-monthly-dues-report')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('monthly report rejects ordinary residents', (tester) async {
+    await pump(tester, role: 'resident', monthlyDues: true);
+    expect(find.byKey(const Key('generate-monthly-dues-report')), findsNothing);
+  });
+  testWidgets('apartment dues opens and handles load failure', (tester) async {
+    await pump(tester, role: 'owner');
+    await tester.tap(find.byKey(const Key('apartment-dues-report-link')));
+    await tester.pumpAndSettle();
+    expect(find.text('وضعية واجبات الشقق'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('generate-apartment-dues-report')));
+    await tester.pumpAndSettle();
+    expect(find.text('تعذر إعداد التقرير. حاول مجددًا.'), findsOneWidget);
+    expect(
+      find.byKey(const Key('download-apartment-dues-report')),
+      findsNothing,
+    );
+  });
+  testWidgets('ordinary resident cannot access apartment dues report', (
+    tester,
+  ) async {
+    await pump(tester, role: 'resident', apartmentDues: true);
+    expect(
+      find.byKey(const Key('generate-apartment-dues-report')),
+      findsNothing,
+    );
+    expect(find.text('التقارير متاحة لإدارة الإقامة فقط.'), findsOneWidget);
+  });
   testWidgets('account statement opens from menu and handles load failure', (
     tester,
   ) async {

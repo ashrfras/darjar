@@ -28,6 +28,10 @@ String accountStatementDescription(
   final category =
       transaction.expenseCategory ?? ResidenceExpenseCategory.custom;
   final categoryLabel = copy.category(category);
+  if (category == ResidenceExpenseCategory.maintenance) {
+    final note = transaction.note.trim();
+    return note.isEmpty ? categoryLabel : '$categoryLabel\n$note';
+  }
   if (category != ResidenceExpenseCategory.custom) return categoryLabel;
 
   final expenseName = transaction.name.trim();

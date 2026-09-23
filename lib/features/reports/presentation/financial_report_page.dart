@@ -1,3 +1,8 @@
+import 'package:darjar/features/reports/domain/monthly_dues_report.dart';
+import 'package:darjar/features/reports/presentation/monthly_dues_report_document.dart';
+import 'package:darjar/features/reports/data/apartment_dues_report_data.dart';
+import 'package:darjar/features/reports/domain/apartment_dues_report.dart';
+import 'package:darjar/features/reports/presentation/apartment_dues_report_document.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
@@ -25,9 +30,13 @@ class ResidenceReportsPage extends ConsumerWidget {
     super.key,
     this.financial = false,
     this.statement = false,
+    this.apartmentDues = false,
+    this.monthlyDues = false,
   });
   final bool financial;
   final bool statement;
+  final bool apartmentDues;
+  final bool monthlyDues;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final residence = ref
@@ -37,6 +46,8 @@ class ResidenceReportsPage extends ConsumerWidget {
     final copy = FinancialReportCopy(
       Localizations.localeOf(context).languageCode == 'ar',
       statement: statement,
+      apartmentDues: apartmentDues,
+      monthlyDues: monthlyDues,
     );
     if (residence?.canManageResidence != true) {
       return Center(
@@ -48,9 +59,11 @@ class ResidenceReportsPage extends ConsumerWidget {
         ),
       );
     }
-    if (financial || statement) {
+    if (financial || statement || apartmentDues || monthlyDues) {
       return _FinancialReportForm(
-        key: ValueKey('${residence!.id}-${copy.locale}-$statement'),
+        key: ValueKey(
+          '${residence!.id}-${copy.locale}-$statement-$apartmentDues-$monthlyDues',
+        ),
         copy: copy,
       );
     }
@@ -111,6 +124,50 @@ class ResidenceReportsPage extends ConsumerWidget {
                   onTap: () => context.push(AppRoutes.accountStatement),
                 ),
               ),
+              const SizedBox(height: 12),
+              DarJarCard(
+                padding: EdgeInsets.zero,
+                child: ListTile(
+                  key: const Key('apartment-dues-report-link'),
+                  leading: const Icon(
+                    Icons.apartment_outlined,
+                    color: AppColors.primary,
+                  ),
+                  title: Text(
+                    FinancialReportCopy(copy.arabic, apartmentDues: true).title,
+                  ),
+                  subtitle: Text(
+                    FinancialReportCopy(
+                      copy.arabic,
+                      apartmentDues: true,
+                    ).description,
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push(AppRoutes.apartmentDuesReport),
+                ),
+              ),
+              const SizedBox(height: 12),
+              DarJarCard(
+                padding: EdgeInsets.zero,
+                child: ListTile(
+                  key: const Key('monthly-dues-report-link'),
+                  leading: const Icon(
+                    Icons.calendar_month_outlined,
+                    color: AppColors.primary,
+                  ),
+                  title: Text(
+                    FinancialReportCopy(copy.arabic, monthlyDues: true).title,
+                  ),
+                  subtitle: Text(
+                    FinancialReportCopy(
+                      copy.arabic,
+                      monthlyDues: true,
+                    ).description,
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push(AppRoutes.monthlyDuesReport),
+                ),
+              ),
             ],
           ),
         ),
@@ -145,8 +202,18 @@ class _FinancialReportFormState extends ConsumerState<_FinancialReportForm> {
   @override
   Widget build(BuildContext context) {
     final copy = widget.copy;
-    final reportKey = copy.statement ? 'account-statement' : 'financial-report';
-    ref.watch(financialReportDataProvider);
+    final reportKey = copy.monthlyDues
+        ? 'monthly-dues-report'
+        : copy.apartmentDues
+        ? 'apartment-dues-report'
+        : copy.statement
+        ? 'account-statement'
+        : 'financial-report';
+    if (copy.apartmentDues || copy.monthlyDues) {
+      ref.watch(apartmentDuesReportDataProvider);
+    } else {
+      ref.watch(financialReportDataProvider);
+    }
     final compact = MediaQuery.sizeOf(context).width < 600;
     return SingleChildScrollView(
       key: Key('$reportKey-page'),
@@ -175,24 +242,59 @@ class _FinancialReportFormState extends ConsumerState<_FinancialReportForm> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      copy.t('الفترة المطلوبة', 'Report period'),
+                      copy.monthlyDues
+                          ? copy.t('السنة المطلوبة', 'Report year')
+                          : copy.t('الفترة المطلوبة', 'Report period'),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      key: Key('$reportKey-date-range'),
-                      onPressed: _busy ? null : _pickRange,
-                      icon: const Icon(Icons.date_range_outlined),
-                      label: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text(
-                          '${copy.t('من', 'From')} ${DarJarDateFormat.yMMMd(_range.start, copy.locale)}  ${copy.t('إلى', 'to')} ${DarJarDateFormat.yMMMd(_range.end, copy.locale)}',
+                    if (copy.monthlyDues)
+                      DropdownButtonFormField<int>(
+                        key: const Key('monthly-dues-report-year'),
+                        initialValue: _range.start.year,
+                        items: [
+                          for (
+                            var year = DateTime.now().year;
+                            year >= 1900;
+                            year--
+                          )
+                            DropdownMenuItem(value: year, child: Text('$year')),
+                        ],
+                        onChanged: _busy
+                            ? null
+                            : (year) {
+                                if (year == null) return;
+                                setState(() {
+                                  _range = DateTimeRange(
+                                    start: DateTime(year),
+                                    end: DateTime(year, 12, 31),
+                                  );
+                                  _pdf = null;
+                                  _error = null;
+                                });
+                              },
+                      )
+                    else
+                      OutlinedButton.icon(
+                        key: Key('$reportKey-date-range'),
+                        onPressed: _busy ? null : _pickRange,
+                        icon: const Icon(Icons.date_range_outlined),
+                        label: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(
+                            '${copy.t('من', 'From')} ${DarJarDateFormat.yMMMd(_range.start, copy.locale)}  ${copy.t('إلى', 'to')} ${DarJarDateFormat.yMMMd(_range.end, copy.locale)}',
+                          ),
                         ),
                       ),
-                    ),
                     const SizedBox(height: 12),
                     Text(
-                      copy.statement ? copy.basis : copy.duesBasis,
+                      copy.monthlyDues
+                          ? copy.monthlyDuesBasis
+                          : copy.apartmentDues
+                          ? copy.apartmentDuesBasis
+                          : copy.statement
+                          ? copy.basis
+                          : copy.duesBasis,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 16),
@@ -290,6 +392,42 @@ class _FinancialReportFormState extends ConsumerState<_FinancialReportForm> {
       _pdf = null;
     });
     try {
+      if (widget.copy.monthlyDues) {
+        ref.invalidate(apartmentDuesReportDataProvider);
+        final data = await ref.read(apartmentDuesReportDataProvider.future);
+        final bytes = await buildMonthlyDuesReportPdf(
+          report: MonthlyDuesReport(
+            year: _range.start.year,
+            asOf: DateTime.now(),
+            apartments: data.apartments,
+            dues: data.dues,
+          ),
+          residenceName: data.residence.name,
+          residenceAddress: data.residence.address,
+          residenceCity: data.residence.city,
+          localeName: widget.copy.locale,
+        );
+        if (mounted) setState(() => _pdf = bytes);
+        return;
+      }
+      if (widget.copy.apartmentDues) {
+        ref.invalidate(apartmentDuesReportDataProvider);
+        final data = await ref.read(apartmentDuesReportDataProvider.future);
+        final bytes = await buildApartmentDuesReportPdf(
+          report: ApartmentDuesReport(
+            from: _range.start,
+            to: _range.end,
+            apartments: data.apartments,
+            dues: data.dues,
+          ),
+          residenceName: data.residence.name,
+          residenceAddress: data.residence.address,
+          residenceCity: data.residence.city,
+          localeName: widget.copy.locale,
+        );
+        if (mounted) setState(() => _pdf = bytes);
+        return;
+      }
       // Fetch fresh records for each export; never silently reuse an old report.
       ref.invalidate(financialReportDataProvider);
       final data = await ref.read(financialReportDataProvider.future);
@@ -335,8 +473,13 @@ class _FinancialReportFormState extends ConsumerState<_FinancialReportForm> {
     });
     try {
       String stamp(DateTime value) => value.toIso8601String().substring(0, 10);
-      final filename =
-          'darjar-${widget.copy.statement ? 'account-statement' : 'financial-report'}-${stamp(_range.start)}-${stamp(_range.end)}.pdf';
+      final filename = widget.copy.monthlyDues
+          ? 'darjar-monthly-dues-${_range.start.year}.pdf'
+          : 'darjar-${widget.copy.apartmentDues
+                ? 'apartment-dues-report'
+                : widget.copy.statement
+                ? 'account-statement'
+                : 'financial-report'}-${stamp(_range.start)}-${stamp(_range.end)}.pdf';
       final file = XFile.fromData(
         bytes,
         mimeType: 'application/pdf',
