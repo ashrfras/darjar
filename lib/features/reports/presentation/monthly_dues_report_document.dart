@@ -31,6 +31,7 @@ String monthlyDuesPeriodList(Iterable<MonthlyDuesCell> cells, String locale) {
           .toList()
         ..sort();
   final ranges = <String>[];
+  final rangeSeparator = locale == 'ar' ? ' إلى ' : ' - ';
   for (var i = 0; i < dates.length; i++) {
     final start = dates[i];
     var end = start;
@@ -42,7 +43,7 @@ String monthlyDuesPeriodList(Iterable<MonthlyDuesCell> cells, String locale) {
     ranges.add(
       start == end
           ? DarJarDateFormat.yMMMM(start, locale)
-          : '${DarJarDateFormat.mmmm(start, locale)} - ${DarJarDateFormat.yMMMM(end, locale)}',
+          : '${DarJarDateFormat.mmmm(start, locale)}$rangeSeparator${DarJarDateFormat.yMMMM(end, locale)}',
     );
   }
   return ranges.join(locale == 'ar' ? '، ' : ', ');

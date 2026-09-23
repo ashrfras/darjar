@@ -58,12 +58,47 @@ void main() {
     expect(row.prior.length, 2);
     expect(report.rows[1].remaining, 0);
     expect(monthlyDuesPeriodList(row.prior, 'en'), 'November - December 2025');
+    expect(monthlyDuesPeriodList(row.prior, 'ar'), 'نونبر إلى دجنبر 2025');
   });
   test('old year includes later payments and excludes later charges', () {
     final report = sample(year: 2025);
     expect(report.rows.first.unpaidCount, 2);
     expect(report.remaining, 400);
   });
+  test(
+    'opening paid month marks earlier months paid without adding income',
+    () {
+      final report = MonthlyDuesReport(
+        year: 2026,
+        asOf: DateTime(2026, 9, 23),
+        apartments: [
+          const ResidenceApartment(
+            id: '1',
+            number: '1',
+            floorId: 'f',
+            duesTrackingStartPeriodKey: '2026-05',
+            openingPaidThroughPeriodKey: '2026-04',
+          ),
+        ],
+        dues: ResidenceDuesOverview(
+          dues: [
+            for (var month = 5; month <= 9; month++)
+              due('month-$month', '1', '2026-0$month'),
+          ],
+          payments: [],
+        ),
+      );
+      final row = report.rows.single;
+      expect(row.months.map((cell) => cell.status), [
+        ...List.filled(4, MonthlyDuesStatus.paid),
+        ...List.filled(5, MonthlyDuesStatus.unpaid),
+        ...List.filled(3, MonthlyDuesStatus.future),
+      ]);
+      expect(row.unpaidCount, 5);
+      expect(row.remaining, 1000);
+      expect(row.months.take(4).every((cell) => cell.remaining == 0), isTrue);
+    },
+  );
   test(
     'tracking start distinguishes missing records from untracked months',
     () {

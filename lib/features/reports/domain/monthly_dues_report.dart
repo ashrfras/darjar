@@ -103,6 +103,9 @@ class MonthlyDuesReport {
         if (entries != null) {
           months.add(recorded(period, entries));
         } else {
+          final paidBeforeTracking =
+              apartment.openingPaidThroughPeriodKey.isNotEmpty &&
+              period.compareTo(apartment.openingPaidThroughPeriodKey) <= 0;
           final notStarted =
               !apartment.isDuesTrackingActive ||
               (apartment.duesTrackingStartPeriodKey.isNotEmpty &&
@@ -112,6 +115,8 @@ class MonthlyDuesReport {
               period,
               period.compareTo(currentPeriod) > 0
                   ? MonthlyDuesStatus.future
+                  : paidBeforeTracking
+                  ? MonthlyDuesStatus.paid
                   : notStarted
                   ? MonthlyDuesStatus.notStarted
                   : MonthlyDuesStatus.notRecorded,
