@@ -277,7 +277,7 @@ class _ChoiceCard extends StatelessWidget {
             Container(
               width: 48,
               height: 48,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.primarySoft,
                 shape: BoxShape.circle,
               ),
@@ -300,7 +300,7 @@ class _ChoiceCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.small),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios_rounded,
               color: AppColors.inkMuted,
               size: 18,

@@ -3,6 +3,8 @@ import 'package:darjar/app/localization/app_locale_controller.dart';
 import 'package:darjar/app/localization/zgh_framework_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_theme.dart';
+import 'package:darjar/app/theme/app_colors.dart';
+import 'package:darjar/app/theme/app_theme_mode_controller.dart';
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,8 +16,11 @@ class DarJarApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
     final locale = ref.watch(appLocaleProvider).value ?? const Locale('ar');
+    final themeMode = ref.watch(appThemeModeProvider).value ?? ThemeMode.system;
+    AppColors.configure(themeMode);
     ref.watch(notificationPushRegistrationProvider);
     return MaterialApp.router(
+      key: ValueKey('darjar-app-${themeMode.name}'),
       onGenerateTitle: (context) => AppLocalizations.of(context).siteTitle,
       builder: (context, child) => Title(
         key: const Key('app-browser-title'),
@@ -32,6 +37,8 @@ class DarJarApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeMode,
     );
   }
 }

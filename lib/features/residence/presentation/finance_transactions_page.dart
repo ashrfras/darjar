@@ -338,7 +338,7 @@ class _TransactionRow extends StatelessWidget {
                     key: ValueKey('finance-transaction-note-${transaction.id}'),
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.notes_rounded,
                         size: 17,
                         color: AppColors.inkMuted,

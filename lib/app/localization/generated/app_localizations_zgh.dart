@@ -1781,6 +1781,21 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get generalSettings => 'ⴰⵙⴻⵖⵥⴰⵏ ⴰⵎⴰⵜⵓ';
 
   @override
+  String get appearance => 'ⴰⵙⴽⴰⵏ';
+
+  @override
+  String get appearanceDescription => 'ⴼⵔⴻⵏ ⴰⵙⴽⴰⵏ ⵏⴻⵖ ⴹⴼⴻⵕ ⴰⵙⴻⵖⵥⴰⵏ ⵏ ⵓⵙⴻⵍⴽⵉⵎ.';
+
+  @override
+  String get themeSystem => 'ⴰⵡⵓⵔⵎⴰⵏ';
+
+  @override
+  String get themeLight => 'ⴰⵛⴻⵄⵍⴰⵍ';
+
+  @override
+  String get themeDark => 'ⴰⴱⴻⵔⴽⴰⵏ';
+
+  @override
   String get professionalSettings => 'ⵉⵙⴻⵖⵏⴰⵙⴻⵏ ⵉⵎⵓⵙⵏⴰⵡⴻⵏ';
 
   @override

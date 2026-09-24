@@ -12,52 +12,106 @@ abstract final class AppTheme {
       seedColor: AppColors.primary,
       brightness: Brightness.light,
       primary: AppColors.primary,
-      surface: AppColors.surface,
+      surface: const Color(0xFFFFFFFF),
       error: AppColors.danger,
     );
 
+    return _theme(
+      colorScheme: colorScheme,
+      canvas: const Color(0xFFF8F6F2),
+      surface: const Color(0xFFFFFFFF),
+      ink: const Color(0xFF17151D),
+      inkMuted: const Color(0xFF6D6976),
+      outline: const Color(0xFFE7E3EA),
+      primarySoft: const Color(0xFFE5F3F1),
+    );
+  }
+
+  static ThemeData get dark {
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          brightness: Brightness.dark,
+          primary: const Color(0xFF2F8F87),
+          surface: const Color(0xFF181C1B),
+          error: const Color(0xFFFFB4AB),
+        ).copyWith(
+          onPrimary: const Color(0xFFFFFFFF),
+          primaryContainer: const Color(0xFF1C3835),
+          onPrimaryContainer: const Color(0xFFC1E6E1),
+          secondary: const Color(0xFFADB8B4),
+          onSecondary: const Color(0xFF1A211F),
+          secondaryContainer: const Color(0xFF29312E),
+          onSecondaryContainer: const Color(0xFFDDE5E2),
+          tertiary: const Color(0xFFC4B8AE),
+          onTertiary: const Color(0xFF27211D),
+          surface: const Color(0xFF181C1B),
+          onSurface: const Color(0xFFF2F4F3),
+          onSurfaceVariant: const Color(0xFFB3BBB7),
+          outline: const Color(0xFF737C78),
+          outlineVariant: const Color(0xFF353B38),
+          surfaceContainerLowest: const Color(0xFF0E1110),
+          surfaceContainerLow: const Color(0xFF141716),
+          surfaceContainer: const Color(0xFF181C1B),
+          surfaceContainerHigh: const Color(0xFF202523),
+          surfaceContainerHighest: const Color(0xFF292F2C),
+        );
+
+    return _theme(
+      colorScheme: colorScheme,
+      canvas: const Color(0xFF0E1110),
+      surface: const Color(0xFF181C1B),
+      ink: const Color(0xFFF2F4F3),
+      inkMuted: const Color(0xFFAAAFAA),
+      outline: const Color(0xFF353A38),
+      primarySoft: const Color(0xFF1C3835),
+    );
+  }
+
+  static ThemeData _theme({
+    required ColorScheme colorScheme,
+    required Color canvas,
+    required Color surface,
+    required Color ink,
+    required Color inkMuted,
+    required Color outline,
+    required Color primarySoft,
+  }) {
+    final textTheme = AppTypography.textTheme.apply(
+      bodyColor: ink,
+      displayColor: ink,
+    );
     return ThemeData(
       useMaterial3: true,
+      brightness: colorScheme.brightness,
       fontFamily: AppTypography.fontFamily,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.canvas,
-      textTheme: AppTypography.textTheme,
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.android: kIsWeb
-              ? _DarJarWebPageTransitionsBuilder()
-              : _DarJarPageTransitionsBuilder(),
-          TargetPlatform.iOS: kIsWeb
-              ? _DarJarWebPageTransitionsBuilder()
-              : _DarJarCupertinoPageTransitionsBuilder(),
-          TargetPlatform.macOS: kIsWeb
-              ? _DarJarWebPageTransitionsBuilder()
-              : _DarJarPageTransitionsBuilder(),
-          TargetPlatform.windows: kIsWeb
-              ? _DarJarWebPageTransitionsBuilder()
-              : _DarJarPageTransitionsBuilder(),
-          TargetPlatform.linux: kIsWeb
-              ? _DarJarWebPageTransitionsBuilder()
-              : _DarJarPageTransitionsBuilder(),
-          TargetPlatform.fuchsia: kIsWeb
-              ? _DarJarWebPageTransitionsBuilder()
-              : _DarJarPageTransitionsBuilder(),
-        },
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.ink,
+      scaffoldBackgroundColor: canvas,
+      textTheme: textTheme,
+      pageTransitionsTheme: _pageTransitionsTheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: surface,
+        foregroundColor: ink,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
       ),
+      cardTheme: CardThemeData(
+        color: surface,
+        surfaceTintColor: Colors.transparent,
+      ),
       dialogTheme: DialogThemeData(
-        backgroundColor: AppColors.surface,
+        backgroundColor: surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.large),
-          side: const BorderSide(color: AppColors.outline),
+          side: BorderSide(color: outline),
         ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: surface,
+        modalBackgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -66,64 +120,83 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.medium),
           ),
-          textStyle: AppTypography.textTheme.labelLarge,
+          textStyle: textTheme.labelLarge,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(0, 48),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
-          side: const BorderSide(color: AppColors.outline),
+          side: BorderSide(color: outline),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.medium),
           ),
-          textStyle: AppTypography.textTheme.labelLarge,
+          textStyle: textTheme.labelLarge,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 13,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.medium),
-          borderSide: const BorderSide(color: AppColors.outline),
+          borderSide: BorderSide(color: outline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.medium),
-          borderSide: const BorderSide(color: AppColors.outline),
+          borderSide: BorderSide(color: outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.medium),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: 64,
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primarySoft,
+        backgroundColor: surface,
+        indicatorColor: primarySoft,
         labelTextStyle: WidgetStatePropertyAll(
-          AppTypography.textTheme.labelMedium?.copyWith(color: AppColors.ink),
+          textTheme.labelMedium?.copyWith(color: ink),
         ),
       ),
       navigationRailTheme: NavigationRailThemeData(
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primarySoft,
-        selectedIconTheme: const IconThemeData(color: AppColors.primary),
-        selectedLabelTextStyle: AppTypography.textTheme.labelMedium?.copyWith(
-          color: AppColors.primary,
+        backgroundColor: surface,
+        indicatorColor: primarySoft,
+        selectedIconTheme: IconThemeData(color: colorScheme.primary),
+        selectedLabelTextStyle: textTheme.labelMedium?.copyWith(
+          color: colorScheme.primary,
         ),
-        unselectedLabelTextStyle: AppTypography.textTheme.labelMedium,
+        unselectedLabelTextStyle: textTheme.labelMedium,
       ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.outline,
-        thickness: 1,
-        space: 1,
-      ),
+      dividerTheme: DividerThemeData(color: outline, thickness: 1, space: 1),
     );
   }
+
+  static const _pageTransitionsTheme = PageTransitionsTheme(
+    builders: {
+      TargetPlatform.android: kIsWeb
+          ? _DarJarWebPageTransitionsBuilder()
+          : _DarJarPageTransitionsBuilder(),
+      TargetPlatform.iOS: kIsWeb
+          ? _DarJarWebPageTransitionsBuilder()
+          : _DarJarCupertinoPageTransitionsBuilder(),
+      TargetPlatform.macOS: kIsWeb
+          ? _DarJarWebPageTransitionsBuilder()
+          : _DarJarPageTransitionsBuilder(),
+      TargetPlatform.windows: kIsWeb
+          ? _DarJarWebPageTransitionsBuilder()
+          : _DarJarPageTransitionsBuilder(),
+      TargetPlatform.linux: kIsWeb
+          ? _DarJarWebPageTransitionsBuilder()
+          : _DarJarPageTransitionsBuilder(),
+      TargetPlatform.fuchsia: kIsWeb
+          ? _DarJarWebPageTransitionsBuilder()
+          : _DarJarPageTransitionsBuilder(),
+    },
+  );
 }
 
 class _DarJarCupertinoPageTransitionsBuilder

@@ -327,10 +327,7 @@ class _NoComments extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.xLarge),
       child: Column(
         children: [
-          const Icon(
-            Icons.chat_bubble_outline_rounded,
-            color: AppColors.inkMuted,
-          ),
+          Icon(Icons.chat_bubble_outline_rounded, color: AppColors.inkMuted),
           const SizedBox(height: AppSpacing.small),
           Text(
             ar ? 'كن أول من يعلّق على هذا المنشور' : 'Be the first to comment',

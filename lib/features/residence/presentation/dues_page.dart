@@ -405,7 +405,7 @@ class _PaymentRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
         child: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               backgroundColor: AppColors.residenceSoft,
               foregroundColor: AppColors.residence,
               child: Icon(Icons.check_rounded),
@@ -528,7 +528,7 @@ class _ManualNotice extends StatelessWidget {
     return DarJarCard(
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 28,
             backgroundColor: AppColors.warningSoft,
             foregroundColor: AppColors.warning,

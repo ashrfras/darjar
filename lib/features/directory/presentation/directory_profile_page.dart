@@ -160,7 +160,7 @@ class DirectoryProfilePage extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.phone_outlined,
                               size: 18,
                               color: AppColors.inkMuted,
@@ -174,7 +174,7 @@ class DirectoryProfilePage extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.location_on_outlined,
                                 size: 17,
                                 color: AppColors.inkMuted,

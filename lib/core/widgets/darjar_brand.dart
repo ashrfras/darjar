@@ -15,14 +15,9 @@ class DarJarBrand extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          'assets/images/branding/darjar-logo-header-compact.png',
-          width: logoSize,
-          height: logoSize,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-          isAntiAlias: true,
-          semanticLabel: 'DarJar',
+        DarJarLogo(
+          asset: 'assets/images/branding/darjar-logo-header-compact.png',
+          size: logoSize,
         ),
         const SizedBox(width: AppSpacing.small),
         Text(
@@ -33,6 +28,42 @@ class DarJarBrand extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class DarJarLogo extends StatelessWidget {
+  const DarJarLogo({
+    required this.asset,
+    required this.size,
+    this.imageKey,
+    super.key,
+  });
+
+  final String asset;
+  final double size;
+  final Key? imageKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ColorFiltered(
+      colorFilter: ColorFilter.mode(
+        theme.brightness == Brightness.dark
+            ? theme.colorScheme.onSurface
+            : theme.colorScheme.primary,
+        BlendMode.srcIn,
+      ),
+      child: Image.asset(
+        asset,
+        key: imageKey,
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+        isAntiAlias: true,
+        semanticLabel: 'DarJar',
+      ),
     );
   }
 }

@@ -70,6 +70,8 @@ class _DarJarBootstrapState extends State<DarJarBootstrap> {
       title: 'دارجار - إقامتك الرقمية',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       home: Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(

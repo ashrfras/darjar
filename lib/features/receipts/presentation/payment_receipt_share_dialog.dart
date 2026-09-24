@@ -35,7 +35,7 @@ class PaymentReceiptShareDialog extends StatelessWidget {
         icon: Container(
           width: 56,
           height: 56,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.residenceSoft,
             shape: BoxShape.circle,
           ),

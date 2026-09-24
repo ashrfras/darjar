@@ -3953,6 +3953,8 @@ void main() {
     expect(find.text('البريد الإلكتروني'), findsNothing);
     expect(find.text('الإعدادات'), findsNothing);
     expect(find.text('إعادة عرض البداية'), findsNothing);
+    expect(find.byKey(const Key('profile-appearance-card')), findsOneWidget);
+    expect(find.byKey(const Key('theme-mode-selector')), findsOneWidget);
     expect(find.byKey(const Key('profile-phone-number')), findsOneWidget);
     expect(find.byKey(const Key('profile-image-menu-button')), findsOneWidget);
     await tester.tap(find.byKey(const Key('profile-image-menu-button')));

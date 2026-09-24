@@ -202,11 +202,11 @@ class _InvitationQr extends StatelessWidget {
             version: QrVersions.auto,
             size: compact ? 190 : 200,
             padding: EdgeInsets.zero,
-            eyeStyle: const QrEyeStyle(
+            eyeStyle: QrEyeStyle(
               eyeShape: QrEyeShape.square,
               color: AppColors.ink,
             ),
-            dataModuleStyle: const QrDataModuleStyle(
+            dataModuleStyle: QrDataModuleStyle(
               dataModuleShape: QrDataModuleShape.square,
               color: AppColors.ink,
             ),

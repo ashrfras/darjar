@@ -2,19 +2,22 @@ import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/app/theme/app_theme_mode_controller.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/features/profile/presentation/appearance_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingsPageState extends ConsumerState<SettingsPage> {
   bool _communityNotifications = true;
   bool _residenceNotifications = true;
 
@@ -58,6 +61,23 @@ class _SettingsPageState extends State<SettingsPage> {
                         AppSpacing.large,
                         AppSpacing.large,
                         AppSpacing.large,
+                        AppSpacing.medium,
+                      ),
+                      child: DarJarAppearanceSelector(
+                        selectedMode:
+                            ref.watch(appThemeModeProvider).value ??
+                            ThemeMode.system,
+                        onSelected: (mode) => ref
+                            .read(appThemeModeProvider.notifier)
+                            .select(mode),
+                      ),
+                    ),
+                    const Divider(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.large,
+                        AppSpacing.medium,
+                        AppSpacing.large,
                         AppSpacing.small,
                       ),
                       child: Text(
@@ -95,7 +115,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Align(
+                    Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: CircleAvatar(
                         radius: 24,

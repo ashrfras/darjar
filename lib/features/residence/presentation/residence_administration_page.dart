@@ -138,7 +138,7 @@ class _ResidenceAdministrationPageState
                             dimension: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(
+                        : Icon(
                             Icons.chevron_left_rounded,
                             color: AppColors.inkMuted,
                             textDirection: TextDirection.ltr,

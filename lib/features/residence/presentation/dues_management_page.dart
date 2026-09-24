@@ -62,7 +62,7 @@ class DuesManagementPage extends ConsumerWidget {
                     DarJarCard(
                       child: Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             backgroundColor: AppColors.primarySoft,
                             foregroundColor: AppColors.primary,
                             child: Icon(Icons.auto_awesome_rounded),
@@ -314,7 +314,7 @@ class _ApartmentDuesCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(width: AppSpacing.small),
-              const Icon(
+              Icon(
                 Icons.chevron_left_rounded,
                 color: AppColors.inkMuted,
                 textDirection: ui.TextDirection.ltr,
@@ -389,7 +389,7 @@ class _PeriodDetailsSheet extends ConsumerWidget {
         heightFactor: 0.82,
         child: Container(
           key: const Key('period-details-sheet'),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(
               top: Radius.circular(AppRadius.large),
@@ -730,7 +730,7 @@ class _RecordPaymentSheetState extends ConsumerState<_RecordPaymentSheet> {
           AppSpacing.xLarge,
           MediaQuery.viewInsetsOf(context).bottom + AppSpacing.xLarge,
         ),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppRadius.large),
@@ -1093,7 +1093,7 @@ class _ManagementPaymentRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
         child: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               backgroundColor: AppColors.residenceSoft,
               foregroundColor: AppColors.residence,
               child: Icon(Icons.receipt_long_outlined),

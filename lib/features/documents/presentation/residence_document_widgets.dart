@@ -93,7 +93,7 @@ class ResidenceDocumentRow extends StatelessWidget {
                 icon: const Icon(Icons.delete_outline_rounded),
               ),
             if (onEdit == null && onDelete == null)
-              const Icon(
+              Icon(
                 Icons.chevron_left_rounded,
                 color: AppColors.inkMuted,
                 textDirection: ui.TextDirection.ltr,
@@ -317,7 +317,7 @@ class _InteractivePdfPages extends StatelessWidget {
                           AppSpacing.medium,
                           AppSpacing.medium,
                         ),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.surface,
                           boxShadow: [
                             BoxShadow(

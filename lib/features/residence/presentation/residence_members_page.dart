@@ -83,7 +83,7 @@ class _MembersList extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xLarge),
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.people_outline_rounded,
                     size: 38,
                     color: AppColors.inkMuted,
@@ -182,7 +182,7 @@ class _MemberCard extends StatelessWidget {
                   const SizedBox(height: AppSpacing.small),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.phone_outlined,
                         size: 17,
                         color: AppColors.inkMuted,

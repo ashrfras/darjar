@@ -17,7 +17,7 @@ abstract final class AppTypography {
   );
 
   static TextTheme get textTheme {
-    return const TextTheme(
+    return TextTheme(
       displaySmall: TextStyle(
         fontFamily: fontFamily,
         fontFamilyFallback: fontFamilyFallback,

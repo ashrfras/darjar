@@ -281,7 +281,7 @@ class _PostHeader extends StatelessWidget {
             elevation: 8,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.medium),
-              side: const BorderSide(color: AppColors.outline),
+              side: BorderSide(color: AppColors.outline),
             ),
             onSelected: (value) {
               if (value == 'archive') _confirmArchive(context);
@@ -542,7 +542,7 @@ class _ImageTile extends ConsumerWidget {
                               data: (bytes) =>
                                   Image.memory(bytes, fit: BoxFit.contain),
                               loading: () => const CircularProgressIndicator(),
-                              error: (error, stackTrace) => const Icon(
+                              error: (error, stackTrace) => Icon(
                                 Icons.broken_image_outlined,
                                 color: AppColors.surface,
                               ),
@@ -842,20 +842,20 @@ class _ActionButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
-    this.color = AppColors.inkMuted,
+    this.color,
     super.key,
   });
 
   final IconData icon;
   final String label;
-  final Color color;
+  final Color? color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return TextButton.icon(
       onPressed: onTap,
-      style: TextButton.styleFrom(foregroundColor: color),
+      style: TextButton.styleFrom(foregroundColor: color ?? AppColors.inkMuted),
       icon: Icon(icon, size: 20),
       label: Text(label),
     );

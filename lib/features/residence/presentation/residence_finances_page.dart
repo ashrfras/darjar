@@ -473,7 +473,7 @@ class _ExpenseRow extends StatelessWidget {
                     key: ValueKey('residence-expense-note-${expense.id}'),
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.notes_rounded,
                         size: 17,
                         color: AppColors.inkMuted,

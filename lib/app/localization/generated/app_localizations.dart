@@ -3273,6 +3273,36 @@ abstract class AppLocalizations {
   /// **'الإعدادات العامة'**
   String get generalSettings;
 
+  /// No description provided for @appearance.
+  ///
+  /// In ar, this message translates to:
+  /// **'المظهر'**
+  String get appearance;
+
+  /// No description provided for @appearanceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر المظهر المناسب لك أو اتبع إعداد الجهاز.'**
+  String get appearanceDescription;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In ar, this message translates to:
+  /// **'تلقائي'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In ar, this message translates to:
+  /// **'فاتح'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In ar, this message translates to:
+  /// **'داكن'**
+  String get themeDark;
+
   /// No description provided for @professionalSettings.
   ///
   /// In ar, this message translates to:

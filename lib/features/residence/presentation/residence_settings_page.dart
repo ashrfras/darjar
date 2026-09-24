@@ -870,10 +870,7 @@ class _ResidenceInformationSection extends ConsumerWidget {
                     ),
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.numbers_rounded,
-                          color: AppColors.inkMuted,
-                        ),
+                        Icon(Icons.numbers_rounded, color: AppColors.inkMuted),
                         const SizedBox(width: AppSpacing.medium),
                         Expanded(
                           child: Text(
@@ -1188,7 +1185,7 @@ class _StickySaveBar extends StatelessWidget {
           horizontal: compact ? 12 : AppSpacing.xLarge,
           vertical: AppSpacing.medium,
         ),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           border: Border(top: BorderSide(color: AppColors.outline)),
         ),
         child: Align(

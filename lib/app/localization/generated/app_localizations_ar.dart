@@ -1752,6 +1752,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get generalSettings => 'الإعدادات العامة';
 
   @override
+  String get appearance => 'المظهر';
+
+  @override
+  String get appearanceDescription =>
+      'اختر المظهر المناسب لك أو اتبع إعداد الجهاز.';
+
+  @override
+  String get themeSystem => 'تلقائي';
+
+  @override
+  String get themeLight => 'فاتح';
+
+  @override
+  String get themeDark => 'داكن';
+
+  @override
   String get professionalSettings => 'الإعدادات الاحترافية';
 
   @override

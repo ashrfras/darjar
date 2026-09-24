@@ -377,7 +377,7 @@ class _ReceiptUnavailable extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.receipt_long_outlined,
                 size: 52,
                 color: AppColors.inkMuted,

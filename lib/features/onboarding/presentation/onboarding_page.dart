@@ -205,19 +205,26 @@ class _Pillar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.large,
         vertical: AppSpacing.medium,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
+        color: dark
+            ? theme.colorScheme.surfaceContainerHigh
+            : color.withValues(alpha: 0.10),
+        border: dark
+            ? Border.all(color: theme.colorScheme.outlineVariant)
+            : null,
         borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 20),
+          Icon(icon, color: dark ? theme.colorScheme.primary : color, size: 20),
           const SizedBox(width: AppSpacing.small),
           Text(label, style: Theme.of(context).textTheme.labelLarge),
         ],
@@ -233,14 +240,17 @@ class _OnboardingVisual extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: compact ? 220 : 520,
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
-          colors: [Color(0xFF16988D), Color(0xFF0A5F59)],
+          colors: dark
+              ? const [Color(0xFF24413E), Color(0xFF172C2A)]
+              : const [Color(0xFF16988D), Color(0xFF0A5F59)],
         ),
         borderRadius: BorderRadius.circular(AppRadius.large),
       ),
@@ -260,8 +270,8 @@ class _OnboardingVisual extends StatelessWidget {
           Container(
             width: compact ? 112 : 180,
             height: compact ? 112 : 180,
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: dark ? const Color(0xFFE4EAE8) : Colors.white,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -283,11 +293,14 @@ class _FloatingIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
+        color: dark
+            ? const Color(0xFFE4EAE8).withValues(alpha: 0.94)
+            : Colors.white.withValues(alpha: 0.92),
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: AppColors.primary),

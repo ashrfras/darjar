@@ -1787,6 +1787,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get generalSettings => 'General settings';
 
   @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get appearanceDescription =>
+      'Choose your preferred appearance or follow your device setting.';
+
+  @override
+  String get themeSystem => 'Automatic';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
   String get professionalSettings => 'Professional settings';
 
   @override

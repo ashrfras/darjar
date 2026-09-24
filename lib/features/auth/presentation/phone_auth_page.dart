@@ -68,13 +68,13 @@ class _PhoneAuthPageState extends ConsumerState<PhoneAuthPage> {
                   Container(
                     width: 72,
                     height: 72,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primarySoft,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.phone_android_rounded,
-                      color: AppColors.primary,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                       size: 34,
                     ),
                   ),

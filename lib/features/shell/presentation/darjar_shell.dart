@@ -3,12 +3,14 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/app/theme/app_theme_refresh_boundary.dart';
 import 'package:darjar/app/theme/app_typography.dart';
 import 'package:darjar/core/responsive/responsive_builder.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
 import 'package:darjar/core/utils/darjar_date_format.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
+import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
@@ -30,61 +32,63 @@ class DarJarShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final residenceContext = ref.watch(residenceContextProvider);
-    return residenceContext.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (error, stackTrace) => Scaffold(
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xLarge),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(
-                    Icons.error_outline_rounded,
-                    color: AppColors.danger,
-                    size: 48,
-                  ),
-                  const SizedBox(height: AppSpacing.large),
-                  Text(
-                    AppLocalizations.of(context).residenceContextLoadError,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: AppSpacing.medium),
-                  SelectableText(
-                    _residenceContextErrorDetails(error),
-                    key: const Key('residence-context-error-details'),
-                    textAlign: TextAlign.start,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+    return DarJarThemeRefreshBoundary(
+      builder: (context) => residenceContext.when(
+        loading: () =>
+            const Scaffold(body: Center(child: CircularProgressIndicator())),
+        error: (error, stackTrace) => Scaffold(
+          body: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.xLarge),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Icon(
+                      Icons.error_outline_rounded,
                       color: AppColors.danger,
-                      fontFamily: 'monospace',
+                      size: 48,
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.xLarge),
-                  FilledButton.icon(
-                    onPressed: () => ref.invalidate(residenceContextProvider),
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: Text(
-                      AppLocalizations.of(context).accountResolutionRetry,
+                    const SizedBox(height: AppSpacing.large),
+                    Text(
+                      AppLocalizations.of(context).residenceContextLoadError,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: AppSpacing.medium),
+                    SelectableText(
+                      _residenceContextErrorDetails(error),
+                      key: const Key('residence-context-error-details'),
+                      textAlign: TextAlign.start,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.danger,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xLarge),
+                    FilledButton.icon(
+                      onPressed: () => ref.invalidate(residenceContextProvider),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: Text(
+                        AppLocalizations.of(context).accountResolutionRetry,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
+        data: (data) {
+          if (data.activeResidence == null) {
+            return const _ResidenceSetupRedirect();
+          }
+          ref.watch(residenceDataWarmupProvider(data.activeResidence!.id));
+          return _buildShell(context, data);
+        },
       ),
-      data: (data) {
-        if (data.activeResidence == null) {
-          return const _ResidenceSetupRedirect();
-        }
-        ref.watch(residenceDataWarmupProvider(data.activeResidence!.id));
-        return _buildShell(context, data);
-      },
     );
   }
 
@@ -378,15 +382,10 @@ class _Brand extends StatelessWidget {
         child: Row(
           mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
           children: [
-            Image.asset(
-              logoAsset,
-              key: compact ? const Key('compact-brand') : null,
-              width: compact ? 31 : 38,
-              height: compact ? 31 : 38,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.high,
-              isAntiAlias: true,
-              semanticLabel: 'DarJar',
+            DarJarLogo(
+              asset: logoAsset,
+              size: compact ? 31 : 38,
+              imageKey: compact ? const Key('compact-brand') : null,
             ),
             SizedBox(width: compact ? AppSpacing.small : AppSpacing.medium),
             Column(
@@ -528,7 +527,7 @@ class _NotificationsSheet extends ConsumerWidget {
               ListTile(
                 key: const Key('apartment-not-assigned-notification'),
                 contentPadding: EdgeInsets.zero,
-                leading: const CircleAvatar(
+                leading: CircleAvatar(
                   backgroundColor: AppColors.warningSoft,
                   foregroundColor: AppColors.warning,
                   child: Icon(Icons.home_work_outlined),
@@ -868,7 +867,7 @@ class _ResidenceSelector extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.xSmall),
-              const Icon(
+              Icon(
                 Icons.keyboard_arrow_down_rounded,
                 color: AppColors.inkMuted,
                 size: 18,
@@ -1072,7 +1071,7 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
                       style: IconButton.styleFrom(
                         backgroundColor: AppColors.surface,
                         foregroundColor: AppColors.inkMuted,
-                        side: const BorderSide(color: AppColors.outline),
+                        side: BorderSide(color: AppColors.outline),
                       ),
                       icon: const Icon(Icons.close_rounded),
                     ),

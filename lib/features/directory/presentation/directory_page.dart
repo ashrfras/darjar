@@ -329,7 +329,7 @@ class _CategoryStrip extends StatelessWidget {
           return Material(
             color: isSelected ? AppColors.primarySoft : AppColors.surface,
             shape: RoundedRectangleBorder(
-              side: const BorderSide(color: AppColors.outline),
+              side: BorderSide(color: AppColors.outline),
               borderRadius: BorderRadius.circular(AppRadius.medium),
             ),
             child: InkWell(
@@ -399,7 +399,7 @@ class _FeaturedCard extends StatelessWidget {
         children: [
           Expanded(
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [AppColors.primarySoft, Color(0xFFCFE8DF)],
                 ),
@@ -650,11 +650,7 @@ class _EmptyResults extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.xLarge),
         child: Column(
           children: [
-            const Icon(
-              Icons.search_off_rounded,
-              size: 48,
-              color: AppColors.inkMuted,
-            ),
+            Icon(Icons.search_off_rounded, size: 48, color: AppColors.inkMuted),
             const SizedBox(height: AppSpacing.medium),
             Text(message, textAlign: TextAlign.center),
           ],

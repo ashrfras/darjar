@@ -4,6 +4,7 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/app/theme/app_theme_mode_controller.dart';
 import 'package:darjar/core/images/app_image_picker.dart';
 import 'package:darjar/core/images/storage_image_provider.dart';
 import 'package:darjar/core/widgets/darjar_badge.dart';
@@ -16,6 +17,7 @@ import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/profile/data/profile_image_repository.dart';
+import 'package:darjar/features/profile/presentation/appearance_selector.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
@@ -149,6 +151,16 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                 ),
               ),
               const SizedBox(height: AppSpacing.large),
+              DarJarCard(
+                key: const Key('profile-appearance-card'),
+                child: DarJarAppearanceSelector(
+                  selectedMode:
+                      ref.watch(appThemeModeProvider).value ?? ThemeMode.system,
+                  onSelected: (mode) =>
+                      ref.read(appThemeModeProvider.notifier).select(mode),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.large),
               Text(
                 localizations.profileResidences,
                 style: Theme.of(context).textTheme.titleLarge,
@@ -206,7 +218,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                           'en' => localizations.english,
                           _ => localizations.arabic,
                         }),
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_left_rounded,
                           color: AppColors.inkMuted,
                           textDirection: TextDirection.ltr,
@@ -251,7 +263,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                               dimension: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Icon(
+                          : Icon(
                               Icons.chevron_left_rounded,
                               color: AppColors.inkMuted,
                               textDirection: TextDirection.ltr,
@@ -896,8 +908,8 @@ class _ResidenceItem extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : isCurrent
-          ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
-          : const Icon(
+          ? Icon(Icons.check_circle_rounded, color: AppColors.primary)
+          : Icon(
               Icons.arrow_forward_ios_rounded,
               color: AppColors.inkMuted,
               size: 16,
@@ -1003,7 +1015,7 @@ class _EditProfileNameSheetState extends ConsumerState<_EditProfileNameSheet> {
                     style: IconButton.styleFrom(
                       backgroundColor: AppColors.surface,
                       foregroundColor: AppColors.inkMuted,
-                      side: const BorderSide(color: AppColors.outline),
+                      side: BorderSide(color: AppColors.outline),
                     ),
                     icon: const Icon(Icons.close_rounded),
                   ),
@@ -1134,7 +1146,7 @@ class _ProfileLink extends StatelessWidget {
         title,
         style: isDestructive ? const TextStyle(color: AppColors.danger) : null,
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.chevron_left_rounded,
         color: AppColors.inkMuted,
         textDirection: TextDirection.ltr,

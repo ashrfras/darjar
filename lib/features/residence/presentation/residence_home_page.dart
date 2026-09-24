@@ -118,7 +118,7 @@ class ResidenceHomePage extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.small),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward_ios_rounded,
                         color: AppColors.inkMuted,
                         size: 15,
@@ -307,7 +307,7 @@ class _DashboardCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.small),
-                  const Icon(
+                  Icon(
                     Icons.arrow_forward_ios_rounded,
                     color: AppColors.inkMuted,
                     size: 13,

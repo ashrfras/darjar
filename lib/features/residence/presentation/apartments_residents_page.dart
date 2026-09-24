@@ -1703,7 +1703,7 @@ class _ApartmentsView extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.medium),
           child: Row(
             children: [
-              const Icon(Icons.info_outline_rounded, color: AppColors.inkMuted),
+              Icon(Icons.info_outline_rounded, color: AppColors.inkMuted),
               const SizedBox(width: AppSpacing.medium),
               Expanded(
                 child: Text(
@@ -2214,7 +2214,7 @@ class _ResidentsView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xLarge),
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.person_search_outlined,
                     size: 36,
                     color: AppColors.inkMuted,

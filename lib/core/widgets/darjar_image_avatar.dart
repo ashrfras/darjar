@@ -10,7 +10,7 @@ class DarJarUserAvatar extends ConsumerWidget {
     this.radius = 20,
     this.name = '',
     this.showImage = true,
-    this.backgroundColor = AppColors.primarySoft,
+    this.backgroundColor,
     this.foregroundColor = AppColors.primary,
     super.key,
   });
@@ -19,14 +19,14 @@ class DarJarUserAvatar extends ConsumerWidget {
   final double radius;
   final String name;
   final bool showImage;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final Color foregroundColor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fallback = CircleAvatar(
       radius: radius,
-      backgroundColor: backgroundColor,
+      backgroundColor: backgroundColor ?? AppColors.primarySoft,
       foregroundColor: foregroundColor,
       child: name.trim().isEmpty
           ? Icon(Icons.person_rounded, size: radius)

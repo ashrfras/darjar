@@ -697,7 +697,7 @@ class _EmptyFilter extends StatelessWidget {
     return DarJarCard(
       child: Column(
         children: [
-          const Icon(Icons.inbox_outlined, size: 44, color: AppColors.inkMuted),
+          Icon(Icons.inbox_outlined, size: 44, color: AppColors.inkMuted),
           const SizedBox(height: AppSpacing.medium),
           Text(localizations.communityEmptyCategory),
           TextButton(

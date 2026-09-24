@@ -31,7 +31,7 @@ class SupportPage extends StatelessWidget {
               child: Container(
                 width: 64,
                 height: 64,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.primarySoft,
                   shape: BoxShape.circle,
                 ),

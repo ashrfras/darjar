@@ -103,7 +103,7 @@ Future<T?> showDarJarPickerSheet<T>({
         key: sheetKey,
         height: math.min(height, availableHeight),
         child: DecoratedBox(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(
               top: Radius.circular(AppRadius.large),
