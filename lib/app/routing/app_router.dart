@@ -34,7 +34,7 @@ import 'package:darjar/features/residence/presentation/residence_members_page.da
 import 'package:darjar/features/residence/presentation/residence_setup_page.dart';
 import 'package:darjar/features/residence/presentation/residence_settings_page.dart';
 import 'package:darjar/features/shell/presentation/darjar_shell.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -144,6 +144,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     next.whenData(authRefresh.update);
   });
   final router = GoRouter(
+    observers: [_KeyboardDismissNavigatorObserver()],
     initialLocation: ref.watch(appInitialLocationProvider),
     refreshListenable: authRefresh,
     redirect: (context, state) {
@@ -238,6 +239,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ResidenceSetupPage(invitationCode: state.pathParameters['code']),
       ),
       ShellRoute(
+        observers: [_KeyboardDismissNavigatorObserver()],
         builder: (context, state, child) {
           return DarJarShell(location: state.uri.path, child: child);
         },
@@ -386,6 +388,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   });
   return router;
 });
+
+class _KeyboardDismissNavigatorObserver extends NavigatorObserver {
+  void _dismissKeyboard() => FocusManager.instance.primaryFocus?.unfocus();
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _dismissKeyboard();
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _dismissKeyboard();
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    _dismissKeyboard();
+  }
+}
 
 class _AuthRefreshListenable extends ChangeNotifier {
   _AuthRefreshListenable(this.user);

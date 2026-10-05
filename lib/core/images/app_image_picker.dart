@@ -1,5 +1,6 @@
 import 'package:darjar/core/images/app_image_processing.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AppImageSelection {
@@ -27,6 +28,9 @@ class AppPickedImage {
 }
 
 Future<List<AppPickedImage>> pickAppImages({required int limit}) async {
+  // iOS keeps the active text input session alive while presenting the photo
+  // picker unless focus is explicitly cleared first.
+  FocusManager.instance.primaryFocus?.unfocus();
   final picker = ImagePicker();
   final List<XFile> files;
   if (limit == 1) {
