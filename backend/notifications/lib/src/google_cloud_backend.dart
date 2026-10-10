@@ -156,6 +156,28 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
     _expectSuccess(response, 'delete $path');
   }
 
+  Future<void> updateDocumentFields(
+    String path,
+    Map<String, Object?> fields,
+  ) async {
+    final uri = Uri.parse('$_documentsBase/$path').replace(
+      queryParameters: {
+        'updateMask.fieldPaths': fields.keys.toList(growable: false),
+      },
+    );
+    final response = await _client.patch(
+      uri,
+      headers: const {'content-type': 'application/json'},
+      body: jsonEncode({
+        'fields': {
+          for (final entry in fields.entries)
+            entry.key: _firestoreValue(entry.value),
+        },
+      }),
+    );
+    _expectSuccess(response, 'update $path');
+  }
+
   BackendDocument _decodeDocument(Map<String, Object?> raw) {
     final name = raw['name'] as String;
     final marker = '/documents/';

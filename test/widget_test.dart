@@ -80,6 +80,20 @@ void main() {
         'الاسم المحفوظ',
       );
     });
+
+    test('hides the name of a member who requested deletion', () {
+      expect(
+        currentCommunityAuthorName(
+          storedName: 'الاسم المحفوظ',
+          memberData: const {
+            'firstName': 'الاسم',
+            'lastName': 'القديم',
+            'status': 'deletionRequested',
+          },
+        ),
+        'حساب محذوف',
+      );
+    });
   });
 
   group('residence profile image synchronization', () {

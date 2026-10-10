@@ -198,6 +198,9 @@ String currentCommunityAuthorName({
   required String storedName,
   Map<String, dynamic>? memberData,
 }) {
+  if (memberData?['status'] == 'deletionRequested') {
+    return 'حساب محذوف';
+  }
   final currentName = memberData == null
       ? ''
       : '${memberData['firstName'] ?? ''} ${memberData['lastName'] ?? ''}'

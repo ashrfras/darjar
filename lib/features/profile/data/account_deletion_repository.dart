@@ -21,6 +21,7 @@ class FirestoreAccountDeletionRepository implements AccountDeletionRepository {
   FirestoreAccountDeletionRepository(this._firestore);
 
   final FirebaseFirestore _firestore;
+  static const deletedAccountName = 'حساب محذوف';
 
   @override
   Future<void> requestDeletion({
@@ -28,6 +29,10 @@ class FirestoreAccountDeletionRepository implements AccountDeletionRepository {
     required List<String> residenceIds,
   }) async {
     try {
+      for (final residenceId in residenceIds.toSet()) {
+        await _anonymizeCommunityContent(residenceId, user.uid);
+      }
+
       final batch = _firestore.batch();
       final requestedAt = FieldValue.serverTimestamp();
       final deletionDueAt = Timestamp.fromDate(
@@ -62,6 +67,53 @@ class FirestoreAccountDeletionRepository implements AccountDeletionRepository {
     } catch (error) {
       throw AccountDeletionFailure('unknown', error.toString());
     }
+  }
+
+  Future<void> _anonymizeCommunityContent(
+    String residenceId,
+    String userId,
+  ) async {
+    final posts = await _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('communityPosts')
+        .get();
+    var batch = _firestore.batch();
+    var pendingWrites = 0;
+
+    Future<void> flush() async {
+      if (pendingWrites == 0) return;
+      await batch.commit();
+      batch = _firestore.batch();
+      pendingWrites = 0;
+    }
+
+    for (final post in posts.docs) {
+      if (post.data()['authorId'] == userId) {
+        batch.update(post.reference, {
+          'authorId': '',
+          'authorName': deletedAccountName,
+          'authorUnit': '',
+          'authorRole': 'resident',
+          'isOfficial': false,
+        });
+        pendingWrites++;
+      }
+      final comments = await post.reference
+          .collection('comments')
+          .where('authorId', isEqualTo: userId)
+          .get();
+      for (final comment in comments.docs) {
+        batch.update(comment.reference, {
+          'authorId': '',
+          'authorName': deletedAccountName,
+        });
+        pendingWrites++;
+        if (pendingWrites >= 400) await flush();
+      }
+      if (pendingWrites >= 400) await flush();
+    }
+    await flush();
   }
 }
 

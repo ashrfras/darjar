@@ -698,6 +698,10 @@ service cloud.firestore {
 
       match /invitations/{invitationId} {
         allow read: if canManageResidence(residenceId);
+        // A resident checks this document by phone number even when no
+        // invitation exists, before joining with a residence code.
+        allow get: if verifiedPhone()
+          && invitationId == request.auth.token.phone_number;
 
         allow create: if canManageResidence(residenceId)
           && request.resource.data.keys().hasOnly([
@@ -1398,6 +1402,21 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time;
 
         allow update: if isResidenceMember(residenceId)
+          && resource.data.authorId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'authorId',
+            'authorName',
+            'authorUnit',
+            'authorRole',
+            'isOfficial'
+          ])
+          && request.resource.data.authorId == ''
+          && request.resource.data.authorName == 'حساب محذوف'
+          && request.resource.data.authorUnit == ''
+          && request.resource.data.authorRole == 'resident'
+          && request.resource.data.isOfficial == false;
+
+        allow update: if isResidenceMember(residenceId)
           && resource.data.kind == 'poll'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'pollVotes',
@@ -1426,7 +1445,14 @@ service cloud.firestore {
             && request.resource.data.body.size() > 0
             && request.resource.data.body.size() <= 1000
             && request.resource.data.createdAt == request.time;
-          allow update: if false;
+          allow update: if isResidenceMember(residenceId)
+            && resource.data.authorId == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'authorId',
+              'authorName'
+            ])
+            && request.resource.data.authorId == ''
+            && request.resource.data.authorName == 'حساب محذوف';
           allow delete: if isResidenceMember(residenceId)
             && (
               resource.data.authorId == request.auth.uid
