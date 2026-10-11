@@ -737,6 +737,8 @@ void main() {
       expect(abbreviatedPersonName('أشرف راس'), 'أشرف ر.');
       expect(abbreviatedPersonName('كريم المنيعي'), 'كريم م.');
       expect(abbreviatedPersonName('أحمد'), 'أحمد');
+      expect(abbreviatedPersonName('حساب محذوف'), 'حساب محذوف');
+      expect(abbreviatedPersonName('حساب محفوظ'), 'حساب م.');
     });
 
     test(
@@ -3424,6 +3426,55 @@ void main() {
       find.byKey(const ValueKey('community-post-question-plumber')),
       findsNothing,
     );
+  });
+
+  testWidgets('resident reports a post from its menu', (tester) async {
+    final community = MockCommunityRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(1280, 900),
+      communityRepository: community,
+      residenceContext: const ResidenceContext(
+        residences: [
+          UserResidence(
+            id: 'test-residence',
+            name: 'إقامة الاختبار',
+            address: 'شارع الاختبار',
+            city: '6141010',
+            role: 'resident',
+            apartmentId: '',
+          ),
+        ],
+        activeResidenceId: 'test-residence',
+      ),
+    );
+    await _enterResidence(tester);
+
+    final menu = find.byKey(const ValueKey('post-menu-announcement-elevator'));
+    await tester.ensureVisible(menu);
+    await tester.tap(menu);
+    await tester.pumpAndSettle();
+    expect(find.text('حذف المنشور'), findsNothing);
+    await tester.tap(find.text('الإبلاغ عن المنشور'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('send-post-report')), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(find.byKey(const Key('send-post-report')))
+          .onPressed,
+      isNull,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('report-reason-spam')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('send-post-report')));
+    await tester.pumpAndSettle();
+
+    expect(
+      community.reports['test-residence/announcement-elevator/test-user'],
+      CommunityReportReason.spam,
+    );
+    expect(find.text('تم إرسال البلاغ.'), findsOneWidget);
   });
 
   testWidgets('president can archive another resident community post', (

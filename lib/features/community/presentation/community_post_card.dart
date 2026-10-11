@@ -55,6 +55,7 @@ class CommunityPostCard extends ConsumerWidget {
     required this.onLike,
     required this.onSave,
     required this.onVote,
+    required this.onReport,
     this.onArchive,
     this.expanded = false,
     super.key,
@@ -65,6 +66,7 @@ class CommunityPostCard extends ConsumerWidget {
   final VoidCallback onLike;
   final VoidCallback onSave;
   final ValueChanged<String> onVote;
+  final Future<void> Function(CommunityReportReason) onReport;
   final VoidCallback? onArchive;
   final bool expanded;
 
@@ -94,6 +96,7 @@ class CommunityPostCard extends ConsumerWidget {
                   post: post,
                   apartmentLabel: apartmentLabel,
                   onArchive: onArchive,
+                  onReport: onReport,
                 ),
                 const SizedBox(height: AppSpacing.medium),
                 _KindLabel(post: post),
@@ -168,11 +171,13 @@ class _PostHeader extends StatelessWidget {
     required this.post,
     required this.apartmentLabel,
     required this.onArchive,
+    required this.onReport,
   });
 
   final CommunityPost post;
   final String? apartmentLabel;
   final VoidCallback? onArchive;
+  final Future<void> Function(CommunityReportReason) onReport;
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +277,7 @@ class _PostHeader extends StatelessWidget {
             ],
           ),
         ),
-        if (!post.isSystem && onArchive != null)
+        if (!post.isSystem)
           PopupMenuButton<String>(
             key: ValueKey('post-menu-${post.id}'),
             tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
@@ -285,18 +290,32 @@ class _PostHeader extends StatelessWidget {
             ),
             onSelected: (value) {
               if (value == 'archive') _confirmArchive(context);
+              if (value == 'report') _showReportDialog(context);
             },
             itemBuilder: (context) => [
               PopupMenuItem(
-                value: 'archive',
+                value: 'report',
                 child: Row(
                   children: [
-                    const Icon(Icons.delete_outline_rounded),
+                    const Icon(Icons.flag_outlined),
                     const SizedBox(width: AppSpacing.small),
-                    Text(AppLocalizations.of(context).deletePost),
+                    Flexible(
+                      child: Text(AppLocalizations.of(context).reportPost),
+                    ),
                   ],
                 ),
               ),
+              if (onArchive != null)
+                PopupMenuItem(
+                  value: 'archive',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.delete_outline_rounded),
+                      const SizedBox(width: AppSpacing.small),
+                      Text(AppLocalizations.of(context).deletePost),
+                    ],
+                  ),
+                ),
             ],
             icon: const Icon(Icons.more_horiz_rounded),
           ),
@@ -324,6 +343,85 @@ class _PostHeader extends StatelessWidget {
       ),
     );
     if (confirmed == true) onArchive?.call();
+  }
+
+  Future<void> _showReportDialog(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final localizations = AppLocalizations.of(context);
+    CommunityReportReason? selected;
+    var submitting = false;
+    final sent = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Text(localizations.reportPostTitle),
+          content: SingleChildScrollView(
+            child: RadioGroup<CommunityReportReason>(
+              groupValue: selected,
+              onChanged: (value) {
+                if (!submitting) setDialogState(() => selected = value);
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final reason in CommunityReportReason.values)
+                    RadioListTile<CommunityReportReason>(
+                      key: ValueKey('report-reason-${reason.name}'),
+                      title: Text(switch (reason) {
+                        CommunityReportReason.spam =>
+                          localizations.reportReasonSpam,
+                        CommunityReportReason.harassment =>
+                          localizations.reportReasonHarassment,
+                        CommunityReportReason.inappropriate =>
+                          localizations.reportReasonInappropriate,
+                        CommunityReportReason.privacy =>
+                          localizations.reportReasonPrivacy,
+                        CommunityReportReason.other =>
+                          localizations.reportReasonOther,
+                      }),
+                      value: reason,
+                      enabled: !submitting,
+                    ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: submitting
+                  ? null
+                  : () => Navigator.of(dialogContext).pop(false),
+              child: Text(localizations.cancel),
+            ),
+            FilledButton(
+              key: const Key('send-post-report'),
+              onPressed: selected == null || submitting
+                  ? null
+                  : () async {
+                      setDialogState(() => submitting = true);
+                      try {
+                        await onReport(selected!);
+                        if (dialogContext.mounted) {
+                          Navigator.of(dialogContext).pop(true);
+                        }
+                      } catch (_) {
+                        if (dialogContext.mounted) {
+                          setDialogState(() => submitting = false);
+                          messenger.showSnackBar(
+                            SnackBar(content: Text(localizations.reportFailed)),
+                          );
+                        }
+                      }
+                    },
+              child: Text(localizations.sendReport),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (sent == true) {
+      messenger.showSnackBar(SnackBar(content: Text(localizations.reportSent)));
+    }
   }
 }
 

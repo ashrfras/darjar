@@ -1048,6 +1048,66 @@ abstract class AppLocalizations {
   /// **'هل تريد حذف هذا المنشور؟ لن يعود ظاهراً لسكان الإقامة.'**
   String get deletePostConfirmation;
 
+  /// No description provided for @reportPost.
+  ///
+  /// In ar, this message translates to:
+  /// **'الإبلاغ عن المنشور'**
+  String get reportPost;
+
+  /// No description provided for @reportPostTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'سبب الإبلاغ'**
+  String get reportPostTitle;
+
+  /// No description provided for @reportReasonSpam.
+  ///
+  /// In ar, this message translates to:
+  /// **'محتوى مزعج أو متكرر'**
+  String get reportReasonSpam;
+
+  /// No description provided for @reportReasonHarassment.
+  ///
+  /// In ar, this message translates to:
+  /// **'مضايقة أو إساءة'**
+  String get reportReasonHarassment;
+
+  /// No description provided for @reportReasonInappropriate.
+  ///
+  /// In ar, this message translates to:
+  /// **'محتوى غير لائق'**
+  String get reportReasonInappropriate;
+
+  /// No description provided for @reportReasonPrivacy.
+  ///
+  /// In ar, this message translates to:
+  /// **'انتهاك الخصوصية'**
+  String get reportReasonPrivacy;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In ar, this message translates to:
+  /// **'سبب آخر'**
+  String get reportReasonOther;
+
+  /// No description provided for @sendReport.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرسال البلاغ'**
+  String get sendReport;
+
+  /// No description provided for @reportSent.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إرسال البلاغ.'**
+  String get reportSent;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر إرسال البلاغ. حاول مرة أخرى.'**
+  String get reportFailed;
+
   /// No description provided for @communityApartmentLabel.
   ///
   /// In ar, this message translates to:

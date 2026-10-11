@@ -1,4 +1,6 @@
 String abbreviatedPersonName(String fullName) {
+  if (fullName.trim() == 'حساب محذوف') return 'حساب محذوف';
+
   final parts = fullName
       .trim()
       .split(RegExp(r'\s+'))

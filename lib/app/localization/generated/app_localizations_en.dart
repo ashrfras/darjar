@@ -520,6 +520,36 @@ class AppLocalizationsEn extends AppLocalizations {
       'Delete this post? It will no longer be visible to residents.';
 
   @override
+  String get reportPost => 'Report post';
+
+  @override
+  String get reportPostTitle => 'Reason for reporting';
+
+  @override
+  String get reportReasonSpam => 'Spam or repeated content';
+
+  @override
+  String get reportReasonHarassment => 'Harassment or abuse';
+
+  @override
+  String get reportReasonInappropriate => 'Inappropriate content';
+
+  @override
+  String get reportReasonPrivacy => 'Privacy violation';
+
+  @override
+  String get reportReasonOther => 'Other reason';
+
+  @override
+  String get sendReport => 'Send report';
+
+  @override
+  String get reportSent => 'Report sent.';
+
+  @override
+  String get reportFailed => 'Could not send the report. Try again.';
+
+  @override
   String communityApartmentLabel(String number) {
     return 'Apartment $number';
   }

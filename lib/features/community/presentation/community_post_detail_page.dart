@@ -113,6 +113,9 @@ class _CommunityPostDetailPageState
                           .read(communityActionsProvider)
                           .vote(post.id, optionId),
                     ),
+                    onReport: (reason) => ref
+                        .read(communityActionsProvider)
+                        .reportPost(post.id, reason),
                     onArchive: post.isCurrentUser || canManageResidence
                         ? () => _archivePost(post.id)
                         : null,

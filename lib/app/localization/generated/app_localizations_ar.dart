@@ -514,6 +514,36 @@ class AppLocalizationsAr extends AppLocalizations {
       'هل تريد حذف هذا المنشور؟ لن يعود ظاهراً لسكان الإقامة.';
 
   @override
+  String get reportPost => 'الإبلاغ عن المنشور';
+
+  @override
+  String get reportPostTitle => 'سبب الإبلاغ';
+
+  @override
+  String get reportReasonSpam => 'محتوى مزعج أو متكرر';
+
+  @override
+  String get reportReasonHarassment => 'مضايقة أو إساءة';
+
+  @override
+  String get reportReasonInappropriate => 'محتوى غير لائق';
+
+  @override
+  String get reportReasonPrivacy => 'انتهاك الخصوصية';
+
+  @override
+  String get reportReasonOther => 'سبب آخر';
+
+  @override
+  String get sendReport => 'إرسال البلاغ';
+
+  @override
+  String get reportSent => 'تم إرسال البلاغ.';
+
+  @override
+  String get reportFailed => 'تعذّر إرسال البلاغ. حاول مرة أخرى.';
+
+  @override
   String communityApartmentLabel(String number) {
     return 'شقة $number';
   }

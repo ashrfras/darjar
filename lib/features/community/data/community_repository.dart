@@ -56,6 +56,8 @@ enum CommunityPostKind {
   event,
 }
 
+enum CommunityReportReason { spam, harassment, inappropriate, privacy, other }
+
 class CommunityComment {
   const CommunityComment({
     required this.id,
@@ -264,12 +266,20 @@ abstract interface class CommunityRepository {
     required String postId,
   });
 
+  Future<void> reportPost({
+    required String residenceId,
+    required String userId,
+    required String postId,
+    required CommunityReportReason reason,
+  });
+
   Future<Uint8List> downloadImage(String storagePath);
 }
 
 class MockCommunityRepository implements CommunityRepository {
   final _changes = StreamController<List<CommunityPost>>.broadcast();
   Completer<void>? createBarrier;
+  final Map<String, CommunityReportReason> reports = {};
 
   final List<CommunityPost> _posts = [
     CommunityPost(
@@ -566,6 +576,17 @@ class MockCommunityRepository implements CommunityRepository {
   }) async {
     _posts.removeWhere((post) => post.id == postId);
     _notify();
+  }
+
+  @override
+  Future<void> reportPost({
+    String residenceId = 'mock-residence',
+    String userId = 'mock-user',
+    required String postId,
+    required CommunityReportReason reason,
+  }) async {
+    if (getPost(postId) == null) throw const CommunityFailure('post-not-found');
+    reports['$residenceId/$postId/$userId'] = reason;
   }
 
   void _update(String id, CommunityPost Function(CommunityPost) update) {
@@ -895,6 +916,38 @@ class FirebaseCommunityRepository implements CommunityRepository {
         'archivedAt': FieldValue.serverTimestamp(),
         'archivedBy': userId,
         'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      throw _failure(error);
+    }
+  }
+
+  @override
+  Future<void> reportPost({
+    required String residenceId,
+    required String userId,
+    required String postId,
+    required CommunityReportReason reason,
+  }) async {
+    try {
+      final report = _posts(
+        residenceId,
+      ).doc(postId).collection('reports').doc(userId);
+      await _firestore.runTransaction((transaction) async {
+        final existing = await transaction.get(report);
+        if (existing.exists) {
+          transaction.update(report, {
+            'reason': reason.name,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        } else {
+          transaction.set(report, {
+            'reporterId': userId,
+            'reason': reason.name,
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
       });
     } catch (error) {
       throw _failure(error);
@@ -1238,6 +1291,18 @@ class CommunityActions {
         .archivePost(residenceId: residenceId, userId: userId, postId: postId);
     _ref.invalidate(communityPostsProvider);
     _ref.invalidate(communityPostProvider(postId));
+  }
+
+  Future<void> reportPost(String postId, CommunityReportReason reason) async {
+    final (residenceId, userId) = await _scope();
+    await _ref
+        .read(communityRepositoryProvider)
+        .reportPost(
+          residenceId: residenceId,
+          userId: userId,
+          postId: postId,
+          reason: reason,
+        );
   }
 }
 

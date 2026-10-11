@@ -521,6 +521,36 @@ class AppLocalizationsZgh extends AppLocalizations {
       'ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⴻⴽⴽⵙⴻⴹ ⴰⴹⵔⵉⵙⴰ? ⵓⵔ ⴷⵢⴻⵜⵜⴱⴰⵏ ⴰⵔⴰ ⵉ ⵉⵎⴻⵣⴷⴰⵖ.';
 
   @override
+  String get reportPost => 'ⵙⵙⵉⵡⴻⴹ ⵅⴻⴼ ⵓⴹⵔⵉⵙ';
+
+  @override
+  String get reportPostTitle => 'ⵙⵙⴻⴱⴱⴰ ⵏ ⵓⵙⵉⵡⴻⴹ';
+
+  @override
+  String get reportReasonSpam => 'ⴰⴹⵔⵉⵙ ⵉⵜⵜⵓⵍⴰⵙⴻⵏ';
+
+  @override
+  String get reportReasonHarassment => 'ⴰⵙⵃⵉⵙⵙⴻⴼ ⵏⴻⵖ ⴰⵙⴻⵃⵇⴻⵔ';
+
+  @override
+  String get reportReasonInappropriate => 'ⴰⴹⵔⵉⵙ ⵓⵔ ⵉⵍⴰⵇⴻⵏ ⴰⵔⴰ';
+
+  @override
+  String get reportReasonPrivacy => 'ⴰⵙⴻⵅⵙⴻⵔ ⵏ ⵜⴱⴰⴹⵏⵉⵜ';
+
+  @override
+  String get reportReasonOther => 'ⵙⵙⴻⴱⴱⴰ ⵏⵏⵉⴹⴻⵏ';
+
+  @override
+  String get sendReport => 'ⴰⵣⴻⵏ ⴰⵙⵉⵡⴻⴹ';
+
+  @override
+  String get reportSent => 'ⵉⵜⵜⵡⴰⵣⴻⵏ ⵓⵙⵉⵡⴻⴹ.';
+
+  @override
+  String get reportFailed => 'ⵓⵔ ⵉⵜⵜⵡⴰⵣⴻⵏ ⴰⵔⴰ ⵓⵙⵉⵡⴻⴹ. ⵄⵔⴻⴹ ⴷⴰⵖⴻⵏ.';
+
+  @override
   String communityApartmentLabel(String number) {
     return 'ⴰⵅⵅⴰⵎ $number';
   }
