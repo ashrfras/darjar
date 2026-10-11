@@ -6,6 +6,7 @@ import 'package:darjar/core/images/app_image_processing.dart';
 import 'package:darjar/core/performance/data_load_timer.dart';
 import 'package:darjar/core/providers/provider_cache.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
+import 'package:darjar/features/community/domain/approximate_feed_age.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/documents/data/residence_documents_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
@@ -1109,6 +1110,11 @@ class FirebaseCommunityRepository implements CommunityRepository {
     if (difference.inHours < 1) return 'منذ ${difference.inMinutes} دقيقة';
     if (difference.inDays < 1) return 'منذ ${difference.inHours} ساعة';
     if (difference.inDays == 1) return 'أمس';
+    final approximate = approximateFeedAge(
+      difference.inDays,
+      languageCode: 'ar',
+    );
+    if (approximate != null) return approximate;
     return 'منذ ${difference.inDays} أيام';
   }
 

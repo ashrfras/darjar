@@ -6,6 +6,7 @@ import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
+import 'package:darjar/features/community/domain/approximate_feed_age.dart';
 import 'package:darjar/features/community/domain/feed_item.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -705,6 +706,11 @@ String _timeLabel(DateTime? value, {required bool arabic}) {
   if (elapsed.inHours < 24) {
     return arabic ? 'منذ ${elapsed.inHours} س' : '${elapsed.inHours} h ago';
   }
+  final approximate = approximateFeedAge(
+    elapsed.inDays,
+    languageCode: arabic ? 'ar' : 'en',
+  );
+  if (approximate != null) return approximate;
   return arabic ? 'منذ ${elapsed.inDays} يوم' : '${elapsed.inDays} d ago';
 }
 
@@ -718,5 +724,7 @@ String _timeLabelZgh(DateTime? value) {
   if (elapsed.inHours < 24) {
     return 'ⵙⴻⴳ ${elapsed.inHours} ⵏ ⵜⵙⵔⴰⴳⵉⵏ';
   }
+  final approximate = approximateFeedAge(elapsed.inDays, languageCode: 'zgh');
+  if (approximate != null) return approximate;
   return 'ⵙⴻⴳ ${elapsed.inDays} ⵏ ⵡⵓⵙⵙⴰⵏ';
 }
