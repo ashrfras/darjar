@@ -44,7 +44,7 @@ class ResidenceDocumentRow extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 color: document.isPdf
-                    ? const Color(0xFFFFF0EE)
+                    ? AppColors.dangerSoft
                     : AppColors.residenceSoft,
                 borderRadius: BorderRadius.circular(8),
               ),

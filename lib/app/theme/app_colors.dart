@@ -27,6 +27,18 @@ abstract final class AppColors {
   static Color get warningSoft =>
       _isDark ? const Color(0xFF3D291B) : const Color(0xFFFFF1E5);
   static const danger = Color(0xFFE5484D);
+  static Color get dangerSoft =>
+      _isDark ? const Color(0xFF3D2225) : const Color(0xFFFFF0EE);
+  static Color get finance =>
+      _isDark ? const Color(0xFFC4B5FD) : const Color(0xFF7657D6);
+  static Color get financeSoft =>
+      _isDark ? const Color(0xFF302744) : const Color(0xFFF0ECFF);
+  static Color get collection =>
+      _isDark ? const Color(0xFF93C5FD) : const Color(0xFF367DDB);
+  static Color get collectionSoft =>
+      _isDark ? const Color(0xFF1E3048) : const Color(0xFFEAF2FF);
+  static Color get administrationSoft =>
+      _isDark ? const Color(0xFF292F2C) : const Color(0xFFF1F2F4);
   static Color get canvas =>
       _isDark ? const Color(0xFF0E1110) : const Color(0xFFF8F6F2);
   static Color get surface =>

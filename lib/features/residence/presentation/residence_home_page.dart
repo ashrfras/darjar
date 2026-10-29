@@ -568,8 +568,8 @@ class _ResidenceFinancesCard extends StatelessWidget {
     return _DashboardCard(
       title: localizations.residenceFinances,
       icon: Icons.account_balance_outlined,
-      iconColor: const Color(0xFF7657D6),
-      iconBackground: const Color(0xFFF0ECFF),
+      iconColor: AppColors.finance,
+      iconBackground: AppColors.financeSoft,
       footerLabel: localizations.viewFinanceDetails,
       onTap: () => context.push(AppRoutes.residenceFinances),
       child: LayoutBuilder(
@@ -596,7 +596,7 @@ class _ResidenceFinancesCard extends StatelessWidget {
               value: data == null
                   ? '—'
                   : '${_formatAmount(context, data.currentBalance)} ${localizations.currency}',
-              color: const Color(0xFF7657D6),
+              color: AppColors.finance,
               icon: Icons.account_balance_wallet_outlined,
             ),
             _FinanceOverviewMetric(
@@ -604,7 +604,7 @@ class _ResidenceFinancesCard extends StatelessWidget {
               value: data == null
                   ? '—'
                   : _formatPercentage(data.collectionRate),
-              color: const Color(0xFF367DDB),
+              color: AppColors.collection,
               icon: Icons.donut_large_rounded,
             ),
           ];
@@ -732,7 +732,7 @@ class _DocumentsCard extends StatelessWidget {
                         height: 32,
                         decoration: BoxDecoration(
                           color: document.isPdf
-                              ? const Color(0xFFFFF0EE)
+                              ? AppColors.dangerSoft
                               : AppColors.residenceSoft,
                           borderRadius: BorderRadius.circular(6),
                         ),
@@ -876,7 +876,7 @@ class _ResidenceInfoCard extends StatelessWidget {
       title: AppLocalizations.of(context).managementInformation,
       icon: Icons.apartment_outlined,
       iconColor: AppColors.inkMuted,
-      iconBackground: const Color(0xFFF1F2F4),
+      iconBackground: AppColors.administrationSoft,
       footerLabel: 'عرض التفاصيل',
       onTap: () => context.push(AppRoutes.management),
       child: IntrinsicHeight(

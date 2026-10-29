@@ -143,16 +143,16 @@ class _Summary extends StatelessWidget {
         value:
             '${_amount(context, finances.currentBalance)} ${localizations.currency}',
         icon: Icons.account_balance_wallet_outlined,
-        color: const Color(0xFF7657D6),
-        background: const Color(0xFFF0ECFF),
+        color: AppColors.finance,
+        background: AppColors.financeSoft,
       ),
       _SummaryCard(
         key: const Key('finance-collection-rate'),
         label: localizations.collectionRate,
         value: '${(finances.collectionRate * 100).round()}%',
         icon: Icons.donut_large_rounded,
-        color: const Color(0xFF367DDB),
-        background: const Color(0xFFEAF2FF),
+        color: AppColors.collection,
+        background: AppColors.collectionSoft,
       ),
     ];
 
@@ -593,8 +593,8 @@ IconData _categoryIcon(ResidenceExpenseCategory category) {
 
 Color _categoryColor(ResidenceExpenseCategory category) {
   return switch (category) {
-    ResidenceExpenseCategory.maintenance => const Color(0xFF7657D6),
-    ResidenceExpenseCategory.utilities => const Color(0xFF367DDB),
+    ResidenceExpenseCategory.maintenance => AppColors.finance,
+    ResidenceExpenseCategory.utilities => AppColors.collection,
     ResidenceExpenseCategory.cleaning => AppColors.residence,
     ResidenceExpenseCategory.security => AppColors.warning,
     ResidenceExpenseCategory.custom => AppColors.inkMuted,
