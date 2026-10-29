@@ -90,6 +90,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
               onSelected: (filter) => setState(() => _filter = filter),
               compact: compact,
               textDirection: Directionality.of(context),
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             ),
           ),
           SliverPadding(
@@ -375,12 +376,14 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.onSelected,
     required this.compact,
     required this.textDirection,
+    required this.backgroundColor,
   });
 
   final CommunityFeedFilter selected;
   final ValueChanged<CommunityFeedFilter> onSelected;
   final bool compact;
   final TextDirection textDirection;
+  final Color backgroundColor;
 
   @override
   double get minExtent => 55;
@@ -397,7 +400,7 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
     return Directionality(
       textDirection: textDirection,
       child: Container(
-        color: AppColors.canvas,
+        color: backgroundColor,
         padding: const EdgeInsets.only(top: 12, bottom: 5),
         child: Center(
           child: ConstrainedBox(
@@ -431,7 +434,8 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(covariant _FilterHeaderDelegate oldDelegate) {
     return oldDelegate.selected != selected ||
         oldDelegate.compact != compact ||
-        oldDelegate.textDirection != textDirection;
+        oldDelegate.textDirection != textDirection ||
+        oldDelegate.backgroundColor != backgroundColor;
   }
 }
 

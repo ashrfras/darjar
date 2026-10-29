@@ -2648,6 +2648,53 @@ void main() {
     expect(tester.getTopLeft(filter).dy - appBarBottom, 12);
   });
 
+  for (final width in [390.0, 1000.0, 1440.0]) {
+    testWidgets('feed header refreshes after appearance changes at $width', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({'app_theme_mode': 'light'});
+      addTearDown(() => AppColors.configure(ThemeMode.system));
+      await _pumpApp(
+        tester,
+        size: Size(width, 900),
+        initialLocation: AppRoutes.community,
+        mockStorageImages: true,
+      );
+
+      void expectHeaderColor(Color expected) {
+        final header = find
+            .ancestor(
+              of: find.byKey(const Key('community-filter-list')),
+              matching: find.byType(Container),
+            )
+            .first;
+        expect(tester.widget<Container>(header).color, expected);
+      }
+
+      expectHeaderColor(AppTheme.light.scaffoldBackgroundColor);
+      for (final mode in [ThemeMode.dark, ThemeMode.light]) {
+        await tester.tap(find.byKey(const Key('profile-button')));
+        await tester.pumpAndSettle();
+        final selector = find.byKey(const Key('theme-mode-selector'));
+        await tester.ensureVisible(selector);
+        await tester.tap(selector);
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.text(mode == ThemeMode.dark ? 'داكن' : 'فاتح').last,
+        );
+        await tester.pumpAndSettle();
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+        expectHeaderColor(
+          (mode == ThemeMode.dark ? AppTheme.dark : AppTheme.light)
+              .scaffoldBackgroundColor,
+        );
+      }
+    });
+  }
+
   testWidgets('header brand navigates back to the community', (tester) async {
     await _pumpApp(tester, size: const Size(390, 844));
     await _enterResidence(tester);
@@ -6704,6 +6751,7 @@ Future<void> _pumpApp(
   bool useBootstrap = false,
   DateTime? notificationNow,
   bool localhostAuthSimulation = false,
+  bool mockStorageImages = false,
   AuthRepository? authRepository,
   AccountOnboardingRepository? accountRepository,
   ResidenceSetupRepository? residenceSetupRepository,
@@ -6789,6 +6837,10 @@ Future<void> _pumpApp(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        if (mockStorageImages)
+          storageImageBytesProvider.overrideWith(
+            (ref, path) async => throw StateError('image-not-found'),
+          ),
         authRepositoryProvider.overrideWithValue(repository),
         localhostAuthSimulationProvider.overrideWithValue(
           localhostAuthSimulation,
