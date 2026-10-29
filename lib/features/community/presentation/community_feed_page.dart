@@ -10,6 +10,8 @@ import 'package:darjar/core/widgets/darjar_loading_skeleton.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/data/feed_repository.dart';
 import 'package:darjar/features/community/domain/feed_item.dart';
+import 'package:darjar/features/community/domain/feed_activity_group.dart';
+import 'package:darjar/features/community/presentation/collapsible_feed_group.dart';
 import 'package:darjar/features/community/presentation/community_post_card.dart';
 import 'package:darjar/features/community/presentation/residence_activity_card.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
@@ -68,7 +70,10 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
     });
     final compact = MediaQuery.sizeOf(context).width < 600;
     final wide = MediaQuery.sizeOf(context).width >= 1180;
-    final filtered = items.where(_matchesSelectedFilter).toList();
+    final filtered = groupOlderFeedActivities(
+      items,
+      now: DateTime.now(),
+    ).where((group) => _matchesSelectedFilter(group.first)).toList();
     _scheduleLoadMoreCheck(feedState);
 
     return Scaffold(
@@ -132,59 +137,64 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                 ),
                               )
                             else
-                              for (final item in filtered) ...[
-                                switch (item) {
-                                  PostFeedItem(:final post) =>
-                                    CommunityPostCard(
-                                      post: post,
-                                      onOpen: () => context.push(
-                                        AppRoutes.communityPost(post.id),
-                                      ),
-                                      onLike: () => _runAction(
-                                        () => ref
+                              for (final group in filtered) ...[
+                                CollapsibleFeedGroup(
+                                  key: ValueKey(group.first.id),
+                                  items: group,
+                                  itemBuilder: (item) => switch (item) {
+                                    PostFeedItem(:final post) =>
+                                      CommunityPostCard(
+                                        post: post,
+                                        onOpen: () => context.push(
+                                          AppRoutes.communityPost(post.id),
+                                        ),
+                                        onLike: () => _runAction(
+                                          () => ref
+                                              .read(communityActionsProvider)
+                                              .toggleLike(post.id),
+                                        ),
+                                        onSave: () => _runAction(
+                                          () => ref
+                                              .read(communityActionsProvider)
+                                              .toggleSaved(post.id),
+                                        ),
+                                        onVote: (optionId) => _runAction(
+                                          () => ref
+                                              .read(communityActionsProvider)
+                                              .vote(post.id, optionId),
+                                        ),
+                                        onReport: (reason) => ref
                                             .read(communityActionsProvider)
-                                            .toggleLike(post.id),
+                                            .reportPost(post.id, reason),
+                                        onArchive:
+                                            post.isCurrentUser ||
+                                                canManageResidence
+                                            ? () => _runAction(
+                                                () => ref
+                                                    .read(
+                                                      communityActionsProvider,
+                                                    )
+                                                    .archivePost(post.id),
+                                              )
+                                            : null,
                                       ),
-                                      onSave: () => _runAction(
-                                        () => ref
-                                            .read(communityActionsProvider)
-                                            .toggleSaved(post.id),
+                                    ResidenceActivity() =>
+                                      ResidenceActivityCard(
+                                        activity: item,
+                                        onLongPress: canManageResidence
+                                            ? () => _confirmDeleteActivity(item)
+                                            : null,
+                                        onLike: () => _runAction(
+                                          () => ref
+                                              .read(feedActivityActionsProvider)
+                                              .toggleLike(item.id),
+                                        ),
+                                        onOpen: item.reference == null
+                                            ? null
+                                            : () => _openActivity(item),
                                       ),
-                                      onVote: (optionId) => _runAction(
-                                        () => ref
-                                            .read(communityActionsProvider)
-                                            .vote(post.id, optionId),
-                                      ),
-                                      onReport: (reason) => ref
-                                          .read(communityActionsProvider)
-                                          .reportPost(post.id, reason),
-                                      onArchive:
-                                          post.isCurrentUser ||
-                                              canManageResidence
-                                          ? () => _runAction(
-                                              () => ref
-                                                  .read(
-                                                    communityActionsProvider,
-                                                  )
-                                                  .archivePost(post.id),
-                                            )
-                                          : null,
-                                    ),
-                                  ResidenceActivity() => ResidenceActivityCard(
-                                    activity: item,
-                                    onLongPress: canManageResidence
-                                        ? () => _confirmDeleteActivity(item)
-                                        : null,
-                                    onLike: () => _runAction(
-                                      () => ref
-                                          .read(feedActivityActionsProvider)
-                                          .toggleLike(item.id),
-                                    ),
-                                    onOpen: item.reference == null
-                                        ? null
-                                        : () => _openActivity(item),
-                                  ),
-                                },
+                                  },
+                                ),
                                 const SizedBox(height: AppSpacing.medium),
                               ],
                             if ((postsState.isLoading ||

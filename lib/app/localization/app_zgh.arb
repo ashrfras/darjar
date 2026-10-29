@@ -1013,5 +1013,7 @@
   "duesExemptError": "تعذر إتمام الإعفاء. حدّث البيانات وحاول مجددًا.",
   "duesNoOutstandingPeriods": "لا توجد أشهر مستحقة",
   "deleteFeedActivityTitle": "ⴽⴽⵙ ⴰⵎⵙⴰⵔ؟",
-  "deleteFeedActivityConfirmation": "ⴰⴷ ⵉⵜⵜⵡⴰⴽⴽⵙ ⵓⵎⵙⴰⵔ ⴰⴷ ⵙⴳ ⵓⵙⵓⴷⴷⵉⵙ ⵏ ⵎⴰⵕⵕⴰ ⵉⵎⵣⴷⴰⵖ. ⵓⵔ ⵜⵜⵡⴰⴽⴽⵙⵏ ⵉⴷⵔⵉⵎⵏ ⵏⵖ ⵜⴰⵡⵔⵉⵇⵜ ⵉⵇⵇⵏⵏ ⵖⵓⵔⵙ."
+  "deleteFeedActivityConfirmation": "ⴰⴷ ⵉⵜⵜⵡⴰⴽⴽⵙ ⵓⵎⵙⴰⵔ ⴰⴷ ⵙⴳ ⵓⵙⵓⴷⴷⵉⵙ ⵏ ⵎⴰⵕⵕⴰ ⵉⵎⵣⴷⴰⵖ. ⵓⵔ ⵜⵜⵡⴰⴽⴽⵙⵏ ⵉⴷⵔⵉⵎⵏ ⵏⵖ ⵜⴰⵡⵔⵉⵇⵜ ⵉⵇⵇⵏⵏ ⵖⵓⵔⵙ.",
+  "showSimilarActivities": "ⵙⴽⴻⵏ {count} ⵏ ⵓⵙⴰⵔⴻⵏ ⵉⵎⵢⴰⴳⴰⵏⴻⵏ",
+  "similarActivities": "ⵓⵙⴰⵔⴻⵏ ⵉⵎⵢⴰⴳⴰⵏⴻⵏ"
 }

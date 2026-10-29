@@ -2349,4 +2349,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get deleteFeedActivityConfirmation =>
       'سيتم حذف هذا الحدث من الموجز لدى جميع السكان. لن يتم حذف العملية أو الوثيقة المرتبطة به.';
+
+  @override
+  String showSimilarActivities(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض $count نشاطًا مشابهًا',
+      few: 'عرض $count أنشطة مشابهة',
+      two: 'عرض نشاطين مشابهين',
+      one: 'عرض 1 نشاط مشابه',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get similarActivities => 'أنشطة مشابهة';
 }

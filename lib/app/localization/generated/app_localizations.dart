@@ -4328,6 +4328,18 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'سيتم حذف هذا الحدث من الموجز لدى جميع السكان. لن يتم حذف العملية أو الوثيقة المرتبطة به.'**
   String get deleteFeedActivityConfirmation;
+
+  /// No description provided for @showSimilarActivities.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count, plural, =1{عرض 1 نشاط مشابه} =2{عرض نشاطين مشابهين} few{عرض {count} أنشطة مشابهة} other{عرض {count} نشاطًا مشابهًا}}'**
+  String showSimilarActivities(int count);
+
+  /// No description provided for @similarActivities.
+  ///
+  /// In ar, this message translates to:
+  /// **'أنشطة مشابهة'**
+  String get similarActivities;
 }
 
 class _AppLocalizationsDelegate

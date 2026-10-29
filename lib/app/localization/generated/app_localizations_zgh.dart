@@ -2385,4 +2385,12 @@ class AppLocalizationsZgh extends AppLocalizations {
   @override
   String get deleteFeedActivityConfirmation =>
       'ⴰⴷ ⵉⵜⵜⵡⴰⴽⴽⵙ ⵓⵎⵙⴰⵔ ⴰⴷ ⵙⴳ ⵓⵙⵓⴷⴷⵉⵙ ⵏ ⵎⴰⵕⵕⴰ ⵉⵎⵣⴷⴰⵖ. ⵓⵔ ⵜⵜⵡⴰⴽⴽⵙⵏ ⵉⴷⵔⵉⵎⵏ ⵏⵖ ⵜⴰⵡⵔⵉⵇⵜ ⵉⵇⵇⵏⵏ ⵖⵓⵔⵙ.';
+
+  @override
+  String showSimilarActivities(int count) {
+    return 'ⵙⴽⴻⵏ $count ⵏ ⵓⵙⴰⵔⴻⵏ ⵉⵎⵢⴰⴳⴰⵏⴻⵏ';
+  }
+
+  @override
+  String get similarActivities => 'ⵓⵙⴰⵔⴻⵏ ⵉⵎⵢⴰⴳⴰⵏⴻⵏ';
 }

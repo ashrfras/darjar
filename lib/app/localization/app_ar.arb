@@ -743,5 +743,14 @@
   "duesExemptError": "تعذر إتمام الإعفاء. حدّث البيانات وحاول مجددًا.",
   "duesNoOutstandingPeriods": "لا توجد أشهر مستحقة",
   "deleteFeedActivityTitle": "حذف الحدث؟",
-  "deleteFeedActivityConfirmation": "سيتم حذف هذا الحدث من الموجز لدى جميع السكان. لن يتم حذف العملية أو الوثيقة المرتبطة به."
+  "deleteFeedActivityConfirmation": "سيتم حذف هذا الحدث من الموجز لدى جميع السكان. لن يتم حذف العملية أو الوثيقة المرتبطة به.",
+  "showSimilarActivities": "{count, plural, =1{عرض 1 نشاط مشابه} =2{عرض نشاطين مشابهين} few{عرض {count} أنشطة مشابهة} other{عرض {count} نشاطًا مشابهًا}}",
+  "similarActivities": "أنشطة مشابهة",
+  "@showSimilarActivities": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

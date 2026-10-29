@@ -2393,4 +2393,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deleteFeedActivityConfirmation =>
       'This activity will be removed from the feed for all residents. The related transaction or document will not be deleted.';
+
+  @override
+  String showSimilarActivities(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count similar activities',
+      one: 'Show 1 similar activity',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get similarActivities => 'Similar activities';
 }
