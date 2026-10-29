@@ -1015,5 +1015,5 @@
   "deleteFeedActivityTitle": "ⴽⴽⵙ ⴰⵎⵙⴰⵔ؟",
   "deleteFeedActivityConfirmation": "ⴰⴷ ⵉⵜⵜⵡⴰⴽⴽⵙ ⵓⵎⵙⴰⵔ ⴰⴷ ⵙⴳ ⵓⵙⵓⴷⴷⵉⵙ ⵏ ⵎⴰⵕⵕⴰ ⵉⵎⵣⴷⴰⵖ. ⵓⵔ ⵜⵜⵡⴰⴽⴽⵙⵏ ⵉⴷⵔⵉⵎⵏ ⵏⵖ ⵜⴰⵡⵔⵉⵇⵜ ⵉⵇⵇⵏⵏ ⵖⵓⵔⵙ.",
   "showSimilarActivities": "ⵙⴽⴻⵏ {count} ⵏ ⵓⵙⴰⵔⴻⵏ ⵉⵎⵢⴰⴳⴰⵏⴻⵏ",
-  "similarActivities": "ⵓⵙⴰⵔⴻⵏ ⵉⵎⵢⴰⴳⴰⵏⴻⵏ"
+  "hideSimilarActivities": "ⴼⴼⴻⵔ ⵓⵙⴰⵔⴻⵏ ⵉⵎⵢⴰⴳⴰⵏⴻⵏ"
 }

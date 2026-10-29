@@ -2364,5 +2364,5 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get similarActivities => 'أنشطة مشابهة';
+  String get hideSimilarActivities => 'إخفاء الأنشطة المشابهة';
 }

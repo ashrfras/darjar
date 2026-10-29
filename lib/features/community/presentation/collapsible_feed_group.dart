@@ -34,11 +34,14 @@ class _CollapsibleFeedGroupState extends State<CollapsibleFeedGroup> {
             const SizedBox(height: AppSpacing.medium),
             widget.itemBuilder(item),
           ],
-        if (_expanded && canCollapse) ...[
+        if (canCollapse) ...[
           const SizedBox(height: AppSpacing.small),
           Container(
-            key: const Key('revealed-similar-activities'),
-            padding: const EdgeInsets.all(AppSpacing.small),
+            key: const Key('similar-activities-group'),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.small,
+              vertical: AppSpacing.xSmall,
+            ),
             decoration: BoxDecoration(
               color: AppColors.inkMuted.withValues(alpha: .035),
               border: Border.all(color: AppColors.outline),
@@ -47,39 +50,38 @@ class _CollapsibleFeedGroupState extends State<CollapsibleFeedGroup> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Semantics(
-                  header: true,
-                  child: Text(
-                    AppLocalizations.of(context).similarActivities,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.labelSmall?.copyWith(color: AppColors.inkMuted),
+                Align(
+                  alignment: Alignment.center,
+                  child: TextButton(
+                    onPressed: () => setState(() => _expanded = !_expanded),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.inkMuted,
+                      minimumSize: const Size(0, 32),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.small,
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      textStyle: Theme.of(context).textTheme.labelSmall
+                          ?.copyWith(fontWeight: FontWeight.w400),
+                    ),
+                    child: Text(
+                      _expanded
+                          ? AppLocalizations.of(context).hideSimilarActivities
+                          : AppLocalizations.of(
+                              context,
+                            ).showSimilarActivities(widget.items.length - 1),
+                    ),
                   ),
                 ),
-                for (final item in widget.items.skip(1)) ...[
-                  const SizedBox(height: AppSpacing.small),
-                  widget.itemBuilder(item),
-                ],
+                if (_expanded)
+                  for (final item in widget.items.skip(1)) ...[
+                    const SizedBox(height: AppSpacing.small),
+                    widget.itemBuilder(item),
+                  ],
               ],
             ),
           ),
         ],
-        if (!_expanded && canCollapse)
-          Align(
-            alignment: Alignment.center,
-            child: TextButton(
-              onPressed: () => setState(() => _expanded = true),
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelSmall,
-              ),
-              child: Text(
-                AppLocalizations.of(
-                  context,
-                ).showSimilarActivities(widget.items.length - 1),
-              ),
-            ),
-          ),
       ],
     );
   }

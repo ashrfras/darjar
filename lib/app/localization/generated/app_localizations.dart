@@ -4335,11 +4335,11 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{عرض 1 نشاط مشابه} =2{عرض نشاطين مشابهين} few{عرض {count} أنشطة مشابهة} other{عرض {count} نشاطًا مشابهًا}}'**
   String showSimilarActivities(int count);
 
-  /// No description provided for @similarActivities.
+  /// No description provided for @hideSimilarActivities.
   ///
   /// In ar, this message translates to:
-  /// **'أنشطة مشابهة'**
-  String get similarActivities;
+  /// **'إخفاء الأنشطة المشابهة'**
+  String get hideSimilarActivities;
 }
 
 class _AppLocalizationsDelegate

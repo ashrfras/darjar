@@ -104,64 +104,81 @@ void main() {
     },
   );
 
-  testWidgets(
-    'revealed events are marked and stay open until the page is recreated',
-    (tester) async {
-      final items = List.generate(7, (i) => _activity('expense-$i'));
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('ar'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: CollapsibleFeedGroup(
-              items: items,
-              itemBuilder: (item) => Text(item.id),
-            ),
+  testWidgets('show and hide controls share the activities frame', (
+    tester,
+  ) async {
+    final items = List.generate(7, (i) => _activity('expense-$i'));
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ar'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: CollapsibleFeedGroup(
+            items: items,
+            itemBuilder: (item) => Text(item.id),
           ),
         ),
-      );
+      ),
+    );
 
-      expect(find.text('expense-0'), findsOneWidget);
-      expect(find.text('expense-1'), findsNothing);
-      expect(find.text('عرض 6 أنشطة مشابهة'), findsOneWidget);
+    expect(find.text('expense-0'), findsOneWidget);
+    expect(find.text('expense-1'), findsNothing);
+    expect(find.text('عرض 6 أنشطة مشابهة'), findsOneWidget);
+    expect(
+      tester
+          .getCenter(find.widgetWithText(TextButton, 'عرض 6 أنشطة مشابهة'))
+          .dx,
+      tester.getCenter(find.byType(CollapsibleFeedGroup)).dx,
+    );
+    final frame = find.byKey(const Key('similar-activities-group'));
+    final container = tester.widget<Container>(frame);
+    expect(
+      find.descendant(of: frame, matching: find.text('عرض 6 أنشطة مشابهة')),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('عرض 6 أنشطة مشابهة'));
+    await tester.pump();
+    for (final item in items) {
+      expect(find.text(item.id), findsOneWidget);
+    }
+    final revealed = find.byKey(const Key('similar-activities-group'));
+    expect(find.text('إخفاء الأنشطة المشابهة'), findsOneWidget);
+    expect(find.text('عرض 6 أنشطة مشابهة'), findsNothing);
+    expect(
+      find.descendant(of: revealed, matching: find.text('expense-0')),
+      findsNothing,
+    );
+    for (final item in items.skip(1)) {
       expect(
-        tester
-            .getCenter(find.widgetWithText(TextButton, 'عرض 6 أنشطة مشابهة'))
-            .dx,
-        tester.getCenter(find.byType(CollapsibleFeedGroup)).dx,
+        find.descendant(of: revealed, matching: find.text(item.id)),
+        findsOneWidget,
       );
-      await tester.tap(find.text('عرض 6 أنشطة مشابهة'));
-      await tester.pump();
-      for (final item in items) {
-        expect(find.text(item.id), findsOneWidget);
-      }
-      final revealed = find.byKey(const Key('revealed-similar-activities'));
-      expect(find.text('أنشطة مشابهة'), findsOneWidget);
-      expect(find.text('عرض 6 أنشطة مشابهة'), findsNothing);
-      expect(find.text('إخفاء الأنشطة المشابهة'), findsNothing);
-      expect(
-        find.descendant(of: revealed, matching: find.text('expense-0')),
-        findsNothing,
-      );
-      for (final item in items.skip(1)) {
-        expect(
-          find.descendant(of: revealed, matching: find.text(item.id)),
-          findsOneWidget,
-        );
-      }
+    }
 
-      // Routine rebuilds preserve the reveal; recreating the page resets it.
-      tester.element(find.byType(CollapsibleFeedGroup)).markNeedsBuild();
-      await tester.pump();
-      expect(find.text('expense-1'), findsOneWidget);
-      final page = tester.widget<MaterialApp>(find.byType(MaterialApp));
-      await tester.pumpWidget(const SizedBox());
-      await tester.pumpWidget(page);
-      expect(find.text('expense-1'), findsNothing);
-      expect(find.text('عرض 6 أنشطة مشابهة'), findsOneWidget);
-    },
-  );
+    expect(tester.widget<Container>(frame).decoration, container.decoration);
+    expect(
+      find.descendant(of: frame, matching: find.text('إخفاء الأنشطة المشابهة')),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('إخفاء الأنشطة المشابهة'));
+    await tester.pump();
+    expect(find.text('expense-1'), findsNothing);
+    expect(find.text('expense-0'), findsOneWidget);
+    expect(find.text('عرض 6 أنشطة مشابهة'), findsOneWidget);
+    await tester.tap(find.text('عرض 6 أنشطة مشابهة'));
+    await tester.pump();
+
+    // Routine rebuilds preserve the reveal; recreating the page resets it.
+    tester.element(find.byType(CollapsibleFeedGroup)).markNeedsBuild();
+    await tester.pump();
+    expect(find.text('expense-1'), findsOneWidget);
+    final page = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(page);
+    expect(find.text('expense-1'), findsNothing);
+    expect(find.text('عرض 6 أنشطة مشابهة'), findsOneWidget);
+  });
 
   for (final count in [1, 2, 3]) {
     testWidgets('$count old events collapse only from three onwards', (
@@ -192,7 +209,7 @@ void main() {
           expect(find.text('due-$index'), findsOneWidget);
         }
         expect(find.byType(TextButton), findsNothing);
-        expect(find.text('أنشطة مشابهة'), findsNothing);
+        expect(find.byKey(const Key('similar-activities-group')), findsNothing);
       } else {
         expect(find.text('due-1'), findsNothing);
         expect(find.text('due-2'), findsNothing);
@@ -200,7 +217,7 @@ void main() {
         await tester.pump();
         expect(find.text('due-1'), findsOneWidget);
         expect(find.text('due-2'), findsOneWidget);
-        expect(find.text('أنشطة مشابهة'), findsOneWidget);
+        expect(find.text('إخفاء الأنشطة المشابهة'), findsOneWidget);
       }
     });
   }

@@ -2392,5 +2392,5 @@ class AppLocalizationsZgh extends AppLocalizations {
   }
 
   @override
-  String get similarActivities => 'ⵓⵙⴰⵔⴻⵏ ⵉⵎⵢⴰⴳⴰⵏⴻⵏ';
+  String get hideSimilarActivities => 'ⴼⴼⴻⵔ ⵓⵙⴰⵔⴻⵏ ⵉⵎⵢⴰⴳⴰⵏⴻⵏ';
 }

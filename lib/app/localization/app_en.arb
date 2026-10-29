@@ -745,5 +745,5 @@
   "deleteFeedActivityTitle": "Delete activity?",
   "deleteFeedActivityConfirmation": "This activity will be removed from the feed for all residents. The related transaction or document will not be deleted.",
   "showSimilarActivities": "{count, plural, =1{Show 1 similar activity} other{Show {count} similar activities}}",
-  "similarActivities": "Similar activities"
+  "hideSimilarActivities": "Hide similar activities"
 }

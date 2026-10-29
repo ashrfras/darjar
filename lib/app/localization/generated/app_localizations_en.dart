@@ -2406,5 +2406,5 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get similarActivities => 'Similar activities';
+  String get hideSimilarActivities => 'Hide similar activities';
 }
