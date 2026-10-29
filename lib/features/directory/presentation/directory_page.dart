@@ -241,7 +241,12 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
                     icon: Icons.near_me_outlined,
                   ),
                   const SizedBox(height: AppSpacing.medium),
-                  _EntryGrid(entries: otherServices),
+                  if (otherServices.isEmpty)
+                    _EmptySectionHint(
+                      message: localizations.otherServicesEmptyHint,
+                    )
+                  else
+                    _EntryGrid(entries: otherServices),
                 ],
                 if (_loadingMore) ...[
                   const SizedBox(height: AppSpacing.large),

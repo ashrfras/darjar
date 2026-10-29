@@ -758,6 +758,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exploreOtherServices => 'Explore other services';
 
   @override
+  String get otherServicesEmptyHint =>
+      'Additional services will appear here when available.';
+
+  @override
   String get viewAll => 'View all';
 
   @override

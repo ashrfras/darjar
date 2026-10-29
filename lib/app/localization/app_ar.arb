@@ -235,6 +235,7 @@
   "exploreNearby": "اكتشف ما حولك",
   "topRatedServices": "الخدمات الأعلى توصية",
   "exploreOtherServices": "استكشف خدمات أخرى",
+  "otherServicesEmptyHint": "ستظهر هنا خدمات إضافية حال توافرها.",
   "viewAll": "عرض الكل",
   "recommended": "موصى به",
   "recommendedFromResidence": "موصى به من سكان إقامة الياسمين",

@@ -235,6 +235,7 @@
   "exploreNearby": "Explore nearby",
   "topRatedServices": "Most recommended services",
   "exploreOtherServices": "Explore other services",
+  "otherServicesEmptyHint": "Additional services will appear here when available.",
   "viewAll": "View all",
   "recommended": "Recommended",
   "recommendedFromResidence": "Recommended by Yasmeen Residence residents",

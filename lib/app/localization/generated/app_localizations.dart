@@ -1486,6 +1486,12 @@ abstract class AppLocalizations {
   /// **'استكشف خدمات أخرى'**
   String get exploreOtherServices;
 
+  /// No description provided for @otherServicesEmptyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'ستظهر هنا خدمات إضافية حال توافرها.'**
+  String get otherServicesEmptyHint;
+
   /// No description provided for @viewAll.
   ///
   /// In ar, this message translates to:

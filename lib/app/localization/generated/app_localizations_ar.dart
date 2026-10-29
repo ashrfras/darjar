@@ -745,6 +745,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get exploreOtherServices => 'استكشف خدمات أخرى';
 
   @override
+  String get otherServicesEmptyHint => 'ستظهر هنا خدمات إضافية حال توافرها.';
+
+  @override
   String get viewAll => 'عرض الكل';
 
   @override

@@ -759,6 +759,9 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get exploreOtherServices => 'ⵏⴰⴷⵉ ⵉⵎⴻⵥⵍⴰ ⵏⵏⵉⴹⴻⵏ';
 
   @override
+  String get otherServicesEmptyHint => 'ⵉⵎⴻⵥⵍⴰ ⵏⵏⵉⴹⴻⵏ ⴰⴷ ⴷⴱⴰⵏⴻⵏ ⴷⴰⴳⵉ ⵎⵉ ⵡⵊⴷⴻⵏ.';
+
+  @override
   String get viewAll => 'ⵡⴰⵍⵉ ⴰⴽⴽ';
 
   @override
