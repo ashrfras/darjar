@@ -242,6 +242,23 @@ void main() {
   });
 
   group('public web routes', () {
+    testWidgets('install opens directly without authentication', (
+      tester,
+    ) async {
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: null,
+        platformInitialLocation: AppRoutes.install,
+        authRepository: _FakeAuthRepository(signedIn: false),
+      );
+
+      expect(find.byKey(const Key('install-app-page')), findsOneWidget);
+      expect(find.text('Google Play'), findsOneWidget);
+      expect(find.text('App Store'), findsOneWidget);
+      expect(find.byKey(const Key('phone-auth-page')), findsNothing);
+    });
+
     testWidgets('privacy opens directly without authentication', (
       tester,
     ) async {
@@ -2533,39 +2550,6 @@ void main() {
       closeTo(195, 1),
     );
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('Android Web start action hands off to the installed app', (
-    tester,
-  ) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    var appLaunchRequested = false;
-
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light,
-        locale: const Locale('ar'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: const [Locale('ar')],
-        home: OnboardingPage(
-          showWebLanding: true,
-          openAndroidApp: () async => appLaunchRequested = true,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(
-      find.descendant(
-        of: find.byKey(const Key('web-landing-header')),
-        matching: find.text('ابدأ الآن'),
-      ),
-    );
-    await tester.pump();
-
-    debugDefaultTargetPlatformOverride = null;
-    expect(appLaunchRequested, isTrue);
   });
 
   testWidgets('compact header keeps identity right and actions left', (

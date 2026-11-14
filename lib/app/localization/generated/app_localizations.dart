@@ -4340,6 +4340,24 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'إخفاء الأنشطة المشابهة'**
   String get hideSimilarActivities;
+
+  /// No description provided for @installAppTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'ثبّت تطبيق دارجار'**
+  String get installAppTitle;
+
+  /// No description provided for @installAppDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'حمّل دارجار على هاتفك وابدأ التواصل مع جيرانك ومتابعة شؤون إقامتك. اختر متجر جهازك من الروابط أدناه.'**
+  String get installAppDescription;
+
+  /// No description provided for @installOpenFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر فتح المتجر. يرجى المحاولة مرة أخرى.'**
+  String get installOpenFailed;
 }
 
 class _AppLocalizationsDelegate

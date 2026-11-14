@@ -11,6 +11,7 @@ import 'package:darjar/features/directory/presentation/create_service_page.dart'
 import 'package:darjar/features/documents/presentation/residence_documents_management_page.dart';
 import 'package:darjar/features/documents/presentation/residence_documents_page.dart';
 import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
+import 'package:darjar/features/onboarding/presentation/install_app_page.dart';
 import 'package:darjar/features/profile/presentation/profile_page.dart';
 import 'package:darjar/features/profile/presentation/privacy_policy_page.dart';
 import 'package:darjar/features/profile/presentation/about_app_page.dart';
@@ -43,6 +44,7 @@ abstract final class AppRoutes {
   static const auth = '/auth/phone';
   static const accountResolution = '/auth/resolve';
   static const onboarding = '/onboarding';
+  static const install = '/install';
   static const residenceSetup = '/residence/setup';
   static const joinResidence = '/join/:code';
   static const community = '/community';
@@ -154,6 +156,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isPublicRoute =
           location == AppRoutes.root ||
           location == AppRoutes.onboarding ||
+          location == AppRoutes.install ||
           location == AppRoutes.publicPrivacyPolicy ||
           location == AppRoutes.support ||
           location == AppRoutes.deleteAccount ||
@@ -228,6 +231,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.onboarding,
         builder: (context, state) => const OnboardingPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.install,
+        builder: (context, state) => const InstallAppPage(),
       ),
       GoRoute(
         path: AppRoutes.residenceSetup,

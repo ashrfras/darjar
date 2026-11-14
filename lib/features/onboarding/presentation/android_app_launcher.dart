@@ -1,8 +1,10 @@
 import 'package:url_launcher/url_launcher.dart';
+import 'package:darjar/features/onboarding/presentation/app_store_launcher.dart';
+
+export 'package:darjar/features/onboarding/presentation/app_store_launcher.dart'
+    show darjarGooglePlayUrl;
 
 const darjarAndroidPackageName = 'ma.raqmain.darjar';
-const darjarGooglePlayUrl =
-    'https://play.google.com/store/apps/details?id=$darjarAndroidPackageName';
 
 Uri get darjarAndroidIntentUri => Uri.parse(
   'intent://open#Intent;scheme=darjar;package=$darjarAndroidPackageName;'

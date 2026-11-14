@@ -2365,4 +2365,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get hideSimilarActivities => 'إخفاء الأنشطة المشابهة';
+
+  @override
+  String get installAppTitle => 'ثبّت تطبيق دارجار';
+
+  @override
+  String get installAppDescription =>
+      'حمّل دارجار على هاتفك وابدأ التواصل مع جيرانك ومتابعة شؤون إقامتك. اختر متجر جهازك من الروابط أدناه.';
+
+  @override
+  String get installOpenFailed => 'تعذّر فتح المتجر. يرجى المحاولة مرة أخرى.';
 }

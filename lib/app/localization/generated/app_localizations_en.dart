@@ -2407,4 +2407,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hideSimilarActivities => 'Hide similar activities';
+
+  @override
+  String get installAppTitle => 'Install DarJar';
+
+  @override
+  String get installAppDescription =>
+      'Download DarJar on your phone to connect with neighbors and follow residence matters. Choose your device’s store below.';
+
+  @override
+  String get installOpenFailed => 'Could not open the store. Please try again.';
 }

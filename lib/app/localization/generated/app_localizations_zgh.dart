@@ -2393,4 +2393,14 @@ class AppLocalizationsZgh extends AppLocalizations {
 
   @override
   String get hideSimilarActivities => 'ⴼⴼⴻⵔ ⵓⵙⴰⵔⴻⵏ ⵉⵎⵢⴰⴳⴰⵏⴻⵏ';
+
+  @override
+  String get installAppTitle => 'ⵙⵔⵙ DarJar';
+
+  @override
+  String get installAppDescription =>
+      'ⵙⵉⴷⵔ DarJar ⴳ ⵓⵙⵉⵎ ⵏⵏⴽ. ⴼⵔⵏ Google Play ⵏⵖ App Store.';
+
+  @override
+  String get installOpenFailed => 'ⵓⵔ ⵉⵣⵎⵉⵔ ⴰⴷ ⵉⵔⵥⵎ ⴰⵎⴰⵏⵓ. ⵄⵔⵎ ⴷⴰⵖ.';
 }

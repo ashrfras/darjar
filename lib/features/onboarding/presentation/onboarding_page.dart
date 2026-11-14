@@ -8,7 +8,7 @@ import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/responsive/responsive_builder.dart';
 import 'package:darjar/core/responsive/window_size_class.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
-import 'package:darjar/features/onboarding/presentation/android_app_launcher.dart';
+import 'package:darjar/features/onboarding/presentation/app_store_launcher.dart';
 import 'package:darjar/features/onboarding/presentation/web_landing_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ import 'package:go_router/go_router.dart';
 class OnboardingPage extends StatelessWidget {
   const OnboardingPage({
     this.showWebLanding,
-    this.openAndroidApp = openDarjarAndroidApp,
+    this.openStore = openDarjarStore,
     super.key,
   });
 
@@ -25,9 +25,8 @@ class OnboardingPage extends StatelessWidget {
   /// Production callers leave this null and use the compiled platform.
   final bool? showWebLanding;
 
-  /// A replaceable launcher keeps the Android web handoff testable without
-  /// opening an external application from widget tests.
-  final Future<void> Function() openAndroidApp;
+  /// Keeps the store handoff testable without opening an external application.
+  final Future<bool> Function(Uri) openStore;
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +35,12 @@ class OnboardingPage extends StatelessWidget {
 
     if (isWebLanding) {
       void onStart() {
-        if (defaultTargetPlatform == TargetPlatform.android) {
-          unawaited(openAndroidApp());
-          return;
+        // Keep both links available even when a browser silently blocks a launch.
+        context.push(AppRoutes.install);
+        final store = darjarStoreForPlatform(defaultTargetPlatform);
+        if (store != null) {
+          unawaited(openStore(store));
         }
-        context.go(AppRoutes.accountResolution);
       }
 
       return WebLandingPage(
