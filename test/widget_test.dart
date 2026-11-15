@@ -3065,10 +3065,20 @@ void main() {
 
     expect(find.text('لقاء الجيران'), findsOneWidget);
     final shortContent = tester.widget<Text>(find.text('لقاء الجيران'));
-    expect(shortContent.style?.fontSize, 21);
+    expect(shortContent.style?.fontSize, 15);
+    expect(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('لقاء الجيران'),
+          matching: find.byType(DarJarCard),
+        ),
+        matching: find.text('عرض المزيد'),
+      ),
+      findsNothing,
+    );
   });
 
-  testWidgets('long community content uses a smaller post font', (
+  testWidgets('long community content keeps the same font and opens in full', (
     tester,
   ) async {
     await _pumpApp(tester, size: const Size(390, 844));
@@ -3080,7 +3090,29 @@ void main() {
       find.byKey(const ValueKey('post-content-$communityWelcomePostId')),
     );
     expect(longContent.data, communityWelcomePost.content);
-    expect(longContent.style?.fontSize, lessThan(21));
+    expect(longContent.style?.fontSize, 15);
+    expect(longContent.maxLines, 5);
+
+    final showMore = find.byKey(
+      const ValueKey('post-show-more-$communityWelcomePostId'),
+    );
+    expect(showMore, findsOneWidget);
+    expect(
+      find.descendant(of: showMore, matching: find.text('عرض المزيد')),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(showMore);
+    await tester.tap(showMore);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('community-post-detail-page')), findsOneWidget);
+    final expandedContent = tester.widget<Text>(
+      find.byKey(const ValueKey('post-content-$communityWelcomePostId')),
+    );
+    expect(expandedContent.data, communityWelcomePost.content);
+    expect(expandedContent.style, longContent.style);
+    expect(expandedContent.maxLines, isNull);
+    expect(showMore, findsNothing);
   });
 
   testWidgets('community filters posts and opens details with local comments', (

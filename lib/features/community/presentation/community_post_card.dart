@@ -102,15 +102,7 @@ class CommunityPostCard extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.medium),
                 _KindLabel(post: post),
                 const SizedBox(height: AppSpacing.small),
-                Text(
-                  post.content,
-                  key: ValueKey('post-content-${post.id}'),
-                  maxLines: expanded || post.isSystem ? null : 5,
-                  overflow: expanded || post.isSystem
-                      ? null
-                      : TextOverflow.ellipsis,
-                  style: _postContentStyle(context, post.content),
-                ),
+                _PostContent(post: post, expanded: expanded, onOpen: onOpen),
                 if (post.imagePaths.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.medium),
                   if (post.isSystem)
@@ -152,19 +144,74 @@ class CommunityPostCard extends ConsumerWidget {
   }
 }
 
-TextStyle? _postContentStyle(BuildContext context, String content) {
-  final length = content.trim().length;
-  if (length <= 80) {
-    return Theme.of(context).textTheme.headlineSmall?.copyWith(height: 1.45);
-  }
-  if (length <= 240) {
-    return Theme.of(
+class _PostContent extends StatelessWidget {
+  const _PostContent({
+    required this.post,
+    required this.expanded,
+    required this.onOpen,
+  });
+
+  final CommunityPost post;
+  final bool expanded;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    const previewLines = 5;
+    final style = Theme.of(
       context,
     ).textTheme.bodyLarge?.copyWith(color: AppColors.ink, height: 1.6);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        var showMore = false;
+        if (!expanded) {
+          final painter = TextPainter(
+            text: TextSpan(
+              text: post.content,
+              style: DefaultTextStyle.of(context).style.merge(style),
+            ),
+            maxLines: previewLines,
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+            locale: Localizations.localeOf(context),
+          )..layout(maxWidth: constraints.maxWidth);
+          showMore = painter.didExceedMaxLines;
+          painter.dispose();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              post.content,
+              key: ValueKey('post-content-${post.id}'),
+              maxLines: expanded ? null : previewLines,
+              overflow: expanded ? null : TextOverflow.ellipsis,
+              style: style,
+            ),
+            if (showMore)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Semantics(
+                  link: true,
+                  child: InkWell(
+                    key: ValueKey('post-show-more-${post.id}'),
+                    onTap: onOpen,
+                    child: Text(
+                      AppLocalizations.of(context).showMore,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
   }
-  return Theme.of(
-    context,
-  ).textTheme.bodyMedium?.copyWith(color: AppColors.inkMuted, height: 1.65);
 }
 
 class _PostHeader extends StatelessWidget {
