@@ -12,11 +12,26 @@ import 'package:darjar/features/residence/data/residence_members_repository.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ResidenceMembersPage extends ConsumerWidget {
+class ResidenceMembersPage extends ConsumerStatefulWidget {
   const ResidenceMembersPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ResidenceMembersPage> createState() =>
+      _ResidenceMembersPageState();
+}
+
+class _ResidenceMembersPageState extends ConsumerState<ResidenceMembersPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Other pages also keep the directory alive, so refresh on every visit.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.invalidate(residenceDirectoryProvider);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final membersState = ref.watch(residenceDirectoryProvider);
     final compact = MediaQuery.sizeOf(context).width < 600;
     final localizations = AppLocalizations.of(context);
