@@ -19,10 +19,18 @@ class MonthlyDuesCell {
 }
 
 class MonthlyDuesRow {
-  const MonthlyDuesRow(this.apartment, this.months, this.prior);
+  const MonthlyDuesRow(
+    this.apartment,
+    this.months,
+    this.prior, {
+    required this.prepaidCount,
+  });
   final ResidenceApartment apartment;
   final List<MonthlyDuesCell> months;
   final List<MonthlyDuesCell> prior;
+
+  /// Fully paid future months across all years, as of report generation.
+  final int prepaidCount;
   Iterable<MonthlyDuesCell> get outstanding => [...prior, ...months].where(
     (cell) =>
         cell.status == MonthlyDuesStatus.unpaid ||
@@ -132,7 +140,21 @@ class MonthlyDuesReport {
         }
       }
       prior.sort((a, b) => a.period.compareTo(b.period));
-      rows.add(MonthlyDuesRow(apartment, months, prior));
+      rows.add(
+        MonthlyDuesRow(
+          apartment,
+          months,
+          prior,
+          prepaidCount: byPeriod.entries
+              .where(
+                (entry) =>
+                    entry.key.compareTo(currentPeriod) > 0 &&
+                    recorded(entry.key, entry.value).status ==
+                        MonthlyDuesStatus.paid,
+              )
+              .length,
+        ),
+      );
     }
   }
   final int year;

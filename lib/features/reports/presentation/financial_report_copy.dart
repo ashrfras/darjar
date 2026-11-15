@@ -15,7 +15,7 @@ class FinancialReportCopy {
   String t(String ar, String en) => arabic ? ar : en;
   String get reports => t('التقارير', 'Reports');
   String get title => monthlyDues
-      ? t('تتبع أداء الواجبات حسب الأشهر', 'Monthly dues tracking')
+      ? t('وضعية أداء الواجبات حسب الأشهر', 'Monthly dues payment status')
       : apartmentDues
       ? t('وضعية واجبات الشقق', 'Apartment dues status')
       : statement

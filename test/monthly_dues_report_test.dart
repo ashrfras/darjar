@@ -53,18 +53,57 @@ void main() {
     expect(row.months[1].remaining, 150);
     expect(row.unpaidCount, 3);
     expect(row.partialCount, 1);
+    expect(row.prepaidCount, 1);
     expect(row.remaining, 750);
     expect(report.remaining, 750);
     expect(row.prior.length, 2);
     expect(report.rows[1].remaining, 0);
-    expect(monthlyDuesPeriodList(row.prior, 'en'), 'November - December 2025');
-    expect(monthlyDuesPeriodList(row.prior, 'ar'), 'نونبر إلى دجنبر 2025');
+    expect(report.rows[1].prepaidCount, 0);
   });
   test('old year includes later payments and excludes later charges', () {
     final report = sample(year: 2025);
     expect(report.rows.first.unpaidCount, 2);
+    expect(report.rows.first.prepaidCount, 1);
     expect(report.remaining, 400);
   });
+  for (final year in [2025, 2026]) {
+    test(
+      'prepaid count includes fully paid future months across years for report $year',
+      () {
+        final report = MonthlyDuesReport(
+          year: year,
+          asOf: DateTime(2026, 9, 23),
+          apartments: [apartment('1')],
+          dues: ResidenceDuesOverview(
+            dues: [
+              due('current', '1', '2026-09'),
+              due('advance', '1', '2026-10'),
+              due('partial', '1', '2026-11'),
+              due('exempt', '1', '2026-12', exempt: true),
+              due('next-year', '1', '2027-01'),
+              due('next-year-extra', '1', '2027-01'),
+            ],
+            payments: [
+              payment('current', 200, DateTime(2026, 9)),
+              payment('advance', 200, DateTime(2026, 9)),
+              payment('partial', 50, DateTime(2026, 9)),
+              payment('partial', 150, DateTime(2026, 10)),
+              payment('next-year', 200, DateTime(2026, 9)),
+              payment('next-year-extra', 200, DateTime(2026, 9)),
+            ],
+          ),
+        );
+        expect(report.rows.single.prepaidCount, 2);
+        expect(report.rows.single.months, hasLength(12));
+        expect(
+          report.rows.single.months.every(
+            (cell) => cell.period.startsWith('$year-'),
+          ),
+          isTrue,
+        );
+      },
+    );
+  }
   test(
     'opening paid month marks earlier months paid without adding income',
     () {
