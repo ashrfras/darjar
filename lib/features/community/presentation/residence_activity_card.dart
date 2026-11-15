@@ -4,6 +4,7 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/features/community/domain/feed_item.dart';
+import 'package:darjar/features/community/presentation/feed_date_label.dart';
 import 'package:flutter/material.dart';
 
 class ResidenceActivityCard extends StatelessWidget {
@@ -34,11 +35,14 @@ class ResidenceActivityCard extends StatelessWidget {
       'zgh' => activity.descriptionZgh,
       _ => activity.descriptionEn,
     };
-    final timeLabel = switch (languageCode) {
+    final fallbackTimeLabel = switch (languageCode) {
       'ar' => activity.timeLabelAr,
       'zgh' => activity.timeLabelZgh,
       _ => activity.timeLabelEn,
     };
+    final timeLabel = activity.occurredAt == null
+        ? fallbackTimeLabel
+        : feedDateLabel(activity.occurredAt!, languageCode: languageCode);
 
     return DarJarCard(
       key: ValueKey('feed-activity-${activity.id}'),

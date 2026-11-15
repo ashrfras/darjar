@@ -2793,7 +2793,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('منذ 5 س'), findsOneWidget);
-      expect(find.text('أمس'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('notification-yesterday-two-hours')),
+          matching: find.text('أمس'),
+        ),
+        findsOneWidget,
+      );
       expect(
         find.byKey(const ValueKey('notification-unread-today-five-hours')),
         findsOneWidget,
@@ -3423,7 +3429,7 @@ void main() {
     await _pumpApp(tester, size: const Size(1280, 900));
     await _enterResidence(tester);
 
-    expect(find.text('شقة 12 · منذ ساعة'), findsOneWidget);
+    expect(find.text('شقة 12 · اليوم'), findsOneWidget);
     final roleBadge = find.byKey(
       const ValueKey('post-author-role-question-plumber'),
     );

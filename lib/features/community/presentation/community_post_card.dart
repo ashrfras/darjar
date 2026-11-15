@@ -2,6 +2,7 @@ import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
+import 'package:darjar/features/community/presentation/feed_date_label.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
@@ -922,17 +923,10 @@ String _localizedCommunityTime(
   String fallback,
 ) {
   if (occurredAt == null) return fallback;
-  final localizations = AppLocalizations.of(context);
-  final elapsed = DateTime.now().difference(occurredAt);
-  if (elapsed.inMinutes < 1) return localizations.notificationTimeNow;
-  if (elapsed.inMinutes < 60) {
-    return localizations.notificationTimeMinutes(elapsed.inMinutes);
-  }
-  if (elapsed.inHours < 24) {
-    return localizations.notificationTimeHours(elapsed.inHours);
-  }
-  if (elapsed.inDays == 1) return localizations.notificationTimeYesterday;
-  return localizations.notificationTimeDays(elapsed.inDays);
+  return feedDateLabel(
+    occurredAt,
+    languageCode: Localizations.localeOf(context).languageCode,
+  );
 }
 
 class _ActionButton extends StatelessWidget {

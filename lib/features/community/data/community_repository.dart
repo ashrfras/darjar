@@ -288,7 +288,7 @@ class MockCommunityRepository implements CommunityRepository {
       author: 'السانديك',
       authorUnit: 'إدارة الإقامة',
       authorRole: 'president',
-      timeLabel: 'منذ 30 دقيقة',
+      timeLabel: 'اليوم',
       content:
           'صيانة المصاعد يوم الخميس القادم\n\nسيتم إجراء صيانة دورية للمصاعد يوم الخميس 25 يوليو من الساعة 9 صباحاً إلى 1 ظهراً. يرجى استعمال الدرج خلال هذه الفترة.',
       kind: CommunityPostKind.announcement,
@@ -319,7 +319,7 @@ class MockCommunityRepository implements CommunityRepository {
       id: 'question-plumber',
       author: 'أحمد م.',
       authorUnit: 'العمارة أ · شقة 12',
-      timeLabel: 'منذ ساعة',
+      timeLabel: 'اليوم',
       content:
           'هل أحد لديه رقم سبّاك موثوق؟\n\nعندي تسرّب في المطبخ وأبحث عن سبّاك موثوق وبسعر مناسب. يفضّل أن يكون متاحاً اليوم.',
       kind: CommunityPostKind.question,
@@ -339,7 +339,7 @@ class MockCommunityRepository implements CommunityRepository {
       id: 'complaint-noise',
       author: 'نورة س.',
       authorUnit: 'العمارة ج · الطابق 2',
-      timeLabel: 'منذ ساعتين',
+      timeLabel: 'اليوم',
       content:
           'ضجيج في الحديقة ليلاً\n\nالرجاء من الجميع مراعاة الهدوء بعد الساعة 11 ليلاً في الحديقة، خصوصاً خلال أيام الأسبوع.',
       kind: CommunityPostKind.complaint,
@@ -364,7 +364,7 @@ class MockCommunityRepository implements CommunityRepository {
       id: 'suggestion-trees',
       author: 'محمد ك.',
       authorUnit: 'العمارة ب · شقة 7',
-      timeLabel: 'منذ 3 ساعات',
+      timeLabel: 'اليوم',
       content:
           'زراعة المزيد من الأشجار\n\nأقترح على السانديك زراعة المزيد من الأشجار في المنطقة الشرقية للحديقة وتخصيص يوم تطوعي للسكان.',
       kind: CommunityPostKind.suggestion,
@@ -378,7 +378,7 @@ class MockCommunityRepository implements CommunityRepository {
       author: 'السانديك',
       authorUnit: 'إدارة الإقامة',
       authorRole: 'president',
-      timeLabel: 'منذ 4 ساعات',
+      timeLabel: 'اليوم',
       content:
           'انقطاع الماء غداً صباحاً\n\nحسب إشعار الشركة، سيكون هناك انقطاع للماء غداً من 6 صباحاً إلى 10 صباحاً بسبب أشغال في الحي.',
       kind: CommunityPostKind.alert,
