@@ -892,6 +892,24 @@ abstract class AppLocalizations {
   /// **'تعذر إكمال العملية الآن. حاول مجدداً.'**
   String get setupUnexpectedError;
 
+  /// No description provided for @communityFilterSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'المحفوظة'**
+  String get communityFilterSaved;
+
+  /// No description provided for @communityFilterUpdates.
+  ///
+  /// In ar, this message translates to:
+  /// **'التحديثات'**
+  String get communityFilterUpdates;
+
+  /// No description provided for @communityFilterEvents.
+  ///
+  /// In ar, this message translates to:
+  /// **'المناسبات'**
+  String get communityFilterEvents;
+
   /// No description provided for @communityFilterPosts.
   ///
   /// In ar, this message translates to:

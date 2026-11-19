@@ -434,6 +434,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setupUnexpectedError => 'تعذر إكمال العملية الآن. حاول مجدداً.';
 
   @override
+  String get communityFilterSaved => 'المحفوظة';
+
+  @override
+  String get communityFilterUpdates => 'التحديثات';
+
+  @override
+  String get communityFilterEvents => 'المناسبات';
+
+  @override
   String get communityFilterPosts => 'المنشورات';
 
   @override

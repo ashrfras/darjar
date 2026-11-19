@@ -1,3 +1,5 @@
+import 'package:darjar/features/community/presentation/community_like_button.dart';
+import 'package:darjar/features/community/presentation/community_post_save_button.dart';
 import 'package:darjar/features/community/presentation/community_post_action_icon.dart';
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/theme/app_colors.dart';
@@ -51,8 +53,8 @@ class CommunityPostCard extends ConsumerWidget {
 
   final CommunityPost post;
   final VoidCallback onOpen;
-  final VoidCallback onLike;
-  final VoidCallback onSave;
+  final Future<void> Function() onLike;
+  final Future<void> Function() onSave;
   final ValueChanged<String> onVote;
   final Future<void> Function(CommunityReportReason) onReport;
   final VoidCallback? onArchive;
@@ -914,9 +916,9 @@ class _PostActions extends StatelessWidget {
   });
 
   final CommunityPost post;
-  final VoidCallback onLike;
+  final Future<void> Function() onLike;
   final VoidCallback onComment;
-  final VoidCallback onSave;
+  final Future<void> Function() onSave;
 
   @override
   Widget build(BuildContext context) {
@@ -927,14 +929,11 @@ class _PostActions extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _ActionButton(
+            CommunityLikeButton(
               key: ValueKey('like-${post.id}'),
-              icon: post.isLiked
-                  ? Icons.thumb_up_rounded
-                  : Icons.thumb_up_outlined,
-              label: '${post.likes}',
-              color: post.isLiked ? AppColors.danger : AppColors.inkMuted,
-              onTap: onLike,
+              isLiked: post.isLiked,
+              likes: post.likes,
+              onLike: onLike,
             ),
             _ActionButton(
               icon: Icons.chat_bubble_outline_rounded,
@@ -949,20 +948,7 @@ class _PostActions extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             CommunityPostShareButton(post: post),
-            IconButton(
-              key: ValueKey('save-${post.id}'),
-              iconSize: 20,
-              constraints: const BoxConstraints.tightFor(width: 48, height: 48),
-              visualDensity: VisualDensity.standard,
-              tooltip: AppLocalizations.of(context).savePost,
-              onPressed: onSave,
-              color: post.isSaved ? AppColors.primary : AppColors.inkMuted,
-              icon: CommunityPostActionIcon(
-                post.isSaved
-                    ? Icons.bookmark_rounded
-                    : Icons.bookmark_border_rounded,
-              ),
-            ),
+            CommunityPostSaveButton(post: post, onSave: onSave),
           ],
         ),
       ],
@@ -987,13 +973,10 @@ class _ActionButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
-    this.color,
-    super.key,
   });
 
   final IconData icon;
   final String label;
-  final Color? color;
   final VoidCallback onTap;
 
   @override
@@ -1001,7 +984,7 @@ class _ActionButton extends StatelessWidget {
     return TextButton.icon(
       onPressed: onTap,
       style: TextButton.styleFrom(
-        foregroundColor: color ?? AppColors.inkMuted,
+        foregroundColor: AppColors.inkMuted,
         minimumSize: const Size(64, 48),
         visualDensity: VisualDensity.standard,
       ),

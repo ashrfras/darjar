@@ -440,6 +440,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'The operation could not be completed right now. Try again.';
 
   @override
+  String get communityFilterSaved => 'Saved';
+
+  @override
+  String get communityFilterUpdates => 'Updates';
+
+  @override
+  String get communityFilterEvents => 'Events';
+
+  @override
   String get communityFilterPosts => 'Posts';
 
   @override

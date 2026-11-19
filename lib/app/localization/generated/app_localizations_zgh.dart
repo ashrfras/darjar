@@ -441,6 +441,15 @@ class AppLocalizationsZgh extends AppLocalizations {
       'ⵓⵔ ⵜⴻⵣⵎⵉⵔ ⴰⵔⴰ ⴰⴷ ⵜⴽⴻⵎⵎⴻⵍ ⵜⴻⵎⵀⴻⵍⵜⵏⵏⵉ ⵜⵓⵔⴰ ⴽⴰⵏ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.';
 
   @override
+  String get communityFilterSaved => 'ⵉⵜⵜⵡⴰⵃⴻⵔⵣⴻⵏ';
+
+  @override
+  String get communityFilterUpdates => 'ⵉⴱⴻⴷⴷⴰⵍⴻⵏ';
+
+  @override
+  String get communityFilterEvents => 'ⵜⵉⵎⵍⵉⵍⵉⵏ';
+
+  @override
   String get communityFilterPosts => 'ⵉⴹⵔⵉⵙⴻⵏ';
 
   @override

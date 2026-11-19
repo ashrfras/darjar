@@ -98,16 +98,10 @@ class _CommunityPostDetailPageState
                     post: post,
                     expanded: true,
                     onOpen: () {},
-                    onLike: () => _runAction(
-                      () => ref
-                          .read(communityActionsProvider)
-                          .toggleLike(post.id),
-                    ),
-                    onSave: () => _runAction(
-                      () => ref
-                          .read(communityActionsProvider)
-                          .toggleSaved(post.id),
-                    ),
+                    onLike: () =>
+                        ref.read(communityActionsProvider).toggleLike(post.id),
+                    onSave: () =>
+                        ref.read(communityActionsProvider).toggleSaved(post.id),
                     onVote: (optionId) => _runAction(
                       () => ref
                           .read(communityActionsProvider)

@@ -19,7 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-enum CommunityFeedFilter { all, posts, finance, announcements, polls }
+enum CommunityFeedFilter { all, saved, posts, updates, polls, events }
 
 class CommunityFeedPage extends ConsumerStatefulWidget {
   const CommunityFeedPage({super.key});
@@ -148,16 +148,12 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                         onOpen: () => context.push(
                                           AppRoutes.communityPost(post.id),
                                         ),
-                                        onLike: () => _runAction(
-                                          () => ref
-                                              .read(communityActionsProvider)
-                                              .toggleLike(post.id),
-                                        ),
-                                        onSave: () => _runAction(
-                                          () => ref
-                                              .read(communityActionsProvider)
-                                              .toggleSaved(post.id),
-                                        ),
+                                        onLike: () => ref
+                                            .read(communityActionsProvider)
+                                            .toggleLike(post.id),
+                                        onSave: () => ref
+                                            .read(communityActionsProvider)
+                                            .toggleSaved(post.id),
                                         onVote: (optionId) => _runAction(
                                           () => ref
                                               .read(communityActionsProvider)
@@ -184,11 +180,9 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                                         onLongPress: canManageResidence
                                             ? () => _confirmDeleteActivity(item)
                                             : null,
-                                        onLike: () => _runAction(
-                                          () => ref
-                                              .read(feedActivityActionsProvider)
-                                              .toggleLike(item.id),
-                                        ),
+                                        onLike: () => ref
+                                            .read(feedActivityActionsProvider)
+                                            .toggleLike(item.id),
                                         onOpen: item.reference == null
                                             ? null
                                             : () => _openActivity(item),
@@ -328,11 +322,16 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
 
   bool _matchesSelectedFilter(FeedItem item) => switch (_filter) {
     CommunityFeedFilter.all => true,
-    CommunityFeedFilter.posts => item.type == FeedItemType.post,
-    CommunityFeedFilter.finance => item.category == FeedCategory.finance,
-    CommunityFeedFilter.announcements =>
-      item.category == FeedCategory.announcements,
-    CommunityFeedFilter.polls => item.category == FeedCategory.polls,
+    CommunityFeedFilter.saved => item is PostFeedItem && item.post.isSaved,
+    CommunityFeedFilter.posts =>
+      item is PostFeedItem &&
+          item.post.kind != CommunityPostKind.poll &&
+          item.post.kind != CommunityPostKind.event,
+    CommunityFeedFilter.updates => item is ResidenceActivity,
+    CommunityFeedFilter.polls =>
+      item is PostFeedItem && item.post.kind == CommunityPostKind.poll,
+    CommunityFeedFilter.events =>
+      item is PostFeedItem && item.post.kind == CommunityPostKind.event,
   };
 
   void _finishLoadingMore() {
@@ -455,8 +454,9 @@ extension on CommunityFeedFilter {
     return switch (this) {
       CommunityFeedFilter.all => localizations.all,
       CommunityFeedFilter.posts => localizations.communityFilterPosts,
-      CommunityFeedFilter.finance => localizations.communityFilterFinance,
-      CommunityFeedFilter.announcements => localizations.announcements,
+      CommunityFeedFilter.saved => localizations.communityFilterSaved,
+      CommunityFeedFilter.updates => localizations.communityFilterUpdates,
+      CommunityFeedFilter.events => localizations.communityFilterEvents,
       CommunityFeedFilter.polls => localizations.communityFilterPolls,
     };
   }
@@ -464,8 +464,9 @@ extension on CommunityFeedFilter {
   IconData get icon => switch (this) {
     CommunityFeedFilter.all => Icons.dynamic_feed_outlined,
     CommunityFeedFilter.posts => Icons.forum_outlined,
-    CommunityFeedFilter.finance => Icons.account_balance_wallet_outlined,
-    CommunityFeedFilter.announcements => Icons.campaign_outlined,
+    CommunityFeedFilter.saved => Icons.bookmark_border_rounded,
+    CommunityFeedFilter.updates => Icons.update_rounded,
+    CommunityFeedFilter.events => Icons.celebration_outlined,
     CommunityFeedFilter.polls => Icons.poll_outlined,
   };
 }

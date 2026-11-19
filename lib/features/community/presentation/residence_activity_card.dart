@@ -1,4 +1,4 @@
-import 'package:darjar/app/localization/generated/app_localizations.dart';
+import 'package:darjar/features/community/presentation/community_like_button.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
@@ -17,7 +17,7 @@ class ResidenceActivityCard extends StatelessWidget {
   });
 
   final ResidenceActivity activity;
-  final VoidCallback onLike;
+  final Future<void> Function() onLike;
   final VoidCallback? onOpen;
   final VoidCallback? onLongPress;
 
@@ -107,7 +107,14 @@ class ResidenceActivityCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.small),
-          _ActivityLikeButton(activity: activity, onPressed: onLike),
+          CommunityLikeButton(
+            key: ValueKey('activity-like-${activity.id}'),
+            isLiked: activity.isLiked,
+            likes: activity.likes,
+            onLike: onLike,
+            compact: true,
+            likedColor: AppColors.primary,
+          ),
           if (onOpen != null)
             Padding(
               padding: const EdgeInsetsDirectional.only(start: 2, top: 9),
@@ -120,54 +127,6 @@ class ResidenceActivityCard extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _ActivityLikeButton extends StatelessWidget {
-  const _ActivityLikeButton({required this.activity, required this.onPressed});
-
-  final ResidenceActivity activity;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: activity.isLiked,
-      label: AppLocalizations.of(context).communityLike,
-      child: InkWell(
-        key: ValueKey('activity-like-${activity.id}'),
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                activity.isLiked
-                    ? Icons.thumb_up_rounded
-                    : Icons.thumb_up_outlined,
-                size: 17,
-                color: activity.isLiked
-                    ? AppColors.primary
-                    : AppColors.inkMuted,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${activity.likes}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: activity.isLiked
-                      ? AppColors.primary
-                      : AppColors.inkMuted,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

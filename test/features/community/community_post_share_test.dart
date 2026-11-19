@@ -185,8 +185,8 @@ void main() {
               child: CommunityPostCard(
                 post: _post,
                 onOpen: () {},
-                onLike: () {},
-                onSave: () {},
+                onLike: () async {},
+                onSave: () async {},
                 onVote: (_) {},
                 onReport: (_) async {},
               ),
@@ -241,8 +241,8 @@ void main() {
               child: CommunityPostCard(
                 post: communityWelcomePost,
                 onOpen: () {},
-                onLike: () {},
-                onSave: () {},
+                onLike: () async {},
+                onSave: () async {},
                 onVote: (_) {},
                 onReport: (_) async {},
               ),

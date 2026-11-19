@@ -1,3 +1,4 @@
+import 'package:darjar/features/community/presentation/residence_activity_card.dart';
 import 'package:darjar/features/residence/presentation/dues_management_page.dart';
 import 'dart:async';
 
@@ -3145,6 +3146,122 @@ void main() {
     expect(showMore, findsNothing);
   });
 
+  testWidgets(
+    'community filters separate post kinds, updates, and saved posts',
+    (tester) async {
+      final repository = MockCommunityRepository();
+      await _pumpApp(
+        tester,
+        size: const Size(1280, 900),
+        communityRepository: repository,
+      );
+      await _enterResidence(tester);
+
+      const filters = ['all', 'saved', 'posts', 'updates', 'polls', 'events'];
+      final filterList = find.byKey(const Key('community-filter-list'));
+      final filterKeys = tester
+          .widgetList(
+            find.descendant(
+              of: filterList,
+              matching: find.byWidgetPredicate(
+                (widget) =>
+                    widget.key is ValueKey<String> &&
+                    (widget.key! as ValueKey<String>).value.startsWith(
+                      'community-filter-',
+                    ),
+              ),
+            ),
+          )
+          .map((widget) => (widget.key! as ValueKey<String>).value);
+      expect(filterKeys, [
+        for (final filter in filters) 'community-filter-$filter',
+      ]);
+      for (final label in [
+        'الكل',
+        'المحفوظة',
+        'المنشورات',
+        'التحديثات',
+        'الاستطلاعات',
+        'المناسبات',
+      ]) {
+        expect(
+          find.descendant(of: filterList, matching: find.text(label)),
+          findsOneWidget,
+        );
+      }
+      expect(find.byKey(const Key('community-filter-finance')), findsNothing);
+      expect(
+        find.byKey(const Key('community-filter-announcements')),
+        findsNothing,
+      );
+
+      Future<void> selectFilter(String filter) async {
+        await tester.tap(find.byKey(ValueKey('community-filter-$filter')));
+        await tester.pumpAndSettle();
+      }
+
+      void expectPostKinds(bool Function(CommunityPost post) matches) {
+        for (final post in [...repository.getPosts(), communityWelcomePost]) {
+          expect(
+            find.byKey(ValueKey('community-post-${post.id}')),
+            matches(post) ? findsOneWidget : findsNothing,
+            reason: post.id,
+          );
+        }
+      }
+
+      await selectFilter('posts');
+      expectPostKinds(
+        (post) =>
+            post.kind != CommunityPostKind.poll &&
+            post.kind != CommunityPostKind.event,
+      );
+      expect(find.byType(ResidenceActivityCard), findsNothing);
+
+      await selectFilter('polls');
+      expectPostKinds((post) => post.kind == CommunityPostKind.poll);
+      expect(find.byType(ResidenceActivityCard), findsNothing);
+
+      await selectFilter('events');
+      expectPostKinds((post) => post.kind == CommunityPostKind.event);
+      expect(find.byType(ResidenceActivityCard), findsNothing);
+
+      await selectFilter('updates');
+      expectPostKinds((post) => false);
+      expect(find.byType(ResidenceActivityCard), findsWidgets);
+      for (final id in ['activity-cleaning-expense', 'activity-new-poll']) {
+        expect(find.byKey(ValueKey('feed-activity-$id')), findsOneWidget);
+      }
+
+      await selectFilter('saved');
+      expectPostKinds((post) => post.isSaved);
+      expect(find.byType(ResidenceActivityCard), findsNothing);
+
+      // Save a poll using the existing action, then remove it from Saved.
+      await selectFilter('polls');
+      final savePoll = find.byKey(const ValueKey('save-poll-garden'));
+      await tester.ensureVisible(savePoll);
+      await tester.pumpAndSettle();
+      await tester.tap(savePoll);
+      await tester.pumpAndSettle();
+      expect(repository.getPost('poll-garden')!.isSaved, isTrue);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 10000));
+      await tester.pumpAndSettle();
+      await selectFilter('saved');
+      expectPostKinds((post) => post.isSaved);
+      await tester.ensureVisible(savePoll);
+      await tester.pumpAndSettle();
+      await tester.tap(savePoll);
+      await tester.pumpAndSettle();
+      expect(repository.getPost('poll-garden')!.isSaved, isFalse);
+      expect(
+        find.byKey(const ValueKey('community-post-poll-garden')),
+        findsNothing,
+      );
+      expectPostKinds((post) => post.isSaved);
+    },
+  );
+
   testWidgets('community filters posts and opens details with local comments', (
     tester,
   ) async {
@@ -3298,10 +3415,11 @@ void main() {
 
     for (final filter in [
       'all',
+      'saved',
       'posts',
-      'finance',
-      'announcements',
+      'updates',
       'polls',
+      'events',
     ]) {
       expect(find.byKey(ValueKey('community-filter-$filter')), findsOneWidget);
     }
@@ -3321,8 +3439,8 @@ void main() {
       findsOneWidget,
     );
 
-    final financeFilter = find.byKey(const Key('community-filter-finance'));
-    await tester.tap(financeFilter);
+    final updatesFilter = find.byKey(const Key('community-filter-updates'));
+    await tester.tap(updatesFilter);
     await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('feed-activity-activity-cleaning-expense')),
@@ -3347,10 +3465,7 @@ void main() {
       findsOneWidget,
     );
 
-    final announcementFilter = find.byKey(
-      const Key('community-filter-announcements'),
-    );
-    await tester.tap(announcementFilter);
+    await tester.tap(find.byKey(const Key('community-filter-updates')));
     await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('community-post-announcement-elevator')),
