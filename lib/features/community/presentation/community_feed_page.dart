@@ -92,7 +92,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
             pinned: compact,
             delegate: _FilterHeaderDelegate(
               selected: _filter,
-              onSelected: (filter) => setState(() => _filter = filter),
+              onSelected: _selectFilter,
               compact: compact,
               textDirection: Directionality.of(context),
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -132,9 +132,8 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                               )
                             else if (filtered.isEmpty)
                               _EmptyFilter(
-                                onReset: () => setState(
-                                  () => _filter = CommunityFeedFilter.all,
-                                ),
+                                onReset: () =>
+                                    _selectFilter(CommunityFeedFilter.all),
                               )
                             else
                               for (final group in filtered) ...[
@@ -269,6 +268,13 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
       FeedEntityType.post => AppRoutes.community,
     };
     context.push(destination);
+  }
+
+  void _selectFilter(CommunityFeedFilter filter) {
+    setState(() => _filter = filter);
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+    }
   }
 
   void _loadMoreNearBottom({bool checkCollapsedActivities = false}) {

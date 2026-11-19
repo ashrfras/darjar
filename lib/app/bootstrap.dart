@@ -67,7 +67,7 @@ class _DarJarBootstrapState extends State<DarJarBootstrap> {
     if (_ready) return widget.child;
 
     return MaterialApp(
-      title: 'دارجار - إقامتك الرقمية',
+      title: 'دارجار - كل ما يهمّ إقامتك في مكان واحد',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

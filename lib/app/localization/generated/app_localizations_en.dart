@@ -12,7 +12,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'DarJar';
 
   @override
-  String get siteTitle => 'دارجار - إقامتك الرقمية';
+  String get siteTitle => 'دارجار - كل ما يهمّ إقامتك في مكان واحد';
 
   @override
   String get dataLoading => 'Loading data…';

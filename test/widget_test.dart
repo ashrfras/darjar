@@ -2864,7 +2864,7 @@ void main() {
     await _enterResidence(tester);
     expect(
       tester.widget<Title>(find.byKey(const Key('app-browser-title'))).title,
-      'دارجار - إقامتك الرقمية',
+      'دارجار - كل ما يهمّ إقامتك في مكان واحد',
     );
     expect(find.byKey(const Key('medium-shell')), findsOneWidget);
     expect(find.byType(NavigationRail), findsOneWidget);
@@ -3144,6 +3144,54 @@ void main() {
     expect(expandedContent.style, longContent.style);
     expect(expandedContent.maxLines, isNull);
     expect(showMore, findsNothing);
+  });
+
+  testWidgets('selecting a community filter always returns to the beginning', (
+    tester,
+  ) async {
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+    final scrollView = find.byType(CustomScrollView);
+    final controller = tester.widget<CustomScrollView>(scrollView).controller!;
+
+    for (final filter in [
+      'saved',
+      'posts',
+      'updates',
+      'polls',
+      'events',
+      'all',
+    ]) {
+      controller.jumpTo(0);
+      await tester.pumpAndSettle();
+      final horizontal = find.descendant(
+        of: find.byKey(const Key('community-filter-list')),
+        matching: find.byType(Scrollable),
+      );
+      tester.state<ScrollableState>(horizontal).position.jumpTo(0);
+      await tester.pumpAndSettle();
+      final all = find.byKey(const Key('community-filter-all'));
+      await tester.ensureVisible(all);
+      await tester.pumpAndSettle();
+      await tester.tap(all);
+      await tester.pumpAndSettle();
+      final target = find.byKey(ValueKey('community-filter-$filter'));
+      // Reveal the horizontal chip before scrolling the vertical feed.
+      await tester.scrollUntilVisible(target, 100, scrollable: horizontal);
+      await tester.pumpAndSettle();
+      controller.jumpTo(400);
+      await tester.pumpAndSettle();
+      expect(controller.offset, greaterThan(0));
+      await tester.tap(target);
+      await tester.pump();
+      expect(controller.offset, 0, reason: filter);
+      await tester.pumpAndSettle();
+      expect(controller.offset, 0, reason: filter);
+      expect(
+        find.byKey(const Key('community-composer')).hitTestable(),
+        findsOneWidget,
+      );
+    }
   });
 
   testWidgets(

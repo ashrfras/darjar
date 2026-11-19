@@ -78,7 +78,10 @@ void main() {
   test('web uses the professional Arabic browser title', () {
     final indexHtml = File('web/index.html').readAsStringSync();
 
-    expect(indexHtml, contains('<title>دارجار - إقامتك الرقمية</title>'));
+    expect(
+      indexHtml,
+      contains('<title>دارجار - كل ما يهمّ إقامتك في مكان واحد</title>'),
+    );
     expect(indexHtml, isNot(contains('دعوة للانضمام إلى تطبيق دارجار')));
   });
 

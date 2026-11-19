@@ -109,7 +109,7 @@ abstract class AppLocalizations {
   /// No description provided for @siteTitle.
   ///
   /// In ar, this message translates to:
-  /// **'دارجار - إقامتك الرقمية'**
+  /// **'دارجار - كل ما يهمّ إقامتك في مكان واحد'**
   String get siteTitle;
 
   /// No description provided for @dataLoading.
