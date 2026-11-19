@@ -3050,6 +3050,36 @@ void main() {
     expect(find.byKey(const Key('subpage-title')), findsOneWidget);
     expect(find.byKey(const Key('title-only-subpage-header')), findsOneWidget);
     expect(find.textContaining('سيظهر هذا المنشور'), findsNothing);
+    expect(find.byType(ChoiceChip), findsNWidgets(3));
+    for (final kind in CommunityPostKind.values) {
+      expect(
+        find.byKey(ValueKey('post-type-${kind.name}')),
+        [
+              CommunityPostKind.general,
+              CommunityPostKind.poll,
+              CommunityPostKind.event,
+            ].contains(kind)
+            ? findsOneWidget
+            : findsNothing,
+      );
+    }
+    expect(find.text('منشور'), findsNWidgets(2));
+    expect(find.text('منشور عام'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('post-type-poll')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('poll-option-field-0')), findsOneWidget);
+    expect(find.byKey(const Key('poll-option-field-1')), findsOneWidget);
+    expect(find.byKey(const Key('event-date-field')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('post-type-event')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('event-date-field')), findsOneWidget);
+    expect(find.byKey(const Key('event-location-field')), findsOneWidget);
+    expect(find.byKey(const Key('poll-option-field-0')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('post-type-general')));
+    await tester.pumpAndSettle();
 
     final fields = find.byType(TextField);
     expect(find.byKey(const Key('post-content-field')), findsOneWidget);
@@ -3324,11 +3354,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('community-post-announcement-elevator')),
-      findsOneWidget,
+      findsNothing,
     );
     expect(
       find.byKey(const ValueKey('community-post-question-plumber')),
       findsNothing,
+    );
+
+    await tester.tap(find.byKey(const Key('community-filter-posts')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('community-post-announcement-elevator')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('community-post-question-plumber')),
+      findsOneWidget,
     );
 
     final announcement = find.byKey(

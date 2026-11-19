@@ -154,7 +154,7 @@
   "postKindComplaint": "Complaint",
   "postKindSuggestion": "Suggestion",
   "postKindAlert": "Alert",
-  "postKindGeneral": "General",
+  "postKindGeneral": "Post",
   "postKindPoll": "Poll",
   "postKindEvent": "Event",
   "deletePost": "Delete post",

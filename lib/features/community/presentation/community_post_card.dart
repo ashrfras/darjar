@@ -17,37 +17,22 @@ extension CommunityPostKindUi on CommunityPostKind {
   String label(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     return switch (this) {
-      CommunityPostKind.announcement => localizations.postKindAnnouncement,
-      CommunityPostKind.question => localizations.postKindQuestion,
-      CommunityPostKind.complaint => localizations.postKindComplaint,
-      CommunityPostKind.suggestion => localizations.postKindSuggestion,
-      CommunityPostKind.alert => localizations.postKindAlert,
-      CommunityPostKind.general => localizations.postKindGeneral,
       CommunityPostKind.poll => localizations.postKindPoll,
       CommunityPostKind.event => localizations.postKindEvent,
+      _ => localizations.postKindGeneral,
     };
   }
 
   IconData get icon => switch (this) {
-    CommunityPostKind.announcement => Icons.campaign_outlined,
-    CommunityPostKind.question => Icons.help_outline_rounded,
-    CommunityPostKind.complaint => Icons.report_problem_outlined,
-    CommunityPostKind.suggestion => Icons.lightbulb_outline_rounded,
-    CommunityPostKind.alert => Icons.notifications_active_outlined,
-    CommunityPostKind.general => Icons.forum_outlined,
     CommunityPostKind.poll => Icons.poll_outlined,
     CommunityPostKind.event => Icons.celebration_outlined,
+    _ => Icons.forum_outlined,
   };
 
   Color get color => switch (this) {
-    CommunityPostKind.announcement => const Color(0xFF087F5B),
-    CommunityPostKind.question => const Color(0xFF6650D8),
-    CommunityPostKind.complaint => const Color(0xFFE76F00),
-    CommunityPostKind.suggestion => const Color(0xFF2B8A3E),
-    CommunityPostKind.alert => const Color(0xFF2878D4),
-    CommunityPostKind.general => const Color(0xFF52606D),
     CommunityPostKind.poll => const Color(0xFF9C36B5),
     CommunityPostKind.event => const Color(0xFFC2255C),
+    _ => const Color(0xFF52606D),
   };
 }
 

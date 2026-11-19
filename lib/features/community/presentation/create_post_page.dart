@@ -217,14 +217,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   }
 
   String _contentHint(bool ar) => switch (_kind) {
-    CommunityPostKind.question =>
-      ar ? 'ما السؤال الذي تريد طرحه؟' : 'What would you like to ask?',
-    CommunityPostKind.complaint =>
-      ar ? 'لخّص المشكلة بوضوح' : 'Summarize the issue clearly',
-    CommunityPostKind.suggestion =>
-      ar ? 'ما الفكرة التي تقترحها؟' : 'What is your idea?',
-    CommunityPostKind.alert =>
-      ar ? 'ما الذي يجب أن ينتبه له السكان؟' : 'What should residents know?',
     CommunityPostKind.poll =>
       ar
           ? 'ما السؤال الذي ستصوّت عليه الإقامة؟'
@@ -476,9 +468,11 @@ class _PostTypePicker extends StatelessWidget {
       spacing: AppSpacing.small,
       runSpacing: AppSpacing.small,
       children: [
-        for (final kind in CommunityPostKind.values.where(
-          (kind) => kind != CommunityPostKind.announcement,
-        ))
+        for (final kind in const [
+          CommunityPostKind.general,
+          CommunityPostKind.poll,
+          CommunityPostKind.event,
+        ])
           ChoiceChip(
             key: ValueKey('post-type-${kind.name}'),
             avatar: Icon(

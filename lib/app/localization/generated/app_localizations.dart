@@ -1015,7 +1015,7 @@ abstract class AppLocalizations {
   /// No description provided for @postKindGeneral.
   ///
   /// In ar, this message translates to:
-  /// **'منشور عام'**
+  /// **'منشور'**
   String get postKindGeneral;
 
   /// No description provided for @postKindPoll.

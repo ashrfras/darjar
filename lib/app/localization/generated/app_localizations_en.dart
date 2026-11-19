@@ -501,7 +501,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postKindAlert => 'Alert';
 
   @override
-  String get postKindGeneral => 'General';
+  String get postKindGeneral => 'Post';
 
   @override
   String get postKindPoll => 'Poll';

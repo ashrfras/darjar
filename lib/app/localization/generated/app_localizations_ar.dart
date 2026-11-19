@@ -495,7 +495,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postKindAlert => 'تنبيه';
 
   @override
-  String get postKindGeneral => 'منشور عام';
+  String get postKindGeneral => 'منشور';
 
   @override
   String get postKindPoll => 'استطلاع';

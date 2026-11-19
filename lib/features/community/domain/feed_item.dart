@@ -45,9 +45,6 @@ class PostFeedItem extends FeedItem {
         occurredAt: post.createdAt,
         category: post.kind == CommunityPostKind.poll
             ? FeedCategory.polls
-            : post.kind == CommunityPostKind.announcement ||
-                  post.kind == CommunityPostKind.alert
-            ? FeedCategory.announcements
             : FeedCategory.posts,
       );
 

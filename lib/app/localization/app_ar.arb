@@ -154,7 +154,7 @@
   "postKindComplaint": "شكوى",
   "postKindSuggestion": "اقتراح",
   "postKindAlert": "تنبيه",
-  "postKindGeneral": "منشور عام",
+  "postKindGeneral": "منشور",
   "postKindPoll": "استطلاع",
   "postKindEvent": "مناسبة",
   "deletePost": "حذف المنشور",
