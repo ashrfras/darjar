@@ -1018,5 +1018,18 @@
   "hideSimilarActivities": "ⴼⴼⴻⵔ ⵓⵙⴰⵔⴻⵏ ⵉⵎⵢⴰⴳⴰⵏⴻⵏ",
   "installAppTitle": "ⵙⵔⵙ DarJar",
   "installAppDescription": "ⵙⵉⴷⵔ DarJar ⴳ ⵓⵙⵉⵎ ⵏⵏⴽ. ⴼⵔⵏ Google Play ⵏⵖ App Store.",
-  "installOpenFailed": "ⵓⵔ ⵉⵣⵎⵉⵔ ⴰⴷ ⵉⵔⵥⵎ ⴰⵎⴰⵏⵓ. ⵄⵔⵎ ⴷⴰⵖ."
+  "installOpenFailed": "ⵓⵔ ⵉⵣⵎⵉⵔ ⴰⴷ ⵉⵔⵥⵎ ⴰⵎⴰⵏⵓ. ⵄⵔⵎ ⴷⴰⵖ.",
+  "postShare": "ⴱⴹⵓ",
+  "postSharePreparing": "ⴰⵙⵙⵓⵊⴷ…",
+  "postShareFailed": "ⵓⵔ ⵉⵣⵎⵉⵔ ⴰⴷ ⵉⵙⵙⵓⵊⴷ ⵏⵖ ⴰⴷ ⵉⴱⴹⵓ ⵜⴰⵡⵍⴰⴼⵜ. ⵄⵔⴹ ⴷⴰⵖ.",
+  "postShareTooLarge": "ⴰⴹⵕⵉⵚ ⴰⴷ ⵉⵖⵣⵣⵉⴼ ⴱⴰⵀⵔⴰ ⵉ ⵢⴰⵜ ⵜⵡⵍⴰⴼⵜ. ⵄⵔⴹ ⴰⴹⵕⵉⵚ ⵉⵎⵥⵥⵉⵢⵏ.",
+  "postShareTitle": "ⴱⴹⵓ ⴰⵙⵓⴼⵖ",
+  "postShareDescription": "ⵜⵣⵎⵔⴷ ⴰⴷ ⵜⴱⴹⵓⴷ ⴰⵙⵓⴼⵖ ⵙ WhatsApp ⵏⵖ ⴽⵔⴰ ⵏ ⵓⵙⵏⵙⵉ ⵢⴰⴹⵏ",
+  "postShareImage": "ⴱⴹⵓ ⴰⵎ ⵜⵡⵍⴰⴼⵜ",
+  "postShareText": "ⴱⴹⵓ ⴰⵎ ⵓⴹⵕⵉⵚ",
+  "postShareImageDescription": "ⴰⴹⵕⵉⵚ ⴷ ⵜⵡⵍⴰⴼⵉⵏ ⵏ ⵓⵙⵓⴼⵖ",
+  "postShareTextDescription": "ⴰⴹⵕⵉⵚ ⴽⴰⵏ ⴱⵍⴰ ⵜⵉⵡⵍⴰⴼⵉⵏ",
+  "postShareTextFailed": "ⵓⵔ ⵉⵣⵎⵉⵔ ⴰⴷ ⵉⴱⴹⵓ ⴰⴹⵕⵉⵚ. ⵄⵔⴹ ⴷⴰⵖ.",
+  "postSharePreparingImage": "ⴰⵙⵙⵓⵊⴷ ⵏ ⵜⵡⵍⴰⴼⵜ ⵏ ⵓⵙⵓⴼⵖ…",
+  "postSharePreparingImageDescription": "ⴰⵙⵙⵓⵊⴷ ⵏ ⵓⴹⵕⵉⵚ ⴷ ⵜⵡⵍⴰⴼⵉⵏ ⵉ ⵓⴱⴹⵓ. ⵔⵊⵓ ⴰⴼⴰⴽ."
 }

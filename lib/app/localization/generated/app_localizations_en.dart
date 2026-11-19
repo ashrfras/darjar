@@ -2417,4 +2417,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get installOpenFailed => 'Could not open the store. Please try again.';
+
+  @override
+  String get postShare => 'Share';
+
+  @override
+  String get postSharePreparing => 'Preparing…';
+
+  @override
+  String get postShareFailed =>
+      'Could not prepare or share the image. Check your connection and try again.';
+
+  @override
+  String get postShareTooLarge =>
+      'This post is too long for a single readable image. Try sharing a shorter post.';
+
+  @override
+  String get postShareTitle => 'Share post';
+
+  @override
+  String get postShareDescription =>
+      'You can share the post via WhatsApp or any other app';
+
+  @override
+  String get postShareImage => 'Share as image';
+
+  @override
+  String get postShareText => 'Share as text';
+
+  @override
+  String get postShareImageDescription =>
+      'The post content and its attached images';
+
+  @override
+  String get postShareTextDescription => 'Only the post text, without images';
+
+  @override
+  String get postShareTextFailed =>
+      'Could not share the text. Please try again.';
+
+  @override
+  String get postSharePreparingImage => 'Preparing the post image…';
+
+  @override
+  String get postSharePreparingImageDescription =>
+      'Preparing the text and images for sharing. Please wait.';
 }

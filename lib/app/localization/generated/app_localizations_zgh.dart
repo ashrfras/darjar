@@ -2403,4 +2403,47 @@ class AppLocalizationsZgh extends AppLocalizations {
 
   @override
   String get installOpenFailed => 'ⵓⵔ ⵉⵣⵎⵉⵔ ⴰⴷ ⵉⵔⵥⵎ ⴰⵎⴰⵏⵓ. ⵄⵔⵎ ⴷⴰⵖ.';
+
+  @override
+  String get postShare => 'ⴱⴹⵓ';
+
+  @override
+  String get postSharePreparing => 'ⴰⵙⵙⵓⵊⴷ…';
+
+  @override
+  String get postShareFailed =>
+      'ⵓⵔ ⵉⵣⵎⵉⵔ ⴰⴷ ⵉⵙⵙⵓⵊⴷ ⵏⵖ ⴰⴷ ⵉⴱⴹⵓ ⵜⴰⵡⵍⴰⴼⵜ. ⵄⵔⴹ ⴷⴰⵖ.';
+
+  @override
+  String get postShareTooLarge =>
+      'ⴰⴹⵕⵉⵚ ⴰⴷ ⵉⵖⵣⵣⵉⴼ ⴱⴰⵀⵔⴰ ⵉ ⵢⴰⵜ ⵜⵡⵍⴰⴼⵜ. ⵄⵔⴹ ⴰⴹⵕⵉⵚ ⵉⵎⵥⵥⵉⵢⵏ.';
+
+  @override
+  String get postShareTitle => 'ⴱⴹⵓ ⴰⵙⵓⴼⵖ';
+
+  @override
+  String get postShareDescription =>
+      'ⵜⵣⵎⵔⴷ ⴰⴷ ⵜⴱⴹⵓⴷ ⴰⵙⵓⴼⵖ ⵙ WhatsApp ⵏⵖ ⴽⵔⴰ ⵏ ⵓⵙⵏⵙⵉ ⵢⴰⴹⵏ';
+
+  @override
+  String get postShareImage => 'ⴱⴹⵓ ⴰⵎ ⵜⵡⵍⴰⴼⵜ';
+
+  @override
+  String get postShareText => 'ⴱⴹⵓ ⴰⵎ ⵓⴹⵕⵉⵚ';
+
+  @override
+  String get postShareImageDescription => 'ⴰⴹⵕⵉⵚ ⴷ ⵜⵡⵍⴰⴼⵉⵏ ⵏ ⵓⵙⵓⴼⵖ';
+
+  @override
+  String get postShareTextDescription => 'ⴰⴹⵕⵉⵚ ⴽⴰⵏ ⴱⵍⴰ ⵜⵉⵡⵍⴰⴼⵉⵏ';
+
+  @override
+  String get postShareTextFailed => 'ⵓⵔ ⵉⵣⵎⵉⵔ ⴰⴷ ⵉⴱⴹⵓ ⴰⴹⵕⵉⵚ. ⵄⵔⴹ ⴷⴰⵖ.';
+
+  @override
+  String get postSharePreparingImage => 'ⴰⵙⵙⵓⵊⴷ ⵏ ⵜⵡⵍⴰⴼⵜ ⵏ ⵓⵙⵓⴼⵖ…';
+
+  @override
+  String get postSharePreparingImageDescription =>
+      'ⴰⵙⵙⵓⵊⴷ ⵏ ⵓⴹⵕⵉⵚ ⴷ ⵜⵡⵍⴰⴼⵉⵏ ⵉ ⵓⴱⴹⵓ. ⵔⵊⵓ ⴰⴼⴰⴽ.';
 }

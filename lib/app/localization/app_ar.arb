@@ -755,5 +755,18 @@
   },
   "installAppTitle": "ثبّت تطبيق دارجار",
   "installAppDescription": "حمّل دارجار على هاتفك وابدأ التواصل مع جيرانك ومتابعة شؤون إقامتك. اختر متجر جهازك من الروابط أدناه.",
-  "installOpenFailed": "تعذّر فتح المتجر. يرجى المحاولة مرة أخرى."
+  "installOpenFailed": "تعذّر فتح المتجر. يرجى المحاولة مرة أخرى.",
+  "postShare": "مشاركة",
+  "postSharePreparing": "جارٍ التجهيز…",
+  "postShareFailed": "تعذّر تجهيز الصورة أو مشاركتها. تأكد من الاتصال وحاول مجددًا.",
+  "postShareTooLarge": "هذا المنشور طويل جدًا لمشاركته في صورة واحدة واضحة. جرّب مشاركة منشور أقصر.",
+  "postShareTitle": "مشاركة المنشور",
+  "postShareDescription": "يمكنك مشاركة المنشور عبر واتساب أو أي تطبيق آخر",
+  "postShareImage": "مشاركة كصورة",
+  "postShareText": "مشاركة كنص",
+  "postShareImageDescription": "محتوى المنشور وصوره المرفقة",
+  "postShareTextDescription": "نص المنشور فقط دون الصور",
+  "postShareTextFailed": "تعذّرت مشاركة النص. يرجى المحاولة مرة أخرى.",
+  "postSharePreparingImage": "جارٍ تجهيز صورة المنشور…",
+  "postSharePreparingImageDescription": "يتم إعداد النص والصور للمشاركة. يرجى الانتظار."
 }

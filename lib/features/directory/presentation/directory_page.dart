@@ -1,3 +1,4 @@
+import 'directory_entry_image.dart';
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
@@ -411,13 +412,7 @@ class _FeaturedCard extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  Center(
-                    child: Icon(
-                      serviceCategoryIcon(entry.categoryId),
-                      size: 68,
-                      color: AppColors.primary,
-                    ),
-                  ),
+                  DirectoryEntryImage(entry: entry, cover: true),
                   PositionedDirectional(
                     start: 10,
                     bottom: 10,
@@ -484,12 +479,7 @@ class _CraftsmanRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 29,
-              backgroundColor: AppColors.primarySoft,
-              foregroundColor: AppColors.primary,
-              child: Icon(serviceCategoryIcon(entry.categoryId), size: 30),
-            ),
+            DirectoryEntryImage(entry: entry, radius: 29),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -605,11 +595,7 @@ class _EntryGrid extends StatelessWidget {
                       context.push(AppRoutes.directoryProfile(entry.id)),
                   child: Row(
                     children: [
-                      CircleAvatar(
-                        backgroundColor: AppColors.primarySoft,
-                        foregroundColor: AppColors.primary,
-                        child: Icon(serviceCategoryIcon(entry.categoryId)),
-                      ),
+                      DirectoryEntryImage(entry: entry),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(

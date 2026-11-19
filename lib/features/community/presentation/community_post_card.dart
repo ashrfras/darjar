@@ -1,8 +1,10 @@
+import 'package:darjar/features/community/presentation/community_post_action_icon.dart';
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/features/community/presentation/feed_date_label.dart';
+import 'package:darjar/features/community/presentation/community_post_share_button.dart';
 import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
@@ -933,31 +935,50 @@ class _PostActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        _ActionButton(
-          key: ValueKey('like-${post.id}'),
-          icon: post.isLiked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
-          label: '${post.likes}',
-          color: post.isLiked ? AppColors.danger : AppColors.inkMuted,
-          onTap: onLike,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _ActionButton(
+              key: ValueKey('like-${post.id}'),
+              icon: post.isLiked
+                  ? Icons.thumb_up_rounded
+                  : Icons.thumb_up_outlined,
+              label: '${post.likes}',
+              color: post.isLiked ? AppColors.danger : AppColors.inkMuted,
+              onTap: onLike,
+            ),
+            _ActionButton(
+              icon: Icons.chat_bubble_outline_rounded,
+              label: '${post.commentCount}',
+              onTap: onComment,
+            ),
+          ],
         ),
-        _ActionButton(
-          icon: Icons.chat_bubble_outline_rounded,
-          label: '${post.commentCount}',
-          onTap: onComment,
-        ),
-        const Spacer(),
-        IconButton(
-          key: ValueKey('save-${post.id}'),
-          tooltip: AppLocalizations.of(context).savePost,
-          onPressed: onSave,
-          color: post.isSaved ? AppColors.primary : AppColors.inkMuted,
-          icon: Icon(
-            post.isSaved
-                ? Icons.bookmark_rounded
-                : Icons.bookmark_border_rounded,
-          ),
+        Row(
+          // Keep sharing physically to the left of saving in both locales.
+          textDirection: TextDirection.ltr,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommunityPostShareButton(post: post),
+            IconButton(
+              key: ValueKey('save-${post.id}'),
+              iconSize: 20,
+              constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+              visualDensity: VisualDensity.standard,
+              tooltip: AppLocalizations.of(context).savePost,
+              onPressed: onSave,
+              color: post.isSaved ? AppColors.primary : AppColors.inkMuted,
+              icon: CommunityPostActionIcon(
+                post.isSaved
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_border_rounded,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -994,8 +1015,12 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton.icon(
       onPressed: onTap,
-      style: TextButton.styleFrom(foregroundColor: color ?? AppColors.inkMuted),
-      icon: Icon(icon, size: 20),
+      style: TextButton.styleFrom(
+        foregroundColor: color ?? AppColors.inkMuted,
+        minimumSize: const Size(64, 48),
+        visualDensity: VisualDensity.standard,
+      ),
+      icon: CommunityPostActionIcon(icon),
       label: Text(label),
     );
   }

@@ -2375,4 +2375,48 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get installOpenFailed => 'تعذّر فتح المتجر. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get postShare => 'مشاركة';
+
+  @override
+  String get postSharePreparing => 'جارٍ التجهيز…';
+
+  @override
+  String get postShareFailed =>
+      'تعذّر تجهيز الصورة أو مشاركتها. تأكد من الاتصال وحاول مجددًا.';
+
+  @override
+  String get postShareTooLarge =>
+      'هذا المنشور طويل جدًا لمشاركته في صورة واحدة واضحة. جرّب مشاركة منشور أقصر.';
+
+  @override
+  String get postShareTitle => 'مشاركة المنشور';
+
+  @override
+  String get postShareDescription =>
+      'يمكنك مشاركة المنشور عبر واتساب أو أي تطبيق آخر';
+
+  @override
+  String get postShareImage => 'مشاركة كصورة';
+
+  @override
+  String get postShareText => 'مشاركة كنص';
+
+  @override
+  String get postShareImageDescription => 'محتوى المنشور وصوره المرفقة';
+
+  @override
+  String get postShareTextDescription => 'نص المنشور فقط دون الصور';
+
+  @override
+  String get postShareTextFailed =>
+      'تعذّرت مشاركة النص. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get postSharePreparingImage => 'جارٍ تجهيز صورة المنشور…';
+
+  @override
+  String get postSharePreparingImageDescription =>
+      'يتم إعداد النص والصور للمشاركة. يرجى الانتظار.';
 }

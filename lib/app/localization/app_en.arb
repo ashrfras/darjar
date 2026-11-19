@@ -748,5 +748,18 @@
   "hideSimilarActivities": "Hide similar activities",
   "installAppTitle": "Install DarJar",
   "installAppDescription": "Download DarJar on your phone to connect with neighbors and follow residence matters. Choose your device’s store below.",
-  "installOpenFailed": "Could not open the store. Please try again."
+  "installOpenFailed": "Could not open the store. Please try again.",
+  "postShare": "Share",
+  "postSharePreparing": "Preparing…",
+  "postShareFailed": "Could not prepare or share the image. Check your connection and try again.",
+  "postShareTooLarge": "This post is too long for a single readable image. Try sharing a shorter post.",
+  "postShareTitle": "Share post",
+  "postShareDescription": "You can share the post via WhatsApp or any other app",
+  "postShareImage": "Share as image",
+  "postShareText": "Share as text",
+  "postShareImageDescription": "The post content and its attached images",
+  "postShareTextDescription": "Only the post text, without images",
+  "postShareTextFailed": "Could not share the text. Please try again.",
+  "postSharePreparingImage": "Preparing the post image…",
+  "postSharePreparingImageDescription": "Preparing the text and images for sharing. Please wait."
 }

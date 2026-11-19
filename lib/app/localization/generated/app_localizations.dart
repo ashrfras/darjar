@@ -4358,6 +4358,84 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تعذّر فتح المتجر. يرجى المحاولة مرة أخرى.'**
   String get installOpenFailed;
+
+  /// No description provided for @postShare.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشاركة'**
+  String get postShare;
+
+  /// No description provided for @postSharePreparing.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ التجهيز…'**
+  String get postSharePreparing;
+
+  /// No description provided for @postShareFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تجهيز الصورة أو مشاركتها. تأكد من الاتصال وحاول مجددًا.'**
+  String get postShareFailed;
+
+  /// No description provided for @postShareTooLarge.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذا المنشور طويل جدًا لمشاركته في صورة واحدة واضحة. جرّب مشاركة منشور أقصر.'**
+  String get postShareTooLarge;
+
+  /// No description provided for @postShareTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشاركة المنشور'**
+  String get postShareTitle;
+
+  /// No description provided for @postShareDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكنك مشاركة المنشور عبر واتساب أو أي تطبيق آخر'**
+  String get postShareDescription;
+
+  /// No description provided for @postShareImage.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشاركة كصورة'**
+  String get postShareImage;
+
+  /// No description provided for @postShareText.
+  ///
+  /// In ar, this message translates to:
+  /// **'مشاركة كنص'**
+  String get postShareText;
+
+  /// No description provided for @postShareImageDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'محتوى المنشور وصوره المرفقة'**
+  String get postShareImageDescription;
+
+  /// No description provided for @postShareTextDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'نص المنشور فقط دون الصور'**
+  String get postShareTextDescription;
+
+  /// No description provided for @postShareTextFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّرت مشاركة النص. يرجى المحاولة مرة أخرى.'**
+  String get postShareTextFailed;
+
+  /// No description provided for @postSharePreparingImage.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تجهيز صورة المنشور…'**
+  String get postSharePreparingImage;
+
+  /// No description provided for @postSharePreparingImageDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'يتم إعداد النص والصور للمشاركة. يرجى الانتظار.'**
+  String get postSharePreparingImageDescription;
 }
 
 class _AppLocalizationsDelegate

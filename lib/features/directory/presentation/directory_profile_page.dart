@@ -1,3 +1,4 @@
+import 'directory_entry_image.dart';
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
@@ -11,7 +12,6 @@ import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/directory/data/service_categories_repository.dart';
-import 'package:darjar/features/directory/presentation/service_category_icon.dart';
 import 'package:darjar/features/directory/presentation/service_phone_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,15 +74,7 @@ class DirectoryProfilePage extends ConsumerWidget {
                   children: [
                     Column(
                       children: [
-                        CircleAvatar(
-                          radius: 54,
-                          backgroundColor: AppColors.primarySoft,
-                          foregroundColor: AppColors.primary,
-                          child: Icon(
-                            serviceCategoryIcon(entry.categoryId),
-                            size: 58,
-                          ),
-                        ),
+                        DirectoryEntryImage(entry: entry, radius: 54),
                         const SizedBox(height: AppSpacing.medium),
                         Text(
                           entry.name,
