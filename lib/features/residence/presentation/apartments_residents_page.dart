@@ -1167,7 +1167,7 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
                   key: const Key('apartment-no-previous-payment-field'),
                   contentPadding: EdgeInsets.zero,
                   value: _hasNoPreviousPayment,
-                  title: Text(widget.copy.noPreviousPayment),
+                  title: Text(widget.copy.startDuesFromCurrentMonth),
                   controlAffinity: ListTileControlAffinity.leading,
                   onChanged: (value) {
                     setState(() {
@@ -1176,6 +1176,12 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
                       _showPaidThroughError = false;
                     });
                   },
+                ),
+                Text(
+                  widget.copy.startDuesFromCurrentMonthHint,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
                 ),
                 if (_showPaidThroughError)
                   Text(
@@ -1289,7 +1295,7 @@ class _StartDuesTrackingSheet extends StatefulWidget {
 }
 
 class _StartDuesTrackingSheetState extends State<_StartDuesTrackingSheet> {
-  bool _hasPreviousPayment = true;
+  bool _startFromCurrentMonth = true;
   DateTime _paidThrough = DateTime.now();
 
   @override
@@ -1323,41 +1329,43 @@ class _StartDuesTrackingSheetState extends State<_StartDuesTrackingSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.small),
-            Text(
-              widget.copy.startTrackingHint,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
-            ),
             const SizedBox(height: AppSpacing.medium),
             CheckboxListTile(
               key: const Key('start-tracking-no-previous-payment-field'),
               contentPadding: EdgeInsets.zero,
-              value: !_hasPreviousPayment,
-              title: Text(widget.copy.noPreviousPayment),
+              value: _startFromCurrentMonth,
+              title: Text(widget.copy.startDuesFromCurrentMonth),
               controlAffinity: ListTileControlAffinity.leading,
               onChanged: (value) {
-                setState(() => _hasPreviousPayment = value != true);
+                setState(() {
+                  _startFromCurrentMonth = value == true;
+                  if (_startFromCurrentMonth) _paidThrough = DateTime.now();
+                });
               },
             ),
-            if (_hasPreviousPayment)
-              OutlinedButton.icon(
-                key: const Key('start-tracking-last-paid-month-field'),
-                onPressed: _selectPaidThroughMonth,
-                icon: const Icon(Icons.calendar_month_outlined),
-                label: Text(
-                  '${widget.copy.lastPaidMonth}: '
-                  '${DarJarDateFormat.yMMMM(_paidThrough, widget.copy.arabic ? 'ar' : 'en')}',
-                ),
+            Text(
+              widget.copy.startDuesFromCurrentMonthHint,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+            ),
+            const SizedBox(height: AppSpacing.large),
+            OutlinedButton.icon(
+              key: const Key('start-tracking-last-paid-month-field'),
+              onPressed: _selectPaidThroughMonth,
+              icon: const Icon(Icons.calendar_month_outlined),
+              label: Text(
+                '${widget.copy.lastPaidMonth}: '
+                '${DarJarDateFormat.yMMMM(_paidThrough, widget.copy.arabic ? 'ar' : 'en')}',
               ),
+            ),
             const SizedBox(height: AppSpacing.xLarge),
             FilledButton.icon(
               key: const Key('confirm-start-apartment-dues-tracking'),
               onPressed: () => Navigator.pop(
                 context,
                 _OpeningDuesSelection(
-                  _hasPreviousPayment ? _periodKey(_paidThrough) : null,
+                  _startFromCurrentMonth ? null : _periodKey(_paidThrough),
                 ),
               ),
               icon: const Icon(Icons.play_arrow_rounded),
@@ -1378,7 +1386,10 @@ class _StartDuesTrackingSheetState extends State<_StartDuesTrackingSheet> {
       copy: widget.copy,
     );
     if (selected != null && mounted) {
-      setState(() => _paidThrough = DateTime(selected.year, selected.month));
+      setState(() {
+        _paidThrough = DateTime(selected.year, selected.month);
+        _startFromCurrentMonth = false;
+      });
     }
   }
 }
@@ -2991,14 +3002,15 @@ class _Copy {
   String get chooseLastPaidMonth =>
       arabic ? 'اختر آخر شهر مؤدى' : 'Choose the last paid month';
   String get lastPaidMonthRequired => arabic
-      ? 'اختر آخر شهر مؤدى أو حدّد أنه لم يسبق أداء أي اشتراك.'
-      : 'Choose the last paid month or indicate that no subscription has been paid.';
-  String get noPreviousPayment =>
-      arabic ? 'لم يسبق أداء أي اشتراك' : 'No subscription has been paid yet';
+      ? 'يرجى تحديد آخر شهر مؤدى أو بدء احتساب الاشتراكات من الشهر الحالي'
+      : 'Choose the last paid month or start counting dues from the current month.';
+  String get startDuesFromCurrentMonth => arabic
+      ? 'بدء احتساب الاشتراكات من الشهر الحالي'
+      : 'Start counting dues from the current month';
+  String get startDuesFromCurrentMonthHint => arabic
+      ? 'تجاهل مستحقات الأشهر السابقة وبدء الاحتساب من الشهر الحالي، إذا لم ترغب في ذلك فيرجى تحديد آخر شهر مؤدى.'
+      : 'Skip dues for previous months and start counting from the current month. Otherwise, select the last paid month.';
   String get startTracking => arabic ? 'بدء التتبّع' : 'Start tracking';
-  String get startTrackingHint => arabic
-      ? 'سيُنشئ دارجار الأشهر غير المؤداة إلى غاية الشهر الحالي.'
-      : 'DarJar will create unpaid months through the current month.';
   String get duesTrackingStarted =>
       arabic ? 'بدأ تتبّع اشتراك الشقة.' : 'Apartment dues tracking started.';
   String get apartmentDeleted =>

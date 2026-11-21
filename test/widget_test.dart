@@ -6776,13 +6776,33 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('اختر آخر شهر مؤدى'), findsOneWidget);
+    final startFromCurrentMonth = find.byKey(
+      const Key('apartment-no-previous-payment-field'),
+    );
+    expect(
+      find.descendant(
+        of: startFromCurrentMonth,
+        matching: find.text('بدء احتساب الاشتراكات من الشهر الحالي'),
+      ),
+      findsOneWidget,
+    );
+    final startFromCurrentMonthHint = find.text(
+      'تجاهل مستحقات الأشهر السابقة وبدء الاحتساب من الشهر الحالي، إذا لم ترغب في ذلك فيرجى تحديد آخر شهر مؤدى.',
+    );
+    expect(startFromCurrentMonthHint, findsOneWidget);
+    expect(
+      tester.getTopLeft(startFromCurrentMonthHint).dy,
+      greaterThanOrEqualTo(tester.getBottomLeft(startFromCurrentMonth).dy),
+    );
     final confirmAddApartment = find.byKey(
       const Key('confirm-add-apartment-button'),
     );
     tester.widget<FilledButton>(confirmAddApartment).onPressed!();
     await tester.pumpAndSettle();
     expect(
-      find.byKey(const Key('apartment-last-paid-month-error')),
+      find.text(
+        'يرجى تحديد آخر شهر مؤدى أو بدء احتساب الاشتراكات من الشهر الحالي',
+      ),
       findsOneWidget,
     );
     await tester.tap(find.byKey(const Key('apartment-last-paid-month-field')));
@@ -6847,15 +6867,68 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(startTracking);
     await tester.pumpAndSettle();
+    final trackingStartFromCurrentMonth = find.byKey(
+      const Key('start-tracking-no-previous-payment-field'),
+    );
+    expect(
+      find.descendant(
+        of: trackingStartFromCurrentMonth,
+        matching: find.text('بدء احتساب الاشتراكات من الشهر الحالي'),
+      ),
+      findsOneWidget,
+    );
+    expect(startFromCurrentMonthHint, findsOneWidget);
+    expect(
+      tester.getTopLeft(startFromCurrentMonthHint).dy,
+      greaterThanOrEqualTo(
+        tester.getBottomLeft(trackingStartFromCurrentMonth).dy,
+      ),
+    );
     final trackingLastPaidMonth = find.byKey(
       const Key('start-tracking-last-paid-month-field'),
     );
+    expect(
+      tester.widget<CheckboxListTile>(trackingStartFromCurrentMonth).value,
+      isTrue,
+    );
+    expect(
+      find.text('سيُنشئ دارجار الأشهر غير المؤداة إلى غاية الشهر الحالي.'),
+      findsNothing,
+    );
+    final currentMonth = DateTime.now();
+    final currentMonthLabel = find.descendant(
+      of: trackingLastPaidMonth,
+      matching: find.text(
+        'آخر شهر مؤدى: ${DarJarDateFormat.yMMMM(currentMonth, 'ar')}',
+      ),
+    );
+    expect(currentMonthLabel, findsOneWidget);
     await tester.tap(trackingLastPaidMonth);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('month-year-picker-dialog')), findsOneWidget);
     expect(find.byType(CalendarDatePicker), findsNothing);
+    final previousYear = currentMonth.year - 1;
+    tester
+        .widget<DropdownButton<int>>(
+          find.byKey(const Key('month-year-picker-year')),
+        )
+        .onChanged!(previousYear);
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('confirm-month-year-picker')));
     await tester.pumpAndSettle();
+    expect(trackingLastPaidMonth, findsOneWidget);
+    expect(currentMonthLabel, findsNothing);
+    expect(
+      tester.widget<CheckboxListTile>(trackingStartFromCurrentMonth).value,
+      isFalse,
+    );
+    await tester.tap(trackingStartFromCurrentMonth);
+    await tester.pumpAndSettle();
+    expect(currentMonthLabel, findsOneWidget);
+    expect(
+      tester.widget<CheckboxListTile>(trackingStartFromCurrentMonth).value,
+      isTrue,
+    );
     final confirmTracking = find.byKey(
       const Key('confirm-start-apartment-dues-tracking'),
     );
