@@ -110,8 +110,8 @@ abstract interface class ResidenceSetupRepository {
   Future<void> requestToJoin({
     required AuthUser user,
     required ResidenceCodeSummary residence,
-    required String firstName,
-    required String lastName,
+    String? firstName,
+    String? lastName,
     required String apartmentId,
   });
 }
@@ -210,10 +210,15 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
               'updatedAt': FieldValue.serverTimestamp(),
             });
           }
+          final profile = userDocument.data();
           transaction.set(memberReference, {
             'userId': user.uid,
-            'firstName': normalizedInput.firstName,
-            'lastName': normalizedInput.lastName,
+            'firstName': profile == null
+                ? normalizedInput.firstName
+                : profile['firstName'],
+            'lastName': profile == null
+                ? normalizedInput.lastName
+                : profile['lastName'],
             'phoneNumber': phoneNumber,
             'apartmentId': '',
             'role': 'president',
@@ -309,17 +314,12 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
   Future<void> requestToJoin({
     required AuthUser user,
     required ResidenceCodeSummary residence,
-    required String firstName,
-    required String lastName,
+    String? firstName,
+    String? lastName,
     required String apartmentId,
   }) async {
     final phoneNumber = _verifiedPhone(user);
-    final normalizedFirstName = firstName.trim();
-    final normalizedLastName = lastName.trim();
     final normalizedApartmentId = apartmentId.trim();
-    if (normalizedFirstName.isEmpty || normalizedLastName.isEmpty) {
-      throw const ResidenceSetupFailure('invalid-data');
-    }
     if (normalizedApartmentId.isEmpty ||
         !residence.apartments.any(
           (apartment) => apartment.id == normalizedApartmentId,
@@ -344,10 +344,20 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
         }
         final userDocument = await transaction.get(userReference);
         final profile = userDocument.data();
+        final profileFirstName = profile == null
+            ? firstName?.trim() ?? ''
+            : profile['firstName'] as String? ?? '';
+        final profileLastName = profile == null
+            ? lastName?.trim() ?? ''
+            : profile['lastName'] as String? ?? '';
+        if (profileFirstName.trim().isEmpty || profileLastName.trim().isEmpty) {
+          throw const ResidenceSetupFailure('invalid-join-data');
+        }
+
         transaction.set(memberReference, {
           'userId': user.uid,
-          'firstName': profile?['firstName'] as String? ?? normalizedFirstName,
-          'lastName': profile?['lastName'] as String? ?? normalizedLastName,
+          'firstName': profileFirstName,
+          'lastName': profileLastName,
           'phoneNumber': phoneNumber,
           'apartmentId': normalizedApartmentId,
           'role': 'resident',
@@ -365,8 +375,8 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
           });
         } else {
           transaction.set(userReference, {
-            'firstName': normalizedFirstName,
-            'lastName': normalizedLastName,
+            'firstName': profileFirstName,
+            'lastName': profileLastName,
             'phoneNumber': phoneNumber,
             'activeResidenceId': residence.residenceId,
             'createdAt': FieldValue.serverTimestamp(),

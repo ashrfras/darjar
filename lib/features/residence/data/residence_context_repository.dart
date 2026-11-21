@@ -117,10 +117,9 @@ class FirestoreResidenceContextRepository
       ]);
       final userDocument = results[0] as DocumentSnapshot<Map<String, dynamic>>;
       final membershipQuery = results[1] as QuerySnapshot<Map<String, dynamic>>;
-      final storedActiveId =
-          userDocument.data()?['activeResidenceId'] as String?;
-      final hasProfileImage =
-          userDocument.data()?['hasProfileImage'] as bool? ?? false;
+      final profile = userDocument.data();
+      final storedActiveId = profile?['activeResidenceId'] as String?;
+      final hasProfileImage = profile?['hasProfileImage'] as bool? ?? false;
 
       // These are already the complete membership documents. Re-reading every
       // membership added an unnecessary network round-trip to every page load.
@@ -134,6 +133,7 @@ class FirestoreResidenceContextRepository
         memberships: memberships,
         hasProfileImage: hasProfileImage,
       );
+      await _syncMembershipNames(memberships, profile);
       final residenceDocuments = await Future.wait([
         for (final membership in memberships)
           membership.reference.parent.parent!.get(),
@@ -208,6 +208,41 @@ class FirestoreResidenceContextRepository
       });
     }
     await batch.commit();
+  }
+
+  Future<void> _syncMembershipNames(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> memberships,
+    Map<String, dynamic>? profile,
+  ) async {
+    final firstName = profile?['firstName'] as String?;
+    final lastName = profile?['lastName'] as String?;
+    if (firstName == null ||
+        firstName.trim().isEmpty ||
+        lastName == null ||
+        lastName.trim().isEmpty) {
+      return;
+    }
+
+    final staleMemberships = memberships.where((membership) {
+      final data = membership.data();
+      return data['firstName'] != firstName || data['lastName'] != lastName;
+    }).toList();
+    if (staleMemberships.isEmpty) return;
+
+    final batch = _firestore.batch();
+    for (final membership in staleMemberships) {
+      batch.update(membership.reference, {
+        'firstName': firstName,
+        'lastName': lastName,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    try {
+      await batch.commit();
+    } on FirebaseException catch (error) {
+      // A profile edit or membership removal can supersede the loaded data.
+      if (kDebugMode) debugPrint('Membership name sync: ${error.code}');
+    }
   }
 
   @override

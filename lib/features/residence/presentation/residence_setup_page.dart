@@ -519,6 +519,7 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
   String? _errorCode;
   String? _selectedApartmentId;
   ResidenceInvitation? _pendingInvitation;
+  UserProfile? _profile;
 
   @override
   void initState() {
@@ -605,23 +606,37 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
                 const SizedBox(height: AppSpacing.xLarge),
                 _ResidenceSearchResult(residence: _residence!),
                 const SizedBox(height: AppSpacing.xLarge),
-                DarJarTextField(
-                  key: const Key('join-first-name-field'),
-                  controller: _firstNameController,
-                  label: localizations.firstName,
-                  prefixIcon: Icons.person_outline_rounded,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: AppSpacing.medium),
-                DarJarTextField(
-                  key: const Key('join-last-name-field'),
-                  controller: _lastNameController,
-                  label: localizations.lastName,
-                  helper: localizations.lastNamePrivacyHint,
-                  prefixIcon: Icons.person_outline_rounded,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: AppSpacing.medium),
+                if (_profile case final UserProfile profile) ...[
+                  Text(
+                    localizations.accountResolutionFullName,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: AppSpacing.small),
+                  Text(
+                    profile.fullName,
+                    key: const Key('join-profile-name'),
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: AppSpacing.medium),
+                ] else ...[
+                  DarJarTextField(
+                    key: const Key('join-first-name-field'),
+                    controller: _firstNameController,
+                    label: localizations.firstName,
+                    prefixIcon: Icons.person_outline_rounded,
+                    textInputAction: TextInputAction.next,
+                  ),
+                  const SizedBox(height: AppSpacing.medium),
+                  DarJarTextField(
+                    key: const Key('join-last-name-field'),
+                    controller: _lastNameController,
+                    label: localizations.lastName,
+                    helper: localizations.lastNamePrivacyHint,
+                    prefixIcon: Icons.person_outline_rounded,
+                    textInputAction: TextInputAction.next,
+                  ),
+                  const SizedBox(height: AppSpacing.medium),
+                ],
                 DropdownButtonFormField<String>(
                   key: const Key('join-apartment-field'),
                   initialValue: _selectedApartmentId,
@@ -691,6 +706,7 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
       _residence = null;
       _selectedApartmentId = null;
       _pendingInvitation = null;
+      _profile = null;
       _firstNameController.clear();
       _lastNameController.clear();
       _errorCode = null;
@@ -704,25 +720,32 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
         return;
       }
       ResidenceInvitation? pendingInvitation;
+      UserProfile? profile;
       final user = ref.read(authRepositoryProvider).currentUser;
       if (residence != null && user != null) {
-        pendingInvitation = await ref
-            .read(accountOnboardingRepositoryProvider)
-            .loadPendingInvitation(
-              user: user,
-              residenceId: residence.residenceId,
-              residenceName: residence.name,
-              residenceAddress: residence.address,
-            )
-            .timeout(residenceDataTimeout);
+        final repository = ref.read(accountOnboardingRepositoryProvider);
+        final results = await Future.wait([
+          repository.loadProfile(user),
+          repository.loadPendingInvitation(
+            user: user,
+            residenceId: residence.residenceId,
+            residenceName: residence.name,
+            residenceAddress: residence.address,
+          ),
+        ]).timeout(residenceDataTimeout);
+        profile = results[0] as UserProfile?;
+        pendingInvitation = results[1] as ResidenceInvitation?;
       }
       if (mounted) {
         setState(() {
           _residence = residence;
           _pendingInvitation = pendingInvitation;
+          _profile = profile;
           if (pendingInvitation != null) {
-            _firstNameController.text = pendingInvitation.suggestedFirstName;
-            _lastNameController.text = pendingInvitation.suggestedLastName;
+            if (profile == null) {
+              _firstNameController.text = pendingInvitation.suggestedFirstName;
+              _lastNameController.text = pendingInvitation.suggestedLastName;
+            }
             _selectedApartmentId =
                 residence?.apartments.any(
                       (apartment) =>
@@ -784,9 +807,11 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
       setState(() => _errorCode = 'signed-out');
       return;
     }
-    if (_firstNameController.text.trim().isEmpty ||
-        _lastNameController.text.trim().isEmpty ||
-        _selectedApartmentId == null) {
+    final firstName = _profile == null
+        ? _firstNameController.text.trim()
+        : null;
+    final lastName = _profile == null ? _lastNameController.text.trim() : null;
+    if (firstName == '' || lastName == '' || _selectedApartmentId == null) {
       setState(() => _errorCode = 'invalid-join-data');
       return;
     }
@@ -802,8 +827,8 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
             .requestToJoin(
               user: user,
               residence: residence,
-              firstName: _firstNameController.text,
-              lastName: _lastNameController.text,
+              firstName: firstName,
+              lastName: lastName,
               apartmentId: _selectedApartmentId!,
             );
       } else {
@@ -812,8 +837,8 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
             .acceptInvitation(
               user: user,
               invitation: pendingInvitation,
-              firstName: _firstNameController.text,
-              lastName: _lastNameController.text,
+              firstName: firstName,
+              lastName: lastName,
               apartmentId: _selectedApartmentId!,
             );
       }
@@ -1009,6 +1034,7 @@ class _SetupError extends StatelessWidget {
 String _setupErrorMessage(AppLocalizations localizations, String code) {
   return switch (code) {
     'invalid-data' => localizations.setupCompleteRequiredFields,
+    'missing-profile-data' ||
     'invalid-join-data' ||
     'invalid-apartment' => localizations.setupCompleteJoinFields,
     'invalid-code' => localizations.residenceCodeInvalid,

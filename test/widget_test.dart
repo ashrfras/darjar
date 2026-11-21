@@ -2109,7 +2109,7 @@ void main() {
     });
 
     testWidgets(
-      'invitation link keeps the verified session and searches automatically',
+      'public invitation displays the existing account name as text',
       (tester) async {
         final setupRepository = _FakeResidenceSetupRepository(
           residence: const ResidenceCodeSummary(
@@ -2139,6 +2139,17 @@ void main() {
           platformInitialLocation: AppRoutes.residenceInvitation('48273165'),
           useBootstrap: true,
           residenceSetupRepository: setupRepository,
+          accountRepository: _FakeAccountOnboardingRepository(
+            resolution: const AccountResolution(
+              phoneNumber: '+212600000001',
+              profile: UserProfile(
+                firstName: 'مريم',
+                lastName: 'بناني',
+                phoneNumber: '+212600000001',
+              ),
+              invitations: [],
+            ),
+          ),
         );
         await tester.pumpAndSettle();
 
@@ -2159,8 +2170,21 @@ void main() {
               ?.text,
           '48273165',
         );
-        expect(find.byKey(const Key('join-first-name-field')), findsOneWidget);
-        expect(find.byKey(const Key('join-apartment-field')), findsOneWidget);
+        expect(find.byKey(const Key('join-first-name-field')), findsNothing);
+        expect(find.byKey(const Key('join-last-name-field')), findsNothing);
+        expect(find.text('مريم بناني'), findsOneWidget);
+        await tester.tap(find.byKey(const Key('join-apartment-field')));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.text('الشقة 12 · العمارة الرئيسية · الطابق الأول').last,
+        );
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(
+          find.byKey(const Key('join-found-residence-button')),
+        );
+        await tester.tap(find.byKey(const Key('join-found-residence-button')));
+        await tester.pumpAndSettle();
+        expect(setupRepository.requestedApartmentId, 'apartment-12');
       },
     );
 
@@ -2282,136 +2306,177 @@ void main() {
       expect(authRepository.confirmedCode, '123456');
     });
 
-    testWidgets('private invitation prefills the editable public join form', (
-      tester,
-    ) async {
-      final authRepository = _FakeAuthRepository(signedIn: false);
-      final accountRepository = _FakeAccountOnboardingRepository(
-        pendingInvitation: const ResidenceInvitation(
-          path: 'residences/residence-yasmine/invitations/+212600000001',
-          id: '+212600000001',
-          residenceId: 'residence-yasmine',
-          residenceName: 'إقامة الياسمين',
-          residenceAddress: 'حي المعاريف',
-          suggestedFirstName: 'أمينة',
-          suggestedLastName: 'المريني',
-          apartmentId: 'apartment-12',
-          role: 'resident',
-        ),
-      );
-      final setupRepository = _FakeResidenceSetupRepository(
-        residence: const ResidenceCodeSummary(
-          residenceId: 'residence-yasmine',
-          code: '48273165',
-          name: 'إقامة الياسمين',
-          address: 'حي المعاريف',
-          city: '6141010',
-          joinRequestsEnabled: true,
-          apartments: [
-            ResidenceJoinApartment(
-              id: 'apartment-12',
-              number: '12',
-              buildingNameAr: 'العمارة الرئيسية',
-              buildingNameEn: 'Main building',
-              floorNameAr: 'الطابق الأول',
-              floorNameEn: 'First floor',
+    for (final existingAccount in [false, true]) {
+      testWidgets(
+        existingAccount
+            ? 'private invitation keeps the account name instead of the suggested name'
+            : 'private invitation prefills the editable new account name',
+        (tester) async {
+          final authRepository = _FakeAuthRepository(signedIn: false);
+          final accountRepository = _FakeAccountOnboardingRepository(
+            resolution: AccountResolution(
+              phoneNumber: '+212600000001',
+              profile: existingAccount
+                  ? const UserProfile(
+                      firstName: 'مريم',
+                      lastName: 'بناني',
+                      phoneNumber: '+212600000001',
+                    )
+                  : null,
+              invitations: const [],
             ),
-            ResidenceJoinApartment(
-              id: 'apartment-13',
-              number: '13',
-              buildingNameAr: 'العمارة الرئيسية',
-              buildingNameEn: 'Main building',
-              floorNameAr: 'الطابق الأول',
-              floorNameEn: 'First floor',
+            pendingInvitation: const ResidenceInvitation(
+              path: 'residences/residence-yasmine/invitations/+212600000001',
+              id: '+212600000001',
+              residenceId: 'residence-yasmine',
+              residenceName: 'إقامة الياسمين',
+              residenceAddress: 'حي المعاريف',
+              suggestedFirstName: 'أمينة',
+              suggestedLastName: 'المريني',
+              apartmentId: 'apartment-12',
+              role: 'resident',
             ),
-          ],
-        ),
-      );
+          );
+          final setupRepository = _FakeResidenceSetupRepository(
+            residence: const ResidenceCodeSummary(
+              residenceId: 'residence-yasmine',
+              code: '48273165',
+              name: 'إقامة الياسمين',
+              address: 'حي المعاريف',
+              city: '6141010',
+              joinRequestsEnabled: true,
+              apartments: [
+                ResidenceJoinApartment(
+                  id: 'apartment-12',
+                  number: '12',
+                  buildingNameAr: 'العمارة الرئيسية',
+                  buildingNameEn: 'Main building',
+                  floorNameAr: 'الطابق الأول',
+                  floorNameEn: 'First floor',
+                ),
+                ResidenceJoinApartment(
+                  id: 'apartment-13',
+                  number: '13',
+                  buildingNameAr: 'العمارة الرئيسية',
+                  buildingNameEn: 'Main building',
+                  floorNameAr: 'الطابق الأول',
+                  floorNameEn: 'First floor',
+                ),
+              ],
+            ),
+          );
 
-      await _pumpApp(
-        tester,
-        size: const Size(390, 844),
-        initialLocation: AppRoutes.residenceInvitation('48273165'),
-        authRepository: authRepository,
-        accountRepository: accountRepository,
-        residenceSetupRepository: setupRepository,
-      );
-      await tester.pumpAndSettle();
+          await _pumpApp(
+            tester,
+            size: const Size(390, 844),
+            initialLocation: AppRoutes.residenceInvitation('48273165'),
+            authRepository: authRepository,
+            accountRepository: accountRepository,
+            residenceSetupRepository: setupRepository,
+          );
+          await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.byKey(const Key('auth-phone-field')),
-        '600000001',
-      );
-      await tester.tap(find.byKey(const Key('send-verification-code-button')));
-      await tester.pumpAndSettle();
-      await tester.enterText(
-        find.byKey(const Key('auth-verification-code-field')),
-        '123456',
-      );
-      await tester.tap(
-        find.byKey(const Key('confirm-verification-code-button')),
-      );
-      await tester.pumpAndSettle();
+          await tester.enterText(
+            find.byKey(const Key('auth-phone-field')),
+            '600000001',
+          );
+          await tester.tap(
+            find.byKey(const Key('send-verification-code-button')),
+          );
+          await tester.pumpAndSettle();
+          await tester.enterText(
+            find.byKey(const Key('auth-verification-code-field')),
+            '123456',
+          );
+          await tester.tap(
+            find.byKey(const Key('confirm-verification-code-button')),
+          );
+          await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('account-resolution-page')), findsNothing);
-      expect(
-        tester
-            .widget<TextField>(
-              find.descendant(
-                of: find.byKey(const Key('join-first-name-field')),
-                matching: find.byType(TextField),
-              ),
-            )
-            .controller
-            ?.text,
-        'أمينة',
-      );
-      expect(
-        tester
-            .widget<TextField>(
-              find.descendant(
-                of: find.byKey(const Key('join-last-name-field')),
-                matching: find.byType(TextField),
-              ),
-            )
-            .controller
-            ?.text,
-        'المريني',
-      );
-      expect(
-        tester
-            .widget<DropdownButton<String>>(
-              find.descendant(
-                of: find.byKey(const Key('join-apartment-field')),
-                matching: find.byType(DropdownButton<String>),
-              ),
-            )
-            .value,
-        'apartment-12',
-      );
+          expect(
+            find.byKey(const Key('account-resolution-page')),
+            findsNothing,
+          );
+          if (existingAccount) {
+            expect(
+              find.byKey(const Key('join-first-name-field')),
+              findsNothing,
+            );
+            expect(find.byKey(const Key('join-last-name-field')), findsNothing);
+            expect(find.text('مريم بناني'), findsOneWidget);
+            expect(find.text('أمينة'), findsNothing);
+          } else {
+            expect(
+              tester
+                  .widget<TextField>(
+                    find.descendant(
+                      of: find.byKey(const Key('join-first-name-field')),
+                      matching: find.byType(TextField),
+                    ),
+                  )
+                  .controller
+                  ?.text,
+              'أمينة',
+            );
+            expect(
+              tester
+                  .widget<TextField>(
+                    find.descendant(
+                      of: find.byKey(const Key('join-last-name-field')),
+                      matching: find.byType(TextField),
+                    ),
+                  )
+                  .controller
+                  ?.text,
+              'المريني',
+            );
+          }
+          expect(
+            tester
+                .widget<DropdownButton<String>>(
+                  find.descendant(
+                    of: find.byKey(const Key('join-apartment-field')),
+                    matching: find.byType(DropdownButton<String>),
+                  ),
+                )
+                .value,
+            'apartment-12',
+          );
 
-      await tester.enterText(
-        find.byKey(const Key('join-first-name-field')),
-        'سلمى',
-      );
-      await tester.tap(find.byKey(const Key('join-apartment-field')));
-      await tester.pumpAndSettle();
-      await tester.tap(
-        find.text('الشقة 13 · العمارة الرئيسية · الطابق الأول').last,
-      );
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(
-        find.byKey(const Key('join-found-residence-button')),
-      );
-      await tester.tap(find.byKey(const Key('join-found-residence-button')));
-      await tester.pumpAndSettle();
+          if (!existingAccount) {
+            await tester.enterText(
+              find.byKey(const Key('join-first-name-field')),
+              'سلمى',
+            );
+          }
+          await tester.tap(find.byKey(const Key('join-apartment-field')));
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.text('الشقة 13 · العمارة الرئيسية · الطابق الأول').last,
+          );
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(
+            find.byKey(const Key('join-found-residence-button')),
+          );
+          await tester.tap(
+            find.byKey(const Key('join-found-residence-button')),
+          );
+          await tester.pumpAndSettle();
 
-      expect(accountRepository.acceptedFirstName, 'سلمى');
-      expect(accountRepository.acceptedLastName, 'المريني');
-      expect(accountRepository.acceptedApartmentId, 'apartment-13');
-      expect(setupRepository.requestedResidence, isNull);
-      expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
-    });
+          expect(
+            accountRepository.acceptedFirstName,
+            existingAccount ? null : 'سلمى',
+          );
+          expect(
+            accountRepository.acceptedLastName,
+            existingAccount ? null : 'المريني',
+          );
+          expect(accountRepository.acceptedApartmentId, 'apartment-13');
+          expect(setupRepository.requestedResidence, isNull);
+          expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+        },
+      );
+    }
   });
 
   testWidgets('onboarding creates a residence and enters the compact app', (
@@ -7688,6 +7753,9 @@ class _FakeAccountOnboardingRepository implements AccountOnboardingRepository {
   Future<AccountResolution> loadResolution(AuthUser user) async => resolution;
 
   @override
+  Future<UserProfile?> loadProfile(AuthUser user) async => resolution.profile;
+
+  @override
   Future<ResidenceInvitation?> loadPendingInvitation({
     required AuthUser user,
     required String residenceId,
@@ -7702,7 +7770,6 @@ class _FakeAccountOnboardingRepository implements AccountOnboardingRepository {
   @override
   Future<void> acceptInvitations({
     required AuthUser user,
-    required AccountResolution resolution,
     required List<ResidenceInvitation> invitations,
     required String firstName,
     required String lastName,
@@ -7716,8 +7783,8 @@ class _FakeAccountOnboardingRepository implements AccountOnboardingRepository {
   Future<void> acceptInvitation({
     required AuthUser user,
     required ResidenceInvitation invitation,
-    required String firstName,
-    required String lastName,
+    String? firstName,
+    String? lastName,
     required String apartmentId,
   }) async {
     acceptedInvitations = [invitation];
@@ -7816,8 +7883,8 @@ class _FakeResidenceSetupRepository implements ResidenceSetupRepository {
   Future<void> requestToJoin({
     required AuthUser user,
     required ResidenceCodeSummary residence,
-    required String firstName,
-    required String lastName,
+    String? firstName,
+    String? lastName,
     required String apartmentId,
   }) async {
     requestedResidence = residence;

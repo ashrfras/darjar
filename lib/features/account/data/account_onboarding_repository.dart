@@ -87,6 +87,8 @@ class AccountOnboardingFailure implements Exception {
 abstract interface class AccountOnboardingRepository {
   Future<AccountResolution> loadResolution(AuthUser user);
 
+  Future<UserProfile?> loadProfile(AuthUser user);
+
   Future<ResidenceInvitation?> loadPendingInvitation({
     required AuthUser user,
     required String residenceId,
@@ -96,7 +98,6 @@ abstract interface class AccountOnboardingRepository {
 
   Future<void> acceptInvitations({
     required AuthUser user,
-    required AccountResolution resolution,
     required List<ResidenceInvitation> invitations,
     required String firstName,
     required String lastName,
@@ -105,8 +106,8 @@ abstract interface class AccountOnboardingRepository {
   Future<void> acceptInvitation({
     required AuthUser user,
     required ResidenceInvitation invitation,
-    required String firstName,
-    required String lastName,
+    String? firstName,
+    String? lastName,
     required String apartmentId,
   });
 }
@@ -188,6 +189,22 @@ class FirestoreAccountOnboardingRepository
   }
 
   @override
+  Future<UserProfile?> loadProfile(AuthUser user) async {
+    final phoneNumber = _verifiedPhoneNumber(user);
+    try {
+      final document = await _firestore.collection('users').doc(user.uid).get();
+      final data = document.data();
+      if (data == null) return null;
+      if (data['accountStatus'] == 'deletionRequested') {
+        throw const AccountOnboardingFailure('account-deletion-requested');
+      }
+      return _profileFromData(data, phoneNumber);
+    } on FirebaseException catch (error) {
+      throw AccountOnboardingFailure(error.code, error.message);
+    }
+  }
+
+  @override
   Future<ResidenceInvitation?> loadPendingInvitation({
     required AuthUser user,
     required String residenceId,
@@ -225,7 +242,6 @@ class FirestoreAccountOnboardingRepository
   @override
   Future<void> acceptInvitations({
     required AuthUser user,
-    required AccountResolution resolution,
     required List<ResidenceInvitation> invitations,
     required String firstName,
     required String lastName,
@@ -234,69 +250,69 @@ class FirestoreAccountOnboardingRepository
       throw const AccountOnboardingFailure('no-invitations-selected');
     }
     final phoneNumber = _verifiedPhoneNumber(user);
-    final normalizedFirstName = firstName.trim();
-    final normalizedLastName = lastName.trim();
-    if (normalizedFirstName.isEmpty || normalizedLastName.isEmpty) {
-      throw const AccountOnboardingFailure('missing-profile-data');
-    }
-    final profile =
-        resolution.profile ??
-        UserProfile(
-          firstName: normalizedFirstName,
-          lastName: normalizedLastName,
-          phoneNumber: phoneNumber,
-        );
-
     try {
-      final batch = _firestore.batch();
-      if (resolution.profile == null) {
-        batch.set(_firestore.collection('users').doc(user.uid), {
-          'firstName': profile.firstName,
-          'lastName': profile.lastName,
-          'phoneNumber': phoneNumber,
-          'activeResidenceId': invitations.first.residenceId,
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
-      if (resolution.profile != null &&
-          resolution.profile!.activeResidenceId == null) {
-        batch.update(_firestore.collection('users').doc(user.uid), {
-          'activeResidenceId': invitations.first.residenceId,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
+      final userReference = _firestore.collection('users').doc(user.uid);
+      await _firestore.runTransaction((transaction) async {
+        final document = await transaction.get(userReference);
+        final data = document.data();
+        final profile = data == null
+            ? UserProfile(
+                firstName: firstName.trim(),
+                lastName: lastName.trim(),
+                phoneNumber: phoneNumber,
+              )
+            : _profileFromData(data, phoneNumber);
+        if (profile.firstName.trim().isEmpty ||
+            profile.lastName.trim().isEmpty) {
+          throw const AccountOnboardingFailure('missing-profile-data');
+        }
+        if (!document.exists) {
+          transaction.set(userReference, {
+            'firstName': profile.firstName,
+            'lastName': profile.lastName,
+            'phoneNumber': phoneNumber,
+            'activeResidenceId': invitations.first.residenceId,
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        } else if (profile.activeResidenceId == null) {
+          transaction.update(userReference, {
+            'activeResidenceId': invitations.first.residenceId,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
 
-      for (final invitation in invitations) {
-        final invitationReference = _firestore.doc(invitation.path);
-        final membershipReference = _firestore
-            .collection('residences')
-            .doc(invitation.residenceId)
-            .collection('members')
-            .doc(user.uid);
-        batch.update(invitationReference, {
-          'suggestedFirstName': profile.firstName,
-          'suggestedLastName': profile.lastName,
-          'status': 'accepted',
-          'acceptedBy': user.uid,
-          'acceptedAt': FieldValue.serverTimestamp(),
-        });
-        batch.set(membershipReference, {
-          'userId': user.uid,
-          'firstName': profile.firstName,
-          'lastName': profile.lastName,
-          'phoneNumber': phoneNumber,
-          'apartmentId': invitation.apartmentId,
-          'role': invitation.role,
-          'hasPresidentPermissions': false,
-          'hasProfileImage': false,
-          'status': 'active',
-          'sourceInvitationId': invitation.id,
-          'joinedAt': FieldValue.serverTimestamp(),
-        });
-      }
-
-      await batch.commit();
+        for (final invitation in invitations) {
+          final invitationReference = _firestore.doc(invitation.path);
+          final membershipReference = _firestore
+              .collection('residences')
+              .doc(invitation.residenceId)
+              .collection('members')
+              .doc(user.uid);
+          transaction.update(invitationReference, {
+            'suggestedFirstName': profile.firstName,
+            'suggestedLastName': profile.lastName,
+            'status': 'accepted',
+            'acceptedBy': user.uid,
+            'acceptedAt': FieldValue.serverTimestamp(),
+          });
+          transaction.set(membershipReference, {
+            'userId': user.uid,
+            'firstName': profile.firstName,
+            'lastName': profile.lastName,
+            'phoneNumber': phoneNumber,
+            'apartmentId': invitation.apartmentId,
+            'role': invitation.role,
+            'hasPresidentPermissions': false,
+            'hasProfileImage': false,
+            'status': 'active',
+            'sourceInvitationId': invitation.id,
+            'joinedAt': FieldValue.serverTimestamp(),
+          });
+        }
+      });
+    } on AccountOnboardingFailure {
+      rethrow;
     } on FirebaseException catch (error) {
       throw AccountOnboardingFailure(error.code, error.message);
     } catch (error) {
@@ -308,61 +324,66 @@ class FirestoreAccountOnboardingRepository
   Future<void> acceptInvitation({
     required AuthUser user,
     required ResidenceInvitation invitation,
-    required String firstName,
-    required String lastName,
+    String? firstName,
+    String? lastName,
     required String apartmentId,
   }) async {
     final phoneNumber = _verifiedPhoneNumber(user);
-    final normalizedFirstName = firstName.trim();
-    final normalizedLastName = lastName.trim();
     final normalizedApartmentId = apartmentId.trim();
-    if (normalizedFirstName.isEmpty ||
-        normalizedLastName.isEmpty ||
-        normalizedApartmentId.isEmpty) {
+    if (normalizedApartmentId.isEmpty) {
       throw const AccountOnboardingFailure('missing-profile-data');
     }
 
     try {
       final userReference = _firestore.collection('users').doc(user.uid);
-      final userDocument = await userReference.get();
-      final batch = _firestore.batch();
-      if (!userDocument.exists) {
-        batch.set(userReference, {
-          'firstName': normalizedFirstName,
-          'lastName': normalizedLastName,
-          'phoneNumber': phoneNumber,
-          'activeResidenceId': invitation.residenceId,
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        batch.update(userReference, {
-          'firstName': normalizedFirstName,
-          'lastName': normalizedLastName,
-          'activeResidenceId': invitation.residenceId,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
-
       final invitationReference = _firestore.doc(invitation.path);
-      batch.update(invitationReference, {
-        'suggestedFirstName': normalizedFirstName,
-        'suggestedLastName': normalizedLastName,
-        'apartmentId': normalizedApartmentId,
-        'status': 'accepted',
-        'acceptedBy': user.uid,
-        'acceptedAt': FieldValue.serverTimestamp(),
-      });
-      batch.set(
-        _firestore
-            .collection('residences')
-            .doc(invitation.residenceId)
-            .collection('members')
-            .doc(user.uid),
-        {
+      final membershipReference = _firestore
+          .collection('residences')
+          .doc(invitation.residenceId)
+          .collection('members')
+          .doc(user.uid);
+
+      await _firestore.runTransaction((transaction) async {
+        final userDocument = await transaction.get(userReference);
+        final data = userDocument.data();
+        final profileFirstName = data == null
+            ? firstName?.trim() ?? ''
+            : data['firstName'] as String? ?? '';
+        final profileLastName = data == null
+            ? lastName?.trim() ?? ''
+            : data['lastName'] as String? ?? '';
+        if (profileFirstName.trim().isEmpty || profileLastName.trim().isEmpty) {
+          throw const AccountOnboardingFailure('missing-profile-data');
+        }
+
+        if (!userDocument.exists) {
+          transaction.set(userReference, {
+            'firstName': profileFirstName,
+            'lastName': profileLastName,
+            'phoneNumber': phoneNumber,
+            'activeResidenceId': invitation.residenceId,
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        } else {
+          transaction.update(userReference, {
+            'activeResidenceId': invitation.residenceId,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+
+        transaction.update(invitationReference, {
+          'suggestedFirstName': profileFirstName,
+          'suggestedLastName': profileLastName,
+          'apartmentId': normalizedApartmentId,
+          'status': 'accepted',
+          'acceptedBy': user.uid,
+          'acceptedAt': FieldValue.serverTimestamp(),
+        });
+        transaction.set(membershipReference, {
           'userId': user.uid,
-          'firstName': normalizedFirstName,
-          'lastName': normalizedLastName,
+          'firstName': profileFirstName,
+          'lastName': profileLastName,
           'phoneNumber': phoneNumber,
           'apartmentId': normalizedApartmentId,
           'role': invitation.role,
@@ -371,9 +392,10 @@ class FirestoreAccountOnboardingRepository
           'status': 'active',
           'sourceInvitationId': invitation.id,
           'joinedAt': FieldValue.serverTimestamp(),
-        },
-      );
-      await batch.commit();
+        });
+      });
+    } on AccountOnboardingFailure {
+      rethrow;
     } on FirebaseException catch (error) {
       throw AccountOnboardingFailure(error.code, error.message);
     } catch (error) {

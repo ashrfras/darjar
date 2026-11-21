@@ -144,7 +144,6 @@ class _AccountResolutionPageState extends ConsumerState<AccountResolutionPage> {
           .read(accountOnboardingRepositoryProvider)
           .acceptInvitations(
             user: user,
-            resolution: resolution,
             invitations: selected,
             firstName: _firstNameController.text,
             lastName: _lastNameController.text,

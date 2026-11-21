@@ -38,6 +38,22 @@ service cloud.firestore {
       return /databases/$(database)/documents/residences/$(residenceId)/members/$(memberId);
     }
 
+    function userPath(userId) {
+      return /databases/$(database)/documents/users/$(userId);
+    }
+
+    function matchesProfileName(profile, firstName, lastName) {
+      return profile.firstName == firstName && profile.lastName == lastName;
+    }
+
+    function usesEnrollmentProfileName(userId) {
+      let path = userPath(userId);
+      let firstName = request.resource.data.firstName;
+      let lastName = request.resource.data.lastName;
+      return matchesProfileName(getAfter(path).data, firstName, lastName)
+        && (!exists(path) || matchesProfileName(get(path).data, firstName, lastName));
+    }
+
     function servicePath(serviceId) {
       return /databases/$(database)/documents/services/$(serviceId);
     }
@@ -172,6 +188,7 @@ service cloud.firestore {
         && request.resource.data.userId == memberId
         && request.resource.data.firstName is string
         && request.resource.data.lastName is string
+        && usesEnrollmentProfileName(memberId)
         && request.resource.data.phoneNumber
           == request.auth.token.phone_number
         && request.resource.data.apartmentId is string
@@ -187,6 +204,8 @@ service cloud.firestore {
         && request.resource.data.joinedAt == request.time
         && acceptedInvitation.status == 'accepted'
         && acceptedInvitation.acceptedBy == request.auth.uid
+        && acceptedInvitation.suggestedFirstName == request.resource.data.firstName
+        && acceptedInvitation.suggestedLastName == request.resource.data.lastName
         && invitation.phoneNumber == request.auth.token.phone_number
         && request.resource.data.apartmentId == acceptedInvitation.apartmentId
         && request.resource.data.role == invitation.role;
@@ -211,6 +230,7 @@ service cloud.firestore {
         && request.resource.data.userId == memberId
         && request.resource.data.firstName is string
         && request.resource.data.lastName is string
+        && usesEnrollmentProfileName(memberId)
         && request.resource.data.phoneNumber
           == request.auth.token.phone_number
         && request.resource.data.apartmentId == ''
@@ -244,6 +264,7 @@ service cloud.firestore {
         && request.resource.data.userId == memberId
         && request.resource.data.firstName is string
         && request.resource.data.lastName is string
+        && usesEnrollmentProfileName(memberId)
         && request.resource.data.phoneNumber
           == request.auth.token.phone_number
         && request.resource.data.apartmentId is string
@@ -869,6 +890,15 @@ service cloud.firestore {
             && request.resource.data.firstName.size() > 0
             && request.resource.data.lastName is string
             && request.resource.data.lastName.size() > 0
+            && (
+              !request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['firstName', 'lastName'])
+              || matchesProfileName(
+                getAfter(userPath(memberId)).data,
+                request.resource.data.firstName,
+                request.resource.data.lastName
+              )
+            )
             && (
               !request.resource.data.keys().hasAny(['hasProfileImage'])
               || request.resource.data.hasProfileImage is bool
