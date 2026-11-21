@@ -11,6 +11,7 @@ import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/documents/presentation/residence_document_widgets.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
+import 'package:darjar/features/residence/presentation/resident_dues_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,47 +28,51 @@ class DuesPage extends ConsumerWidget {
     );
     final duesState = ref.watch(residentDuesProvider);
 
-    return SingleChildScrollView(
-      key: const Key('dues-page'),
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xLarge,
-        AppSpacing.small,
-        AppSpacing.xLarge,
-        AppSpacing.xLarge,
-      ),
-      child: Align(
-        alignment: AlignmentDirectional.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 820),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              DarJarSubpageHeader(
-                title: localizations.duesStatus,
-                fallbackLocation: AppRoutes.residence,
-              ),
-              const SizedBox(height: AppSpacing.small),
-              _ManualNotice(text: localizations.manualDuesNotice),
-              const SizedBox(height: AppSpacing.large),
-              if (activeResidence == null ||
-                  activeResidence.apartmentId.isEmpty)
-                _EmptyState(
-                  key: const Key('dues-no-apartment'),
-                  icon: Icons.home_work_outlined,
-                  message: localizations.duesNoApartment,
-                )
-              else
-                duesState.when(
-                  loading: DarJarLoadingSkeleton.new,
-                  error: (error, stackTrace) => _EmptyState(
-                    key: const Key('dues-load-error'),
-                    icon: Icons.error_outline_rounded,
-                    message: localizations.duesLoadError,
-                    onRetry: () => ref.invalidate(residentDuesProvider),
-                  ),
-                  data: (overview) => _ResidentDuesContent(overview: overview),
+    return ResidentDuesRefresh(
+      child: SingleChildScrollView(
+        key: const Key('dues-page'),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.xLarge,
+          AppSpacing.small,
+          AppSpacing.xLarge,
+          AppSpacing.xLarge,
+        ),
+        child: Align(
+          alignment: AlignmentDirectional.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 820),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                DarJarSubpageHeader(
+                  title: localizations.duesStatus,
+                  fallbackLocation: AppRoutes.residence,
                 ),
-            ],
+                const SizedBox(height: AppSpacing.small),
+                _ManualNotice(text: localizations.manualDuesNotice),
+                const SizedBox(height: AppSpacing.large),
+                if (activeResidence == null ||
+                    activeResidence.apartmentId.isEmpty)
+                  _EmptyState(
+                    key: const Key('dues-no-apartment'),
+                    icon: Icons.home_work_outlined,
+                    message: localizations.duesNoApartment,
+                  )
+                else
+                  duesState.when(
+                    loading: DarJarLoadingSkeleton.new,
+                    error: (error, stackTrace) => _EmptyState(
+                      key: const Key('dues-load-error'),
+                      icon: Icons.error_outline_rounded,
+                      message: localizations.duesLoadError,
+                      onRetry: () => ref.invalidate(residentDuesProvider),
+                    ),
+                    data: (overview) =>
+                        _ResidentDuesContent(overview: overview),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

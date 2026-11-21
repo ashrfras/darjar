@@ -19,6 +19,7 @@ import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
+import 'package:darjar/features/residence/presentation/resident_dues_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -42,8 +43,9 @@ class ResidenceHomePage extends ConsumerWidget {
     );
     final compact = MediaQuery.sizeOf(context).width < 600;
 
-    return SingleChildScrollView(
+    final content = SingleChildScrollView(
       key: const Key('residence-home-page'),
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(
         compact ? 12 : AppSpacing.xLarge,
         compact ? 12 : AppSpacing.xLarge,
@@ -146,6 +148,7 @@ class ResidenceHomePage extends ConsumerWidget {
         ),
       ),
     );
+    return ResidentDuesRefresh(child: content);
   }
 }
 

@@ -4734,10 +4734,11 @@ void main() {
       ),
     );
     await _enterResidence(tester);
+    final loadsBeforeHome = duesRepository.ensurePeriodCallCount;
     await tester.tap(find.text('الإقامة'));
     await tester.pumpAndSettle();
     expect(duesRepository.overview.dues, hasLength(4));
-    expect(duesRepository.ensurePeriodCallCount, 1);
+    expect(duesRepository.ensurePeriodCallCount, loadsBeforeHome + 1);
     expect(
       find.descendant(
         of: find.byKey(const Key('account-dues-status')),
@@ -4779,6 +4780,123 @@ void main() {
     );
     expect(find.text('غير مؤدى'), findsNWidgets(3));
     expect(find.text('لا توجد اشتراكات مسجلة لهذه الشقة بعد.'), findsNothing);
+  });
+
+  testWidgets('resident dues refresh on visits, return, resume, and pull', (
+    tester,
+  ) async {
+    final repository = _FakeResidenceDuesRepository();
+    void recordPayment(int amount) {
+      repository.overview = ResidenceDuesOverview(
+        dues: [
+          for (final due in repository.overview.dues)
+            if (due.apartmentId == 'apartment-01')
+              due.copyWithPayment(amount)
+            else
+              due,
+        ],
+        payments: repository.overview.payments,
+      );
+    }
+
+    void expectAccountBalance(int amount) {
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('account-dues-status')),
+          matching: find.text('المبلغ المتبقي: $amount د'),
+        ),
+        findsOneWidget,
+      );
+    }
+
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceDuesRepository: repository,
+      residenceContext: const ResidenceContext(
+        residences: [
+          UserResidence(
+            id: 'test-residence',
+            name: 'إقامة الاختبار',
+            address: 'شارع الاختبار',
+            city: '6141010',
+            role: 'resident',
+            apartmentId: 'apartment-01',
+          ),
+        ],
+        activeResidenceId: 'test-residence',
+      ),
+    );
+    await _enterResidence(tester);
+    recordPayment(10);
+    await tester.tap(find.text('الإقامة'));
+    await tester.pumpAndSettle();
+    expectAccountBalance(140);
+    final loadsBeforeOpening = repository.ensurePeriodCallCount;
+
+    recordPayment(50);
+    await tester.tap(find.text('حالة الواجبات'));
+    await tester.pumpAndSettle();
+    expect(repository.ensurePeriodCallCount, loadsBeforeOpening + 1);
+    expect(find.text('مؤدى جزئياً'), findsOneWidget);
+
+    final duesPage = find.byKey(const Key('dues-page'));
+    final router = ProviderScope.containerOf(
+      tester.element(duesPage),
+    ).read(appRouterProvider);
+    for (final path in [AppRoutes.settings, AppRoutes.support]) {
+      final loadsBeforePush = repository.ensurePeriodCallCount;
+      unawaited(router.push<void>(path));
+      await tester.pumpAndSettle();
+      expect(duesPage, findsNothing);
+      expect(repository.ensurePeriodCallCount, loadsBeforePush);
+
+      router.pop();
+      await tester.pumpAndSettle();
+      expect(duesPage, findsOneWidget);
+      expect(repository.ensurePeriodCallCount, loadsBeforePush + 1);
+    }
+
+    final loadsBeforeResume = repository.ensurePeriodCallCount;
+    for (final state in [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+    }
+    await tester.pumpAndSettle();
+    expect(repository.ensurePeriodCallCount, loadsBeforeResume + 1);
+
+    await tester.dragFrom(
+      tester.getTopLeft(duesPage) + const Offset(180, 60),
+      const Offset(0, 300),
+    );
+    await tester.pumpAndSettle();
+    expect(repository.ensurePeriodCallCount, loadsBeforeResume + 2);
+
+    recordPayment(10);
+    router.pop();
+    await tester.pumpAndSettle();
+    expectAccountBalance(80);
+
+    recordPayment(10);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expectAccountBalance(70);
+
+    recordPayment(10);
+    final homePage = find.byKey(const Key('residence-home-page'));
+    await tester.dragFrom(
+      tester.getTopLeft(homePage) + const Offset(180, 60),
+      const Offset(0, 300),
+    );
+    await tester.pumpAndSettle();
+    expectAccountBalance(60);
   });
 
   testWidgets('resident sees prepaid credit and the full last payment total', (
