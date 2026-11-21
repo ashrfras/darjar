@@ -36,13 +36,16 @@ class ResidenceContext {
     required this.residences,
     required this.activeResidenceId,
     this.invitations = const [],
+    this.supportResidence,
   });
 
   final List<UserResidence> residences;
   final String? activeResidenceId;
   final List<ResidenceInvitation> invitations;
+  final UserResidence? supportResidence;
 
   UserResidence? get activeResidence {
+    if (supportResidence case final UserResidence residence) return residence;
     final activeId = activeResidenceId;
     if (activeId == null) {
       return null;
@@ -269,17 +272,77 @@ final residenceContextRepositoryProvider = Provider<ResidenceContextRepository>(
 
 const residenceDataTimeout = Duration(seconds: 12);
 
-final residenceContextProvider = FutureProvider<ResidenceContext>((ref) {
+final residenceSupportProvider =
+    NotifierProvider<ResidenceSupportController, UserResidence?>(
+      ResidenceSupportController.new,
+    );
+
+class ResidenceSupportController extends Notifier<UserResidence?> {
+  @override
+  UserResidence? build() {
+    ref.watch(authStateProvider.select((session) => session.value?.uid));
+    return null;
+  }
+
+  void open(UserResidence residence) => state = residence;
+
+  void close() => state = null;
+}
+
+final residenceForSupportProvider =
+    Provider<Future<UserResidence> Function(String)>((ref) {
+      final auth = ref.watch(firebaseAuthProvider);
+      final firestore = ref.watch(firebaseFirestoreProvider);
+
+      return (id) async {
+        final user = auth.currentUser;
+        final token = await user?.getIdTokenResult(true);
+        if (token?.claims?['developer'] != true ||
+            auth.currentUser?.uid != user?.uid) {
+          throw const ResidenceContextFailure('permission-denied');
+        }
+        final document = await firestore
+            .collection('residences')
+            .doc(id)
+            .get(const GetOptions(source: Source.server));
+        final data = document.data();
+        if (data == null) {
+          throw const ResidenceContextFailure('residence-not-found');
+        }
+
+        return UserResidence(
+          id: id,
+          name: data['name'] as String? ?? '',
+          address: data['address'] as String? ?? '',
+          city: data['city'] as String? ?? '',
+          hasImage: data['hasImage'] as bool? ?? false,
+          role: 'developer',
+          apartmentId: '',
+          hasPresidentPermissions: true,
+        );
+      };
+    });
+
+final residenceContextProvider = FutureProvider<ResidenceContext>((ref) async {
+  final support = ref.watch(residenceSupportProvider);
   final authState = ref.watch(authStateProvider);
   final user = authState.value ?? ref.watch(authRepositoryProvider).currentUser;
   if (user == null) {
     throw const ResidenceContextFailure('signed-out');
   }
-  return ref
+  final membership = await ref
       .watch(residenceContextRepositoryProvider)
       .load(user)
       .timeout(
         residenceDataTimeout,
         onTimeout: () => throw const ResidenceContextFailure('request-timeout'),
       );
+  if (support == null) return membership;
+
+  return ResidenceContext(
+    residences: membership.residences,
+    activeResidenceId: support.id,
+    invitations: membership.invitations,
+    supportResidence: support,
+  );
 });

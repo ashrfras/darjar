@@ -6,8 +6,10 @@ import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/activity_log/data/activity_log_repository.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class ActivityLogPage extends ConsumerWidget {
   const ActivityLogPage({super.key});
@@ -71,6 +73,7 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
   String? _cursor;
   var _loading = true;
   bool? _failedRefresh;
+  bool _openingResidence = false;
 
   @override
   void initState() {
@@ -117,6 +120,35 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
     await _loadPage(refresh: refresh);
   }
 
+  Future<void> _openResidence(String id) async {
+    if (_openingResidence) return;
+    setState(() => _openingResidence = true);
+    try {
+      final access = await ref
+          .read(activityLogRepositoryProvider)
+          .hasDeveloperAccess(widget.uid);
+      if (!mounted) return;
+      if (!access) {
+        ref.invalidate(developerAccessProvider);
+        return;
+      }
+      final residence = await ref.read(residenceForSupportProvider)(id);
+      if (!mounted || ref.read(activityLogUserIdProvider) != widget.uid) return;
+
+      ref.read(residenceSupportProvider.notifier).open(residence);
+      context.go(AppRoutes.administration);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).appActivitySupportFailed),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _openingResidence = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
@@ -133,9 +165,19 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
         itemCount: _events.length + 1,
         itemBuilder: (context, index) {
           if (index < _events.length) {
+            final event = _events[index];
+            final residenceId = event.residenceId;
             return Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.small),
-              child: _ActivityTile(event: _events[index]),
+              child: _ActivityTile(
+                event: event,
+                canOpenResidence:
+                    event.type == ActivityType.residenceCreated &&
+                    residenceId != null,
+                onOpenResidence: residenceId == null || _openingResidence
+                    ? null
+                    : () => _openResidence(residenceId),
+              ),
             );
           }
           if (_loading) {
@@ -165,9 +207,15 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
 }
 
 class _ActivityTile extends StatelessWidget {
-  const _ActivityTile({required this.event});
+  const _ActivityTile({
+    required this.event,
+    required this.canOpenResidence,
+    this.onOpenResidence,
+  });
 
   final ActivityEvent event;
+  final bool canOpenResidence;
+  final VoidCallback? onOpenResidence;
 
   @override
   Widget build(BuildContext context) {
@@ -213,6 +261,7 @@ class _ActivityTile extends StatelessWidget {
     final formattedDate = DarJarDateFormat.yMMMd(date, locale);
     final theme = Theme.of(context);
     return DarJarCard(
+      onTap: canOpenResidence ? onOpenResidence : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -245,6 +294,16 @@ class _ActivityTile extends StatelessWidget {
                     label: strings.appActivityResidenceId,
                     value: id,
                     leftToRight: true,
+                  ),
+                if (canOpenResidence)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.small),
+                    child: Text(
+                      strings.appActivityOpenResidence,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
                   ),
               ],
             ),

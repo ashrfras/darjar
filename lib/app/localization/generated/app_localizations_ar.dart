@@ -1827,6 +1827,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appActivityResidenceDeleted => 'حذف إقامة';
 
   @override
+  String get appActivityOpenResidence => 'فتح الإقامة للدعم';
+
+  @override
+  String get appActivitySupportMode => 'وضع الدعم';
+
+  @override
+  String get appActivityExitSupport => 'إنهاء الدعم';
+
+  @override
+  String get appActivitySupportFailed => 'تعذّر فتح الإقامة في وضع الدعم.';
+
+  @override
   String get appActivityResidenceId => 'معرّف الإقامة';
 
   @override

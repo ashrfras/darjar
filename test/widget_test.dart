@@ -4518,6 +4518,82 @@ void main() {
     },
   );
 
+  testWidgets(
+    'support uses the normal navigation and keeps the selected residence',
+    (tester) async {
+      const supportResidence = UserResidence(
+        id: 'residence-123',
+        name: 'إقامة النخيل',
+        address: '',
+        city: '',
+        role: 'developer',
+        apartmentId: '',
+        hasPresidentPermissions: true,
+      );
+      final membership = _FakeResidenceContextRepository();
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: AppRoutes.appActivityLog,
+        mockStorageImages: true,
+        developerAccess: true,
+        activityLogRepository: _FakeActivityLogRepository(
+          type: ActivityType.residenceCreated,
+        ),
+        supportResidence: supportResidence,
+        residenceContextRepository: membership,
+      );
+
+      await tester.tap(find.text('فتح الإقامة للدعم'));
+      await tester.pumpAndSettle();
+      expect(find.text('وضع الدعم'), findsOneWidget);
+      expect(find.text('إقامة النخيل'), findsOneWidget);
+      expect(
+        find.byKey(const Key('residence-administration-page')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('reset-residence-button')), findsNothing);
+      expect(membership.selectedResidenceId, isNull);
+
+      final navigation = find.byType(NavigationDestination);
+      expect(navigation, findsNWidgets(4));
+      for (final (index, page) in [
+        (0, 'community-feed-page'),
+        (1, 'directory-page'),
+        (2, 'residence-home-page'),
+        (3, 'residence-administration-page'),
+      ]) {
+        await tester.tap(navigation.at(index));
+        await tester.pumpAndSettle();
+        final pageFinder = find.byKey(Key(page));
+        expect(pageFinder, findsOneWidget);
+        expect(
+          find.byKey(const Key('residence-support-banner')),
+          findsOneWidget,
+        );
+        final container = ProviderScope.containerOf(tester.element(pageFinder));
+        expect(
+          container
+              .read(residenceContextProvider)
+              .requireValue
+              .activeResidenceId,
+          supportResidence.id,
+        );
+      }
+
+      await tester.tap(find.byKey(const Key('profile-button')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('profile-page')), findsOneWidget);
+      expect(find.byKey(const Key('residence-support-banner')), findsOneWidget);
+
+      await tester.tap(find.text('إنهاء الدعم'));
+      await tester.pumpAndSettle();
+      expect(find.text('نشاط التطبيق'), findsOneWidget);
+      expect(find.text('وضع الدعم'), findsNothing);
+      expect(membership.selectedResidenceId, isNull);
+    },
+  );
+
   testWidgets('a regular user cannot open activity through its URL', (
     tester,
   ) async {
@@ -7026,6 +7102,7 @@ Future<void> _pumpApp(
   bool localhostAuthSimulation = false,
   bool? developerAccess,
   ActivityLogRepository? activityLogRepository,
+  UserResidence? supportResidence,
   bool mockStorageImages = false,
   AuthRepository? authRepository,
   AccountOnboardingRepository? accountRepository,
@@ -7186,12 +7263,18 @@ Future<void> _pumpApp(
           (ref) async =>
               const AppPackageInfo(version: '0.0.0', buildNumber: '1'),
         ),
-        residenceContextProvider.overrideWith((ref) async {
-          if (residenceContextError != null) {
-            throw residenceContextError;
-          }
-          return contextData;
-        }),
+        if (supportResidence != null)
+          residenceForSupportProvider.overrideWithValue((id) async {
+            expect(id, supportResidence.id);
+            return supportResidence;
+          }),
+        if (supportResidence == null)
+          residenceContextProvider.overrideWith((ref) async {
+            if (residenceContextError != null) {
+              throw residenceContextError;
+            }
+            return contextData;
+          }),
       ],
       child: useBootstrap
           ? DarJarBootstrap(initialize: () async {}, child: const DarJarApp())
@@ -7332,6 +7415,10 @@ Future<void> _openAdministration(WidgetTester tester) async {
 }
 
 class _FakeActivityLogRepository implements ActivityLogRepository {
+  _FakeActivityLogRepository({this.type = ActivityType.residentJoined});
+
+  final ActivityType type;
+
   @override
   Future<bool> hasDeveloperAccess(String uid) async => true;
 
@@ -7340,7 +7427,7 @@ class _FakeActivityLogRepository implements ActivityLogRepository {
       ActivityPage([
         ActivityEvent.fromJson({
           'id': 'activity-123',
-          'type': 'residentJoined',
+          'type': type.name,
           'occurredAt': '2026-11-20T09:00:00Z',
           'userId': 'hidden-account-id',
           'residentName': 'فاطمة العلمي',

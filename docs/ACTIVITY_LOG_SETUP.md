@@ -97,3 +97,20 @@ firebase emulators:exec --only auth,firestore --project demo-darjar \
 
 يتحقق الاختبار من دخول المطوّر دون SMS ومنع الطلبات غير المصرّح بها والوصول المباشر إلى Firestore،
 ومن ترقيم الصفحات عند تساوي وقت عدة أحداث.
+
+## وضع دعم الإقامات
+
+يستخدم وضع الدعم شاشات التطبيق وقوائمه الحالية بصلاحيات الإدارة المفوّضة، مع شريط لإنهاء الدعم. يبدأ من حدث «إنشاء إقامة»
+ويحمل سياق الإقامة في جلسة التطبيق. يحتفظ الحساب بعضوياته وإقامته المفضلة، وتظل
+عمليات رئيس الإقامة محصورة به. يتحقق Firestore وCloud Storage من علامة
+`developer` في رمز Firebase Auth ومن المنح في `appPermissions/{uid}`. سحب
+المنح في Firestore يمنع استخدامه حتى قبل تحديث الرمز.
+
+عند نشر هذه الميزة، حدّث منح الحساب المعتمد مرة واحدة ثم انشر القواعد والواجهة.
+
+```bash
+(cd backend/activity_log && dart run bin/grant_initial_developer.dart raq-darjar)
+firebase deploy --only firestore:rules,storage --project raq-darjar
+```
+
+يفرض التطبيق تحديث رمز Firebase عند فتح الإقامة للدعم.

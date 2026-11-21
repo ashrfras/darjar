@@ -3423,6 +3423,30 @@ abstract class AppLocalizations {
   /// **'حذف إقامة'**
   String get appActivityResidenceDeleted;
 
+  /// No description provided for @appActivityOpenResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'فتح الإقامة للدعم'**
+  String get appActivityOpenResidence;
+
+  /// No description provided for @appActivitySupportMode.
+  ///
+  /// In ar, this message translates to:
+  /// **'وضع الدعم'**
+  String get appActivitySupportMode;
+
+  /// No description provided for @appActivityExitSupport.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنهاء الدعم'**
+  String get appActivityExitSupport;
+
+  /// No description provided for @appActivitySupportFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر فتح الإقامة في وضع الدعم.'**
+  String get appActivitySupportFailed;
+
   /// No description provided for @appActivityResidenceId.
   ///
   /// In ar, this message translates to:

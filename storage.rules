@@ -18,12 +18,34 @@ service firebase.storage {
     }
 
     function isResidenceMember(residenceId) {
-      return signedIn() && membership(residenceId).status == 'active';
+      return signedIn() && hasActiveMembership(residenceId);
+    }
+
+    function hasActiveMembership(residenceId) {
+      let member = membership(residenceId);
+      return member != null && member.status == 'active';
+    }
+
+    function canSupportResidence(residenceId) {
+      return signedIn()
+        && request.auth.token.get('developer', false) == true
+        && firestore.get(/databases/(default)/documents/appPermissions/$(request.auth.uid))
+          .data.developer == true
+        && firestore.exists(/databases/(default)/documents/residences/$(residenceId));
+    }
+
+    function canReadResidence(residenceId) {
+      return canSupportResidence(residenceId) || isResidenceMember(residenceId);
     }
 
     function canManageResidence(residenceId) {
+      return canSupportResidence(residenceId) || isDelegatedManager(residenceId);
+    }
+
+    function isDelegatedManager(residenceId) {
       let member = membership(residenceId);
       return signedIn()
+        && member != null
         && member.status == 'active'
         && (
           member.role in ['president', 'owner']
@@ -53,7 +75,7 @@ service firebase.storage {
     }
 
     match /residences/{residenceId}/documents/{documentId}/content {
-      allow read: if isResidenceMember(residenceId);
+      allow read: if canReadResidence(residenceId);
       allow create: if canManageResidence(residenceId)
         && isAcceptedDocument()
         && request.resource.metadata.residenceId == residenceId
@@ -64,7 +86,7 @@ service firebase.storage {
     }
 
     match /residences/{residenceId}/attachments/{transactionKey}/content {
-      allow read: if isResidenceMember(residenceId);
+      allow read: if canReadResidence(residenceId);
       allow create, update: if canManageResidence(residenceId)
         && isAcceptedDocument()
         && transactionKey.matches('^(finance|dues)-.+$')
@@ -74,7 +96,7 @@ service firebase.storage {
     }
 
     match /residences/{residenceId}/community/{postId}/{imageId} {
-      allow read: if isResidenceMember(residenceId);
+      allow read: if canReadResidence(residenceId);
       allow create: if isResidenceMember(residenceId)
         && isAcceptedCommunityImage()
         && imageId.matches('^image-[0-3]$')
@@ -87,7 +109,7 @@ service firebase.storage {
     }
 
     match /residences/{residenceId}/profile/image.jpg {
-      allow read: if isResidenceMember(residenceId);
+      allow read: if canReadResidence(residenceId);
       allow create, update: if canManageResidence(residenceId)
         && isAcceptedCommunityImage()
         && request.resource.contentType == 'image/jpeg'

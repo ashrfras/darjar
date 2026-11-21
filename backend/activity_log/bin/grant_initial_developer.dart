@@ -23,6 +23,10 @@ Future<void> main(List<String> args) async {
       throw StateError('The initial developer account could not be verified.');
     }
 
+    await app.auth().setCustomUserClaims(
+      user.uid,
+      customUserClaims: {...?user.customClaims, 'developer': true},
+    );
     await app.firestore().doc('appPermissions/${user.uid}').set({
       'developer': true,
       'authCreatedAt': Timestamp.fromDate(user.metadata.creationTime),

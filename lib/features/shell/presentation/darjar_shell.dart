@@ -114,6 +114,15 @@ class DarJarShell extends ConsumerWidget {
       (destination) => selectedPath.startsWith(destination.path),
     );
 
+    final page = residenceContext.supportResidence != null
+        ? Column(
+            children: [
+              const _SupportModeBanner(),
+              Expanded(child: child),
+            ],
+          )
+        : child;
+
     return ResponsiveBuilder(
       builder: (context, sizeClass) {
         return switch (sizeClass) {
@@ -121,22 +130,61 @@ class DarJarShell extends ConsumerWidget {
             destinations: destinations,
             selectedIndex: selectedIndex < 0 ? 0 : selectedIndex,
             residenceContext: residenceContext,
-            child: child,
+            child: page,
           ),
           WindowSizeClass.medium => _MediumShell(
             destinations: destinations,
             selectedIndex: selectedIndex,
             residenceContext: residenceContext,
-            child: child,
+            child: page,
           ),
           WindowSizeClass.expanded => _ExpandedShell(
             destinations: destinations,
             selectedIndex: selectedIndex,
             residenceContext: residenceContext,
-            child: child,
+            child: page,
           ),
         };
       },
+    );
+  }
+}
+
+class _SupportModeBanner extends ConsumerWidget {
+  const _SupportModeBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return Material(
+      key: const Key('residence-support-banner'),
+      color: theme.colorScheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(
+          start: AppSpacing.large,
+          end: AppSpacing.small,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                strings.appActivitySupportMode,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onSecondaryContainer,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                ref.read(residenceSupportProvider.notifier).close();
+                context.go(AppRoutes.appActivityLog);
+              },
+              child: Text(strings.appActivityExitSupport),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -925,6 +973,10 @@ class _ResidenceSelector extends ConsumerWidget {
       await ref
           .read(residenceContextRepositoryProvider)
           .setActiveResidence(user: user, residenceId: residenceId);
+      if (!context.mounted) return;
+      if (residenceContext.supportResidence != null) {
+        ref.read(residenceSupportProvider.notifier).close();
+      }
       final updatedContext = await ref.refresh(residenceContextProvider.future);
       if (updatedContext.activeResidence == null) {
         throw StateError(
@@ -1007,6 +1059,15 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final support = residenceContext.supportResidence;
+    final residences = [
+      if (support != null &&
+          !residenceContext.residences.any(
+            (residence) => residence.id == support.id,
+          ))
+        support,
+      ...residenceContext.residences,
+    ];
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.medium),
       child: DecoratedBox(
@@ -1081,11 +1142,11 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
                 Flexible(
                   child: ListView.separated(
                     shrinkWrap: true,
-                    itemCount: residenceContext.residences.length,
+                    itemCount: residences.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: AppSpacing.medium),
                     itemBuilder: (context, index) {
-                      final residence = residenceContext.residences[index];
+                      final residence = residences[index];
                       return _ResidenceSwitcherOption(
                         residence: residence,
                         selected:

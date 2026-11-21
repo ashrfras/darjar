@@ -77,6 +77,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
       'president' || 'owner' => localizations.profileRolePresident,
       'deputy' || 'manager' => localizations.profileRoleDeputy,
       'treasurer' || 'moderator' => localizations.profileRoleTreasurer,
+      'developer' => localizations.appActivitySupportMode,
       _ => localizations.profileRoleResident,
     };
 
@@ -365,6 +366,10 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
       await ref
           .read(residenceContextRepositoryProvider)
           .setActiveResidence(user: user, residenceId: residenceId);
+      if (!mounted) return;
+      if (residenceContext?.supportResidence != null) {
+        ref.read(residenceSupportProvider.notifier).close();
+      }
       ref.invalidate(residenceContextProvider);
     } catch (_) {
       if (!mounted) return;

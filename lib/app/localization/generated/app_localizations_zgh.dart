@@ -1856,6 +1856,18 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get appActivityResidenceDeleted => 'ⵜⵓⴽⴽⵙⴰ ⵏ ⵜⴰⵣⴻⴷⵖⴰ';
 
   @override
+  String get appActivityOpenResidence => 'ⵍⴷⵉ ⵜⴰⵣⴻⴷⵖⴰ ⵉ ⵓⵡⴰⵏⴻⴽ';
+
+  @override
+  String get appActivitySupportMode => 'ⴰⵙⴽⴰⵔ ⵏ ⵓⵡⴰⵏⴻⴽ';
+
+  @override
+  String get appActivityExitSupport => 'ⴼⴼⴻⵖ ⵙⴻⴳ ⵓⵡⴰⵏⴻⴽ';
+
+  @override
+  String get appActivitySupportFailed => 'ⵓⵔ ⵜⴻⵜⵜⵡⴰⵍⴷⵉ ⵜⴰⵣⴻⴷⵖⴰ.';
+
+  @override
   String get appActivityResidenceId => 'ⴰⵙⵓⵎⵎⵓ ⵏ ⵜⴰⵣⴻⴷⵖⴰ';
 
   @override

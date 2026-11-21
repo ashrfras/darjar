@@ -1864,6 +1864,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appActivityResidenceDeleted => 'Residence deleted';
 
   @override
+  String get appActivityOpenResidence => 'Open residence for support';
+
+  @override
+  String get appActivitySupportMode => 'Support mode';
+
+  @override
+  String get appActivityExitSupport => 'Exit support';
+
+  @override
+  String get appActivitySupportFailed =>
+      'Could not open the residence in support mode.';
+
+  @override
   String get appActivityResidenceId => 'Residence ID';
 
   @override

@@ -80,7 +80,23 @@ service cloud.firestore {
         ).data.status == 'active';
     }
 
+    function canSupportResidence(residenceId) {
+      return signedIn()
+        && request.auth.token.get('developer', false) == true
+        && get(/databases/$(database)/documents/appPermissions/$(request.auth.uid))
+          .data.developer == true
+        && exists(residencePath(residenceId));
+    }
+
+    function canReadResidence(residenceId) {
+      return canSupportResidence(residenceId) || isResidenceMember(residenceId);
+    }
+
     function canManageResidence(residenceId) {
+      return canSupportResidence(residenceId) || isDelegatedManager(residenceId);
+    }
+
+    function isDelegatedManager(residenceId) {
       let membership = get(
         memberPath(residenceId, request.auth.uid)
       ).data;
@@ -648,7 +664,7 @@ service cloud.firestore {
         );
 
       match /settings/private {
-        allow read: if isResidenceMember(residenceId);
+        allow read: if canReadResidence(residenceId);
 
         allow create: if verifiedPhone()
           && !exists(residencePath(residenceId))
@@ -754,7 +770,7 @@ service cloud.firestore {
       }
 
       match /members/{memberId} {
-        allow read: if isResidenceMember(residenceId);
+        allow read: if canReadResidence(residenceId);
         allow create: if isResidenceCreatorMembership(residenceId, memberId)
           || isInvitationMembership(residenceId, memberId)
           || isJoinCodeMembership(residenceId, memberId);
@@ -875,7 +891,7 @@ service cloud.firestore {
       }
 
       match /dues/{dueId} {
-        allow read: if isResidenceMember(residenceId);
+        allow read: if canReadResidence(residenceId);
 
         allow create: if (
             canManageResidence(residenceId)
@@ -981,7 +997,7 @@ service cloud.firestore {
       }
 
       match /duePayments/{paymentId} {
-        allow read: if isResidenceMember(residenceId);
+        allow read: if canReadResidence(residenceId);
 
         allow create: if canManageResidence(residenceId)
           && request.resource.data.keys().hasOnly([
@@ -1042,7 +1058,7 @@ service cloud.firestore {
       }
 
       match /financeTransactions/{transactionId} {
-        allow read: if isResidenceMember(residenceId);
+        allow read: if canReadResidence(residenceId);
 
         allow create: if canManageResidence(residenceId)
           && request.resource.data.keys().hasOnly([
@@ -1196,7 +1212,7 @@ service cloud.firestore {
       }
 
       match /documents/{documentId} {
-        allow read: if isResidenceMember(residenceId);
+        allow read: if canReadResidence(residenceId);
 
         allow create: if canManageResidence(residenceId)
           && request.resource.data.keys().hasOnly([
@@ -1245,7 +1261,7 @@ service cloud.firestore {
       }
 
       match /feedActivities/{activityId} {
-        allow read: if isResidenceMember(residenceId);
+        allow read: if canReadResidence(residenceId);
 
         // Activities are created by the trusted Eventarc backend only.
         allow create: if false;
@@ -1279,7 +1295,7 @@ service cloud.firestore {
       }
 
       match /communityPosts/{postId} {
-        allow read: if isResidenceMember(residenceId);
+        allow read: if canReadResidence(residenceId);
 
         allow create: if isResidenceMember(residenceId)
           && request.resource.data.keys().hasOnly([
@@ -1352,10 +1368,9 @@ service cloud.firestore {
           && request.resource.data.createdAt == request.time
           && request.resource.data.updatedAt == request.time;
 
-        allow update: if isResidenceMember(residenceId)
-          && (
-            resource.data.authorId == request.auth.uid
-            || canManageResidence(residenceId)
+        allow update: if (
+            canManageResidence(residenceId)
+            || (isResidenceMember(residenceId) && resource.data.authorId == request.auth.uid)
           )
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'archivedAt',
@@ -1430,7 +1445,7 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time;
 
         match /comments/{commentId} {
-          allow read: if isResidenceMember(residenceId);
+          allow read: if canReadResidence(residenceId);
           allow create: if isResidenceMember(residenceId)
             && request.resource.data.keys().hasOnly([
               'authorId',
@@ -1492,7 +1507,7 @@ service cloud.firestore {
       }
 
       match /buildings/{buildingId} {
-        allow read: if isResidenceMember(residenceId)
+        allow read: if canReadResidence(residenceId)
           || canExploreJoinableResidence(residenceId);
         allow create: if canManageResidence(residenceId)
           || (
@@ -1505,7 +1520,7 @@ service cloud.firestore {
         allow update, delete: if canManageResidence(residenceId);
 
         match /floors/{floorId} {
-          allow read: if isResidenceMember(residenceId)
+          allow read: if canReadResidence(residenceId)
             || canExploreJoinableResidence(residenceId);
           allow create: if canManageResidence(residenceId)
             || (
@@ -1518,7 +1533,7 @@ service cloud.firestore {
           allow update, delete: if canManageResidence(residenceId);
 
           match /apartments/{apartmentId} {
-            allow read: if isResidenceMember(residenceId)
+            allow read: if canReadResidence(residenceId)
               || canExploreJoinableResidence(residenceId);
             allow create: if canManageResidence(residenceId)
               && request.resource.data.number is int

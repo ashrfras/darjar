@@ -22,7 +22,7 @@ Future<void> main() async {
           ? {'booleanValue': entry.value}
           : {'stringValue': entry.value},
   };
-  String token(String uid) {
+  String token(String uid, {bool developer = false}) {
     String encode(Object value) =>
         base64Url.encode(utf8.encode(jsonEncode(value))).replaceAll('=', '');
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -33,6 +33,7 @@ Future<void> main() async {
       'user_id': uid,
       'iat': now,
       'exp': now + 3600,
+      if (developer) 'developer': true,
       'firebase': {'sign_in_provider': 'custom', 'identities': {}},
     })}.';
   }
@@ -99,7 +100,92 @@ Future<void> main() async {
         ['president', 'owner', 'delegate'].contains(role) ? 200 : 403,
       );
     }
-    stdout.writeln('All 8 feed deletion security rule checks passed.');
+    const residence = 'residences/support-rules-test';
+    for (final (uid, claim, grant, expected) in [
+      ('developer', true, true, 200),
+      ('claim-only', true, false, 403),
+      ('grant-only', false, true, 403),
+      ('outsider', false, false, 403),
+    ]) {
+      await commit(
+        [
+          seed(residence, {'presidentId': 'president'}),
+          seed('$residence/feedActivities/activity', {'type': 'expenseAdded'}),
+          seed('$residence/settings/private', {
+            'defaultSubscriptionAmount': 100,
+          }),
+          seed('appPermissions/$uid', {'developer': grant}),
+          seed('users/private-account', {'firstName': 'Private'}),
+        ],
+        'owner',
+        200,
+      );
+      final auth = token(uid, developer: claim);
+      Future<void> get(String path, int status) async {
+        final request = await client.getUrl(
+          Uri.parse('http://$host/v1/$root/$path'),
+        );
+        request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $auth');
+        final response = await request.close();
+        await response.drain<void>();
+        if (response.statusCode != status) {
+          throw StateError(
+            '$uid: expected $status reading $path, got ${response.statusCode}',
+          );
+        }
+      }
+
+      await get('$residence/settings/private', expected);
+      await get('users/private-account', 403);
+      await get('appPermissions/$uid', 403);
+      await commit(
+        [
+          seed('appPermissions/$uid', {'developer': true}),
+        ],
+        auth,
+        403,
+      );
+      await commit(
+        [
+          {'delete': '$root/$residence/feedActivities/activity'},
+        ],
+        auth,
+        expected,
+      );
+    }
+    await commit(
+      [
+        seed('directoryRecommendations/support-test', {
+          'residenceId': 'support-rules-test',
+        }),
+        seed('residences/removed-residence/settings/private', {
+          'defaultSubscriptionAmount': 100,
+        }),
+        seed('residences/removed-residence/feedActivities/activity', {
+          'type': 'expenseAdded',
+        }),
+      ],
+      'owner',
+      200,
+    );
+    await commit(
+      [
+        {'delete': '$root/directoryRecommendations/support-test'},
+      ],
+      token('developer', developer: true),
+      403,
+    );
+    await commit(
+      [
+        {
+          'delete':
+              '$root/residences/removed-residence/feedActivities/activity',
+        },
+      ],
+      token('developer', developer: true),
+      403,
+    );
+    stdout.writeln('Feed deletion and developer support rule checks passed.');
   } finally {
     client.close(force: true);
   }
