@@ -3,11 +3,13 @@ class BackendDocument {
     required this.id,
     required this.path,
     required this.data,
+    this.createTime,
   });
 
   final String id;
   final String path;
   final Map<String, Object?> data;
+  final DateTime? createTime;
 }
 
 class NotificationPayload {

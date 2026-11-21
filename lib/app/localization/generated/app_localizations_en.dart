@@ -1827,6 +1827,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
+  String get appActivityLog => 'App activity';
+
+  @override
+  String get appActivityDenied => 'This page is for app developers.';
+
+  @override
+  String get appActivityLoadMore => 'Show older events';
+
+  @override
+  String get appActivityEmpty => 'There are no events yet.';
+
+  @override
+  String get appActivityLoadFailed => 'Could not load activity.';
+
+  @override
+  String get appActivityAccountCreated => 'Account created';
+
+  @override
+  String get appActivityResidenceCreated => 'Residence created';
+
+  @override
+  String get appActivityResidentJoined => 'Resident joined';
+
+  @override
+  String get appActivityFirstPost => 'First post published in residence';
+
+  @override
+  String get appActivityAccountDeletionRequested =>
+      'Account deletion requested';
+
+  @override
+  String get appActivityAccountDeleted => 'Account deleted';
+
+  @override
+  String get appActivityResidenceDeleted => 'Residence deleted';
+
+  @override
+  String get appActivityResidenceId => 'Residence ID';
+
+  @override
+  String get appActivityResidentName => 'Resident name';
+
+  @override
   String get generalSettings => 'General settings';
 
   @override

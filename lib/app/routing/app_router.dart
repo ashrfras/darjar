@@ -1,5 +1,6 @@
 import 'package:darjar/features/reports/presentation/financial_report_page.dart';
 import 'package:darjar/features/account/presentation/account_resolution_page.dart';
+import 'package:darjar/features/activity_log/presentation/activity_log_page.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/auth/presentation/phone_auth_page.dart';
 import 'package:darjar/features/community/presentation/community_feed_page.dart';
@@ -79,6 +80,7 @@ abstract final class AppRoutes {
   static const deleteAccount = '/delete-account';
   static const aboutApp = '/profile/about';
   static const settings = '/settings';
+  static const appActivityLog = '/settings/activity';
 
   static String directoryProfile(String id) => '/directory/$id';
   static String editService(String id) => '/directory/$id/edit';
@@ -383,6 +385,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.settings,
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.appActivityLog,
+            builder: (context, state) => const ActivityLogPage(),
           ),
         ],
       ),

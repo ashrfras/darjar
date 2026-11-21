@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:darjar_notifications/src/activity_log_writer.dart';
 import 'package:darjar_notifications/src/firestore_event_data.dart';
 import 'package:darjar_notifications/src/feed_activity_dispatcher.dart';
 import 'package:darjar_notifications/src/google_cloud_backend.dart';
@@ -22,8 +23,23 @@ Future<void> main() async {
   final backend = await GoogleCloudNotificationBackend.create(projectId);
   final dispatcher = NotificationDispatcher(backend);
   final activityDispatcher = FeedActivityDispatcher(backend);
+  final activityLog = ActivityLogWriter(backend);
   final router = Router()
     ..get('/health', (Request request) => Response.ok('ok'))
+    ..post('/events/app-activity', (Request request) {
+      final observedAt = DateTime.tryParse(request.headers['ce-time'] ?? '');
+      if (observedAt == null) {
+        return Response.badRequest(body: 'Missing CloudEvent timestamp');
+      }
+      return _event(
+        request,
+        (path, _, data) => activityLog.record(
+          documentPath: path,
+          change: data,
+          observedAt: observedAt,
+        ),
+      );
+    })
     ..post(
       '/events/member-created',
       (request) => _event(

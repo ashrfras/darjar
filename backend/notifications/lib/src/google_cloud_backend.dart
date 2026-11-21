@@ -36,26 +36,118 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
 
   @override
   Future<List<BackendDocument>> listDocuments(String collectionPath) async {
-    final documents = <BackendDocument>[];
+    return scanDocuments(collectionPath).toList();
+  }
+
+  Stream<BackendDocument> scanDocuments(
+    String collectionPath, [
+    List<String> fields = const [],
+  ]) async* {
     String? pageToken;
     do {
       final query = <String, String>{'pageSize': '300'};
-      if (pageToken != null) query['pageToken'] = pageToken;
+      final parameters = <String, Object>{...query};
+      if (pageToken != null) parameters['pageToken'] = pageToken;
+      if (fields.isNotEmpty) parameters['mask.fieldPaths'] = fields;
       final uri = Uri.parse(
         '$_documentsBase/$collectionPath',
-      ).replace(queryParameters: query);
+      ).replace(queryParameters: parameters);
       final response = await _client.get(uri);
-      if (response.statusCode == 404) return documents;
+      if (response.statusCode == 404) return;
       _expectSuccess(response, 'list $collectionPath');
       final body = jsonDecode(response.body) as Map<String, Object?>;
       final rawDocuments = body['documents'] as List<Object?>? ?? const [];
-      documents.addAll([
-        for (final raw in rawDocuments)
-          _decodeDocument(raw! as Map<String, Object?>),
-      ]);
+      for (final raw in rawDocuments) {
+        yield _decodeDocument(raw! as Map<String, Object?>);
+      }
       pageToken = body['nextPageToken'] as String?;
     } while (pageToken != null && pageToken.isNotEmpty);
-    return documents;
+  }
+
+  Future<BackendDocument?> earliestActivityPost(String residencePath) async {
+    final response = await _client.post(
+      Uri.parse('$_documentsBase/$residencePath:runQuery'),
+      headers: const {'content-type': 'application/json'},
+      body: jsonEncode({
+        'structuredQuery': {
+          'from': [
+            {'collectionId': 'communityPosts'},
+          ],
+          'select': {
+            'fields': [
+              {'fieldPath': 'createdAt'},
+            ],
+          },
+          'orderBy': [
+            {
+              'field': {'fieldPath': 'createdAt'},
+              'direction': 'ASCENDING',
+            },
+          ],
+          'limit': 1,
+        },
+      }),
+    );
+    _expectSuccess(response, 'find first community post');
+    for (final row in jsonDecode(response.body) as List<Object?>) {
+      if ((row as Map<String, Object?>)['document']
+          case final Map<String, Object?> document) {
+        return _decodeDocument(document);
+      }
+    }
+    return null;
+  }
+
+  Future<void> saveActivityEvent({
+    required String id,
+    required Map<String, Object?> fields,
+    required bool keepEarliest,
+  }) async {
+    final uri = Uri.parse('$_documentsBase/appActivityLog/$id');
+    for (var attempt = 0; attempt < 5; attempt++) {
+      String? updateTime;
+      if (keepEarliest) {
+        final current = await _client.get(uri);
+        if (current.statusCode != 404) {
+          _expectSuccess(current, 'read first post activity');
+          final document = jsonDecode(current.body) as Map<String, Object?>;
+          final recordedAt = _decodeDocument(document).data['occurredAt'];
+          if (recordedAt is DateTime &&
+              !recordedAt.isAfter(fields['occurredAt']! as DateTime)) {
+            return;
+          }
+          updateTime = document['updateTime']! as String;
+        }
+      }
+      final response = await _client.patch(
+        uri.replace(
+          queryParameters: {
+            if (updateTime == null) 'currentDocument.exists': 'false',
+            'currentDocument.updateTime': ?updateTime,
+          },
+        ),
+        headers: const {'content-type': 'application/json'},
+        body: jsonEncode({
+          'fields': fields.map(
+            (key, value) => MapEntry(key, _firestoreValue(value)),
+          ),
+        }),
+      );
+      final status = response.statusCode >= 400
+          ? (jsonDecode(response.body) as Map<String, Object?>)['error']
+          : null;
+      final code = status is Map ? status['status'] : null;
+      if (code == 'ALREADY_EXISTS' ||
+          code == 'FAILED_PRECONDITION' ||
+          code == 'ABORTED' ||
+          (keepEarliest && response.statusCode == 404)) {
+        if (keepEarliest) continue;
+        if (code == 'ALREADY_EXISTS' || code == 'FAILED_PRECONDITION') return;
+      }
+      _expectSuccess(response, 'write app activity');
+      return;
+    }
+    throw StateError('Concurrent update to the first post activity.');
   }
 
   @override
@@ -186,6 +278,7 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
     return BackendDocument(
       id: path.split('/').last,
       path: path,
+      createTime: DateTime.tryParse(raw['createTime'] as String? ?? ''),
       data: {
         for (final entry in fields.entries)
           entry.key: _decodeValue(entry.value as Map<String, Object?>),

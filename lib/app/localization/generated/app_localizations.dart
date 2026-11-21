@@ -3351,6 +3351,90 @@ abstract class AppLocalizations {
   /// **'الإعدادات'**
   String get settings;
 
+  /// No description provided for @appActivityLog.
+  ///
+  /// In ar, this message translates to:
+  /// **'نشاط التطبيق'**
+  String get appActivityLog;
+
+  /// No description provided for @appActivityDenied.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذه الصفحة مخصّصة لمطوّري التطبيق.'**
+  String get appActivityDenied;
+
+  /// No description provided for @appActivityLoadMore.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض أحداث أقدم'**
+  String get appActivityLoadMore;
+
+  /// No description provided for @appActivityEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد أحداث في السجل بعد.'**
+  String get appActivityEmpty;
+
+  /// No description provided for @appActivityLoadFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل النشاط.'**
+  String get appActivityLoadFailed;
+
+  /// No description provided for @appActivityAccountCreated.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء حساب'**
+  String get appActivityAccountCreated;
+
+  /// No description provided for @appActivityResidenceCreated.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء إقامة'**
+  String get appActivityResidenceCreated;
+
+  /// No description provided for @appActivityResidentJoined.
+  ///
+  /// In ar, this message translates to:
+  /// **'انضمام ساكن'**
+  String get appActivityResidentJoined;
+
+  /// No description provided for @appActivityFirstPost.
+  ///
+  /// In ar, this message translates to:
+  /// **'نشر أول منشور في الإقامة'**
+  String get appActivityFirstPost;
+
+  /// No description provided for @appActivityAccountDeletionRequested.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلب حذف حساب'**
+  String get appActivityAccountDeletionRequested;
+
+  /// No description provided for @appActivityAccountDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف حساب'**
+  String get appActivityAccountDeleted;
+
+  /// No description provided for @appActivityResidenceDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف إقامة'**
+  String get appActivityResidenceDeleted;
+
+  /// No description provided for @appActivityResidenceId.
+  ///
+  /// In ar, this message translates to:
+  /// **'معرّف الإقامة'**
+  String get appActivityResidenceId;
+
+  /// No description provided for @appActivityResidentName.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم الساكن'**
+  String get appActivityResidentName;
+
   /// No description provided for @generalSettings.
   ///
   /// In ar, this message translates to:

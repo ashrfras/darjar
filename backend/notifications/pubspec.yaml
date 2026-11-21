@@ -6,6 +6,7 @@ environment:
   sdk: ^3.12.2
 
 dependencies:
+  crypto: ^3.0.7
   googleapis_auth: ^2.0.0
   http: ^1.6.0
   protobuf: ^6.0.0

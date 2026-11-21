@@ -21,6 +21,7 @@ import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
+import 'package:darjar/features/activity_log/data/activity_log_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/data/feed_repository.dart';
@@ -4486,6 +4487,51 @@ void main() {
     expect(find.text('اختيار اللغة'), findsNothing);
   });
 
+  testWidgets(
+    'developer sees app activity just below About and can open its details',
+    (tester) async {
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: AppRoutes.profile,
+        developerAccess: true,
+        activityLogRepository: _FakeActivityLogRepository(),
+      );
+      final activity = find.byKey(const Key('app-activity-link'));
+      final about = find.byKey(const Key('about-app-link'));
+      await tester.ensureVisible(activity);
+      expect(
+        tester.getTopLeft(activity).dy,
+        greaterThan(tester.getTopLeft(about).dy),
+      );
+      expect(find.byKey(const Key('app-settings-link')), findsNothing);
+
+      await tester.tap(activity);
+      await tester.pumpAndSettle();
+
+      expect(find.text('نشاط التطبيق'), findsOneWidget);
+      expect(find.textContaining('فاطمة العلمي'), findsOneWidget);
+      expect(find.textContaining('(212)612345678'), findsOneWidget);
+      expect(find.textContaining('إقامة النخيل'), findsOneWidget);
+      expect(find.textContaining('residence-123'), findsOneWidget);
+      expect(find.textContaining('hidden-account-id'), findsNothing);
+    },
+  );
+
+  testWidgets('a regular user cannot open activity through its URL', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      initialLocation: AppRoutes.appActivityLog,
+      developerAccess: false,
+    );
+
+    expect(find.text('هذه الصفحة مخصّصة لمطوّري التطبيق.'), findsOneWidget);
+    expect(find.text('عرض أحداث أقدم'), findsNothing);
+  });
+
   testWidgets('profile opens privacy policy and about app before sign out', (
     tester,
   ) async {
@@ -4496,6 +4542,7 @@ void main() {
 
     final privacyLink = find.byKey(const Key('privacy-policy-link'));
     final aboutLink = find.byKey(const Key('about-app-link'));
+    expect(find.byKey(const Key('app-activity-link')), findsNothing);
     final signOutButton = find.byKey(const Key('sign-out-button'));
     final deleteAccountLink = find.byKey(const Key('delete-account-link'));
     await tester.ensureVisible(deleteAccountLink);
@@ -6977,6 +7024,8 @@ Future<void> _pumpApp(
   bool useBootstrap = false,
   DateTime? notificationNow,
   bool localhostAuthSimulation = false,
+  bool? developerAccess,
+  ActivityLogRepository? activityLogRepository,
   bool mockStorageImages = false,
   AuthRepository? authRepository,
   AccountOnboardingRepository? accountRepository,
@@ -7068,6 +7117,12 @@ Future<void> _pumpApp(
             (ref, path) async => throw StateError('image-not-found'),
           ),
         authRepositoryProvider.overrideWithValue(repository),
+        if (developerAccess != null)
+          developerAccessProvider.overrideWith((ref) async => developerAccess),
+        if (activityLogRepository != null)
+          activityLogRepositoryProvider.overrideWithValue(
+            activityLogRepository,
+          ),
         localhostAuthSimulationProvider.overrideWithValue(
           localhostAuthSimulation,
         ),
@@ -7274,6 +7329,26 @@ Future<void> _openAdministration(WidgetTester tester) async {
     find.byKey(const Key('residence-administration-page')),
     findsOneWidget,
   );
+}
+
+class _FakeActivityLogRepository implements ActivityLogRepository {
+  @override
+  Future<bool> hasDeveloperAccess(String uid) async => true;
+
+  @override
+  Future<ActivityPage> fetchPage(String uid, {String? cursor}) async =>
+      ActivityPage([
+        ActivityEvent.fromJson({
+          'id': 'activity-123',
+          'type': 'residentJoined',
+          'occurredAt': '2026-11-20T09:00:00Z',
+          'userId': 'hidden-account-id',
+          'residentName': 'فاطمة العلمي',
+          'phoneNumber': '+212612345678',
+          'residenceId': 'residence-123',
+          'residenceName': 'إقامة النخيل',
+        }),
+      ], null);
 }
 
 class _FakeAuthRepository implements AuthRepository {

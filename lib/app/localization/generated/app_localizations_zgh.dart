@@ -1820,6 +1820,48 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get settings => 'ⴰⵙⴻⵖⵥⴰⵏ';
 
   @override
+  String get appActivityLog => 'ⴰⵔⵎⵓⴷ ⵏ ⵓⵙⵏⵙⵉ';
+
+  @override
+  String get appActivityDenied => 'ⵜⴰⵙⵏⴰ ⴰ ⵉ ⵉⵏⴻⴼⵍⴰⵢⴻⵏ ⵏ ⵓⵙⵏⵙⵉ.';
+
+  @override
+  String get appActivityLoadMore => 'ⵙⴽⴻⵏ ⵜⵉⴷⵢⴰⵏⵉⵏ ⵜⵉⵇⴱⵓⵔⵉⵏ';
+
+  @override
+  String get appActivityEmpty => 'ⵓⵔ ⵍⵍⵉⵏⵜ ⵜⵉⴷⵢⴰⵏⵉⵏ ⵢⴰⴷ.';
+
+  @override
+  String get appActivityLoadFailed => 'ⵓⵔ ⵉⵣⵎⵉⵔ ⴰⴷ ⵉⴷⵉⵍⵉ ⵓⵔⵎⵓⴷ.';
+
+  @override
+  String get appActivityAccountCreated => 'ⴰⵙⵏⵓⵍⴼⵓ ⵏ ⵓⵎⵉⴹⴰⵏ';
+
+  @override
+  String get appActivityResidenceCreated => 'ⴰⵙⵏⵓⵍⴼⵓ ⵏ ⵜⴰⵣⴻⴷⵖⴰ';
+
+  @override
+  String get appActivityResidentJoined => 'ⴰⴷⵓⴼ ⵏ ⵓⵎⴻⵣⴷⴰⵖ';
+
+  @override
+  String get appActivityFirstPost => 'ⴰⵣⵓⵣⵣⴻⵔ ⵏ ⵓⵥⵔⵉⴳ ⴰⵎⴻⵣⵡⴰⵔⵓ';
+
+  @override
+  String get appActivityAccountDeletionRequested => 'ⴰⵙⵓⵜⴻⵔ ⵏ ⵜⵓⴽⴽⵙⴰ ⵏ ⵓⵎⵉⴹⴰⵏ';
+
+  @override
+  String get appActivityAccountDeleted => 'ⵜⵓⴽⴽⵙⴰ ⵏ ⵓⵎⵉⴹⴰⵏ';
+
+  @override
+  String get appActivityResidenceDeleted => 'ⵜⵓⴽⴽⵙⴰ ⵏ ⵜⴰⵣⴻⴷⵖⴰ';
+
+  @override
+  String get appActivityResidenceId => 'ⴰⵙⵓⵎⵎⵓ ⵏ ⵜⴰⵣⴻⴷⵖⴰ';
+
+  @override
+  String get appActivityResidentName => 'ⵉⵙⴻⵎ ⵏ ⵓⵎⴻⵣⴷⴰⵖ';
+
+  @override
   String get generalSettings => 'ⴰⵙⴻⵖⵥⴰⵏ ⴰⵎⴰⵜⵓ';
 
   @override

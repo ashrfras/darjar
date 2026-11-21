@@ -1606,6 +1606,14 @@ service cloud.firestore {
         && resource.data.phoneNumber == request.auth.token.phone_number;
     }
 
+    match /appActivityLog/{eventId} {
+      allow read, write: if false;
+    }
+
+    match /appPermissions/{userId} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

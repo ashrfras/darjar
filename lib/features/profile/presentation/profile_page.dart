@@ -15,6 +15,7 @@ import 'package:darjar/core/widgets/darjar_sign_out_confirmation_dialog.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
+import 'package:darjar/features/activity_log/data/activity_log_repository.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/profile/data/profile_image_repository.dart';
 import 'package:darjar/features/profile/presentation/appearance_selector.dart';
@@ -69,6 +70,8 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final residenceContext = ref.watch(residenceContextProvider).value;
+    final isDeveloper =
+        ref.watch(developerAccessProvider).asData?.value == true;
     final activeResidence = residenceContext?.activeResidence;
     final roleLabel = switch (activeResidence?.role) {
       'president' || 'owner' => localizations.profileRolePresident,
@@ -248,6 +251,15 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                       title: localizations.aboutApp,
                       route: AppRoutes.aboutApp,
                     ),
+                    if (isDeveloper) ...[
+                      const Divider(),
+                      _ProfileLink(
+                        key: const Key('app-activity-link'),
+                        icon: Icons.history,
+                        title: localizations.appActivityLog,
+                        route: AppRoutes.appActivityLog,
+                      ),
+                    ],
                     const Divider(),
                     ListTile(
                       key: const Key('sign-out-button'),

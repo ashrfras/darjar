@@ -28,11 +28,22 @@
       }
     }
   },
+  "functions": [
+    {
+      "source": "backend/activity_log",
+      "codebase": "activity-log",
+      "runtime": "dart3"
+    }
+  ],
   "firestore": {
     "database": "(default)",
     "location": "europe-southwest1",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "emulators": {
+    "auth": { "port": 9099 },
+    "firestore": { "port": 8080 }
   },
   "storage": {
     "rules": "storage.rules"

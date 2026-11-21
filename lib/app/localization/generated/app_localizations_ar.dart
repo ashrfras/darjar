@@ -1791,6 +1791,48 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings => 'الإعدادات';
 
   @override
+  String get appActivityLog => 'نشاط التطبيق';
+
+  @override
+  String get appActivityDenied => 'هذه الصفحة مخصّصة لمطوّري التطبيق.';
+
+  @override
+  String get appActivityLoadMore => 'عرض أحداث أقدم';
+
+  @override
+  String get appActivityEmpty => 'لا توجد أحداث في السجل بعد.';
+
+  @override
+  String get appActivityLoadFailed => 'تعذّر تحميل النشاط.';
+
+  @override
+  String get appActivityAccountCreated => 'إنشاء حساب';
+
+  @override
+  String get appActivityResidenceCreated => 'إنشاء إقامة';
+
+  @override
+  String get appActivityResidentJoined => 'انضمام ساكن';
+
+  @override
+  String get appActivityFirstPost => 'نشر أول منشور في الإقامة';
+
+  @override
+  String get appActivityAccountDeletionRequested => 'طلب حذف حساب';
+
+  @override
+  String get appActivityAccountDeleted => 'حذف حساب';
+
+  @override
+  String get appActivityResidenceDeleted => 'حذف إقامة';
+
+  @override
+  String get appActivityResidenceId => 'معرّف الإقامة';
+
+  @override
+  String get appActivityResidentName => 'اسم الساكن';
+
+  @override
   String get generalSettings => 'الإعدادات العامة';
 
   @override
