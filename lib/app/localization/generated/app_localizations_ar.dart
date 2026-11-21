@@ -37,6 +37,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'اختر الإقامة التي تريد تصفحها وإدارتها الآن.';
 
   @override
+  String get newResidence => 'إقامة جديدة';
+
+  @override
+  String get newResidenceDescription => 'إنشاء أو الانضمام إلى إقامة جديدة';
+
+  @override
   String get switchingResidence => 'جارٍ تغيير الإقامة…';
 
   @override

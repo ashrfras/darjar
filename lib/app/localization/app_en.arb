@@ -9,6 +9,8 @@
   "demoResidence": "Yasmeen Residence",
   "selectResidence": "Select residence",
   "residenceSwitcherDescription": "Choose the residence you want to browse and manage now.",
+  "newResidence": "New residence",
+  "newResidenceDescription": "Create or join a new residence",
   "switchingResidence": "Switching residence…",
   "currentResidence": "Current",
   "acceptInvitation": "Join",

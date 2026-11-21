@@ -240,7 +240,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.residenceSetup,
-        builder: (context, state) => const ResidenceSetupPage(),
+        builder: (context, state) => ResidenceSetupPage(
+          returnLocation: state.extra is String ? state.extra as String : null,
+        ),
       ),
       GoRoute(
         path: AppRoutes.joinResidence,

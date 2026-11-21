@@ -2492,6 +2492,66 @@ void main() {
     expect(find.byType(NavigationBar), findsOneWidget);
   });
 
+  testWidgets('residence creation uses the registered account name', (
+    tester,
+  ) async {
+    final setupRepository = _FakeResidenceSetupRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      initialLocation: AppRoutes.community,
+      mockStorageImages: true,
+      residenceSetupRepository: setupRepository,
+      accountRepository: _FakeAccountOnboardingRepository(
+        resolution: const AccountResolution(
+          phoneNumber: '+212600000001',
+          profile: UserProfile(
+            firstName: 'مريم',
+            lastName: 'بناني',
+            phoneNumber: '+212600000001',
+          ),
+          invitations: [],
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('residence-selector')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('residence-switcher-new-residence')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('create-new-residence-option')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('مريم بناني'), findsOneWidget);
+    expect(find.byKey(const Key('resident-first-name-field')), findsNothing);
+    expect(find.byKey(const Key('resident-last-name-field')), findsNothing);
+
+    await tester.enterText(
+      find.byKey(const Key('residence-name-field')),
+      'إقامة الياسمين',
+    );
+    await tester.enterText(
+      find.byKey(const Key('residence-address-field')),
+      'حي المعاريف',
+    );
+    await tester.tap(find.byKey(const Key('residence-city-field')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('city-search-field')),
+      'الرباط',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('الرباط').last);
+    await tester.pumpAndSettle();
+    final submit = find.byKey(const Key('enter-residence-button'));
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pumpAndSettle();
+
+    expect(setupRepository.createdInput?.firstName, 'مريم');
+    expect(setupRepository.createdInput?.lastName, 'بناني');
+    expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+  });
+
   testWidgets('Arabic onboarding copy and start action follow RTL', (
     tester,
   ) async {
@@ -3016,6 +3076,69 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('expanded-shell')), findsOneWidget);
     expect(find.text('إقامة الاختبار'), findsWidgets);
+  });
+
+  testWidgets('new residence stays below the scrollable residence options', (
+    tester,
+  ) async {
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      initialLocation: AppRoutes.community,
+      residenceContext: ResidenceContext(
+        residences: [
+          for (var index = 1; index <= 4; index++)
+            UserResidence(
+              id: 'residence-$index',
+              name: 'إقامة $index',
+              address: 'شارع الاختبار',
+              city: '6141010',
+              role: 'resident',
+              apartmentId: 'apartment-$index',
+            ),
+        ],
+        activeResidenceId: 'residence-1',
+        invitations: const [],
+      ),
+    );
+    final selector = find.byKey(const Key('residence-selector'));
+    await tester.tap(selector);
+    await tester.pumpAndSettle();
+
+    final list = find.byKey(const Key('residence-switcher-list'));
+    final thirdResidence = find.byKey(
+      const Key('residence-switcher-option-residence-3'),
+    );
+    final fourthResidence = find.byKey(
+      const Key('residence-switcher-option-residence-4'),
+    );
+    final newResidence = find.byKey(
+      const Key('residence-switcher-new-residence'),
+    );
+    expect(find.text('إقامة جديدة'), findsOneWidget);
+    expect(find.text('إنشاء أو الانضمام إلى إقامة جديدة'), findsOneWidget);
+    expect(tester.getRect(thirdResidence).bottom, tester.getRect(list).bottom);
+    expect(fourthResidence.hitTestable(), findsNothing);
+    final footerPosition = tester.getTopLeft(newResidence);
+
+    await tester.drag(list, const Offset(0, -150));
+    await tester.pumpAndSettle();
+    expect(fourthResidence.hitTestable(), findsOneWidget);
+    expect(tester.getTopLeft(newResidence), footerPosition);
+
+    await tester.tap(newResidence);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('residence-switcher-sheet')), findsNothing);
+    expect(find.byKey(const Key('join-my-residence-option')), findsOneWidget);
+    expect(
+      find.byKey(const Key('create-new-residence-option')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const Key('residence-setup-back-button')));
+    await tester.pumpAndSettle();
+    expect(selector, findsOneWidget);
+    expect(find.text('إقامة 1'), findsOneWidget);
   });
 
   testWidgets(

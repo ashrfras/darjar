@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
@@ -949,8 +951,16 @@ class _ResidenceSelector extends ConsumerWidget {
       isScrollControlled: true,
       useSafeArea: true,
       constraints: const BoxConstraints(maxWidth: 560),
-      builder: (context) =>
-          _ResidenceSwitcherSheet(residenceContext: residenceContext),
+      builder: (sheetContext) => _ResidenceSwitcherSheet(
+        residenceContext: residenceContext,
+        onNewResidence: () {
+          Navigator.of(sheetContext).pop();
+          context.go(
+            AppRoutes.residenceSetup,
+            extra: GoRouterState.of(context).uri.toString(),
+          );
+        },
+      ),
     );
     if (residenceId != null && context.mounted) {
       await _select(context, ref, residenceId);
@@ -1063,13 +1073,20 @@ class _ResidenceSwitchingOverlay extends StatelessWidget {
 }
 
 class _ResidenceSwitcherSheet extends StatelessWidget {
-  const _ResidenceSwitcherSheet({required this.residenceContext});
+  const _ResidenceSwitcherSheet({
+    required this.residenceContext,
+    required this.onNewResidence,
+  });
 
   final ResidenceContext residenceContext;
+  final VoidCallback onNewResidence;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final optionHeight = _ResidenceSwitcherOption.height(context);
+    const visibleResidenceLimit = 3;
     final support = residenceContext.supportResidence;
     final residences = [
       if (support != null &&
@@ -1095,8 +1112,10 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
             ),
           ],
         ),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 560),
+        child: SafeArea(
+          top: false,
+          left: false,
+          right: false,
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.xLarge),
             child: Column(
@@ -1151,20 +1170,76 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xLarge),
                 Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: residences.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: AppSpacing.medium),
-                    itemBuilder: (context, index) {
-                      final residence = residences[index];
-                      return _ResidenceSwitcherOption(
-                        residence: residence,
-                        selected:
-                            residence.id == residenceContext.activeResidenceId,
-                        onTap: () => Navigator.of(context).pop(residence.id),
-                      );
-                    },
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight:
+                          visibleResidenceLimit * optionHeight +
+                          (visibleResidenceLimit - 1) * AppSpacing.medium,
+                    ),
+                    child: ListView.separated(
+                      key: const Key('residence-switcher-list'),
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: residences.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: AppSpacing.medium),
+                      itemBuilder: (context, index) {
+                        final residence = residences[index];
+                        return SizedBox(
+                          height: optionHeight,
+                          child: _ResidenceSwitcherOption(
+                            residence: residence,
+                            selected:
+                                residence.id ==
+                                residenceContext.activeResidenceId,
+                            onTap: () =>
+                                Navigator.of(context).pop(residence.id),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.medium),
+                DarJarCard(
+                  key: const Key('residence-switcher-new-residence'),
+                  padding: const EdgeInsets.all(AppSpacing.large),
+                  onTap: onNewResidence,
+                  child: Row(
+                    children: [
+                      const SizedBox.square(
+                        dimension: 44,
+                        child: Icon(
+                          Icons.add_home_work_outlined,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.medium),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              localizations.newResidence,
+                              style: textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: AppSpacing.xSmall),
+                            Text(
+                              localizations.newResidenceDescription,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: AppColors.inkMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.small),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: AppColors.inkMuted,
+                        size: 16,
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -1187,6 +1262,29 @@ class _ResidenceSwitcherOption extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
+  static const _avatarSize = 44.0;
+  static const _titleMaxLines = 2;
+
+  static double height(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final textScaler = MediaQuery.textScalerOf(context);
+    final title = textTheme.titleMedium!;
+    final address = textTheme.bodySmall!;
+    final titleHeight =
+        _titleMaxLines *
+        textScaler.scale(title.fontSize!) *
+        (title.height ?? 1);
+    final addressHeight =
+        textScaler.scale(address.fontSize!) * (address.height ?? 1);
+    return 2 * AppSpacing.large +
+        math.max(
+          _avatarSize,
+          titleHeight.ceilToDouble() +
+              AppSpacing.xSmall +
+              addressHeight.ceilToDouble(),
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
@@ -1207,20 +1305,24 @@ class _ResidenceSwitcherOption extends StatelessWidget {
             DarJarResidenceAvatar(
               residenceId: residence.id,
               hasImage: residence.hasImage,
-              size: 44,
+              size: _avatarSize,
             ),
             const SizedBox(width: AppSpacing.medium),
             Expanded(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       Flexible(
+                        flex: 2,
                         child: Text(
                           localizations.residenceDisplayName(
                             normalizeResidenceName(residence.name),
                           ),
+                          maxLines: _titleMaxLines,
+                          overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 color: selected
@@ -1231,19 +1333,25 @@ class _ResidenceSwitcherOption extends StatelessWidget {
                       ),
                       if (selected) ...[
                         const SizedBox(width: AppSpacing.small),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.small,
-                            vertical: AppSpacing.xSmall,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(AppRadius.pill),
-                          ),
-                          child: Text(
-                            localizations.currentResidence,
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(color: AppColors.primary),
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.small,
+                              vertical: AppSpacing.xSmall,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.pill,
+                              ),
+                            ),
+                            child: Text(
+                              localizations.currentResidence,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(color: AppColors.primary),
+                            ),
                           ),
                         ),
                       ],

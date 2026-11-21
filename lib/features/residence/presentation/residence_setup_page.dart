@@ -24,9 +24,14 @@ import 'package:go_router/go_router.dart';
 enum ResidenceSetupStep { choice, create, join }
 
 class ResidenceSetupPage extends StatefulWidget {
-  const ResidenceSetupPage({this.invitationCode, super.key});
+  const ResidenceSetupPage({
+    this.invitationCode,
+    this.returnLocation,
+    super.key,
+  });
 
   final String? invitationCode;
+  final String? returnLocation;
 
   @override
   State<ResidenceSetupPage> createState() => _ResidenceSetupPageState();
@@ -54,7 +59,7 @@ class _ResidenceSetupPageState extends State<ResidenceSetupPage> {
 
   void _goBack() {
     if (_step == ResidenceSetupStep.choice) {
-      context.go(AppRoutes.onboarding);
+      context.go(widget.returnLocation ?? AppRoutes.onboarding);
       return;
     }
     setState(() => _step = ResidenceSetupStep.choice);
@@ -312,6 +317,23 @@ class _ChoiceCard extends StatelessWidget {
   }
 }
 
+final _createResidenceProfileProvider =
+    FutureProvider.autoDispose<UserProfile?>((ref) async {
+      final user = ref.watch(authRepositoryProvider).currentUser;
+      if (user == null) throw const AccountOnboardingFailure('signed-out');
+
+      final profile = await ref
+          .watch(accountOnboardingRepositoryProvider)
+          .loadProfile(user)
+          .timeout(residenceDataTimeout);
+      if (profile == null ||
+          profile.firstName.trim().isEmpty ||
+          profile.lastName.trim().isEmpty) {
+        return null;
+      }
+      return profile;
+    }, retry: (_, _) => null);
+
 class _CreateResidenceForm extends ConsumerStatefulWidget {
   const _CreateResidenceForm({super.key});
 
@@ -342,6 +364,8 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final profile = ref.watch(_createResidenceProfileProvider);
+    final registeredProfile = profile.value;
     return Form(
       key: _formKey,
       child: Column(
@@ -350,7 +374,9 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
           _StepIntroduction(
             icon: Icons.add_home_work_outlined,
             title: localizations.createNewResidence,
-            description: localizations.createResidenceFormDescription,
+            description: profile.hasValue && registeredProfile == null
+                ? localizations.createResidenceFormDescription
+                : localizations.createNewResidenceDescription,
           ),
           const SizedBox(height: AppSpacing.xLarge),
           DarJarCard(
@@ -396,31 +422,58 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
                   title: localizations.yourInformation,
                 ),
                 const SizedBox(height: AppSpacing.large),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: DarJarTextField(
-                        key: const Key('resident-first-name-field'),
-                        controller: _firstNameController,
-                        label: localizations.firstName,
-                        hint: localizations.firstNameHint,
-                        textInputAction: TextInputAction.next,
+                if (profile.isLoading)
+                  Text(localizations.dataLoading)
+                else if (profile case AsyncError(:final error)) ...[
+                  _SetupError(
+                    message: _setupErrorMessage(localizations, switch (error) {
+                      AccountOnboardingFailure(:final code) => code,
+                      TimeoutException() => 'request-timeout',
+                      _ => 'unknown',
+                    }),
+                  ),
+                  DarJarButton(
+                    label: localizations.accountResolutionRetry,
+                    variant: DarJarButtonVariant.tertiary,
+                    onPressed: () =>
+                        ref.invalidate(_createResidenceProfileProvider),
+                  ),
+                ] else if (registeredProfile != null) ...[
+                  Text(
+                    localizations.accountResolutionFullName,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: AppSpacing.small),
+                  Text(
+                    registeredProfile.fullName,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ] else
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: DarJarTextField(
+                          key: const Key('resident-first-name-field'),
+                          controller: _firstNameController,
+                          label: localizations.firstName,
+                          hint: localizations.firstNameHint,
+                          textInputAction: TextInputAction.next,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.medium),
-                    Expanded(
-                      child: DarJarTextField(
-                        key: const Key('resident-last-name-field'),
-                        controller: _lastNameController,
-                        label: localizations.lastName,
-                        hint: localizations.lastNameHint,
-                        helper: localizations.lastNamePrivacyHint,
-                        textInputAction: TextInputAction.done,
+                      const SizedBox(width: AppSpacing.medium),
+                      Expanded(
+                        child: DarJarTextField(
+                          key: const Key('resident-last-name-field'),
+                          controller: _lastNameController,
+                          label: localizations.lastName,
+                          hint: localizations.lastNameHint,
+                          helper: localizations.lastNamePrivacyHint,
+                          textInputAction: TextInputAction.done,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 if (_errorCode != null) ...[
                   const SizedBox(height: AppSpacing.large),
                   _SetupError(
@@ -436,7 +489,10 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
                   icon: Icons.arrow_forward_rounded,
                   iconAtEnd: true,
                   expanded: true,
-                  onPressed: _isSubmitting ? null : _submit,
+                  onPressed:
+                      _isSubmitting || profile.isLoading || profile.hasError
+                      ? null
+                      : () => _submit(registeredProfile),
                 ),
               ],
             ),
@@ -446,12 +502,14 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
     );
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(UserProfile? profile) async {
+    final firstName = (profile?.firstName ?? _firstNameController.text).trim();
+    final lastName = (profile?.lastName ?? _lastNameController.text).trim();
     final missingText = [
       _nameController.text,
       _addressController.text,
-      _firstNameController.text,
-      _lastNameController.text,
+      firstName,
+      lastName,
     ].any((value) => value.trim().isEmpty);
     if (missingText || !_formKey.currentState!.validate()) {
       setState(() => _errorCode = 'invalid-data');
@@ -476,12 +534,13 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
               name: normalizeResidenceName(_nameController.text),
               address: _addressController.text,
               city: _selectedCity!,
-              firstName: _firstNameController.text,
-              lastName: _lastNameController.text,
+              firstName: firstName,
+              lastName: lastName,
             ),
           );
       if (mounted) {
-        ref.invalidate(residenceContextProvider);
+        // Start the reload before the app shell subscribes to the context.
+        ref.refresh(residenceContextProvider.future).ignore();
         context.go(AppRoutes.community);
       }
     } on ResidenceSetupFailure catch (error) {

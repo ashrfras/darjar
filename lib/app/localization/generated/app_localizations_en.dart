@@ -37,6 +37,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose the residence you want to browse and manage now.';
 
   @override
+  String get newResidence => 'New residence';
+
+  @override
+  String get newResidenceDescription => 'Create or join a new residence';
+
+  @override
   String get switchingResidence => 'Switching residence…';
 
   @override

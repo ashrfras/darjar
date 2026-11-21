@@ -37,6 +37,12 @@ class AppLocalizationsZgh extends AppLocalizations {
       'ⴼⵔⴻⵏ ⵜⴰⵣⴻⴷⵖⴰ ⵉ ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⵜⴼⴻⵔⵏⴻⴹ ⵢⴻⵔⵏⴰ ⴰⴷ ⵜⵜⵜⴻⵙⵙⴻⵍⵃⵓⴹ ⵜⵓⵔⴰ.';
 
   @override
+  String get newResidence => 'ⵜⴰⵣⴻⴷⵖⴰ ⵜⴰⵎⴰⵢⵏⵓⵜ';
+
+  @override
+  String get newResidenceDescription => 'ⵙⵏⵓⵍⴼⵓⴷ ⵏⴻⵖ ⴽⵛⴻⵎ ⵖⴻⵔ ⵜⵣⴻⴷⵖⴰ ⵜⴰⵎⴰⵢⵏⵓⵜ';
+
+  @override
   String get switchingResidence => 'ⵜⴻⵜⵜⴱⴻⴷⴷⴰⵍ ⵜⵏⴻⵣⴷⵓⵖⵜ…';
 
   @override
