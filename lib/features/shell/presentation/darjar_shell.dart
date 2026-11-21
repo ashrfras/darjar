@@ -719,6 +719,17 @@ class _NotificationTile extends StatelessWidget {
         localizations.duesMarkedPaidNotificationTitle,
         localizations.duesMarkedPaidNotificationBody(notification.periodKey),
       ),
+      DarJarNotificationType.paymentRecorded => (
+        Icons.check_circle_outline_rounded,
+        AppColors.primary,
+        localizations.paymentRecordedNotificationTitle,
+        switch (notification.amount) {
+          final int amount => localizations.paymentRecordedNotificationBody(
+            amount.toString(),
+          ),
+          null => '',
+        },
+      ),
       DarJarNotificationType.budgetChanged => (
         Icons.account_balance_wallet_outlined,
         AppColors.primary,

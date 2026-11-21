@@ -14,6 +14,7 @@ enum DarJarNotificationType {
   postCommented,
   duesOverdue,
   duesMarkedPaid,
+  paymentRecorded,
   budgetChanged,
 }
 
@@ -27,6 +28,7 @@ class DarJarNotification {
     required this.targetId,
     this.actorName = '',
     this.periodKey = '',
+    this.amount,
     this.readAt,
   });
 
@@ -38,6 +40,7 @@ class DarJarNotification {
   final String targetId;
   final String actorName;
   final String periodKey;
+  final int? amount;
   final DateTime? readAt;
 
   bool get isRead => readAt != null;
@@ -52,6 +55,7 @@ class DarJarNotification {
       targetId: targetId,
       actorName: actorName,
       periodKey: periodKey,
+      amount: amount,
       readAt: value,
     );
   }
@@ -262,6 +266,7 @@ class FirestoreNotificationsRepository implements NotificationsRepository {
           ? abbreviatedPersonName(data['actorName'] as String? ?? '')
           : data['actorName'] as String? ?? '',
       periodKey: data['periodKey'] as String? ?? '',
+      amount: data['amount'] as int?,
       readAt: (data['readAt'] as Timestamp?)?.toDate(),
     );
   }

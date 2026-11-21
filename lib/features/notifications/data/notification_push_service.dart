@@ -243,8 +243,9 @@ String notificationRoute(DarJarNotification notification) {
       AppRoutes.communityPost(notification.targetId),
     DarJarNotificationType.postLiked ||
     DarJarNotificationType.postCommented => AppRoutes.community,
-    DarJarNotificationType.duesOverdue => AppRoutes.dues,
-    DarJarNotificationType.duesMarkedPaid => AppRoutes.dues,
+    DarJarNotificationType.duesOverdue ||
+    DarJarNotificationType.duesMarkedPaid ||
+    DarJarNotificationType.paymentRecorded => AppRoutes.dues,
     DarJarNotificationType.budgetChanged => AppRoutes.residenceFinances,
   };
 }

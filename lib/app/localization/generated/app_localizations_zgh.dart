@@ -2042,8 +2042,12 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get importantNotifications => 'ⵉⴱⴻⴷⴷⵉⵍⴻⵏ ⵉⴳⴻⵊⴷⴰⵏⴻⵏ';
 
   @override
-  String duesMarkedPaidNotification(String period) {
-    return 'ⵉⴷⵔⵉⵎⴻⵏ ⵏ $period ⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙⴷ ⴰⵎ ⵡⴰⴽⴽⴻⵏ ⵜⵜⵡⴰⵅⴻⵍⵚⴻⵏ';
+  String get paymentRecordedNotificationTitle =>
+      'ⴰⵅⴻⵍⵍⴻⵚ ⵏ ⵢⵉⴷⵔⵉⵎⴻⵏⵉⴽ ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ';
+
+  @override
+  String paymentRecordedNotificationBody(String amount) {
+    return 'ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ ⵡⴰⵅⴻⵍⵍⴻⵚ ⵏ $amount ⴷⵔⵀⴻⵎ.';
   }
 
   @override

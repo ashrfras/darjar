@@ -11,12 +11,14 @@ class ImportantResidenceNotification {
     required this.id,
     required this.kind,
     this.periodKey,
+    this.amount,
     this.occurredAt,
   });
 
   final String id;
   final ImportantResidenceNotificationKind kind;
   final String? periodKey;
+  final int? amount;
   final DateTime? occurredAt;
 }
 
@@ -32,27 +34,18 @@ List<ImportantResidenceNotification> deriveImportantResidenceNotifications({
       kind: ImportantResidenceNotificationKind.membershipApproved,
       occurredAt: joinedAt,
     ),
+    for (final group in duesOverview.paymentGroups)
+      ImportantResidenceNotification(
+        id: 'payment-recorded-${group.id}',
+        kind: ImportantResidenceNotificationKind.paymentRecorded,
+        amount: group.totalAmount,
+        occurredAt: group.paidAt,
+      ),
   ];
 
   for (final due in duesOverview.dues) {
-    if (due.status == ResidenceDueStatus.paid) {
-      final matchingPayments =
-          duesOverview.payments
-              .where((payment) => payment.dueId == due.id)
-              .toList()
-            ..sort((first, second) => second.paidAt.compareTo(first.paidAt));
-      notifications.add(
-        ImportantResidenceNotification(
-          id: 'payment-recorded-${due.id}',
-          kind: ImportantResidenceNotificationKind.paymentRecorded,
-          periodKey: due.periodKey,
-          occurredAt: matchingPayments.firstOrNull?.paidAt,
-        ),
-      );
-      continue;
-    }
-
-    if (due.periodKey.compareTo(currentPeriodKey) < 0 &&
+    if (due.status != ResidenceDueStatus.paid &&
+        due.periodKey.compareTo(currentPeriodKey) < 0 &&
         due.remainingAmount > 0) {
       notifications.add(
         ImportantResidenceNotification(

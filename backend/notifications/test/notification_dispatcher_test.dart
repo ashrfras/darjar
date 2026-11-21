@@ -255,35 +255,67 @@ void main() {
     expect(backend.notifications.single.actorName, 'كريم م.');
   });
 
-  test('paid dues notify active residents assigned to the apartment', () async {
-    final backend = _FakeBackend()
-      ..document('residences/home/dues/2026-07_apartment-a', {
-        'apartmentId': 'apartment-a',
-        'periodKey': '2026-07',
-      })
-      ..collection('residences/home/members', [
-        _document('resident-a', {
-          'status': 'active',
-          'apartmentId': 'apartment-a',
-        }),
-        _document('resident-b', {
-          'status': 'active',
-          'apartmentId': 'apartment-b',
-        }),
-      ]);
-    final dispatcher = NotificationDispatcher(backend);
+  test(
+    'each payment group notifies the apartment once with the total',
+    () async {
+      final backend = _FakeBackend()
+        ..document('publicPaymentReceipts/payment-1', {
+          'residenceId': 'home',
+          'apartmentNumber': '01',
+          'amount': 900,
+        })
+        ..document('publicPaymentReceipts/payment-2', {
+          'residenceId': 'home',
+          'apartmentNumber': '01',
+          'amount': 25,
+        })
+        ..collection('residences/home/members', [
+          _document('resident-a', {
+            'status': 'active',
+            'apartmentId': 'apartment-a',
+          }),
+          _document('resident-b', {
+            'status': 'active',
+            'apartmentId': 'apartment-b',
+          }),
+          _document('former-resident', {
+            'status': 'inactive',
+            'apartmentId': 'apartment-a',
+          }),
+        ])
+        ..collection('users/resident-a/pushTokens', [
+          _document('phone', {'token': 'resident-token'}),
+        ]);
+      final dispatcher = NotificationDispatcher(backend);
 
-    await dispatcher.duesMarkedPaid(
-      documentPath: 'residences/home/dues/2026-07_apartment-a',
-      eventId: 'due-event-1',
-      becamePaid: true,
-    );
+      Future<void> deliver(String groupId, int index) {
+        return dispatcher.paymentRecorded(
+          documentPath: 'residences/home/duePayments/$groupId-$index',
+          allocation: {
+            'paymentGroupId': groupId,
+            'apartmentId': 'apartment-a',
+            'apartmentNumber': '01',
+          },
+        );
+      }
 
-    expect(backend.notifications, hasLength(1));
-    expect(backend.notifications.single.recipientUserId, 'resident-a');
-    expect(backend.notifications.single.type, 'duesMarkedPaid');
-    expect(backend.notifications.single.periodKey, '2026-07');
-  });
+      // Allocations can arrive out of order and the first event can be retried.
+      for (final index in [6, 2, 1, 3, 1, 4, 5]) {
+        await deliver('payment-1', index);
+      }
+      final notification = backend.notifications.single;
+      expect(notification.recipientUserId, 'resident-a');
+      expect(notification.type, 'paymentRecorded');
+      expect(notification.targetId, 'payment-1');
+      expect(notification.amount, 900);
+      expect(notification.body, contains('900 درهم'));
+      expect(backend.pushes.single.token, 'resident-token');
+
+      await deliver('payment-2', 1);
+      expect(backend.notifications.map((item) => item.amount), [900, 25]);
+      expect(backend.pushes, hasLength(2));
+    },
+  );
 
   test(
     'overdue job only notifies residents assigned to unpaid apartments',

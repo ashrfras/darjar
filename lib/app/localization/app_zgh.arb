@@ -868,14 +868,9 @@
   "communityNotifications": "ⵉⴱⴻⴷⴷⵉⵍⴻⵏ ⵏ ⵓⵞⵞⵉ",
   "residenceNotifications": "ⵉⴱⴻⴷⴷⵉⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
   "importantNotifications": "ⵉⴱⴻⴷⴷⵉⵍⴻⵏ ⵉⴳⴻⵊⴷⴰⵏⴻⵏ",
-  "duesMarkedPaidNotification": "ⵉⴷⵔⵉⵎⴻⵏ ⵏ {period} ⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙⴷ ⴰⵎ ⵡⴰⴽⴽⴻⵏ ⵜⵜⵡⴰⵅⴻⵍⵚⴻⵏ",
-  "@duesMarkedPaidNotification": {
-    "placeholders": {
-      "period": {
-        "type": "String"
-      }
-    }
-  },
+  "paymentRecordedNotificationTitle": "ⴰⵅⴻⵍⵍⴻⵚ ⵏ ⵢⵉⴷⵔⵉⵎⴻⵏⵉⴽ ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ",
+  "paymentRecordedNotificationBody": "ⵢⴻⵜⵜⵡⴰⵙⴻⴽⵍⴻⵙ ⵡⴰⵅⴻⵍⵍⴻⵚ ⵏ {amount} ⴷⵔⵀⴻⵎ.",
+  "@paymentRecordedNotificationBody": {"placeholders": {"amount": {"type": "String"}}},
   "overdueDuesNotification": "ⵜⵉⵡⵙⵉⵡⵉⵏ ⵏ {period} ⵜⵜⵡⴰⵄⴻⴹⴹⵍⴻⵏⵜ",
   "@overdueDuesNotification": {
     "placeholders": {

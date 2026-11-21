@@ -2012,8 +2012,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importantNotifications => 'إشعارات هامة';
 
   @override
-  String duesMarkedPaidNotification(String period) {
-    return 'تم تسجيل مستحقات $period كمؤداة';
+  String get paymentRecordedNotificationTitle => 'تم تسجيل دفعتك';
+
+  @override
+  String paymentRecordedNotificationBody(String amount) {
+    return 'تم تسجيل دفعة بقيمة $amount درهم.';
   }
 
   @override

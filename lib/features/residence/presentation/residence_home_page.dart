@@ -799,39 +799,46 @@ class _NotificationsCard extends StatelessWidget {
       child: Column(
         children: [
           for (final notification in notifications)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 9),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 8,
-                    height: 8,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: _notificationColor(notification.kind),
-                        shape: BoxShape.circle,
+            InkWell(
+              onTap:
+                  notification.kind ==
+                      ImportantResidenceNotificationKind.paymentRecorded
+                  ? () => context.push(AppRoutes.dues)
+                  : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 8,
+                      height: 8,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: _notificationColor(notification.kind),
+                          shape: BoxShape.circle,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 9),
-                  Expanded(
-                    child: Text(
-                      _notificationText(context, notification),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelLarge,
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Text(
+                        _notificationText(context, notification),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
                     ),
-                  ),
-                  if (notification.occurredAt case final occurredAt?) ...[
-                    const SizedBox(width: 8),
-                    Text(
-                      DateFormat.yMd(
-                        AppLocalizations.of(context).localeName,
-                      ).format(occurredAt),
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
+                    if (notification.occurredAt case final occurredAt?) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        DateFormat.yMd(
+                          AppLocalizations.of(context).localeName,
+                        ).format(occurredAt),
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
         ],
@@ -847,8 +854,8 @@ String _notificationText(
   final localizations = AppLocalizations.of(context);
   return switch (notification.kind) {
     ImportantResidenceNotificationKind.paymentRecorded =>
-      localizations.duesMarkedPaidNotification(
-        _duesPeriodLabel(context, notification.periodKey!),
+      localizations.paymentRecordedNotificationBody(
+        notification.amount.toString(),
       ),
     ImportantResidenceNotificationKind.overdueDues =>
       localizations.overdueDuesNotification(

@@ -537,6 +537,10 @@ void main() {
         AppRoutes.dues,
       );
       expect(
+        notificationRoute(notification(DarJarNotificationType.paymentRecorded)),
+        AppRoutes.dues,
+      );
+      expect(
         notificationRoute(notification(DarJarNotificationType.residentJoined)),
         AppRoutes.residenceResidents,
       );
@@ -990,8 +994,8 @@ void main() {
                 apartmentNumber: '01',
                 periodKey: '2026-04',
                 amountDue: 150,
-                amountPaid: 0,
-                status: ResidenceDueStatus.unpaid,
+                amountPaid: 25,
+                status: ResidenceDueStatus.partial,
               ),
               ResidenceDue(
                 id: '2026-03_apartment-01',
@@ -1006,10 +1010,22 @@ void main() {
             payments: [
               ResidenceDuePayment(
                 id: 'payment-01',
+                paymentGroupId: 'payment-group',
                 dueId: '2026-05_apartment-01',
                 apartmentId: 'apartment-01',
                 apartmentNumber: '01',
                 amount: 150,
+                paidAt: DateTime(2026, 6, 10),
+                note: '',
+                recordedBy: 'president',
+              ),
+              ResidenceDuePayment(
+                id: 'payment-02',
+                paymentGroupId: 'payment-group',
+                dueId: '2026-04_apartment-01',
+                apartmentId: 'apartment-01',
+                apartmentNumber: '01',
+                amount: 25,
                 paidAt: DateTime(2026, 6, 10),
                 note: '',
                 recordedBy: 'president',
@@ -1019,6 +1035,7 @@ void main() {
         );
 
         expect(notifications, hasLength(3));
+        expect(notifications.first.amount, 175);
         expect(notifications.map((notification) => notification.kind), [
           ImportantResidenceNotificationKind.paymentRecorded,
           ImportantResidenceNotificationKind.overdueDues,
@@ -2705,6 +2722,38 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  testWidgets('payment notification shows the total and opens dues', (
+    tester,
+  ) async {
+    final repository = MockNotificationsRepository(
+      seed: [
+        DarJarNotification(
+          id: 'payment-recorded-group',
+          residenceId: '*',
+          recipientUserId: '*',
+          type: DarJarNotificationType.paymentRecorded,
+          occurredAt: DateTime(2026, 8, 2),
+          targetId: 'group',
+          amount: 900,
+        ),
+      ],
+    );
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      notificationsRepository: repository,
+    );
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('notifications-button')));
+    await tester.pumpAndSettle();
+
+    final payment = find.text('تم تسجيل دفعة بقيمة 900 درهم.');
+    expect(payment, findsOneWidget);
+    await tester.tap(payment);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('dues-page')), findsOneWidget);
   });
 
   testWidgets('notifications sheet shows only the five newest items', (

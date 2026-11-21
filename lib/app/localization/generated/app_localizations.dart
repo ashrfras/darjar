@@ -3747,11 +3747,17 @@ abstract class AppLocalizations {
   /// **'إشعارات هامة'**
   String get importantNotifications;
 
-  /// No description provided for @duesMarkedPaidNotification.
+  /// No description provided for @paymentRecordedNotificationTitle.
   ///
   /// In ar, this message translates to:
-  /// **'تم تسجيل مستحقات {period} كمؤداة'**
-  String duesMarkedPaidNotification(String period);
+  /// **'تم تسجيل دفعتك'**
+  String get paymentRecordedNotificationTitle;
+
+  /// No description provided for @paymentRecordedNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تسجيل دفعة بقيمة {amount} درهم.'**
+  String paymentRecordedNotificationBody(String amount);
 
   /// No description provided for @overdueDuesNotification.
   ///

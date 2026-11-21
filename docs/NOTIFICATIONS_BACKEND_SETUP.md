@@ -180,7 +180,7 @@ gcloud eventarc triggers create darjar-comment-created \
   --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
 ```
 
-إشعار المستخدم عند انتقال اشتراك شقته إلى حالة مؤدى:
+إنشاء نشاط في الموجز عند انتقال اشتراك إلى حالة مؤدى:
 
 ```bash
 gcloud eventarc triggers create darjar-due-written \
@@ -195,6 +195,27 @@ gcloud eventarc triggers create darjar-due-written \
   --event-data-content-type="application/protobuf" \
   --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
 ```
+
+إشعار المقيم مرة واحدة عن كل دفعة مسجّلة:
+
+```bash
+gcloud eventarc triggers create darjar-due-payment-created \
+  --location FIRESTORE_LOCATION \
+  --destination-run-service darjar-notifications \
+  --destination-run-region RUN_REGION \
+  --destination-run-path /events/due-payment-created \
+  --event-filters="type=google.cloud.firestore.document.v1.created" \
+  --event-filters="database=(default)" \
+  --event-filters="namespace=(default)" \
+  --event-filters-path-pattern="document=residences/{residenceId}/duePayments/{paymentId}" \
+  --event-data-content-type="application/protobuf" \
+  --service-account="darjar-notifications-invoker@raq-darjar.iam.gserviceaccount.com"
+```
+
+حدّث تطبيق Flutter لقراءة نوع `paymentRecorded`، وانشر نسخة خدمة الإشعارات
+التي تستقبل المسار الجديد، ثم فعّل هذا المشغّل. أبقِ المشغّل
+`darjar-due-written` لأن أنشطة الموجز تعتمد عليه. اختبر دفعة جديدة تغطي
+عدة أشهر بعد أن يصبح المشغّل جاهزًا.
 
 إشعارات إضافة أو تعديل أو حذف معاملة مالية:
 

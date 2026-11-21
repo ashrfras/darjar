@@ -158,31 +158,44 @@ class NotificationDispatcher {
     );
   }
 
-  Future<void> duesMarkedPaid({
+  Future<void> paymentRecorded({
     required String documentPath,
-    required String eventId,
-    required bool becamePaid,
+    required Map<String, Object?> allocation,
   }) async {
-    if (!becamePaid) return;
-    final path = _parseDocumentPath(documentPath, collection: 'dues');
-    final due = await _backend.getDocument(path.fullPath);
-    if (due == null) return;
-    final apartmentId = _string(due.data['apartmentId']);
-    final periodKey = _string(due.data['periodKey']);
-    if (apartmentId.isEmpty || periodKey.isEmpty) return;
+    final path = _parseDocumentPath(documentPath, collection: 'duePayments');
+    final groupId = _string(allocation['paymentGroupId']);
+    final apartmentId = _string(allocation['apartmentId']);
+    // The payment transaction creates one allocation per month and one receipt.
+    // Only the first allocation triggers delivery for the entire group.
+    if (groupId.isEmpty ||
+        path.documentId != '$groupId-1' ||
+        apartmentId.isEmpty) {
+      return;
+    }
+    final receipt = await _backend.getDocument(
+      'publicPaymentReceipts/$groupId',
+    );
+    if (receipt == null ||
+        receipt.data['residenceId'] != path.residenceId ||
+        receipt.data['apartmentNumber'] != allocation['apartmentNumber']) {
+      return;
+    }
+    final amount = _integer(receipt.data['amount']);
+    if (amount <= 0) return;
+
     final members = await _activeMembers(path.residenceId);
     for (final member in members) {
       if (_string(member.data['apartmentId']) != apartmentId) continue;
       await _deliver(
         NotificationPayload(
-          id: _safeId('dues-paid-${path.documentId}'),
-          type: 'duesMarkedPaid',
+          id: _safeId('payment-recorded-${path.residenceId}-$groupId'),
+          type: 'paymentRecorded',
           residenceId: path.residenceId,
           recipientUserId: member.id,
-          targetId: path.documentId,
-          periodKey: periodKey,
-          title: 'تم تسجيل أداء اشتراكك',
-          body: 'تم تسجيل اشتراكك عن الفترة $periodKey كمؤدى.',
+          targetId: groupId,
+          amount: amount,
+          title: 'تم تسجيل دفعتك',
+          body: 'سجّلت إدارة الإقامة دفعة بقيمة $amount درهم لاشتراكك.',
           occurredAt: _now().toUtc(),
         ),
       );

@@ -24,6 +24,7 @@ class NotificationPayload {
     required this.occurredAt,
     this.actorName = '',
     this.periodKey = '',
+    this.amount,
   });
 
   final String id;
@@ -36,6 +37,7 @@ class NotificationPayload {
   final DateTime occurredAt;
   final String actorName;
   final String periodKey;
+  final int? amount;
 
   Map<String, String> get pushData => {
     'notificationId': id,

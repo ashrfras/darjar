@@ -78,24 +78,26 @@ Future<void> main() async {
     )
     ..post(
       '/events/due-written',
-      (request) => _event(request, (path, eventId, data) async {
-        final previousStatus = data.oldValue['status'];
-        final currentStatus = data.value['status'];
-        final becamePaid = previousStatus != 'paid' && currentStatus == 'paid';
-        await Future.wait([
-          dispatcher.duesMarkedPaid(
-            documentPath: path,
-            eventId: eventId,
-            becamePaid: becamePaid,
-          ),
-          activityDispatcher.dueMarkedPaid(
-            documentPath: path,
-            eventId: eventId,
-            data: data.value,
-            becamePaid: becamePaid,
-          ),
-        ]);
+      (request) => _event(request, (path, eventId, data) {
+        final becamePaid =
+            data.oldValue['status'] != 'paid' && data.value['status'] == 'paid';
+        return activityDispatcher.dueMarkedPaid(
+          documentPath: path,
+          eventId: eventId,
+          data: data.value,
+          becamePaid: becamePaid,
+        );
       }),
+    )
+    ..post(
+      '/events/due-payment-created',
+      (request) => _event(
+        request,
+        (path, _, data) => dispatcher.paymentRecorded(
+          documentPath: path,
+          allocation: data.value,
+        ),
+      ),
     )
     ..post(
       '/events/budget-written',

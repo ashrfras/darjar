@@ -2053,8 +2053,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importantNotifications => 'Important notifications';
 
   @override
-  String duesMarkedPaidNotification(String period) {
-    return 'Dues for $period were recorded as paid';
+  String get paymentRecordedNotificationTitle => 'Your payment was recorded';
+
+  @override
+  String paymentRecordedNotificationBody(String amount) {
+    return 'A payment of $amount MAD was recorded.';
   }
 
   @override

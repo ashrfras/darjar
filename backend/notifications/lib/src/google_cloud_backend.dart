@@ -167,6 +167,8 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
           'targetId': _stringValue(notification.targetId),
           'actorName': _stringValue(notification.actorName),
           'periodKey': _stringValue(notification.periodKey),
+          if (notification.amount case final amount?)
+            'amount': _firestoreValue(amount),
           'occurredAt': {
             'timestampValue': notification.occurredAt.toUtc().toIso8601String(),
           },
@@ -232,7 +234,11 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
             },
           },
           'webpush': {
-            'fcm_options': {'link': '/'},
+            'fcm_options': {
+              'link': data['type'] == 'paymentRecorded'
+                  ? 'https://darjar.app/residence/dues'
+                  : '/',
+            },
           },
         },
       }),

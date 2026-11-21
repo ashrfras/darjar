@@ -1,12 +1,13 @@
 # DarJar notifications
 
-DarJar has six notification types:
+DarJar supports these notification types:
 
 - `postCreated`: a resident created a post.
 - `postLiked`: a resident liked another resident's post.
 - `postCommented`: a resident commented on another resident's post.
 - `duesOverdue`: a resident's dues became overdue.
-- `duesMarkedPaid`: management recorded a resident's dues as fully paid.
+- `paymentRecorded`: management recorded a payment for the resident's apartment.
+- `duesMarkedPaid`: historical notifications for fully paid monthly dues.
 - `budgetChanged`: a manual finance transaction changed the residence budget.
 
 Posts remain the source of important news and alerts. A post notification only
@@ -27,7 +28,7 @@ users/{recipientUserId}/notifications/{notificationId}
 Required fields:
 
 ```text
-type: postCreated | postLiked | postCommented | duesOverdue | duesMarkedPaid | budgetChanged
+type: postCreated | postLiked | postCommented | duesOverdue | paymentRecorded | duesMarkedPaid | budgetChanged
 residenceId: string
 recipientUserId: string
 occurredAt: timestamp
@@ -36,6 +37,8 @@ actorName: string
 periodKey: string
 readAt: timestamp | null
 ```
+
+Payment notifications also store the total in the integer field `amount`.
 
 The client can only read its own inbox and update `readAt`. Creating notification
 documents is reserved for the Firebase Admin SDK, which bypasses client security
@@ -72,8 +75,9 @@ payload is used only for navigation when the notification is opened.
 - Do not notify the author of their own post.
 - Send like and comment notifications only to the post author, and do not
   notify users about their own interactions.
-- Send `duesMarkedPaid` only when a due transitions to `paid`, and only to
-  active members assigned to that due's apartment.
+- Send `paymentRecorded` once per payment group to each active member
+  assigned to its apartment. Use the total on the receipt and open the dues page.
+  Monthly allocations share the same group ID.
 - Create `duesOverdue` once when a due changes from payable to overdue.
 - Create `budgetChanged` only for an added, edited, or deleted manual finance
   transaction. Do not emit it for a balance recalculation.
