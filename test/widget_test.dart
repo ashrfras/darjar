@@ -60,6 +60,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:image/image.dart' as test_image;
+import 'package:printing/printing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -4511,6 +4512,48 @@ void main() {
       find.byKey(const Key('view-all-administrative-documents')),
       findsNothing,
     );
+  });
+
+  testWidgets('PDF pages use white paper in dark mode', (tester) async {
+    SharedPreferences.setMockInitialValues({'app_theme_mode': 'dark'});
+    addTearDown(() {
+      SharedPreferences.setMockInitialValues({});
+      AppColors.configure(ThemeMode.system);
+    });
+    await _pumpApp(tester, size: const Size(390, 844));
+    await _enterResidence(tester);
+    await tester.tap(find.text('الإقامة'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('الوثائق'));
+    await tester.tap(find.text('الوثائق'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('القانون الداخلي'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    final preview = find.byType(PdfPreviewCustom);
+    final context = tester.element(preview);
+    expect(Theme.of(context).brightness, Brightness.dark);
+    expect(AppColors.surface, isNot(Colors.white));
+
+    final transparentPage = test_image.Image(
+      width: 1,
+      height: 1,
+      numChannels: 4,
+    );
+    final pageImage = MemoryImage(test_image.encodePng(transparentPage));
+    final pages = tester.widget<PdfPreviewCustom>(preview).pagesBuilder!(
+      context,
+      [PdfPreviewPageData(image: pageImage, width: 1, height: 1)],
+    );
+    await tester.pumpWidget(MaterialApp(theme: ThemeData.dark(), home: pages));
+
+    final page = find.descendant(
+      of: find.byKey(const Key('pdf-interactive-viewer')),
+      matching: find.byType(DecoratedBox),
+    );
+    final decoration = tester.widget<DecoratedBox>(page).decoration;
+    expect((decoration as BoxDecoration).color, Colors.white);
   });
 
   testWidgets('documents page reveals more documents near the bottom', (

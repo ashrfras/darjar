@@ -317,8 +317,8 @@ class _InteractivePdfPages extends StatelessWidget {
                           AppSpacing.medium,
                           AppSpacing.medium,
                         ),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
                           boxShadow: [
                             BoxShadow(
                               color: Color(0x26000000),
