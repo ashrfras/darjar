@@ -6848,6 +6848,86 @@ void main() {
     );
   });
 
+  testWidgets('new apartments start dues in the current or selected month', (
+    tester,
+  ) async {
+    final repository = _FakeResidenceMembersRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceMembersRepository: repository,
+    );
+    await _enterResidence(tester);
+    await _openAdministration(tester);
+    await tester.ensureVisible(find.byKey(const Key('manage-apartments-link')));
+    await tester.tap(find.byKey(const Key('manage-apartments-link')));
+    await tester.pumpAndSettle();
+
+    final now = DateTime.now();
+    final monthField = find.byKey(
+      const Key('apartment-first-unpaid-month-field'),
+    );
+    for (final hasPastDues in [false, true]) {
+      final number = hasPastDues ? '42' : '41';
+      await tester.tap(find.byKey(const Key('add-apartment-button')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('new-apartment-number-field')),
+        number,
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.next);
+      await tester.pumpAndSettle();
+
+      expect(find.text('هل توجد اشتراكات سابقة غير مؤداة؟'), findsOneWidget);
+      expect(
+        tester
+            .widget<SegmentedButton<bool>>(
+              find.byKey(const Key('apartment-past-unpaid-dues-field')),
+            )
+            .selected,
+        {false},
+      );
+      expect(monthField, findsNothing);
+      expect(
+        find.text('يبدأ احتساب الاستحقاقات من الشهر الحالي.'),
+        findsOneWidget,
+      );
+      if (hasPastDues) {
+        await tester.tap(find.text('نعم'));
+        await tester.pumpAndSettle();
+        await tester.tap(monthField);
+        await tester.pumpAndSettle();
+        tester
+            .widget<DropdownButton<int>>(
+              find.byKey(const Key('month-year-picker-year')),
+            )
+            .onChanged!(now.year - 1);
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const ValueKey('month-year-picker-month-12')),
+        );
+        await tester.tap(find.byKey(const Key('confirm-month-year-picker')));
+        await tester.pumpAndSettle();
+        expect(
+          find.text(DarJarDateFormat.yMMMM(DateTime(now.year - 1, 12), 'ar')),
+          findsOneWidget,
+        );
+      }
+      final confirm = find.byKey(const Key('confirm-add-apartment-button'));
+      await tester.tap(confirm);
+      await tester.pumpAndSettle();
+
+      final apartment = repository.data.buildings.first.floors.first.apartments
+          .singleWhere((apartment) => apartment.number == number);
+      expect(apartment.duesTrackingStatus, ResidenceDuesTrackingStatus.active);
+      expect(
+        apartment.duesTrackingStartPeriodKey,
+        hasPastDues ? '${now.year - 1}-12' : residenceDuesPeriodKey(now),
+      );
+      expect(apartment.openingPaidThroughPeriodKey, isEmpty);
+    }
+  });
+
   testWidgets('apartments and residents support daily assignments', (
     tester,
   ) async {
@@ -6914,7 +6994,7 @@ void main() {
       findsNothing,
     );
     expect(
-      find.byKey(const Key('apartment-last-paid-month-field')),
+      find.byKey(const Key('apartment-past-unpaid-dues-field')),
       findsNothing,
     );
     await tester.enterText(
@@ -6934,43 +7014,29 @@ void main() {
       find.byKey(const Key('apartment-dues-tracking-field')),
       findsOneWidget,
     );
-    expect(
-      find.byKey(const Key('apartment-last-paid-month-field')),
-      findsOneWidget,
+    final firstUnpaidMonth = find.byKey(
+      const Key('apartment-first-unpaid-month-field'),
     );
-    expect(find.text('اختر آخر شهر مؤدى'), findsOneWidget);
-    final startFromCurrentMonth = find.byKey(
-      const Key('apartment-no-previous-payment-field'),
-    );
-    expect(
-      find.descendant(
-        of: startFromCurrentMonth,
-        matching: find.text('بدء احتساب الاشتراكات من الشهر الحالي'),
-      ),
-      findsOneWidget,
-    );
-    final startFromCurrentMonthHint = find.text(
-      'تجاهل مستحقات الأشهر السابقة وبدء الاحتساب من الشهر الحالي، إذا لم ترغب في ذلك فيرجى تحديد آخر شهر مؤدى.',
-    );
-    expect(startFromCurrentMonthHint, findsOneWidget);
-    expect(
-      tester.getTopLeft(startFromCurrentMonthHint).dy,
-      greaterThanOrEqualTo(tester.getBottomLeft(startFromCurrentMonth).dy),
-    );
+    expect(firstUnpaidMonth, findsNothing);
+    await tester.tap(find.text('نعم'));
+    await tester.pumpAndSettle();
+    expect(firstUnpaidMonth, findsOneWidget);
     final confirmAddApartment = find.byKey(
       const Key('confirm-add-apartment-button'),
     );
     tester.widget<FilledButton>(confirmAddApartment).onPressed!();
     await tester.pumpAndSettle();
+    expect(find.text('اختر أول شهر غير مؤدى.'), findsOneWidget);
+    await tester.tap(firstUnpaidMonth);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('month-year-picker-dialog')), findsOneWidget);
     expect(
-      find.text(
-        'يرجى تحديد آخر شهر مؤدى أو بدء احتساب الاشتراكات من الشهر الحالي',
+      find.descendant(
+        of: find.byKey(const Key('month-year-picker-dialog')),
+        matching: find.text('منذ أي شهر؟'),
       ),
       findsOneWidget,
     );
-    await tester.tap(find.byKey(const Key('apartment-last-paid-month-field')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('month-year-picker-dialog')), findsOneWidget);
     expect(find.byType(CalendarDatePicker), findsNothing);
     expect(find.byKey(const Key('month-year-picker-year')), findsOneWidget);
     expect(
@@ -6981,6 +7047,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('يبدأ التتبّع لاحقًا'));
     await tester.pumpAndSettle();
+    expect(find.text('هل توجد اشتراكات سابقة غير مؤداة؟'), findsNothing);
+    expect(firstUnpaidMonth, findsNothing);
     tester
         .widget<OutlinedButton>(
           find.byKey(const Key('back-add-apartment-button')),
@@ -7032,6 +7100,9 @@ void main() {
     await tester.pumpAndSettle();
     final trackingStartFromCurrentMonth = find.byKey(
       const Key('start-tracking-no-previous-payment-field'),
+    );
+    final startFromCurrentMonthHint = find.text(
+      'تجاهل مستحقات الأشهر السابقة وبدء الاحتساب من الشهر الحالي، إذا لم ترغب في ذلك فيرجى تحديد آخر شهر مؤدى.',
     );
     expect(
       find.descendant(
@@ -8326,7 +8397,7 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
     required String floorId,
     required String number,
     required ResidenceDuesTrackingStatus duesTrackingStatus,
-    required String? openingPaidThroughPeriodKey,
+    required String? firstUnpaidPeriodKey,
     required String currentPeriodKey,
     required int defaultAmount,
   }) async {
@@ -8352,9 +8423,11 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
                         floorId: floorId,
                         buildingId: buildingId,
                         duesTrackingStatus: duesTrackingStatus,
-                        duesTrackingStartPeriodKey: currentPeriodKey,
-                        openingPaidThroughPeriodKey:
-                            openingPaidThroughPeriodKey ?? '',
+                        duesTrackingStartPeriodKey:
+                            duesTrackingStatus ==
+                                ResidenceDuesTrackingStatus.active
+                            ? firstUnpaidPeriodKey ?? currentPeriodKey
+                            : '',
                       ),
                   ],
                 ),

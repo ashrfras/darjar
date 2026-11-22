@@ -196,7 +196,7 @@ abstract interface class ResidenceMembersRepository {
     required String floorId,
     required String number,
     required ResidenceDuesTrackingStatus duesTrackingStatus,
-    required String? openingPaidThroughPeriodKey,
+    required String? firstUnpaidPeriodKey,
     required String currentPeriodKey,
     required int defaultAmount,
   });
@@ -472,7 +472,7 @@ class FirestoreResidenceMembersRepository
     required String floorId,
     required String number,
     required ResidenceDuesTrackingStatus duesTrackingStatus,
-    required String? openingPaidThroughPeriodKey,
+    required String? firstUnpaidPeriodKey,
     required String currentPeriodKey,
     required int defaultAmount,
   }) async {
@@ -486,10 +486,7 @@ class FirestoreResidenceMembersRepository
         .collection('apartments')
         .doc();
     final batch = _firestore.batch();
-    final trackingStartPeriodKey = _openingTrackingStartPeriodKey(
-      openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
-      currentPeriodKey: currentPeriodKey,
-    );
+    final trackingStartPeriodKey = firstUnpaidPeriodKey ?? currentPeriodKey;
     batch.set(apartment, {
       'number': int.parse(number.trim()),
       'duesTrackingStatus': duesTrackingStatus.name,
@@ -497,10 +494,7 @@ class FirestoreResidenceMembersRepository
           duesTrackingStatus == ResidenceDuesTrackingStatus.active
           ? trackingStartPeriodKey
           : '',
-      'openingPaidThroughPeriodKey':
-          duesTrackingStatus == ResidenceDuesTrackingStatus.active
-          ? openingPaidThroughPeriodKey ?? ''
-          : '',
+      'openingPaidThroughPeriodKey': '',
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
@@ -510,7 +504,7 @@ class FirestoreResidenceMembersRepository
         residenceId: residenceId,
         apartmentId: apartment.id,
         apartmentNumber: number.trim(),
-        openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
+        startPeriodKey: trackingStartPeriodKey,
         currentPeriodKey: currentPeriodKey,
         defaultAmount: defaultAmount,
       );
@@ -537,12 +531,13 @@ class FirestoreResidenceMembersRepository
         .collection('apartments')
         .doc(apartment.id);
     final batch = _firestore.batch();
+    final trackingStartPeriodKey = _openingTrackingStartPeriodKey(
+      openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
+      currentPeriodKey: currentPeriodKey,
+    );
     batch.update(apartmentReference, {
       'duesTrackingStatus': ResidenceDuesTrackingStatus.active.name,
-      'duesTrackingStartPeriodKey': _openingTrackingStartPeriodKey(
-        openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
-        currentPeriodKey: currentPeriodKey,
-      ),
+      'duesTrackingStartPeriodKey': trackingStartPeriodKey,
       'openingPaidThroughPeriodKey': openingPaidThroughPeriodKey ?? '',
       'duesTrackingStartedAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -552,9 +547,12 @@ class FirestoreResidenceMembersRepository
       residenceId: residenceId,
       apartmentId: apartment.id,
       apartmentNumber: apartment.number,
-      openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
+      startPeriodKey: trackingStartPeriodKey,
       currentPeriodKey: currentPeriodKey,
       defaultAmount: defaultAmount,
+      markCurrentPeriodPaid:
+          openingPaidThroughPeriodKey != null &&
+          openingPaidThroughPeriodKey.compareTo(currentPeriodKey) >= 0,
     );
     await batch.commit();
   }
@@ -600,23 +598,20 @@ class FirestoreResidenceMembersRepository
     required String residenceId,
     required String apartmentId,
     required String apartmentNumber,
-    required String? openingPaidThroughPeriodKey,
+    required String startPeriodKey,
     required String currentPeriodKey,
     required int defaultAmount,
+    bool markCurrentPeriodPaid = false,
   }) {
     final dues = _firestore
         .collection('residences')
         .doc(residenceId)
         .collection('dues');
-    final paidThroughCurrent =
-        openingPaidThroughPeriodKey != null &&
-        openingPaidThroughPeriodKey.compareTo(currentPeriodKey) >= 0;
-    final start = _openingTrackingStartPeriodKey(
-      openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
-      currentPeriodKey: currentPeriodKey,
-    );
-    for (final periodKey in _periodKeysThrough(start, currentPeriodKey)) {
-      final paid = paidThroughCurrent && periodKey == currentPeriodKey;
+    for (final periodKey in _periodKeysThrough(
+      startPeriodKey,
+      currentPeriodKey,
+    )) {
+      final paid = markCurrentPeriodPaid && periodKey == currentPeriodKey;
       batch.set(dues.doc('${periodKey}_$apartmentId'), {
         'apartmentId': apartmentId,
         'apartmentNumber': apartmentNumber,
@@ -830,7 +825,7 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
     required String floorId,
     required String number,
     required ResidenceDuesTrackingStatus duesTrackingStatus,
-    required String? openingPaidThroughPeriodKey,
+    required String? firstUnpaidPeriodKey,
   }) async {
     final settings = await ref.read(residenceSettingsProvider.future);
     final currentPeriodKey = _periodKey(DateTime.now());
@@ -844,7 +839,7 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
             floorId: floorId,
             number: number,
             duesTrackingStatus: duesTrackingStatus,
-            openingPaidThroughPeriodKey: openingPaidThroughPeriodKey,
+            firstUnpaidPeriodKey: firstUnpaidPeriodKey,
             currentPeriodKey: currentPeriodKey,
             defaultAmount: settings.defaultSubscriptionAmount,
           ),

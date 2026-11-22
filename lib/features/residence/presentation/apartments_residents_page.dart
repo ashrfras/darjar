@@ -361,6 +361,7 @@ class _ApartmentsResidentsPageState
     final copy = _Copy.of(context);
     final result = await showModalBottomSheet<_NewApartment>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       useSafeArea: true,
@@ -390,7 +391,7 @@ class _ApartmentsResidentsPageState
             floorId: result.floorId,
             number: result.number,
             duesTrackingStatus: result.duesTrackingStatus,
-            openingPaidThroughPeriodKey: result.openingPaidThroughPeriodKey,
+            firstUnpaidPeriodKey: result.firstUnpaidPeriodKey,
           );
       if (mounted) _showSavedMessage(copy.apartmentAdded);
     } on ResidenceMembersFailure {
@@ -765,13 +766,13 @@ class _NewApartment {
     required this.floorId,
     required this.number,
     required this.duesTrackingStatus,
-    required this.openingPaidThroughPeriodKey,
+    required this.firstUnpaidPeriodKey,
   });
 
   final String floorId;
   final String number;
   final ResidenceDuesTrackingStatus duesTrackingStatus;
-  final String? openingPaidThroughPeriodKey;
+  final String? firstUnpaidPeriodKey;
 }
 
 class _OpeningDuesSelection {
@@ -998,9 +999,9 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
   bool _showNumberError = false;
   ResidenceDuesTrackingStatus _trackingStatus =
       ResidenceDuesTrackingStatus.active;
-  bool _hasNoPreviousPayment = false;
-  bool _showPaidThroughError = false;
-  DateTime? _paidThrough;
+  bool _hasPastUnpaidDues = false;
+  bool _showFirstUnpaidMonthError = false;
+  DateTime? _firstUnpaidMonth;
 
   @override
   void dispose() {
@@ -1133,64 +1134,76 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
                 onSelectionChanged: (selection) {
                   setState(() {
                     _trackingStatus = selection.first;
-                    _showPaidThroughError = false;
+                    _showFirstUnpaidMonthError = false;
                   });
                 },
-              ),
-              const SizedBox(height: AppSpacing.small),
-              Text(
-                _trackingStatus == ResidenceDuesTrackingStatus.active
-                    ? widget.copy.trackingActiveHint
-                    : widget.copy.trackingLaterHint,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
               ),
               if (_trackingStatus == ResidenceDuesTrackingStatus.active) ...[
                 const SizedBox(height: AppSpacing.large),
                 Text(
-                  '${widget.copy.lastPaidMonth} *',
+                  widget.copy.pastUnpaidDuesQuestion,
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
                 const SizedBox(height: AppSpacing.small),
-                OutlinedButton.icon(
-                  key: const Key('apartment-last-paid-month-field'),
-                  onPressed: _selectPaidThroughMonth,
-                  icon: const Icon(Icons.calendar_month_outlined),
-                  label: Text(
-                    _paidThrough == null
-                        ? widget.copy.chooseLastPaidMonth
-                        : _formattedPaidThrough(),
-                  ),
-                ),
-                CheckboxListTile(
-                  key: const Key('apartment-no-previous-payment-field'),
-                  contentPadding: EdgeInsets.zero,
-                  value: _hasNoPreviousPayment,
-                  title: Text(widget.copy.startDuesFromCurrentMonth),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  onChanged: (value) {
+                SegmentedButton<bool>(
+                  key: const Key('apartment-past-unpaid-dues-field'),
+                  segments: [
+                    ButtonSegment(value: false, label: Text(widget.copy.no)),
+                    ButtonSegment(value: true, label: Text(widget.copy.yes)),
+                  ],
+                  selected: {_hasPastUnpaidDues},
+                  onSelectionChanged: (selection) {
                     setState(() {
-                      _hasNoPreviousPayment = value == true;
-                      if (_hasNoPreviousPayment) _paidThrough = null;
-                      _showPaidThroughError = false;
+                      _hasPastUnpaidDues = selection.first;
+                      _showFirstUnpaidMonthError = false;
                     });
                   },
                 ),
+                const SizedBox(height: AppSpacing.small),
                 Text(
-                  widget.copy.startDuesFromCurrentMonthHint,
+                  _hasPastUnpaidDues
+                      ? widget.copy.pastUnpaidDuesHint
+                      : widget.copy.currentMonthDuesHint,
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
                 ),
-                if (_showPaidThroughError)
+                if (_hasPastUnpaidDues) ...[
+                  const SizedBox(height: AppSpacing.medium),
                   Text(
-                    widget.copy.lastPaidMonthRequired,
-                    key: const Key('apartment-last-paid-month-error'),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.error,
+                    widget.copy.firstUnpaidMonth,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: AppSpacing.small),
+                  OutlinedButton.icon(
+                    key: const Key('apartment-first-unpaid-month-field'),
+                    onPressed: _selectFirstUnpaidMonth,
+                    icon: const Icon(Icons.calendar_month_outlined),
+                    label: Text(
+                      _firstUnpaidMonth == null
+                          ? widget.copy.chooseMonth
+                          : DarJarDateFormat.yMMMM(
+                              _firstUnpaidMonth!,
+                              widget.copy.arabic ? 'ar' : 'en',
+                            ),
                     ),
                   ),
+                  if (_showFirstUnpaidMonthError)
+                    Text(
+                      widget.copy.firstUnpaidMonthRequired,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                ],
+              ] else ...[
+                const SizedBox(height: AppSpacing.small),
+                Text(
+                  widget.copy.trackingLaterHint,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+                ),
               ],
               const SizedBox(height: AppSpacing.xLarge),
               Row(
@@ -1221,25 +1234,23 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
     );
   }
 
-  Future<void> _selectPaidThroughMonth() async {
+  Future<void> _selectFirstUnpaidMonth() async {
+    final now = DateTime.now();
     final selected = await _showMonthYearPicker(
       context: context,
-      initialDate: _paidThrough ?? DateTime.now(),
-      firstDate: DateTime(DateTime.now().year - 5),
-      lastDate: DateTime.now(),
+      initialDate: _firstUnpaidMonth ?? now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: now,
       copy: widget.copy,
+      title: widget.copy.firstUnpaidMonth,
     );
     if (selected != null && mounted) {
       setState(() {
-        _paidThrough = DateTime(selected.year, selected.month);
-        _hasNoPreviousPayment = false;
-        _showPaidThroughError = false;
+        _firstUnpaidMonth = selected;
+        _showFirstUnpaidMonthError = false;
       });
     }
   }
-
-  String _formattedPaidThrough() =>
-      DarJarDateFormat.yMMMM(_paidThrough!, widget.copy.arabic ? 'ar' : 'en');
 
   void _continueToTracking() {
     final number = _numberController.text.trim();
@@ -1261,10 +1272,11 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
       setState(() => _showNumberError = true);
       return;
     }
-    if (_trackingStatus == ResidenceDuesTrackingStatus.active &&
-        _paidThrough == null &&
-        !_hasNoPreviousPayment) {
-      setState(() => _showPaidThroughError = true);
+    final needsFirstUnpaidMonth =
+        _trackingStatus == ResidenceDuesTrackingStatus.active &&
+        _hasPastUnpaidDues;
+    if (needsFirstUnpaidMonth && _firstUnpaidMonth == null) {
+      setState(() => _showFirstUnpaidMonthError = true);
       return;
     }
     Navigator.pop(
@@ -1273,10 +1285,8 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
         floorId: _floorId,
         number: numericNumber.toString(),
         duesTrackingStatus: _trackingStatus,
-        openingPaidThroughPeriodKey:
-            _trackingStatus == ResidenceDuesTrackingStatus.active &&
-                _paidThrough != null
-            ? _periodKey(_paidThrough!)
+        firstUnpaidPeriodKey: needsFirstUnpaidMonth
+            ? _periodKey(_firstUnpaidMonth!)
             : null,
       ),
     );
@@ -1400,6 +1410,7 @@ Future<DateTime?> _showMonthYearPicker({
   required DateTime firstDate,
   required DateTime lastDate,
   required _Copy copy,
+  String? title,
 }) {
   return showDialog<DateTime>(
     context: context,
@@ -1408,6 +1419,7 @@ Future<DateTime?> _showMonthYearPicker({
       firstDate: firstDate,
       lastDate: lastDate,
       copy: copy,
+      title: title ?? copy.lastPaidMonth,
     ),
   );
 }
@@ -1418,12 +1430,14 @@ class _MonthYearPickerDialog extends StatefulWidget {
     required this.firstDate,
     required this.lastDate,
     required this.copy,
+    required this.title,
   });
 
   final DateTime initialDate;
   final DateTime firstDate;
   final DateTime lastDate;
   final _Copy copy;
+  final String title;
 
   @override
   State<_MonthYearPickerDialog> createState() => _MonthYearPickerDialogState();
@@ -1438,7 +1452,7 @@ class _MonthYearPickerDialogState extends State<_MonthYearPickerDialog> {
     final locale = widget.copy.arabic ? 'ar' : 'en';
     return AlertDialog(
       key: const Key('month-year-picker-dialog'),
-      title: Text(widget.copy.lastPaidMonth),
+      title: Text(widget.title),
       content: SizedBox(
         width: 360,
         child: Column(
@@ -2992,18 +3006,26 @@ class _Copy {
       arabic ? 'يبدأ التتبّع لاحقًا' : 'Start tracking later';
   String get trackingNotStarted =>
       arabic ? 'التتبّع لم يبدأ' : 'Tracking not started';
-  String get trackingActiveHint => arabic
-      ? 'ستدخل الشقة في الاستحقاقات الشهرية فور إضافتها.'
-      : 'The apartment will be included in monthly dues immediately.';
   String get trackingLaterHint => arabic
       ? 'لن تُنشأ استحقاقات أو تذكيرات حتى يبدأ التتبّع يدويًا.'
       : 'No dues or reminders are created until tracking is started manually.';
   String get lastPaidMonth => arabic ? 'آخر شهر مؤدى' : 'Last paid month';
-  String get chooseLastPaidMonth =>
-      arabic ? 'اختر آخر شهر مؤدى' : 'Choose the last paid month';
-  String get lastPaidMonthRequired => arabic
-      ? 'يرجى تحديد آخر شهر مؤدى أو بدء احتساب الاشتراكات من الشهر الحالي'
-      : 'Choose the last paid month or start counting dues from the current month.';
+  String get pastUnpaidDuesQuestion => arabic
+      ? 'هل توجد اشتراكات سابقة غير مؤداة؟'
+      : 'Are there unpaid dues from previous months?';
+  String get no => arabic ? 'لا' : 'No';
+  String get yes => arabic ? 'نعم' : 'Yes';
+  String get firstUnpaidMonth =>
+      arabic ? 'منذ أي شهر؟' : 'Starting from which month?';
+  String get chooseMonth => arabic ? 'اختر الشهر' : 'Choose a month';
+  String get firstUnpaidMonthRequired =>
+      arabic ? 'اختر أول شهر غير مؤدى.' : 'Choose the first unpaid month.';
+  String get currentMonthDuesHint => arabic
+      ? 'يبدأ احتساب الاستحقاقات من الشهر الحالي.'
+      : 'Dues start from the current month.';
+  String get pastUnpaidDuesHint => arabic
+      ? 'تُحتسب الاستحقاقات من الشهر المختار إلى الشهر الحالي.'
+      : 'Dues start from the selected month and include the current month.';
   String get startDuesFromCurrentMonth => arabic
       ? 'بدء احتساب الاشتراكات من الشهر الحالي'
       : 'Start counting dues from the current month';
