@@ -1087,6 +1087,7 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final optionHeight = _ResidenceSwitcherOption.height(context);
     const visibleResidenceLimit = 3;
+    const residenceGap = AppSpacing.xSmall;
     final support = residenceContext.supportResidence;
     final residences = [
       if (support != null &&
@@ -1174,7 +1175,7 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
                     constraints: BoxConstraints(
                       maxHeight:
                           visibleResidenceLimit * optionHeight +
-                          (visibleResidenceLimit - 1) * AppSpacing.medium,
+                          (visibleResidenceLimit - 1) * residenceGap,
                     ),
                     child: ListView.separated(
                       key: const Key('residence-switcher-list'),
@@ -1182,7 +1183,7 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
                       shrinkWrap: true,
                       itemCount: residences.length,
                       separatorBuilder: (context, index) =>
-                          const SizedBox(height: AppSpacing.medium),
+                          const SizedBox(height: residenceGap),
                       itemBuilder: (context, index) {
                         final residence = residences[index];
                         return SizedBox(
@@ -1264,6 +1265,10 @@ class _ResidenceSwitcherOption extends StatelessWidget {
 
   static const _avatarSize = 44.0;
   static const _titleMaxLines = 2;
+  static const _padding = EdgeInsets.symmetric(
+    horizontal: AppSpacing.large,
+    vertical: AppSpacing.xSmall,
+  );
 
   static double height(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -1276,7 +1281,7 @@ class _ResidenceSwitcherOption extends StatelessWidget {
         (title.height ?? 1);
     final addressHeight =
         textScaler.scale(address.fontSize!) * (address.height ?? 1);
-    return 2 * AppSpacing.large +
+    return _padding.vertical +
         math.max(
           _avatarSize,
           titleHeight.ceilToDouble() +
@@ -1298,7 +1303,7 @@ class _ResidenceSwitcherOption extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.all(AppSpacing.large),
+        padding: _padding,
         color: selected ? AppColors.primarySoft : AppColors.surface,
         child: Row(
           children: [
@@ -1313,49 +1318,15 @@ class _ResidenceSwitcherOption extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        flex: 2,
-                        child: Text(
-                          localizations.residenceDisplayName(
-                            normalizeResidenceName(residence.name),
-                          ),
-                          maxLines: _titleMaxLines,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                color: selected
-                                    ? AppColors.primary
-                                    : AppColors.ink,
-                              ),
-                        ),
-                      ),
-                      if (selected) ...[
-                        const SizedBox(width: AppSpacing.small),
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.small,
-                              vertical: AppSpacing.xSmall,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(
-                                AppRadius.pill,
-                              ),
-                            ),
-                            child: Text(
-                              localizations.currentResidence,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(color: AppColors.primary),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
+                  Text(
+                    localizations.residenceDisplayName(
+                      normalizeResidenceName(residence.name),
+                    ),
+                    maxLines: _titleMaxLines,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: selected ? AppColors.primary : AppColors.ink,
+                    ),
                   ),
                   if (address.isNotEmpty) ...[
                     const SizedBox(height: AppSpacing.xSmall),
@@ -1378,6 +1349,7 @@ class _ResidenceSwitcherOption extends StatelessWidget {
                   : Icons.arrow_forward_ios_rounded,
               color: selected ? AppColors.primary : AppColors.inkMuted,
               size: selected ? 24 : 16,
+              semanticLabel: selected ? localizations.currentResidence : null,
             ),
           ],
         ),

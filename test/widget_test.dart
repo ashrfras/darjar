@@ -3106,6 +3106,12 @@ void main() {
     await tester.pumpAndSettle();
 
     final list = find.byKey(const Key('residence-switcher-list'));
+    final firstResidence = find.byKey(
+      const Key('residence-switcher-option-residence-1'),
+    );
+    final secondResidence = find.byKey(
+      const Key('residence-switcher-option-residence-2'),
+    );
     final thirdResidence = find.byKey(
       const Key('residence-switcher-option-residence-3'),
     );
@@ -3117,6 +3123,20 @@ void main() {
     );
     expect(find.text('إقامة جديدة'), findsOneWidget);
     expect(find.text('إنشاء أو الانضمام إلى إقامة جديدة'), findsOneWidget);
+    expect(find.text('الحالية'), findsNothing);
+    expect(
+      find.descendant(
+        of: firstResidence,
+        matching: find.byIcon(Icons.check_circle_rounded),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.getSize(firstResidence).height, lessThanOrEqualTo(72));
+    expect(
+      tester.getRect(secondResidence).top -
+          tester.getRect(firstResidence).bottom,
+      AppSpacing.xSmall,
+    );
     expect(tester.getRect(thirdResidence).bottom, tester.getRect(list).bottom);
     expect(fourthResidence.hitTestable(), findsNothing);
     final footerPosition = tester.getTopLeft(newResidence);
@@ -4524,7 +4544,14 @@ void main() {
     expect(find.text('الإقامات'), findsOneWidget);
     expect(find.text('إقامة الاختبار'), findsWidgets);
     expect(find.text('الشقة رقم 12'), findsOneWidget);
-    expect(find.text('الحالية'), findsOneWidget);
+    expect(find.text('الحالية'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('profile-residences-card')),
+        matching: find.byIcon(Icons.check_circle_rounded),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('الإدارة'), findsOneWidget);
     expect(find.text('البريد الإلكتروني'), findsNothing);
     expect(find.text('الإعدادات'), findsNothing);
@@ -4659,15 +4686,28 @@ void main() {
     await tester.tap(find.byKey(const Key('profile-button')));
     await tester.pumpAndSettle();
 
-    final currentTile = tester.widget<ListTile>(
-      find.byKey(const ValueKey('profile-residence-yasmine')),
+    final currentResidence = find.byKey(
+      const ValueKey('profile-residence-yasmine'),
     );
+    final currentTile = tester.widget<ListTile>(currentResidence);
     final otherResidence = find.byKey(
       const ValueKey('profile-residence-andalous'),
     );
     expect(currentTile.enabled, isTrue);
     expect(currentTile.onTap, isNull);
     expect(tester.widget<ListTile>(otherResidence).enabled, isTrue);
+    final currentTitle = find.descendant(
+      of: currentResidence,
+      matching: find.text('إقامة الياسمين'),
+    );
+    final otherTitle = find.descendant(
+      of: otherResidence,
+      matching: find.text('إقامة الأندلس'),
+    );
+    expect(
+      DefaultTextStyle.of(tester.element(currentTitle)).style.color,
+      DefaultTextStyle.of(tester.element(otherTitle)).style.color,
+    );
 
     await tester.ensureVisible(otherResidence);
     await tester.tap(otherResidence);

@@ -895,24 +895,10 @@ class _ResidenceItem extends StatelessWidget {
         hasImage: residence.hasImage,
         size: 40,
       ),
-      title: Row(
-        children: [
-          Flexible(
-            child: Text(
-              localizations.residenceDisplayName(
-                normalizeResidenceName(residence.name),
-              ),
-            ),
-          ),
-          if (isCurrent) ...[
-            const SizedBox(width: AppSpacing.small),
-            DarJarBadge(
-              key: const Key('current-profile-residence-badge'),
-              label: localizations.currentResidence,
-              tone: DarJarBadgeTone.info,
-            ),
-          ],
-        ],
+      title: Text(
+        localizations.residenceDisplayName(
+          normalizeResidenceName(residence.name),
+        ),
       ),
       subtitle: Text(
         apartmentNumber == null || apartmentNumber.isEmpty
@@ -925,7 +911,11 @@ class _ResidenceItem extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : isCurrent
-          ? Icon(Icons.check_circle_rounded, color: AppColors.primary)
+          ? Icon(
+              Icons.check_circle_rounded,
+              color: AppColors.primary,
+              semanticLabel: localizations.currentResidence,
+            )
           : Icon(
               Icons.arrow_forward_ios_rounded,
               color: AppColors.inkMuted,
