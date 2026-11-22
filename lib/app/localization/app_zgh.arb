@@ -615,14 +615,13 @@
   "residenceConstructionYear": "ⴰⵙⴻⴳⴳⴰⵙ ⵏ ⵍⴻⴱⵏⵉ",
   "residenceResidents": "ⵉⵎⴻⵣⴷⴰⵖ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",
   "residenceResidentsDescription": "ⵎⵍⴰⵍ ⴷ ⵍⴵⵉⵔⴰⵏⵉⴽ, ⵥⴻⵔ ⴰⵏⴷⴰ ⵜⵜⵖⵉⵎⵉⵏ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ.",
-  "residenceResidentsCount": "ⵉⵎⴻⵣⴷⴰⵖ: {count}",
-  "@residenceResidentsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "residenceLeave": "ⴼⴼⴻⵖ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "residenceLeaving": "ⴰⴼⴼⴰⵖ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ…",
+  "residenceLeaveConfirmation": "ⵜⴻⵜⵉⵇⵏⴻⴹ ⴱⴻⵍⵍⵉ ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⴻⴼⴼⵖⴻⴹ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜⴰ? ⵓⵔ ⵜⵣⴰⵎⵎⵔⴻⴹ ⴰⵔⴰ ⴰⴷ ⵜⵥⴻⵔⴻⴹ ⴰⴳⴱⵓⵔ ⴷ ⵢⵉⵙⴻⵍⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ. ⵉⵙⴻⴼⴽⴰ ⵏ ⵡⴻⵅⵅⴰⵎ ⴷ ⵓⵎⴻⵣⵔⵓⵢ ⵏ ⵍⴻⵅⵍⴰⵚ ⴰⴷ ⵇⵇⵉⵎⴻⵏ.",
+  "residenceLeaveBlockedTitle": "ⵓⵔ ⵜⵣⴰⵎⵎⵔⴻⴹ ⴰⵔⴰ ⴰⴷ ⵜⴻⴼⴼⵖⴻⴹ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "residenceLeaveBlockedMessage": "ⵓⵔ ⵜⵣⴰⵎⵎⵔⴻⴹ ⴰⵔⴰ ⴰⴷ ⵜⴻⴼⴼⵖⴻⴹ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵎⴰ ⵖⵓⵔⴻⴽ ⵉⵣⴻⵔⴼⴰⵏ ⵏ ⵜⴻⴷⴱⴻⵍⵜ. ⴻⴵⴵ ⵉⵣⴻⵔⴼⴰⵏⴰ ⵓⵇⴱⴻⵍ ⴰⴷ ⵜⴻⴼⴼⵖⴻⴹ.",
+  "residenceLeaveBlockedAcknowledge": "ⵉⵀ",
+  "residenceLeaveError": "ⵓⵔ ⵜⴻⵣⵎⵉⵔⴻⴹ ⴰⵔⴰ ⴰⴷ ⵜⴻⴼⴼⵖⴻⴹ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
   "residenceNoResidents": "ⵓⵔ ⵜⵜⵡⴰⵙⴻⴽⴽⵔⴻⵏ ⴰⵔⴰ ⵢⵉⵎⴻⵣⴷⴰⵖⴻⵏ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜⴰ ⴰⵔ ⴰⵙⵙⴰ.",
   "residenceResidentsLoadError": "ⵉⵎⴻⵣⴷⴰⵖ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵓⵔ ⵣⵎⵉⵔⴻⵏ ⴰⵔⴰ ⴰⴷ ⵜⵜⵡⴰⵛⴰⵔⴽⴻⵏ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.",
   "residentApartment": "ⴰⵅⵅⴰⵎ {number}",

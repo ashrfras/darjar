@@ -352,6 +352,20 @@ service cloud.firestore {
         && request.resource.data.deletionDueAt is timestamp
         && request.resource.data.deletionDueAt > request.time
         && request.resource.data.updatedAt == request.time
+      ) || (
+        signedIn()
+        && request.auth.uid == userId
+        && resource.data.activeResidenceId is string
+        && !request.resource.data.keys().hasAny(['activeResidenceId'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'activeResidenceId',
+          'updatedAt'
+        ])
+        && get(memberPath(resource.data.activeResidenceId, userId))
+          .data.status == 'active'
+        && getAfter(memberPath(resource.data.activeResidenceId, userId))
+          .data.status == 'left'
+        && request.resource.data.updatedAt == request.time
       );
     }
 
@@ -807,8 +821,24 @@ service cloud.firestore {
             && request.resource.data.status in ['active', 'removed']
             && (
               request.resource.data.status != 'removed'
-              || !(resource.data.role in ['president', 'owner'])
+              || (
+                memberId != request.auth.uid
+                && !(resource.data.role in ['president', 'owner'])
+              )
             )
+            && request.resource.data.updatedAt == request.time
+          )
+          || (
+            signedIn()
+            && memberId == request.auth.uid
+            && resource.data.status == 'active'
+            && resource.data.role == 'resident'
+            && resource.data.get('hasPresidentPermissions', false) != true
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status',
+              'updatedAt'
+            ])
+            && request.resource.data.status == 'left'
             && request.resource.data.updatedAt == request.time
           )
           || (
@@ -917,7 +947,17 @@ service cloud.firestore {
             && request.resource.data.hasPresidentPermissions == false
             && request.resource.data.updatedAt == request.time
           )
-          || isJoinCodeMembership(residenceId, memberId);
+          || (
+            resource.data.status != 'active'
+            && isJoinCodeMembership(residenceId, memberId)
+          )
+          || (
+            resource.data.status == 'left'
+            && request.resource.data.role == 'resident'
+            && isInvitationMembership(residenceId, memberId)
+            && get(invitationPath(residenceId, request.resource.data.sourceInvitationId))
+              .data.status == 'pending'
+          );
       }
 
       match /dues/{dueId} {
@@ -1637,11 +1677,6 @@ service cloud.firestore {
         && memberId == request.auth.uid;
       allow list: if signedIn()
         && resource.data.userId == request.auth.uid;
-    }
-
-    match /{path=**}/settings/{settingsId} {
-      allow read: if signedIn()
-        && resource.data.createdBy == request.auth.uid;
     }
 
     // A collection-group query can target every collection named

@@ -1469,9 +1469,29 @@ class AppLocalizationsZgh extends AppLocalizations {
       'ⵎⵍⴰⵍ ⴷ ⵍⴵⵉⵔⴰⵏⵉⴽ, ⵥⴻⵔ ⴰⵏⴷⴰ ⵜⵜⵖⵉⵎⵉⵏ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ.';
 
   @override
-  String residenceResidentsCount(int count) {
-    return 'ⵉⵎⴻⵣⴷⴰⵖ: $count';
-  }
+  String get residenceLeave => 'ⴼⴼⴻⵖ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ';
+
+  @override
+  String get residenceLeaving => 'ⴰⴼⴼⴰⵖ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ…';
+
+  @override
+  String get residenceLeaveConfirmation =>
+      'ⵜⴻⵜⵉⵇⵏⴻⴹ ⴱⴻⵍⵍⵉ ⵜⴻⴱⵖⵉⴹ ⴰⴷ ⵜⴻⴼⴼⵖⴻⴹ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜⴰ? ⵓⵔ ⵜⵣⴰⵎⵎⵔⴻⴹ ⴰⵔⴰ ⴰⴷ ⵜⵥⴻⵔⴻⴹ ⴰⴳⴱⵓⵔ ⴷ ⵢⵉⵙⴻⵍⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ. ⵉⵙⴻⴼⴽⴰ ⵏ ⵡⴻⵅⵅⴰⵎ ⴷ ⵓⵎⴻⵣⵔⵓⵢ ⵏ ⵍⴻⵅⵍⴰⵚ ⴰⴷ ⵇⵇⵉⵎⴻⵏ.';
+
+  @override
+  String get residenceLeaveBlockedTitle =>
+      'ⵓⵔ ⵜⵣⴰⵎⵎⵔⴻⴹ ⴰⵔⴰ ⴰⴷ ⵜⴻⴼⴼⵖⴻⴹ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ';
+
+  @override
+  String get residenceLeaveBlockedMessage =>
+      'ⵓⵔ ⵜⵣⴰⵎⵎⵔⴻⴹ ⴰⵔⴰ ⴰⴷ ⵜⴻⴼⴼⵖⴻⴹ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵎⴰ ⵖⵓⵔⴻⴽ ⵉⵣⴻⵔⴼⴰⵏ ⵏ ⵜⴻⴷⴱⴻⵍⵜ. ⴻⴵⴵ ⵉⵣⴻⵔⴼⴰⵏⴰ ⵓⵇⴱⴻⵍ ⴰⴷ ⵜⴻⴼⴼⵖⴻⴹ.';
+
+  @override
+  String get residenceLeaveBlockedAcknowledge => 'ⵉⵀ';
+
+  @override
+  String get residenceLeaveError =>
+      'ⵓⵔ ⵜⴻⵣⵎⵉⵔⴻⴹ ⴰⵔⴰ ⴰⴷ ⵜⴻⴼⴼⵖⴻⴹ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ. ⵄⵔⴻⴹ ⵜⵉⴽⴽⴻⵍⵜ ⵏⵏⵉⴹⴻⵏ.';
 
   @override
   String get residenceNoResidents =>

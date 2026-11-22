@@ -1445,9 +1445,27 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعرّف على جيرانك وبيانات السكن داخل الإقامة.';
 
   @override
-  String residenceResidentsCount(int count) {
-    return 'عدد السكان: $count';
-  }
+  String get residenceLeave => 'مغادرة الإقامة';
+
+  @override
+  String get residenceLeaving => 'جارٍ مغادرة الإقامة…';
+
+  @override
+  String get residenceLeaveConfirmation =>
+      'هل أنت متأكد من رغبتك في مغادرة هذه الإقامة؟ ستفقد إمكانية الوصول إلى محتواها ومعلوماتها، مع الاحتفاظ بجميع بيانات الشقة وسجل مدفوعاتها.';
+
+  @override
+  String get residenceLeaveBlockedTitle => 'لا يمكنك مغادرة الإقامة';
+
+  @override
+  String get residenceLeaveBlockedMessage =>
+      'لا يمكنك مغادرة الإقامة ما دمت تمتلك صلاحيات إدارية. يرجى التنازل عن صلاحياتك الإدارية أولًا لتتمكن من المغادرة.';
+
+  @override
+  String get residenceLeaveBlockedAcknowledge => 'موافق';
+
+  @override
+  String get residenceLeaveError => 'تعذرت مغادرة الإقامة. حاول مجددًا.';
 
   @override
   String get residenceNoResidents => 'لا يوجد سكان مسجلون في هذه الإقامة بعد.';

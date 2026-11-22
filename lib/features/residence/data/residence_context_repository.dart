@@ -29,6 +29,8 @@ class UserResidence {
 
   bool get canManageResidence =>
       role == 'president' || role == 'owner' || hasPresidentPermissions;
+
+  bool get canLeave => role == 'resident' && !hasPresidentPermissions;
 }
 
 class ResidenceContext {
@@ -75,6 +77,11 @@ abstract interface class ResidenceContextRepository {
   });
 
   Future<void> setActiveResidence({
+    required AuthUser user,
+    required String residenceId,
+  });
+
+  Future<void> leaveResidence({
     required AuthUser user,
     required String residenceId,
   });
@@ -246,6 +253,45 @@ class FirestoreResidenceContextRepository
   }
 
   @override
+  Future<void> leaveResidence({
+    required AuthUser user,
+    required String residenceId,
+  }) async {
+    final member = _firestore
+        .collection('residences')
+        .doc(residenceId)
+        .collection('members')
+        .doc(user.uid);
+    final profile = _firestore.collection('users').doc(user.uid);
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final membership = (await transaction.get(member)).data();
+        if (membership?['status'] == 'left') return;
+        if (membership == null || membership['status'] != 'active') {
+          throw const ResidenceContextFailure('not-a-member');
+        }
+        if (membership['role'] != 'resident' ||
+            membership['hasPresidentPermissions'] == true) {
+          throw const ResidenceContextFailure('administrative-role');
+        }
+        final userData = (await transaction.get(profile)).data();
+        transaction.update(member, {
+          'status': 'left',
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        if (userData?['activeResidenceId'] == residenceId) {
+          transaction.update(profile, {
+            'activeResidenceId': FieldValue.delete(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+      });
+    } on FirebaseException catch (error) {
+      throw ResidenceContextFailure(error.code, error.message);
+    }
+  }
+
+  @override
   Future<void> setActiveResidence({
     required AuthUser user,
     required String residenceId,
@@ -304,6 +350,18 @@ final residenceContextRepositoryProvider = Provider<ResidenceContextRepository>(
     );
   },
 );
+
+final leaveResidenceProvider = Provider<Future<void> Function(String)>((ref) {
+  return (residenceId) async {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user == null) {
+      throw const ResidenceContextFailure('signed-out');
+    }
+    await ref
+        .read(residenceContextRepositoryProvider)
+        .leaveResidence(user: user, residenceId: residenceId);
+  };
+});
 
 const residenceDataTimeout = Duration(seconds: 12);
 

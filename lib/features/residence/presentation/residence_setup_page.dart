@@ -16,6 +16,7 @@ import 'package:darjar/features/residence/data/residence_context_repository.dart
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/presentation/darjar_city_picker.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
+import 'package:darjar/features/residence/presentation/residence_progress_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -503,6 +504,7 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
   }
 
   Future<void> _submit(UserProfile? profile) async {
+    if (_isSubmitting) return;
     final firstName = (profile?.firstName ?? _firstNameController.text).trim();
     final lastName = (profile?.lastName ?? _lastNameController.text).trim();
     final missingText = [
@@ -526,18 +528,22 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
       _errorCode = null;
     });
     try {
-      await ref
-          .read(residenceSetupRepositoryProvider)
-          .createResidence(
-            user: user,
-            input: CreateResidenceInput(
-              name: normalizeResidenceName(_nameController.text),
-              address: _addressController.text,
-              city: _selectedCity!,
-              firstName: firstName,
-              lastName: lastName,
+      await showResidenceProgress(
+        context,
+        label: AppLocalizations.of(context).creatingResidence,
+        run: () => ref
+            .read(residenceSetupRepositoryProvider)
+            .createResidence(
+              user: user,
+              input: CreateResidenceInput(
+                name: normalizeResidenceName(_nameController.text),
+                address: _addressController.text,
+                city: _selectedCity!,
+                firstName: firstName,
+                lastName: lastName,
+              ),
             ),
-          );
+      );
       if (mounted) {
         // Start the reload before the app shell subscribes to the context.
         ref.refresh(residenceContextProvider.future).ignore();

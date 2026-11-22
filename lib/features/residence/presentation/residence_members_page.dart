@@ -8,9 +8,12 @@ import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
+import 'package:darjar/features/residence/presentation/residence_progress_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class ResidenceMembersPage extends ConsumerStatefulWidget {
   const ResidenceMembersPage({super.key});
@@ -21,6 +24,8 @@ class ResidenceMembersPage extends ConsumerStatefulWidget {
 }
 
 class _ResidenceMembersPageState extends ConsumerState<ResidenceMembersPage> {
+  bool _isLeaving = false;
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +38,9 @@ class _ResidenceMembersPageState extends ConsumerState<ResidenceMembersPage> {
   @override
   Widget build(BuildContext context) {
     final membersState = ref.watch(residenceDirectoryProvider);
+    final residence = ref.watch(
+      residenceContextProvider.select((state) => state.value?.activeResidence),
+    );
     final compact = MediaQuery.sizeOf(context).width < 600;
     final localizations = AppLocalizations.of(context);
 
@@ -51,12 +59,34 @@ class _ResidenceMembersPageState extends ConsumerState<ResidenceMembersPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DarJarSubpageHeader(
-                title: localizations.residenceResidents,
-                description: compact
-                    ? null
-                    : localizations.residenceResidentsDescription,
-                fallbackLocation: AppRoutes.residence,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: DarJarSubpageHeader(
+                      title: localizations.residenceResidents,
+                      description: compact
+                          ? null
+                          : localizations.residenceResidentsDescription,
+                      fallbackLocation: AppRoutes.residence,
+                    ),
+                  ),
+                  if (residence != null)
+                    SizedBox(
+                      height: compact ? 40 : 44,
+                      child: PopupMenuButton<bool>(
+                        enabled: !_isLeaving,
+                        icon: const Icon(Icons.more_vert),
+                        onSelected: (_) => _confirmLeave(residence),
+                        itemBuilder: (_) => [
+                          PopupMenuItem(
+                            value: true,
+                            child: Text(localizations.residenceLeave),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: AppSpacing.large),
               membersState.when(
@@ -69,6 +99,78 @@ class _ResidenceMembersPageState extends ConsumerState<ResidenceMembersPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _confirmLeave(UserResidence residence) async {
+    if (!residence.canLeave) {
+      await _showLeaveBlocked();
+      return;
+    }
+    final localizations = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(localizations.residenceLeave),
+        content: Text(localizations.residenceLeaveConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(localizations.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(localizations.residenceLeave),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true || _isLeaving) return;
+    if (ref.read(residenceContextProvider).value?.activeResidence?.id !=
+        residence.id) {
+      return;
+    }
+
+    final container = ProviderScope.containerOf(context, listen: false);
+    setState(() => _isLeaving = true);
+    try {
+      await showResidenceProgress(
+        context,
+        label: localizations.residenceLeaving,
+        run: () => ref.read(leaveResidenceProvider)(residence.id),
+      );
+      container.invalidate(residenceContextProvider);
+      if (mounted) context.go(AppRoutes.residence);
+    } catch (error) {
+      if (!mounted) return;
+      if (error is ResidenceContextFailure &&
+          error.code == 'administrative-role') {
+        await _showLeaveBlocked();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(localizations.residenceLeaveError)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLeaving = false);
+    }
+  }
+
+  Future<void> _showLeaveBlocked() {
+    final localizations = AppLocalizations.of(context);
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(localizations.residenceLeaveBlockedTitle),
+        content: Text(localizations.residenceLeaveBlockedMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(localizations.residenceLeaveBlockedAcknowledge),
+          ),
+        ],
       ),
     );
   }
@@ -87,11 +189,6 @@ class _MembersList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          localizations.residenceResidentsCount(members.length),
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
-        const SizedBox(height: AppSpacing.medium),
         if (members.isEmpty)
           DarJarCard(
             child: Padding(

@@ -2733,11 +2733,47 @@ abstract class AppLocalizations {
   /// **'تعرّف على جيرانك وبيانات السكن داخل الإقامة.'**
   String get residenceResidentsDescription;
 
-  /// No description provided for @residenceResidentsCount.
+  /// No description provided for @residenceLeave.
   ///
   /// In ar, this message translates to:
-  /// **'عدد السكان: {count}'**
-  String residenceResidentsCount(int count);
+  /// **'مغادرة الإقامة'**
+  String get residenceLeave;
+
+  /// No description provided for @residenceLeaving.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ مغادرة الإقامة…'**
+  String get residenceLeaving;
+
+  /// No description provided for @residenceLeaveConfirmation.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل أنت متأكد من رغبتك في مغادرة هذه الإقامة؟ ستفقد إمكانية الوصول إلى محتواها ومعلوماتها، مع الاحتفاظ بجميع بيانات الشقة وسجل مدفوعاتها.'**
+  String get residenceLeaveConfirmation;
+
+  /// No description provided for @residenceLeaveBlockedTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يمكنك مغادرة الإقامة'**
+  String get residenceLeaveBlockedTitle;
+
+  /// No description provided for @residenceLeaveBlockedMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يمكنك مغادرة الإقامة ما دمت تمتلك صلاحيات إدارية. يرجى التنازل عن صلاحياتك الإدارية أولًا لتتمكن من المغادرة.'**
+  String get residenceLeaveBlockedMessage;
+
+  /// No description provided for @residenceLeaveBlockedAcknowledge.
+  ///
+  /// In ar, this message translates to:
+  /// **'موافق'**
+  String get residenceLeaveBlockedAcknowledge;
+
+  /// No description provided for @residenceLeaveError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذرت مغادرة الإقامة. حاول مجددًا.'**
+  String get residenceLeaveError;
 
   /// No description provided for @residenceNoResidents.
   ///

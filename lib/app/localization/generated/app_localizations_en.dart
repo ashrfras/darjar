@@ -1476,9 +1476,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'Meet your neighbors and see where they live in the residence.';
 
   @override
-  String residenceResidentsCount(int count) {
-    return 'Residents: $count';
-  }
+  String get residenceLeave => 'Leave residence';
+
+  @override
+  String get residenceLeaving => 'Leaving residence…';
+
+  @override
+  String get residenceLeaveConfirmation =>
+      'Are you sure you want to leave this residence? You\'ll lose access to its content and information. All apartment data and payment history will be kept.';
+
+  @override
+  String get residenceLeaveBlockedTitle => 'You can\'t leave the residence';
+
+  @override
+  String get residenceLeaveBlockedMessage =>
+      'You can\'t leave the residence while you have administrative permissions. Please give up those permissions before leaving.';
+
+  @override
+  String get residenceLeaveBlockedAcknowledge => 'OK';
+
+  @override
+  String get residenceLeaveError =>
+      'Couldn\'t leave the residence. Please try again.';
 
   @override
   String get residenceNoResidents =>

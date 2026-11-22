@@ -2545,8 +2545,14 @@ void main() {
     final submit = find.byKey(const Key('enter-residence-button'));
     await tester.ensureVisible(submit);
     await tester.tap(submit);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    final progress = find.widgetWithText(AlertDialog, 'جارٍ إنشاء الإقامة…');
+    expect(progress, findsOneWidget);
+    expect(find.byKey(const Key('community-feed-page')), findsNothing);
     await tester.pumpAndSettle();
 
+    expect(progress, findsNothing);
     expect(setupRepository.createdInput?.firstName, 'مريم');
     expect(setupRepository.createdInput?.lastName, 'بناني');
     expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
@@ -4218,6 +4224,55 @@ void main() {
     expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
     expect(find.byKey(const Key('edit-service-button')), findsNothing);
   });
+
+  for (final hasAnotherResidence in [false, true]) {
+    testWidgets('leaving updates navigation (other residence: '
+        '$hasAnotherResidence)', (tester) async {
+      const leaving = UserResidence(
+        id: 'leaving',
+        name: 'إقامة النخيل',
+        address: '',
+        city: '',
+        role: 'resident',
+        apartmentId: 'apartment-01',
+      );
+      const other = UserResidence(
+        id: 'other',
+        name: 'إقامة الياسمين',
+        address: '',
+        city: '',
+        role: 'resident',
+        apartmentId: '',
+      );
+      final membership = _FakeResidenceContextRepository();
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: AppRoutes.residenceResidents,
+        loadResidenceContext: true,
+        residenceContextRepository: membership,
+        residenceContext: ResidenceContext(
+          residences: [leaving, if (hasAnotherResidence) other],
+          activeResidenceId: leaving.id,
+        ),
+      );
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('مغادرة الإقامة'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'مغادرة الإقامة'));
+      await tester.pumpAndSettle();
+
+      expect(membership.context.residences, [if (hasAnotherResidence) other]);
+      expect(find.byKey(const Key('residence-members-page')), findsNothing);
+      if (hasAnotherResidence) {
+        expect(find.byKey(const Key('residence-home-page')), findsOneWidget);
+        expect(find.text(other.name), findsWidgets);
+      } else {
+        expect(find.byKey(const Key('residence-setup-page')), findsOneWidget);
+      }
+    });
+  }
 
   testWidgets('residence exposes account, finances, and management routes', (
     tester,
@@ -7664,6 +7719,7 @@ Future<void> _pumpApp(
   NotificationsRepository? notificationsRepository,
   PaymentReceiptRepository? paymentReceiptRepository,
   ResidenceContext? residenceContext,
+  bool loadResidenceContext = false,
   Object? residenceContextError,
 }) async {
   tester.view.physicalSize = size;
@@ -7807,7 +7863,7 @@ Future<void> _pumpApp(
             expect(id, supportResidence.id);
             return supportResidence;
           }),
-        if (supportResidence == null)
+        if (supportResidence == null && !loadResidenceContext)
           residenceContextProvider.overrideWith((ref) async {
             if (residenceContextError != null) {
               throw residenceContextError;
@@ -9229,6 +9285,24 @@ class _FakeResidenceContextRepository implements ResidenceContextRepository {
   }) async {
     await setActiveResidenceBarrier?.future;
     selectedResidenceId = residenceId;
+  }
+
+  @override
+  Future<void> leaveResidence({
+    required AuthUser user,
+    required String residenceId,
+  }) async {
+    final remaining = context.residences
+        .where((residence) => residence.id != residenceId)
+        .toList();
+    context = ResidenceContext(
+      residences: remaining,
+      activeResidenceId: context.activeResidenceId == residenceId
+          ? remaining.firstOrNull?.id
+          : context.activeResidenceId,
+      invitations: context.invitations,
+      supportResidence: context.supportResidence,
+    );
   }
 }
 
