@@ -37,6 +37,7 @@ import 'package:darjar/features/notifications/data/notification_push_service.dar
 import 'package:darjar/features/notifications/data/notifications_repository.dart';
 import 'package:darjar/features/onboarding/presentation/onboarding_page.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
+import 'package:darjar/features/profile/data/whatsapp_support_repository.dart';
 import 'package:darjar/features/profile/data/app_package_info.dart';
 import 'package:darjar/features/profile/data/account_deletion_repository.dart';
 import 'package:darjar/features/receipts/data/payment_receipt_repository.dart';
@@ -58,6 +59,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:image/image.dart' as test_image;
 import 'package:printing/printing.dart';
@@ -2483,81 +2485,197 @@ void main() {
   testWidgets('onboarding creates a residence and enters the compact app', (
     tester,
   ) async {
-    await _pumpApp(tester, size: const Size(390, 844));
+    final support = _FakeWhatsAppSupportRepository();
+    addTearDown(support.dispose);
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      whatsAppSupportRepository: support,
+      residenceSetupRepository: _FakeResidenceSetupRepository(
+        offerWhatsAppSupport: true,
+      ),
+    );
 
+    final prompt = find.text('هل تحتاج إلى مساعدة؟');
     expect(find.byKey(const Key('onboarding-page')), findsOneWidget);
+    expect(prompt, findsNothing);
     await _enterResidence(tester);
 
+    expect(prompt, findsOneWidget);
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(support.answers, isEmpty);
     expect(find.byKey(const Key('compact-shell')), findsOneWidget);
     expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);
   });
 
-  testWidgets('residence creation uses the registered account name', (
-    tester,
-  ) async {
-    final setupRepository = _FakeResidenceSetupRepository();
-    await _pumpApp(
-      tester,
-      size: const Size(390, 844),
-      initialLocation: AppRoutes.community,
-      mockStorageImages: true,
-      residenceSetupRepository: setupRepository,
-      accountRepository: _FakeAccountOnboardingRepository(
-        resolution: const AccountResolution(
-          phoneNumber: '+212600000001',
-          profile: UserProfile(
-            firstName: 'مريم',
-            lastName: 'بناني',
-            phoneNumber: '+212600000001',
+  for (final (unanswered, choice) in [
+    (true, true),
+    (true, false),
+    (true, null),
+    (false, null),
+  ]) {
+    testWidgets(
+      'WhatsApp prompt after residence creation: $unanswered, $choice',
+      (tester) async {
+        final repository = _FakeWhatsAppSupportRepository();
+        addTearDown(repository.dispose);
+        final setupRepository = _FakeResidenceSetupRepository(
+          offerWhatsAppSupport: unanswered,
+        );
+        await _pumpApp(
+          tester,
+          size: const Size(390, 844),
+          initialLocation: AppRoutes.community,
+          mockStorageImages: true,
+          whatsAppSupportRepository: repository,
+          residenceSetupRepository: setupRepository,
+          developerAccess: true,
+          accountRepository: _FakeAccountOnboardingRepository(
+            resolution: const AccountResolution(
+              phoneNumber: '+212600000001',
+              profile: UserProfile(
+                firstName: 'مريم',
+                lastName: 'بناني',
+                phoneNumber: '+212600000001',
+              ),
+              invitations: [],
+            ),
           ),
-          invitations: [],
-        ),
-      ),
-    );
-    await tester.tap(find.byKey(const Key('residence-selector')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('residence-switcher-new-residence')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('create-new-residence-option')));
-    await tester.pumpAndSettle();
+        );
+        final prompt = find.text('هل تحتاج إلى مساعدة؟');
+        expect(prompt, findsNothing);
+        await tester.tap(find.byKey(const Key('residence-selector')));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const Key('residence-switcher-new-residence')),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('create-new-residence-option')));
+        await tester.pumpAndSettle();
 
-    expect(find.text('مريم بناني'), findsOneWidget);
-    expect(find.byKey(const Key('resident-first-name-field')), findsNothing);
-    expect(find.byKey(const Key('resident-last-name-field')), findsNothing);
+        expect(prompt, findsNothing);
+        expect(find.text('مريم بناني'), findsOneWidget);
+        expect(
+          find.byKey(const Key('resident-first-name-field')),
+          findsNothing,
+        );
+        expect(find.byKey(const Key('resident-last-name-field')), findsNothing);
 
-    await tester.enterText(
-      find.byKey(const Key('residence-name-field')),
-      'إقامة الياسمين',
-    );
-    await tester.enterText(
-      find.byKey(const Key('residence-address-field')),
-      'حي المعاريف',
-    );
-    await tester.tap(find.byKey(const Key('residence-city-field')));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const Key('city-search-field')),
-      'الرباط',
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('الرباط').last);
-    await tester.pumpAndSettle();
-    final submit = find.byKey(const Key('enter-residence-button'));
-    await tester.ensureVisible(submit);
-    await tester.tap(submit);
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
-    final progress = find.widgetWithText(AlertDialog, 'جارٍ إنشاء الإقامة…');
-    expect(progress, findsOneWidget);
-    expect(find.byKey(const Key('community-feed-page')), findsNothing);
-    await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('residence-name-field')),
+          'إقامة الياسمين',
+        );
+        await tester.enterText(
+          find.byKey(const Key('residence-address-field')),
+          'حي المعاريف',
+        );
+        await tester.tap(find.byKey(const Key('residence-city-field')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('city-search-field')),
+          'الرباط',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('الرباط').last);
+        await tester.pumpAndSettle();
+        final submit = find.byKey(const Key('enter-residence-button'));
+        await tester.ensureVisible(submit);
+        await tester.tap(submit);
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+        final progress = find.widgetWithText(
+          AlertDialog,
+          'جارٍ إنشاء الإقامة…',
+        );
+        expect(progress, findsOneWidget);
+        expect(prompt, findsNothing);
+        expect(find.byKey(const Key('community-feed-page')), findsNothing);
+        await tester.pumpAndSettle();
 
-    expect(progress, findsNothing);
-    expect(setupRepository.createdInput?.firstName, 'مريم');
-    expect(setupRepository.createdInput?.lastName, 'بناني');
-    expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
-  });
+        expect(progress, findsNothing);
+        expect(setupRepository.createdInput?.firstName, 'مريم');
+        expect(setupRepository.createdInput?.lastName, 'بناني');
+
+        expect(prompt, unanswered ? findsOneWidget : findsNothing);
+        expect(repository.answers, isEmpty);
+        if (unanswered) {
+          if (choice == null) {
+            await tester.binding.handlePopRoute();
+          } else {
+            await tester.tap(
+              find.text(choice ? 'نعم، أرحب بالتواصل' : 'لا، شكرًا'),
+            );
+          }
+          await tester.pumpAndSettle();
+        }
+        expect(prompt, findsNothing);
+        expect(repository.answers, choice == null ? [] : [choice]);
+        expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+        if (choice != true) return;
+
+        final router = GoRouter.of(
+          tester.element(find.byKey(const Key('community-feed-page'))),
+        );
+        router.push<void>(AppRoutes.profile).ignore();
+        await tester.pumpAndSettle();
+
+        final support = find.byKey(const Key('account-support-link'));
+        final privacy = find.byKey(const Key('privacy-policy-link'));
+        await tester.scrollUntilVisible(support, 150);
+        expect(
+          tester.getTopLeft(support).dy,
+          lessThan(tester.getTopLeft(privacy).dy),
+        );
+        expect(
+          find.descendant(
+            of: support,
+            matching: find.byIcon(Icons.chat_bubble_outline_rounded),
+          ),
+          findsOneWidget,
+        );
+
+        final signOut = find.byKey(const Key('sign-out-button'));
+        await tester.scrollUntilVisible(signOut, 120);
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('app-activity-card')),
+            matching: find.byKey(const Key('app-activity-link')),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('delete-account-card')),
+            matching: signOut,
+          ),
+          findsOneWidget,
+        );
+        await tester.scrollUntilVisible(support, -150);
+        await tester.tap(support);
+        await tester.pumpAndSettle();
+        expect(find.text('واتساب: تواصل معنا'), findsOneWidget);
+        expect(find.text('البريد الإلكتروني: راسلنا'), findsOneWidget);
+
+        final toggle = find.byType(SwitchListTile);
+        expect(tester.widget<SwitchListTile>(toggle).value, isTrue);
+        await tester.tap(toggle);
+        await tester.pumpAndSettle();
+        expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
+        expect(
+          find.text('تم سحب موافقتك على التواصل عبر واتساب.'),
+          findsOneWidget,
+        );
+        expect(find.text('البريد الإلكتروني: راسلنا'), findsOneWidget);
+        await tester.tap(toggle);
+        await tester.pumpAndSettle();
+        expect(tester.widget<SwitchListTile>(toggle).value, isTrue);
+        expect(repository.writes, [false, true]);
+        expect(repository.answers, [true]);
+      },
+    );
+  }
 
   testWidgets('Arabic onboarding copy and start action follow RTL', (
     tester,
@@ -5011,7 +5129,7 @@ void main() {
       matching: find.byType(DarJarCard),
     );
     expect(
-      informationCard.evaluate().single,
+      deleteAccountCard.evaluate().single,
       same(signOutCard.evaluate().single),
     );
     expect(
@@ -5032,6 +5150,7 @@ void main() {
       lessThan(tester.getTopLeft(deleteAccountLink).dy),
     );
 
+    await tester.ensureVisible(privacyLink);
     await tester.tap(privacyLink);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('privacy-policy-page')), findsOneWidget);
@@ -7744,6 +7863,7 @@ Future<void> _pumpApp(
   AuthRepository? authRepository,
   AccountOnboardingRepository? accountRepository,
   ResidenceSetupRepository? residenceSetupRepository,
+  WhatsAppSupportRepository? whatsAppSupportRepository,
   ResidenceContextRepository? residenceContextRepository,
   ResidenceMembersRepository? residenceMembersRepository,
   ResidenceDuesRepository? residenceDuesRepository,
@@ -7861,6 +7981,10 @@ Future<void> _pumpApp(
           onboardingRepository,
         ),
         residenceSetupRepositoryProvider.overrideWithValue(setupRepository),
+        if (whatsAppSupportRepository != null)
+          whatsAppSupportRepositoryProvider.overrideWithValue(
+            whatsAppSupportRepository,
+          ),
         residenceContextRepositoryProvider.overrideWithValue(contextRepository),
         residenceMembersRepositoryProvider.overrideWithValue(membersRepository),
         residenceDuesRepositoryProvider.overrideWithValue(duesRepository),
@@ -8257,10 +8381,43 @@ class _FakeProfileRepository implements ProfileRepository {
   }
 }
 
+class _FakeWhatsAppSupportRepository implements WhatsAppSupportRepository {
+  final _changes = StreamController<bool>.broadcast();
+  final answers = <bool>[];
+  final writes = <bool>[];
+  bool _enabled = false;
+
+  @override
+  Stream<bool> watchEnabled(String userId) async* {
+    yield _enabled;
+    yield* _changes.stream;
+  }
+
+  @override
+  Future<void> answerPrompt(String userId, bool enabled) async {
+    answers.add(enabled);
+    _enabled = enabled;
+    _changes.add(enabled);
+  }
+
+  @override
+  Future<void> setEnabled(String userId, bool enabled) async {
+    writes.add(enabled);
+    _enabled = enabled;
+    _changes.add(enabled);
+  }
+
+  Future<void> dispose() => _changes.close();
+}
+
 class _FakeResidenceSetupRepository implements ResidenceSetupRepository {
-  _FakeResidenceSetupRepository({this.residence});
+  _FakeResidenceSetupRepository({
+    this.residence,
+    this.offerWhatsAppSupport = false,
+  });
 
   final ResidenceCodeSummary? residence;
+  final bool offerWhatsAppSupport;
   CreateResidenceInput? createdInput;
   ResidenceCodeSummary? requestedResidence;
   String? requestedApartmentId;
@@ -8271,9 +8428,10 @@ class _FakeResidenceSetupRepository implements ResidenceSetupRepository {
     required CreateResidenceInput input,
   }) async {
     createdInput = input;
-    return const CreatedResidence(
+    return CreatedResidence(
       residenceId: 'created-residence',
       joinCode: '48273165',
+      offerWhatsAppSupport: offerWhatsAppSupport,
     );
   }
 

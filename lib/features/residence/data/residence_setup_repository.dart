@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/profile/data/whatsapp_support_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CreateResidenceInput {
@@ -87,10 +88,15 @@ int compareResidenceJoinApartments(
 }
 
 class CreatedResidence {
-  const CreatedResidence({required this.residenceId, required this.joinCode});
+  const CreatedResidence({
+    required this.residenceId,
+    required this.joinCode,
+    this.offerWhatsAppSupport = false,
+  });
 
   final String residenceId;
   final String joinCode;
+  final bool offerWhatsAppSupport;
 }
 
 class ResidenceSetupFailure implements Exception {
@@ -169,7 +175,7 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
           .collection('floors')
           .doc('ground');
       try {
-        await _firestore.runTransaction((transaction) async {
+        return await _firestore.runTransaction((transaction) async {
           final codeDocument = await transaction.get(codeReference);
           if (codeDocument.exists) {
             throw const ResidenceSetupFailure('code-collision');
@@ -250,11 +256,14 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
             'order': 0,
             'createdAt': FieldValue.serverTimestamp(),
           });
+          return CreatedResidence(
+            residenceId: residenceReference.id,
+            joinCode: joinCode,
+            offerWhatsAppSupport:
+                profile?[whatsAppSupportPromptAnsweredAtField] == null &&
+                profile?['accountStatus'] != 'deletionRequested',
+          );
         });
-        return CreatedResidence(
-          residenceId: residenceReference.id,
-          joinCode: joinCode,
-        );
       } on ResidenceSetupFailure catch (error) {
         if (error.code == 'code-collision') {
           continue;

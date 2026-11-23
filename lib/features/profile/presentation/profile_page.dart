@@ -240,6 +240,13 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                 child: Column(
                   children: [
                     _ProfileLink(
+                      key: const Key('account-support-link'),
+                      icon: Icons.chat_bubble_outline_rounded,
+                      title: localizations.accountSupportTitle,
+                      route: AppRoutes.accountSupport,
+                    ),
+                    const Divider(),
+                    _ProfileLink(
                       key: const Key('privacy-policy-link'),
                       icon: Icons.privacy_tip_outlined,
                       title: localizations.privacyPolicy,
@@ -252,16 +259,28 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                       title: localizations.aboutApp,
                       route: AppRoutes.aboutApp,
                     ),
-                    if (isDeveloper) ...[
-                      const Divider(),
-                      _ProfileLink(
-                        key: const Key('app-activity-link'),
-                        icon: Icons.history,
-                        title: localizations.appActivityLog,
-                        route: AppRoutes.appActivityLog,
-                      ),
-                    ],
-                    const Divider(),
+                  ],
+                ),
+              ),
+              if (isDeveloper) ...[
+                const SizedBox(height: AppSpacing.large),
+                DarJarCard(
+                  key: const Key('app-activity-card'),
+                  padding: EdgeInsets.zero,
+                  child: _ProfileLink(
+                    key: const Key('app-activity-link'),
+                    icon: Icons.history,
+                    title: localizations.appActivityLog,
+                    route: AppRoutes.appActivityLog,
+                  ),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.large),
+              DarJarCard(
+                key: const Key('delete-account-card'),
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
                     ListTile(
                       key: const Key('sign-out-button'),
                       enabled: !_signingOut,
@@ -283,19 +302,15 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                             ),
                       onTap: _signingOut ? null : _confirmSignOut,
                     ),
+                    const Divider(),
+                    _ProfileLink(
+                      key: const Key('delete-account-link'),
+                      icon: Icons.delete_outline_rounded,
+                      title: localizations.deleteAccountTitle,
+                      route: AppRoutes.deleteAccount,
+                      isDestructive: true,
+                    ),
                   ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.large),
-              DarJarCard(
-                key: const Key('delete-account-card'),
-                padding: EdgeInsets.zero,
-                child: _ProfileLink(
-                  key: const Key('delete-account-link'),
-                  icon: Icons.delete_outline_rounded,
-                  title: localizations.deleteAccountTitle,
-                  route: AppRoutes.deleteAccount,
-                  isDestructive: true,
                 ),
               ),
             ],

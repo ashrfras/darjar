@@ -790,5 +790,20 @@
   "postShareTextDescription": "Only the post text, without images",
   "postShareTextFailed": "Could not share the text. Please try again.",
   "postSharePreparingImage": "Preparing the post image…",
-  "postSharePreparingImageDescription": "Preparing the text and images for sharing. Please wait."
+  "postSharePreparingImageDescription": "Preparing the text and images for sharing. Please wait.",
+  "accountSupportTitle": "Support and contact",
+  "accountSupportContactTitle": "We're here to help",
+  "accountSupportContactDescription": "Have a question or trouble using DarJar? We're happy to help and hear your feedback and suggestions.",
+  "accountSupportWhatsAppAction": "WhatsApp: Chat with us",
+  "accountSupportEmailAction": "Email: Write to us",
+  "supportContactError": "Couldn't open the contact link.",
+  "whatsAppSupportPromptTitle": "Need a hand?",
+  "whatsAppSupportPromptDescription": "The DarJar team can contact you on WhatsApp to help set up your residence and answer your questions. Would you like us to reach out?",
+  "whatsAppSupportAccept": "Yes, contact me",
+  "whatsAppSupportDecline": "No, thanks",
+  "whatsAppSupportSettingTitle": "Contact me on WhatsApp",
+  "whatsAppSupportDescription": "The DarJar team can contact you on WhatsApp to help set up your residence and answer your questions.",
+  "whatsAppSupportEnabledMessage": "WhatsApp contact enabled.",
+  "whatsAppSupportDisabledMessage": "WhatsApp consent withdrawn.",
+  "whatsAppSupportSaveError": "Couldn't save your WhatsApp preference. You can try again from Support and contact."
 }

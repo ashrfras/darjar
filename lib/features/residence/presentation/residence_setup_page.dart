@@ -12,6 +12,7 @@ import 'package:darjar/core/widgets/darjar_sign_out_confirmation_dialog.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/profile/presentation/whatsapp_support_prompt.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/presentation/darjar_city_picker.dart';
@@ -517,7 +518,8 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
       setState(() => _errorCode = 'invalid-data');
       return;
     }
-    final user = ref.read(authRepositoryProvider).currentUser;
+    final auth = ref.read(authRepositoryProvider);
+    final user = auth.currentUser;
     if (user == null) {
       setState(() => _errorCode = 'signed-out');
       return;
@@ -527,8 +529,9 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
       _isSubmitting = true;
       _errorCode = null;
     });
+    final CreatedResidence created;
     try {
-      await showResidenceProgress(
+      created = await showResidenceProgress(
         context,
         label: AppLocalizations.of(context).creatingResidence,
         run: () => ref
@@ -544,24 +547,33 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
               ),
             ),
       );
-      if (mounted) {
-        // Start the reload before the app shell subscribes to the context.
-        ref.refresh(residenceContextProvider.future).ignore();
-        context.go(AppRoutes.community);
-      }
     } on ResidenceSetupFailure catch (error) {
       if (mounted) {
-        setState(() => _errorCode = error.code);
+        setState(() {
+          _errorCode = error.code;
+          _isSubmitting = false;
+        });
       }
+      return;
     } catch (_) {
       if (mounted) {
-        setState(() => _errorCode = 'unknown');
+        setState(() {
+          _errorCode = 'unknown';
+          _isSubmitting = false;
+        });
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
+      return;
     }
+
+    if (!mounted || auth.currentUser?.uid != user.uid) return;
+    if (created.offerWhatsAppSupport) {
+      await showWhatsAppSupportPrompt(context, ref, user.uid);
+    }
+    if (!mounted || auth.currentUser?.uid != user.uid) return;
+    setState(() => _isSubmitting = false);
+    // Start the reload before the app shell subscribes to the context.
+    ref.refresh(residenceContextProvider.future).ignore();
+    context.go(AppRoutes.community);
   }
 }
 

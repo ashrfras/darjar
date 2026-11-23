@@ -2539,4 +2539,53 @@ class AppLocalizationsZgh extends AppLocalizations {
   @override
   String get postSharePreparingImageDescription =>
       'ⴰⵙⵙⵓⵊⴷ ⵏ ⵓⴹⵕⵉⵚ ⴷ ⵜⵡⵍⴰⴼⵉⵏ ⵉ ⵓⴱⴹⵓ. ⵔⵊⵓ ⴰⴼⴰⴽ.';
+
+  @override
+  String get accountSupportTitle => 'ⵜⵉⵡⵉⵙⵉ ⴷ ⵓⵎⵢⴰⵡⴰⴹ';
+
+  @override
+  String get accountSupportContactTitle => 'ⵏⵍⵍⴰ ⴷⴰ ⴰⴷ ⴰⴽ ⵏⴰⵡⵙ';
+
+  @override
+  String get accountSupportContactDescription =>
+      'ⵉⵙ ⵖⵓⵔⴽ ⴰⵙⵇⵙⵉ ⵏⵖ ⵓⴳⵓⵔ ⴷⴳ DarJar? ⵏⵔⴰ ⴰⴷ ⴰⴽ ⵏⴰⵡⵙ ⵏⵙⵙⴼⵍⴷ ⵉ ⵜⵎⴰⵡⵉⵏ ⵏⵏⴽ.';
+
+  @override
+  String get accountSupportWhatsAppAction => 'WhatsApp: ⵎⵢⴰⵡⴰⴹ ⴷⵉⴷⵏⵖ';
+
+  @override
+  String get accountSupportEmailAction => 'ⵉⵎⴰⵢⵍ: ⴰⵔⴰ ⴰⵏⵖ';
+
+  @override
+  String get supportContactError => 'ⵓⵔ ⵉⵏⵏⵓⵔⵣⵉⵎ ⵓⵣⴷⴰⵢ ⵏ ⵓⵎⵢⴰⵡⴰⴹ.';
+
+  @override
+  String get whatsAppSupportPromptTitle => 'ⵉⵙ ⵜⵙⵔⵉⴷ ⵜⵉⵡⵉⵙⵉ?';
+
+  @override
+  String get whatsAppSupportPromptDescription =>
+      'ⵉⵣⵎⵔ ⵓⴳⵔⴰⵡ ⵏ DarJar ⴰⴷ ⴷⵉⴷⴽ ⵉⵎⵢⴰⵡⴰⴹ ⵙ WhatsApp, ⴰⴷ ⴰⴽ ⵉⵡⵙ ⴳ ⵓⵙⵙⵓⴷⵙ ⵏ ⵜⵏⵣⴷⵓⵖⵜ ⵏⵏⴽ ⵉⵔⵔ ⵅⴼ ⵉⵙⵇⵙⵉⵜⵏ ⵏⵏⴽ. ⵉⵙ ⵜⵔⵉⴷ ⴰⵢⴰ?';
+
+  @override
+  String get whatsAppSupportAccept => 'ⵢⴰⵀ, ⵎⵢⴰⵡⴰⴹ ⴷⵉⴷⵉ';
+
+  @override
+  String get whatsAppSupportDecline => 'ⵓⵀⵓ, ⵜⴰⵏⵎⵎⵉⵔⵜ';
+
+  @override
+  String get whatsAppSupportSettingTitle => 'ⴰⵎⵢⴰⵡⴰⴹ ⴷⵉⴷⵉ ⵙ WhatsApp';
+
+  @override
+  String get whatsAppSupportDescription =>
+      'ⵉⵣⵎⵔ ⵓⴳⵔⴰⵡ ⵏ DarJar ⴰⴷ ⴷⵉⴷⴽ ⵉⵎⵢⴰⵡⴰⴹ ⵙ WhatsApp, ⴰⴷ ⴰⴽ ⵉⵡⵙ ⴳ ⵓⵙⵙⵓⴷⵙ ⵏ ⵜⵏⵣⴷⵓⵖⵜ ⵏⵏⴽ ⵉⵔⵔ ⵅⴼ ⵉⵙⵇⵙⵉⵜⵏ ⵏⵏⴽ.';
+
+  @override
+  String get whatsAppSupportEnabledMessage => 'ⵉⵎⵓⵔⵙ ⵓⵎⵢⴰⵡⴰⴹ ⵙ WhatsApp.';
+
+  @override
+  String get whatsAppSupportDisabledMessage => 'ⵉⵜⵜⵡⴰⴽⴽⴰⵙ ⵡⵓⵎⵖⵓⵏ ⵏ WhatsApp.';
+
+  @override
+  String get whatsAppSupportSaveError =>
+      'ⵓⵔ ⵉⵜⵜⵓⵃⴹⴰ ⵓⵙⵜⴰⵢ ⵏ WhatsApp. ⴰⵔⵎ ⴷⴰⵖ ⴳ ⵜⵙⵏⴰ ⵏ ⵜⵉⵡⵉⵙⵉ.';
 }

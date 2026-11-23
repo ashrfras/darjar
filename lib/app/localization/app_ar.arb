@@ -797,5 +797,20 @@
   "postShareTextDescription": "نص المنشور فقط دون الصور",
   "postShareTextFailed": "تعذّرت مشاركة النص. يرجى المحاولة مرة أخرى.",
   "postSharePreparingImage": "جارٍ تجهيز صورة المنشور…",
-  "postSharePreparingImageDescription": "يتم إعداد النص والصور للمشاركة. يرجى الانتظار."
+  "postSharePreparingImageDescription": "يتم إعداد النص والصور للمشاركة. يرجى الانتظار.",
+  "accountSupportTitle": "الدعم والتواصل",
+  "accountSupportContactTitle": "نحن هنا لمساعدتك",
+  "accountSupportContactDescription": "هل لديك استفسار أو واجهت صعوبة في استخدام دارجار؟ يسعدنا مساعدتك والاستماع إلى ملاحظاتك واقتراحاتك.",
+  "accountSupportWhatsAppAction": "واتساب: تواصل معنا",
+  "accountSupportEmailAction": "البريد الإلكتروني: راسلنا",
+  "supportContactError": "تعذر فتح وسيلة التواصل.",
+  "whatsAppSupportPromptTitle": "هل تحتاج إلى مساعدة؟",
+  "whatsAppSupportPromptDescription": "يمكن لفريق دارجار التواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك. هل ترغب في ذلك؟",
+  "whatsAppSupportAccept": "نعم، أرحب بالتواصل",
+  "whatsAppSupportDecline": "لا، شكرًا",
+  "whatsAppSupportSettingTitle": "التواصل معك عبر واتساب",
+  "whatsAppSupportDescription": "يمكن لفريق دارجار التواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك.",
+  "whatsAppSupportEnabledMessage": "تم حفظ موافقتك على التواصل عبر واتساب.",
+  "whatsAppSupportDisabledMessage": "تم سحب موافقتك على التواصل عبر واتساب.",
+  "whatsAppSupportSaveError": "تعذر حفظ تفضيل واتساب. يمكنك المحاولة من صفحة الدعم والتواصل."
 }

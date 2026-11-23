@@ -1048,5 +1048,20 @@
   "postShareTextDescription": "ⴰⴹⵕⵉⵚ ⴽⴰⵏ ⴱⵍⴰ ⵜⵉⵡⵍⴰⴼⵉⵏ",
   "postShareTextFailed": "ⵓⵔ ⵉⵣⵎⵉⵔ ⴰⴷ ⵉⴱⴹⵓ ⴰⴹⵕⵉⵚ. ⵄⵔⴹ ⴷⴰⵖ.",
   "postSharePreparingImage": "ⴰⵙⵙⵓⵊⴷ ⵏ ⵜⵡⵍⴰⴼⵜ ⵏ ⵓⵙⵓⴼⵖ…",
-  "postSharePreparingImageDescription": "ⴰⵙⵙⵓⵊⴷ ⵏ ⵓⴹⵕⵉⵚ ⴷ ⵜⵡⵍⴰⴼⵉⵏ ⵉ ⵓⴱⴹⵓ. ⵔⵊⵓ ⴰⴼⴰⴽ."
+  "postSharePreparingImageDescription": "ⴰⵙⵙⵓⵊⴷ ⵏ ⵓⴹⵕⵉⵚ ⴷ ⵜⵡⵍⴰⴼⵉⵏ ⵉ ⵓⴱⴹⵓ. ⵔⵊⵓ ⴰⴼⴰⴽ.",
+  "accountSupportTitle": "ⵜⵉⵡⵉⵙⵉ ⴷ ⵓⵎⵢⴰⵡⴰⴹ",
+  "accountSupportContactTitle": "ⵏⵍⵍⴰ ⴷⴰ ⴰⴷ ⴰⴽ ⵏⴰⵡⵙ",
+  "accountSupportContactDescription": "ⵉⵙ ⵖⵓⵔⴽ ⴰⵙⵇⵙⵉ ⵏⵖ ⵓⴳⵓⵔ ⴷⴳ DarJar? ⵏⵔⴰ ⴰⴷ ⴰⴽ ⵏⴰⵡⵙ ⵏⵙⵙⴼⵍⴷ ⵉ ⵜⵎⴰⵡⵉⵏ ⵏⵏⴽ.",
+  "accountSupportWhatsAppAction": "WhatsApp: ⵎⵢⴰⵡⴰⴹ ⴷⵉⴷⵏⵖ",
+  "accountSupportEmailAction": "ⵉⵎⴰⵢⵍ: ⴰⵔⴰ ⴰⵏⵖ",
+  "supportContactError": "ⵓⵔ ⵉⵏⵏⵓⵔⵣⵉⵎ ⵓⵣⴷⴰⵢ ⵏ ⵓⵎⵢⴰⵡⴰⴹ.",
+  "whatsAppSupportPromptTitle": "ⵉⵙ ⵜⵙⵔⵉⴷ ⵜⵉⵡⵉⵙⵉ?",
+  "whatsAppSupportPromptDescription": "ⵉⵣⵎⵔ ⵓⴳⵔⴰⵡ ⵏ DarJar ⴰⴷ ⴷⵉⴷⴽ ⵉⵎⵢⴰⵡⴰⴹ ⵙ WhatsApp, ⴰⴷ ⴰⴽ ⵉⵡⵙ ⴳ ⵓⵙⵙⵓⴷⵙ ⵏ ⵜⵏⵣⴷⵓⵖⵜ ⵏⵏⴽ ⵉⵔⵔ ⵅⴼ ⵉⵙⵇⵙⵉⵜⵏ ⵏⵏⴽ. ⵉⵙ ⵜⵔⵉⴷ ⴰⵢⴰ?",
+  "whatsAppSupportAccept": "ⵢⴰⵀ, ⵎⵢⴰⵡⴰⴹ ⴷⵉⴷⵉ",
+  "whatsAppSupportDecline": "ⵓⵀⵓ, ⵜⴰⵏⵎⵎⵉⵔⵜ",
+  "whatsAppSupportSettingTitle": "ⴰⵎⵢⴰⵡⴰⴹ ⴷⵉⴷⵉ ⵙ WhatsApp",
+  "whatsAppSupportDescription": "ⵉⵣⵎⵔ ⵓⴳⵔⴰⵡ ⵏ DarJar ⴰⴷ ⴷⵉⴷⴽ ⵉⵎⵢⴰⵡⴰⴹ ⵙ WhatsApp, ⴰⴷ ⴰⴽ ⵉⵡⵙ ⴳ ⵓⵙⵙⵓⴷⵙ ⵏ ⵜⵏⵣⴷⵓⵖⵜ ⵏⵏⴽ ⵉⵔⵔ ⵅⴼ ⵉⵙⵇⵙⵉⵜⵏ ⵏⵏⴽ.",
+  "whatsAppSupportEnabledMessage": "ⵉⵎⵓⵔⵙ ⵓⵎⵢⴰⵡⴰⴹ ⵙ WhatsApp.",
+  "whatsAppSupportDisabledMessage": "ⵉⵜⵜⵡⴰⴽⴽⴰⵙ ⵡⵓⵎⵖⵓⵏ ⵏ WhatsApp.",
+  "whatsAppSupportSaveError": "ⵓⵔ ⵉⵜⵜⵓⵃⴹⴰ ⵓⵙⵜⴰⵢ ⵏ WhatsApp. ⴰⵔⵎ ⴷⴰⵖ ⴳ ⵜⵙⵏⴰ ⵏ ⵜⵉⵡⵉⵙⵉ."
 }

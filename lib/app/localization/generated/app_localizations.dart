@@ -4616,6 +4616,96 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'يتم إعداد النص والصور للمشاركة. يرجى الانتظار.'**
   String get postSharePreparingImageDescription;
+
+  /// No description provided for @accountSupportTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدعم والتواصل'**
+  String get accountSupportTitle;
+
+  /// No description provided for @accountSupportContactTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'نحن هنا لمساعدتك'**
+  String get accountSupportContactTitle;
+
+  /// No description provided for @accountSupportContactDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل لديك استفسار أو واجهت صعوبة في استخدام دارجار؟ يسعدنا مساعدتك والاستماع إلى ملاحظاتك واقتراحاتك.'**
+  String get accountSupportContactDescription;
+
+  /// No description provided for @accountSupportWhatsAppAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'واتساب: تواصل معنا'**
+  String get accountSupportWhatsAppAction;
+
+  /// No description provided for @accountSupportEmailAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'البريد الإلكتروني: راسلنا'**
+  String get accountSupportEmailAction;
+
+  /// No description provided for @supportContactError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر فتح وسيلة التواصل.'**
+  String get supportContactError;
+
+  /// No description provided for @whatsAppSupportPromptTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تحتاج إلى مساعدة؟'**
+  String get whatsAppSupportPromptTitle;
+
+  /// No description provided for @whatsAppSupportPromptDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكن لفريق دارجار التواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك. هل ترغب في ذلك؟'**
+  String get whatsAppSupportPromptDescription;
+
+  /// No description provided for @whatsAppSupportAccept.
+  ///
+  /// In ar, this message translates to:
+  /// **'نعم، أرحب بالتواصل'**
+  String get whatsAppSupportAccept;
+
+  /// No description provided for @whatsAppSupportDecline.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا، شكرًا'**
+  String get whatsAppSupportDecline;
+
+  /// No description provided for @whatsAppSupportSettingTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'التواصل معك عبر واتساب'**
+  String get whatsAppSupportSettingTitle;
+
+  /// No description provided for @whatsAppSupportDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكن لفريق دارجار التواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك.'**
+  String get whatsAppSupportDescription;
+
+  /// No description provided for @whatsAppSupportEnabledMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حفظ موافقتك على التواصل عبر واتساب.'**
+  String get whatsAppSupportEnabledMessage;
+
+  /// No description provided for @whatsAppSupportDisabledMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم سحب موافقتك على التواصل عبر واتساب.'**
+  String get whatsAppSupportDisabledMessage;
+
+  /// No description provided for @whatsAppSupportSaveError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر حفظ تفضيل واتساب. يمكنك المحاولة من صفحة الدعم والتواصل.'**
+  String get whatsAppSupportSaveError;
 }
 
 class _AppLocalizationsDelegate

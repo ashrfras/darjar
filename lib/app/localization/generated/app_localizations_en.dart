@@ -2555,4 +2555,53 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get postSharePreparingImageDescription =>
       'Preparing the text and images for sharing. Please wait.';
+
+  @override
+  String get accountSupportTitle => 'Support and contact';
+
+  @override
+  String get accountSupportContactTitle => 'We\'re here to help';
+
+  @override
+  String get accountSupportContactDescription =>
+      'Have a question or trouble using DarJar? We\'re happy to help and hear your feedback and suggestions.';
+
+  @override
+  String get accountSupportWhatsAppAction => 'WhatsApp: Chat with us';
+
+  @override
+  String get accountSupportEmailAction => 'Email: Write to us';
+
+  @override
+  String get supportContactError => 'Couldn\'t open the contact link.';
+
+  @override
+  String get whatsAppSupportPromptTitle => 'Need a hand?';
+
+  @override
+  String get whatsAppSupportPromptDescription =>
+      'The DarJar team can contact you on WhatsApp to help set up your residence and answer your questions. Would you like us to reach out?';
+
+  @override
+  String get whatsAppSupportAccept => 'Yes, contact me';
+
+  @override
+  String get whatsAppSupportDecline => 'No, thanks';
+
+  @override
+  String get whatsAppSupportSettingTitle => 'Contact me on WhatsApp';
+
+  @override
+  String get whatsAppSupportDescription =>
+      'The DarJar team can contact you on WhatsApp to help set up your residence and answer your questions.';
+
+  @override
+  String get whatsAppSupportEnabledMessage => 'WhatsApp contact enabled.';
+
+  @override
+  String get whatsAppSupportDisabledMessage => 'WhatsApp consent withdrawn.';
+
+  @override
+  String get whatsAppSupportSaveError =>
+      'Couldn\'t save your WhatsApp preference. You can try again from Support and contact.';
 }

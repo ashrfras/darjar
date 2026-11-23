@@ -282,6 +282,44 @@ service cloud.firestore {
         && get(residencePath(residenceId)).data.joinRequestsEnabled == true;
     }
 
+    function updatesWhatsAppSupport() {
+      let previous = resource.data.get('whatsAppSupportEnabled', null);
+      let enabled = request.resource.data.get('whatsAppSupportEnabled', null);
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      let answersPrompt = changed.hasAny(['supportPromptAnsweredAt']);
+      return resource.data.get('accountStatus', '') != 'deletionRequested'
+        && enabled is bool
+        && (
+          !answersPrompt
+          || (
+            !resource.data.keys().hasAny(['supportPromptAnsweredAt'])
+            && request.resource.data.supportPromptAnsweredAt == request.time
+          )
+        )
+        && (
+          (
+            enabled == previous
+            && answersPrompt
+            && changed.hasOnly(['supportPromptAnsweredAt'])
+          ) || (
+            enabled && previous != true
+            && changed.hasOnly([
+              'whatsAppSupportEnabled', 'whatsAppSupportConsentedAt', 'supportPromptAnsweredAt'
+            ])
+            && request.resource.data.whatsAppSupportConsentedAt == request.time
+          ) || (
+            !enabled && previous == true
+            && changed.hasOnly([
+              'whatsAppSupportEnabled', 'whatsAppSupportRevokedAt', 'supportPromptAnsweredAt'
+            ])
+            && request.resource.data.whatsAppSupportRevokedAt == request.time
+          ) || (
+            !enabled && previous == null
+            && changed.hasOnly(['whatsAppSupportEnabled', 'supportPromptAnsweredAt'])
+          )
+        );
+    }
+
     match /users/{userId} {
       allow read: if signedIn() && request.auth.uid == userId;
 
@@ -337,6 +375,10 @@ service cloud.firestore {
           )
         )
         && request.resource.data.updatedAt == request.time
+      ) || (
+        verifiedPhone()
+        && request.auth.uid == userId
+        && updatesWhatsAppSupport()
       ) || (
         verifiedPhone()
         && request.auth.uid == userId

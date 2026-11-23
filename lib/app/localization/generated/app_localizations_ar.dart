@@ -2509,4 +2509,55 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get postSharePreparingImageDescription =>
       'يتم إعداد النص والصور للمشاركة. يرجى الانتظار.';
+
+  @override
+  String get accountSupportTitle => 'الدعم والتواصل';
+
+  @override
+  String get accountSupportContactTitle => 'نحن هنا لمساعدتك';
+
+  @override
+  String get accountSupportContactDescription =>
+      'هل لديك استفسار أو واجهت صعوبة في استخدام دارجار؟ يسعدنا مساعدتك والاستماع إلى ملاحظاتك واقتراحاتك.';
+
+  @override
+  String get accountSupportWhatsAppAction => 'واتساب: تواصل معنا';
+
+  @override
+  String get accountSupportEmailAction => 'البريد الإلكتروني: راسلنا';
+
+  @override
+  String get supportContactError => 'تعذر فتح وسيلة التواصل.';
+
+  @override
+  String get whatsAppSupportPromptTitle => 'هل تحتاج إلى مساعدة؟';
+
+  @override
+  String get whatsAppSupportPromptDescription =>
+      'يمكن لفريق دارجار التواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك. هل ترغب في ذلك؟';
+
+  @override
+  String get whatsAppSupportAccept => 'نعم، أرحب بالتواصل';
+
+  @override
+  String get whatsAppSupportDecline => 'لا، شكرًا';
+
+  @override
+  String get whatsAppSupportSettingTitle => 'التواصل معك عبر واتساب';
+
+  @override
+  String get whatsAppSupportDescription =>
+      'يمكن لفريق دارجار التواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك.';
+
+  @override
+  String get whatsAppSupportEnabledMessage =>
+      'تم حفظ موافقتك على التواصل عبر واتساب.';
+
+  @override
+  String get whatsAppSupportDisabledMessage =>
+      'تم سحب موافقتك على التواصل عبر واتساب.';
+
+  @override
+  String get whatsAppSupportSaveError =>
+      'تعذر حفظ تفضيل واتساب. يمكنك المحاولة من صفحة الدعم والتواصل.';
 }

@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 
-Future<void> showResidenceProgress(
+Future<T> showResidenceProgress<T>(
   BuildContext context, {
   required String label,
-  required Future<void> Function() run,
+  required Future<T> Function() run,
 }) async {
   final navigator = Navigator.of(context, rootNavigator: true);
   final route = DialogRoute<void>(
@@ -34,8 +34,9 @@ Future<void> showResidenceProgress(
   final minimumVisibility = Completer<void>();
   final timer = Timer(const Duration(seconds: 2), minimumVisibility.complete);
   try {
-    await run();
+    final result = await run();
     await minimumVisibility.future;
+    return result;
   } finally {
     timer.cancel();
     if (navigator.mounted && route.isActive) navigator.removeRoute(route);
