@@ -2499,6 +2499,12 @@ abstract class AppLocalizations {
   /// **'لم يتم ربط حسابك بشقة بعد. تواصل مع إدارة الإقامة.'**
   String get duesNoApartment;
 
+  /// No description provided for @duesNoApartmentForManager.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم ربط حسابك بشقة بعد. قم بتعيين شقتك في صفحة الإدارة.'**
+  String get duesNoApartmentForManager;
+
   /// No description provided for @duesNoRecords.
   ///
   /// In ar, this message translates to:

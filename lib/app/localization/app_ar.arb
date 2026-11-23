@@ -415,6 +415,7 @@
   "duesAdvancePaymentHint": "بعد أداء جميع المستحقات، يمكن دفع أشهر لاحقة كاملة بقيمة {amount} د للشهر.",
   "@duesAdvancePaymentHint": {"placeholders": {"amount": {"type": "String"}}},
   "duesNoApartment": "لم يتم ربط حسابك بشقة بعد. تواصل مع إدارة الإقامة.",
+  "duesNoApartmentForManager": "لم يتم ربط حسابك بشقة بعد. قم بتعيين شقتك في صفحة الإدارة.",
   "duesNoRecords": "لا توجد اشتراكات مسجلة لهذه الشقة بعد.",
   "duesNoApartments": "أضف الشقق أولاً حتى يتم إنشاء اشتراكات الشهر.",
   "duesApartment": "الشقة رقم {number}",

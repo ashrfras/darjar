@@ -1335,6 +1335,10 @@ class AppLocalizationsZgh extends AppLocalizations {
       'ⴰⵎⵉⴹⴰⵏⵉⴽ ⵓⵔ ⵢⴻⵜⵜⵡⴰⵇⵇⴻⵏ ⴰⵔⴰ ⵖⴻⵔ ⵢⵉⵡⴻⵏ ⵏ ⵓⵅⵅⴰⵎ. ⵃⴰⴷⴻⵔ ⵉ ⵜⵎⴻⵀⵍⴰ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ.';
 
   @override
+  String get duesNoApartmentForManager =>
+      'ⴰⵎⵉⴹⴰⵏⵉⴽ ⵓⵔ ⵢⴻⵜⵜⵡⴰⵇⵇⴻⵏ ⴰⵔⴰ ⵖⴻⵔ ⵢⵉⵡⴻⵏ ⵏ ⵓⵅⵅⴰⵎ. ⵙⴱⴷⴷ ⴰⵅⵅⴰⵎ ⵏⵏⴽ ⴳ ⵜⵙⵏⴰ ⵏ ⵜⴻⴷⴱⴻⵍⵜ.';
+
+  @override
   String get duesNoRecords => 'ⵓⵔ ⵜⵜⵡⴰⵙⴻⴽⴽⵔⴻⵏ ⴰⵔⴰ ⵢⵉⴷⵔⵉⵎⴻⵏ ⵉ ⵓⵅⵅⴰⵎⴰ ⴰⵔ ⴰⵙⵙⴰ.';
 
   @override

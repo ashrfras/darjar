@@ -1314,6 +1314,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يتم ربط حسابك بشقة بعد. تواصل مع إدارة الإقامة.';
 
   @override
+  String get duesNoApartmentForManager =>
+      'لم يتم ربط حسابك بشقة بعد. قم بتعيين شقتك في صفحة الإدارة.';
+
+  @override
   String get duesNoRecords => 'لا توجد اشتراكات مسجلة لهذه الشقة بعد.';
 
   @override

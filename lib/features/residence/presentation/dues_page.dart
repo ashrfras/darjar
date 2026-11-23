@@ -57,7 +57,9 @@ class DuesPage extends ConsumerWidget {
                   _EmptyState(
                     key: const Key('dues-no-apartment'),
                     icon: Icons.home_work_outlined,
-                    message: localizations.duesNoApartment,
+                    message: activeResidence?.canManageResidence == true
+                        ? localizations.duesNoApartmentForManager
+                        : localizations.duesNoApartment,
                   )
                 else
                   duesState.when(

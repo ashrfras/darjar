@@ -415,6 +415,7 @@
   "duesAdvancePaymentHint": "After settling all dues, complete future months can be prepaid at {amount} MAD per month.",
   "@duesAdvancePaymentHint": {"placeholders": {"amount": {"type": "String"}}},
   "duesNoApartment": "Your account is not linked to an apartment yet. Contact residence management.",
+  "duesNoApartmentForManager": "Your account is not linked to an apartment yet. Assign your apartment on the Administration page.",
   "duesNoRecords": "No dues have been recorded for this apartment yet.",
   "duesNoApartments": "Add apartments first to generate monthly dues.",
   "duesApartment": "Apartment {number}",

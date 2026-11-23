@@ -5276,6 +5276,55 @@ void main() {
     expect(find.text('لا توجد اشتراكات مسجلة لهذه الشقة بعد.'), findsNothing);
   });
 
+  for (final (role, delegated) in [
+    ('president', false),
+    ('resident', true),
+    ('resident', false),
+  ]) {
+    testWidgets(
+      'unassigned apartment guidance for $role, delegated: $delegated',
+      (tester) async {
+        await _pumpApp(
+          tester,
+          size: const Size(390, 844),
+          initialLocation: AppRoutes.residence,
+          residenceContext: ResidenceContext(
+            activeResidenceId: 'test-residence',
+            residences: [
+              UserResidence(
+                id: 'test-residence',
+                name: 'إقامة الاختبار',
+                address: '',
+                city: '6141010',
+                role: role,
+                apartmentId: '',
+                hasPresidentPermissions: delegated,
+              ),
+            ],
+          ),
+        );
+        final message = role == 'president' || delegated
+            ? 'لم يتم ربط حسابك بشقة بعد. قم بتعيين شقتك في صفحة الإدارة.'
+            : 'لم يتم ربط حسابك بشقة بعد. تواصل مع إدارة الإقامة.';
+        final alert = find.byKey(const Key('apartment-not-assigned-alert'));
+        expect(
+          find.descendant(of: alert, matching: find.text(message)),
+          findsOneWidget,
+        );
+
+        GoRouter.of(tester.element(alert)).push<void>(AppRoutes.dues).ignore();
+        await tester.pumpAndSettle();
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('dues-no-apartment')),
+            matching: find.text(message),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+  }
+
   testWidgets('resident dues refresh on visits, return, resume, and pull', (
     tester,
   ) async {

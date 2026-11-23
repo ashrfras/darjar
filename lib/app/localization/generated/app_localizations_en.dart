@@ -1342,6 +1342,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your account is not linked to an apartment yet. Contact residence management.';
 
   @override
+  String get duesNoApartmentForManager =>
+      'Your account is not linked to an apartment yet. Assign your apartment on the Administration page.';
+
+  @override
   String get duesNoRecords =>
       'No dues have been recorded for this apartment yet.';
 
