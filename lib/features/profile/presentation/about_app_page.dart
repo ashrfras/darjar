@@ -7,8 +7,10 @@ import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/profile/data/app_package_info.dart';
+import 'package:darjar/features/profile/presentation/social_contact_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/link.dart';
 
 class AboutAppPage extends ConsumerWidget {
   const AboutAppPage({super.key});
@@ -17,6 +19,9 @@ class AboutAppPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final packageInfo = ref.watch(appPackageInfoProvider);
+    final instagramColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.grey.shade300
+        : Colors.grey.shade700;
 
     return SingleChildScrollView(
       key: const Key('about-app-page'),
@@ -99,6 +104,21 @@ class AboutAppPage extends ConsumerWidget {
                       ),
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.medium),
+              Center(
+                child: Link(
+                  uri: Uri.https('www.instagram.com', '/darjar.app'),
+                  target: LinkTarget.blank,
+                  builder: (context, followLink) => IconButton(
+                    onPressed: followLink,
+                    color: instagramColor,
+                    icon: Semantics(
+                      label: localizations.aboutAppInstagram,
+                      child: const SocialContactIcon.instagram(),
+                    ),
+                  ),
                 ),
               ),
             ],

@@ -3021,6 +3021,12 @@ abstract class AppLocalizations {
   /// **'عن التطبيق'**
   String get aboutApp;
 
+  /// No description provided for @aboutAppInstagram.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنستغرام'**
+  String get aboutAppInstagram;
+
   /// No description provided for @aboutAppDescription.
   ///
   /// In ar, this message translates to:
@@ -4668,7 +4674,7 @@ abstract class AppLocalizations {
   /// No description provided for @whatsAppSupportPromptDescription.
   ///
   /// In ar, this message translates to:
-  /// **'يمكن لفريق دارجار التواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك. هل ترغب في ذلك؟'**
+  /// **'السماح لفريق دارجار بالتواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك. هل ترغب في ذلك؟'**
   String get whatsAppSupportPromptDescription;
 
   /// No description provided for @whatsAppSupportAccept.
@@ -4692,7 +4698,7 @@ abstract class AppLocalizations {
   /// No description provided for @whatsAppSupportDescription.
   ///
   /// In ar, this message translates to:
-  /// **'يمكن لفريق دارجار التواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك.'**
+  /// **'السماح لفريق دارجار بالتواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك.'**
   String get whatsAppSupportDescription;
 
   /// No description provided for @whatsAppSupportEnabledMessage.

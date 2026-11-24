@@ -1637,6 +1637,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutApp => 'About the app';
 
   @override
+  String get aboutAppInstagram => 'Instagram';
+
+  @override
   String get aboutAppDescription =>
       'A digital platform that helps residence neighbors connect and follow shared residence matters.';
 

@@ -1601,6 +1601,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get aboutApp => 'عن التطبيق';
 
   @override
+  String get aboutAppInstagram => 'إنستغرام';
+
+  @override
   String get aboutAppDescription =>
       'منصة رقمية تساعد سكان الإقامة على التواصل ومتابعة شؤون إقامتهم.';
 
@@ -2538,7 +2541,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get whatsAppSupportPromptDescription =>
-      'يمكن لفريق دارجار التواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك. هل ترغب في ذلك؟';
+      'السماح لفريق دارجار بالتواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك. هل ترغب في ذلك؟';
 
   @override
   String get whatsAppSupportAccept => 'نعم، أرحب بالتواصل';
@@ -2551,7 +2554,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get whatsAppSupportDescription =>
-      'يمكن لفريق دارجار التواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك.';
+      'السماح لفريق دارجار بالتواصل معك عبر واتساب لمساعدتك على إعداد إقامتك والإجابة عن استفساراتك.';
 
   @override
   String get whatsAppSupportEnabledMessage =>

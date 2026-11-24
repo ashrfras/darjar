@@ -9,7 +9,7 @@ import 'package:darjar/features/profile/presentation/public_legal_page.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const supportEmail = 'support@raqmain.ma';
+const supportEmail = 'contact@raqmain.ma';
 
 class SupportPage extends StatelessWidget {
   const SupportPage({super.key});

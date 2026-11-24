@@ -64,6 +64,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:image/image.dart' as test_image;
 import 'package:printing/printing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/link.dart';
 
 void main() {
   SharedPreferences.setMockInitialValues({});
@@ -335,7 +336,7 @@ void main() {
       expect(find.byKey(const Key('public-support-page')), findsOneWidget);
       expect(find.byKey(const Key('support-page-content')), findsOneWidget);
       expect(find.text('الدعم والتواصل'), findsWidgets);
-      expect(find.text('support@raqmain.ma'), findsOneWidget);
+      expect(find.text('contact@raqmain.ma'), findsOneWidget);
       expect(find.byKey(const Key('support-email-button')), findsOneWidget);
       expect(find.byKey(const Key('phone-auth-page')), findsNothing);
       expect(find.byKey(const Key('onboarding-page')), findsNothing);
@@ -2502,6 +2503,10 @@ void main() {
     await _enterResidence(tester);
 
     expect(prompt, findsOneWidget);
+    expect(
+      find.textContaining('السماح لفريق دارجار بالتواصل معك عبر واتساب'),
+      findsOneWidget,
+    );
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(support.answers, isEmpty);
@@ -5101,6 +5106,40 @@ void main() {
     expect(find.text('عرض أحداث أقدم'), findsNothing);
   });
 
+  testWidgets('account support opens the DarJar WhatsApp number', (
+    tester,
+  ) async {
+    const channel = MethodChannel('plugins.flutter.io/url_launcher');
+    final messenger = tester.binding.defaultBinaryMessenger;
+    final openedUrls = <String>[];
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      expect(call.method, 'launch');
+      openedUrls.add(call.arguments['url'] as String);
+      return true;
+    });
+    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+    final support = _FakeWhatsAppSupportRepository();
+    addTearDown(support.dispose);
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      whatsAppSupportRepository: support,
+    );
+    await _enterResidence(tester);
+    await tester.tap(find.byKey(const Key('profile-button')));
+    await tester.pumpAndSettle();
+    final supportLink = find.byKey(const Key('account-support-link'));
+    await tester.ensureVisible(supportLink);
+    await tester.tap(supportLink);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('212708113590'), findsNothing);
+    expect(find.text('تلجرام'), findsNothing);
+    await tester.tap(find.text('واتساب: تواصل معنا'));
+    await tester.pumpAndSettle();
+    expect(openedUrls, ['https://wa.me/212708113590']);
+  });
+
   testWidgets('profile opens privacy policy and about app before sign out', (
     tester,
   ) async {
@@ -5178,6 +5217,12 @@ void main() {
       TextDirection.ltr,
     );
     expect(tester.widget<DarJarBrand>(find.byType(DarJarBrand)).logoSize, 44);
+    final instagramLink = tester.widget<Link>(find.byType(Link));
+    expect(
+      instagramLink.uri,
+      Uri.parse('https://www.instagram.com/darjar.app'),
+    );
+    expect(find.text('إنستغرام'), findsNothing);
     expect(
       find.text('جميع الحقوق محفوظة © 2026 \u2066Raqmain®\u2069'),
       findsOneWidget,

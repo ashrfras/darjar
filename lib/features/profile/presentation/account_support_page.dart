@@ -5,6 +5,7 @@ import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/profile/data/whatsapp_support_repository.dart';
+import 'package:darjar/features/profile/presentation/social_contact_icon.dart';
 import 'package:darjar/features/profile/presentation/support_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 final _officialWhatsAppNumber = const String.fromEnvironment(
   'DARJAR_SUPPORT_WHATSAPP_NUMBER',
-  defaultValue: '+212708708001',
+  defaultValue: '+212708113590',
 ).trim().replaceFirst(RegExp(r'^\+'), '');
 
 class AccountSupportPage extends ConsumerWidget {
@@ -21,6 +22,9 @@ class AccountSupportPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = AppLocalizations.of(context);
+    final contactTextAlign = Directionality.of(context) == TextDirection.rtl
+        ? TextAlign.right
+        : TextAlign.left;
     final auth = ref.watch(authStateProvider);
     final user = auth.value ?? ref.watch(authRepositoryProvider).currentUser;
     final hasWhatsApp = RegExp(
@@ -59,7 +63,7 @@ class AccountSupportPage extends ConsumerWidget {
                       if (hasWhatsApp)
                         ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.chat_outlined),
+                          leading: const SocialContactIcon.whatsApp(),
                           title: Text(strings.accountSupportWhatsAppAction),
                           onTap: () => _openContact(
                             context,
@@ -73,10 +77,7 @@ class AccountSupportPage extends ConsumerWidget {
                         subtitle: Text(
                           supportEmail,
                           textDirection: TextDirection.ltr,
-                          textAlign:
-                              Directionality.of(context) == TextDirection.rtl
-                              ? TextAlign.right
-                              : TextAlign.left,
+                          textAlign: contactTextAlign,
                         ),
                         onTap: () => _openContact(
                           context,

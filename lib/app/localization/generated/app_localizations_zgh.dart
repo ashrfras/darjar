@@ -1632,6 +1632,9 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get aboutApp => 'ⵖⴻⴼ ⵓⵙⵏⴰⵙ';
 
   @override
+  String get aboutAppInstagram => 'Instagram';
+
+  @override
   String get aboutAppDescription =>
       'ⵜⴰⵖⴻⵔⵖⴻⵔⵜ ⵜⴰⵍⵉⴽⵟⵔⵓⵏⴰⵏⵜ ⵉ ⵢⴻⵜⵜⵄⴰⵡⴰⵏⴻⵏ ⵍⴵⵉⵔⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⴰⴷ ⵇⵇⵏⴻⵏ ⵢⴻⵔⵏⴰ ⴰⴷ ⴹⴻⴼⵔⴻⵏ ⵜⵉⵎⵙⴰⵍ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵢⴻⵜⵜⵡⴰⵙⵇⴻⴷⵛⴻⵏ.';
 
