@@ -7239,6 +7239,72 @@ void main() {
     }
   });
 
+  testWidgets('apartment numbers are unique across floors of each building', (
+    tester,
+  ) async {
+    final repository = _FakeResidenceMembersRepository();
+    final original = repository.data;
+    repository.data = ResidenceMembersData(
+      buildings: [
+        ...original.buildings,
+        const ResidenceBuilding(
+          id: 'annex',
+          nameAr: 'العمارة الثانية',
+          nameEn: 'Annex',
+          floors: [
+            ResidenceFloor(
+              id: 'ground-floor',
+              nameAr: 'الطابق الأرضي',
+              nameEn: 'Ground floor',
+              apartments: [],
+            ),
+          ],
+        ),
+      ],
+      members: original.members,
+    );
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceMembersRepository: repository,
+    );
+    await _enterResidence(tester);
+    await _openAdministration(tester);
+    await tester.ensureVisible(find.byKey(const Key('manage-apartments-link')));
+    await tester.tap(find.byKey(const Key('manage-apartments-link')));
+    await tester.pumpAndSettle();
+
+    final add = find.byKey(const Key('add-apartment-button'));
+    final number = find.byKey(const Key('new-apartment-number-field'));
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+    await tester.enterText(number, '012');
+    await tester.testTextInput.receiveAction(TextInputAction.next);
+    await tester.pumpAndSettle();
+    expect(find.text('توجد شقة بهذا الرقم في المبنى نفسه.'), findsOneWidget);
+    expect(find.text('المرحلة 1 من 2'), findsOneWidget);
+    expect(repository.data.apartments, hasLength(original.apartments.length));
+
+    await tester.tap(find.byTooltip('إلغاء'));
+    await tester.pumpAndSettle();
+    final annex = find.byKey(const Key('building-annex'));
+    await tester.ensureVisible(annex);
+    await tester.pumpAndSettle();
+    await tester.tap(annex);
+    await tester.pumpAndSettle();
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+    await tester.enterText(number, '012');
+    await tester.testTextInput.receiveAction(TextInputAction.next);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('confirm-add-apartment-button')));
+    await tester.pumpAndSettle();
+    expect(
+      repository.data.buildings.last.floors.single.apartments.single.number,
+      '12',
+    );
+  });
+
   testWidgets('apartments and residents support daily assignments', (
     tester,
   ) async {

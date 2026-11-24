@@ -371,18 +371,6 @@ class _ApartmentsResidentsPageState
       builder: (context) => _AddApartmentSheet(building: building, copy: copy),
     );
     if (!mounted || result == null) return;
-    final floor = building.floors.firstWhere(
-      (floor) => floor.id == result.floorId,
-    );
-    final duplicate = floor.apartments.any(
-      (apartment) =>
-          apartment.number.trim().toLowerCase() ==
-          result.number.trim().toLowerCase(),
-    );
-    if (duplicate) {
-      _showSavedMessage(copy.apartmentAlreadyExists);
-      return;
-    }
     try {
       await ref
           .read(residenceMembersProvider.notifier)
@@ -394,8 +382,13 @@ class _ApartmentsResidentsPageState
             firstUnpaidPeriodKey: result.firstUnpaidPeriodKey,
           );
       if (mounted) _showSavedMessage(copy.apartmentAdded);
-    } on ResidenceMembersFailure {
-      if (mounted) _showSavedMessage(copy.saveFailed);
+    } on ResidenceMembersFailure catch (error) {
+      if (!mounted) return;
+      _showSavedMessage(
+        error.code == 'apartment-number-in-use'
+            ? copy.apartmentAlreadyExists
+            : copy.saveFailed,
+      );
     }
   }
 
@@ -460,7 +453,7 @@ class _ApartmentsResidentsPageState
                   apartment.number.trim().toLowerCase(),
         );
         if (duplicate) {
-          _showSavedMessage(copy.apartmentAlreadyExists);
+          _showSavedMessage(copy.apartmentAlreadyExistsOnFloor);
           return;
         }
         try {
@@ -996,7 +989,7 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
   final _numberController = TextEditingController();
   late String _floorId = widget.building.floors.first.id;
   int _step = 0;
-  bool _showNumberError = false;
+  String? _numberError;
   ResidenceDuesTrackingStatus _trackingStatus =
       ResidenceDuesTrackingStatus.active;
   bool _hasPastUnpaidDues = false;
@@ -1093,13 +1086,14 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 textInputAction: TextInputAction.next,
+                onChanged: (_) {
+                  if (_numberError != null) setState(() => _numberError = null);
+                },
                 onSubmitted: (_) => _continueToTracking(),
                 decoration: InputDecoration(
                   labelText: widget.copy.apartmentNumberLabel,
                   hintText: widget.copy.apartmentNumberHint,
-                  errorText: _showNumberError
-                      ? widget.copy.apartmentNumberRequired
-                      : null,
+                  errorText: _numberError,
                 ),
               ),
               const SizedBox(height: AppSpacing.xLarge),
@@ -1253,23 +1247,35 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
   }
 
   void _continueToTracking() {
-    final number = _numberController.text.trim();
-    if (int.tryParse(number) == null) {
-      setState(() => _showNumberError = true);
+    final number = parseResidenceApartmentNumber(_numberController.text);
+    if (number == null) {
+      setState(() => _numberError = widget.copy.apartmentNumberRequired);
+      return;
+    }
+    final duplicate = widget.building.floors
+        .expand((floor) => floor.apartments)
+        .any(
+          (apartment) =>
+              parseResidenceApartmentNumber(apartment.number) == number,
+        );
+    if (duplicate) {
+      setState(() => _numberError = widget.copy.apartmentAlreadyExists);
       return;
     }
     FocusScope.of(context).unfocus();
     setState(() {
-      _showNumberError = false;
+      _numberError = null;
       _step = 1;
     });
   }
 
   void _submit() {
-    final number = _numberController.text.trim();
-    final numericNumber = int.tryParse(number);
+    final numericNumber = parseResidenceApartmentNumber(_numberController.text);
     if (numericNumber == null) {
-      setState(() => _showNumberError = true);
+      setState(() {
+        _step = 0;
+        _numberError = widget.copy.apartmentNumberRequired;
+      });
       return;
     }
     final needsFirstUnpaidMonth =
@@ -3038,6 +3044,9 @@ class _Copy {
   String get apartmentDeleted =>
       arabic ? 'تم حذف الشقة.' : 'Apartment deleted.';
   String get apartmentAlreadyExists => arabic
+      ? 'توجد شقة بهذا الرقم في المبنى نفسه.'
+      : 'An apartment with this number already exists in this building.';
+  String get apartmentAlreadyExistsOnFloor => arabic
       ? 'توجد شقة بهذا الرقم في الطابق نفسه.'
       : 'An apartment with this number already exists on this floor.';
   String get residenceSettings => arabic ? 'الإعدادات' : 'Settings';

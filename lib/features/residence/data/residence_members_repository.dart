@@ -101,6 +101,12 @@ int compareResidenceApartmentNumbers(String first, String second) {
   return first.compareTo(second);
 }
 
+int? parseResidenceApartmentNumber(String input) {
+  final number = input.trim();
+  if (!RegExp(r'^[0-9]+$').hasMatch(number)) return null;
+  return int.tryParse(number, radix: 10);
+}
+
 class ResidenceFloor {
   const ResidenceFloor({
     required this.id,
@@ -476,40 +482,78 @@ class FirestoreResidenceMembersRepository
     required String currentPeriodKey,
     required int defaultAmount,
   }) async {
-    final apartment = _firestore
+    final numericNumber = parseResidenceApartmentNumber(number);
+    if (numericNumber == null) {
+      throw const ResidenceMembersFailure('invalid-apartment-number');
+    }
+    final building = _firestore
         .collection('residences')
         .doc(residenceId)
         .collection('buildings')
-        .doc(buildingId)
-        .collection('floors')
-        .doc(floorId)
-        .collection('apartments')
-        .doc();
-    final batch = _firestore.batch();
+        .doc(buildingId);
+    final floors = building.collection('floors');
+    final floor = floors.doc(floorId);
+    final apartment = floor.collection('apartments').doc();
     final trackingStartPeriodKey = firstUnpaidPeriodKey ?? currentPeriodKey;
-    batch.set(apartment, {
-      'number': int.parse(number.trim()),
-      'duesTrackingStatus': duesTrackingStatus.name,
-      'duesTrackingStartPeriodKey':
-          duesTrackingStatus == ResidenceDuesTrackingStatus.active
-          ? trackingStartPeriodKey
-          : '',
-      'openingPaidThroughPeriodKey': '',
-      'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-    if (duesTrackingStatus == ResidenceDuesTrackingStatus.active) {
-      _addOpeningDuesToBatch(
-        batch: batch,
-        residenceId: residenceId,
-        apartmentId: apartment.id,
-        apartmentNumber: number.trim(),
-        startPeriodKey: trackingStartPeriodKey,
-        currentPeriodKey: currentPeriodKey,
-        defaultAmount: defaultAmount,
-      );
+    final trackingActive =
+        duesTrackingStatus == ResidenceDuesTrackingStatus.active;
+    const server = GetOptions(source: Source.server);
+
+    try {
+      await _firestore.runTransaction((transaction) async {
+        // FlutterFire transactions read individual documents. Read the building
+        // before querying its floors so a concurrent write retries the check.
+        final buildingDocument = await transaction.get(building);
+        final floorDocument = await transaction.get(floor);
+        if (!buildingDocument.exists || !floorDocument.exists) {
+          throw const ResidenceMembersFailure('apartment-floor-not-found');
+        }
+        final floorDocuments = await floors.get(server);
+        final apartmentSnapshots = await Future.wait([
+          for (final floor in floorDocuments.docs)
+            floor.reference.collection('apartments').get(server),
+        ]);
+        final duplicate = apartmentSnapshots
+            .expand((snapshot) => snapshot.docs)
+            .any(
+              (document) =>
+                  parseResidenceApartmentNumber(
+                    document.data()['number']?.toString() ?? '',
+                  ) ==
+                  numericNumber,
+            );
+        if (duplicate) {
+          throw const ResidenceMembersFailure('apartment-number-in-use');
+        }
+
+        transaction.update(building, {
+          'apartmentsUpdatedAt': FieldValue.serverTimestamp(),
+        });
+        transaction.set(apartment, {
+          'number': numericNumber,
+          'duesTrackingStatus': duesTrackingStatus.name,
+          'duesTrackingStartPeriodKey': trackingActive
+              ? trackingStartPeriodKey
+              : '',
+          'openingPaidThroughPeriodKey': '',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        if (trackingActive) {
+          _writeOpeningDues(
+            writeDue: transaction.set,
+            residenceId: residenceId,
+            apartmentId: apartment.id,
+            apartmentNumber: numericNumber.toString(),
+            startPeriodKey: trackingStartPeriodKey,
+            currentPeriodKey: currentPeriodKey,
+            defaultAmount: defaultAmount,
+          );
+        }
+      });
+    } on FirebaseException catch (error) {
+      throw ResidenceMembersFailure(error.code, error.message);
     }
-    await batch.commit();
   }
 
   @override
@@ -542,8 +586,8 @@ class FirestoreResidenceMembersRepository
       'duesTrackingStartedAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
-    _addOpeningDuesToBatch(
-      batch: batch,
+    _writeOpeningDues(
+      writeDue: batch.set,
       residenceId: residenceId,
       apartmentId: apartment.id,
       apartmentNumber: apartment.number,
@@ -590,11 +634,18 @@ class FirestoreResidenceMembersRepository
         'updatedAt': FieldValue.serverTimestamp(),
       });
       transaction.delete(source);
+      transaction.update(building, {
+        'apartmentsUpdatedAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 
-  void _addOpeningDuesToBatch({
-    required WriteBatch batch,
+  void _writeOpeningDues({
+    required void Function(
+      DocumentReference<Map<String, dynamic>>,
+      Map<String, dynamic>,
+    )
+    writeDue,
     required String residenceId,
     required String apartmentId,
     required String apartmentNumber,
@@ -612,7 +663,7 @@ class FirestoreResidenceMembersRepository
       currentPeriodKey,
     )) {
       final paid = markCurrentPeriodPaid && periodKey == currentPeriodKey;
-      batch.set(dues.doc('${periodKey}_$apartmentId'), {
+      writeDue(dues.doc('${periodKey}_$apartmentId'), {
         'apartmentId': apartmentId,
         'apartmentNumber': apartmentNumber,
         'periodKey': periodKey,
