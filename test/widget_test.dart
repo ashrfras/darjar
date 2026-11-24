@@ -7189,7 +7189,12 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.next);
       await tester.pumpAndSettle();
 
-      expect(find.text('هل توجد اشتراكات سابقة غير مؤداة؟'), findsOneWidget);
+      await tester.tap(find.text('بدء الاحتساب الآن'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('هل توجد واجبات اشتراك سابقة غير مؤداة؟'),
+        findsOneWidget,
+      );
       expect(
         tester
             .widget<SegmentedButton<bool>>(
@@ -7200,7 +7205,7 @@ void main() {
       );
       expect(monthField, findsNothing);
       expect(
-        find.text('يبدأ احتساب الاستحقاقات من الشهر الحالي.'),
+        find.text('سيبدأ احتساب الاستحقاقات من الشهر الحالي.'),
         findsOneWidget,
       );
       if (hasPastDues) {
@@ -7297,18 +7302,45 @@ void main() {
     await tester.enterText(number, '012');
     await tester.testTextInput.receiveAction(TextInputAction.next);
     await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<SegmentedButton<ResidenceDuesTrackingStatus>>(
+            find.byKey(const Key('apartment-dues-tracking-field')),
+          )
+          .selected,
+      {ResidenceDuesTrackingStatus.notStarted},
+    );
+    expect(find.text('احتساب الاشتراك'), findsOneWidget);
+    expect(
+      tester.getCenter(find.text('بدء الاحتساب لاحقًا')).dx,
+      greaterThan(tester.getCenter(find.text('بدء الاحتساب الآن')).dx),
+    );
+    expect(
+      find.text('لن تُنشأ استحقاقات لهذه الشقة حتى يتم تفعيلها يدويا.'),
+      findsOneWidget,
+    );
+    expect(find.text('هل توجد واجبات اشتراك سابقة غير مؤداة؟'), findsNothing);
     await tester.tap(find.byKey(const Key('confirm-add-apartment-button')));
     await tester.pumpAndSettle();
+    final apartment =
+        repository.data.buildings.last.floors.single.apartments.single;
+    expect(apartment.number, '12');
     expect(
-      repository.data.buildings.last.floors.single.apartments.single.number,
-      '12',
+      apartment.duesTrackingStatus,
+      ResidenceDuesTrackingStatus.notStarted,
     );
+    expect(apartment.duesTrackingStartPeriodKey, isEmpty);
   });
 
   testWidgets('apartments and residents support daily assignments', (
     tester,
   ) async {
-    await _pumpApp(tester, size: const Size(390, 844));
+    final repository = _FakeResidenceMembersRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceMembersRepository: repository,
+    );
     await _enterResidence(tester);
     await _openAdministration(tester);
     await tester.ensureVisible(find.byKey(const Key('manage-apartments-link')));
@@ -7328,7 +7360,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('التتبّع مفعّل'), findsNothing);
+    expect(find.text('الاحتساب مفعّل'), findsNothing);
     expect(find.text('عدد السكان'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('apartment-apartment-12')));
     await tester.pumpAndSettle();
@@ -7338,7 +7370,8 @@ void main() {
     );
     expect(find.text('معلومات الشقة'), findsOneWidget);
     expect(find.text('عدد السكان'), findsOneWidget);
-    expect(find.text('التتبّع مفعّل'), findsOneWidget);
+    expect(find.text('احتساب الاشتراك'), findsOneWidget);
+    expect(find.text('الاحتساب مفعّل'), findsOneWidget);
     expect(find.text('يوسف العلوي'), findsOneWidget);
     final secondFloorChoice = find.byKey(
       const ValueKey('edit-apartment-floor-second-floor'),
@@ -7351,6 +7384,12 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('تم تحديث طابق الشقة.'), findsOneWidget);
+    expect(
+      repository.data.apartments
+          .singleWhere((apartment) => apartment.id == 'apartment-12')
+          .duesTrackingStatus,
+      ResidenceDuesTrackingStatus.active,
+    );
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('floor-second-floor')),
@@ -7395,6 +7434,8 @@ void main() {
       const Key('apartment-first-unpaid-month-field'),
     );
     expect(firstUnpaidMonth, findsNothing);
+    await tester.tap(find.text('بدء الاحتساب الآن'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('نعم'));
     await tester.pumpAndSettle();
     expect(firstUnpaidMonth, findsOneWidget);
@@ -7422,9 +7463,9 @@ void main() {
     );
     await tester.tap(find.text('إلغاء').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('يبدأ التتبّع لاحقًا'));
+    await tester.tap(find.text('بدء الاحتساب لاحقًا'));
     await tester.pumpAndSettle();
-    expect(find.text('هل توجد اشتراكات سابقة غير مؤداة؟'), findsNothing);
+    expect(find.text('هل توجد واجبات اشتراك سابقة غير مؤداة؟'), findsNothing);
     expect(firstUnpaidMonth, findsNothing);
     tester
         .widget<OutlinedButton>(
@@ -7461,7 +7502,7 @@ void main() {
     );
     await tester.tap(addedApartment);
     await tester.pumpAndSettle();
-    expect(find.text('التتبّع لم يبدأ'), findsOneWidget);
+    expect(find.text('الاحتساب لم يبدأ'), findsOneWidget);
     expect(
       find.byKey(
         const ValueKey('start-dues-tracking-apartment-ground-floor-3'),
@@ -7545,12 +7586,12 @@ void main() {
     );
     tester.widget<FilledButton>(confirmTracking).onPressed!();
     await tester.pumpAndSettle();
-    expect(find.text('التتبّع مفعّل'), findsNothing);
+    expect(find.text('الاحتساب مفعّل'), findsNothing);
 
     await tester.ensureVisible(addedApartment);
     await tester.tap(addedApartment);
     await tester.pumpAndSettle();
-    expect(find.text('التتبّع مفعّل'), findsOneWidget);
+    expect(find.text('الاحتساب مفعّل'), findsOneWidget);
     expect(
       find.byKey(
         const ValueKey('start-dues-tracking-apartment-ground-floor-3'),

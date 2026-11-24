@@ -991,7 +991,7 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
   int _step = 0;
   String? _numberError;
   ResidenceDuesTrackingStatus _trackingStatus =
-      ResidenceDuesTrackingStatus.active;
+      ResidenceDuesTrackingStatus.notStarted;
   bool _hasPastUnpaidDues = false;
   bool _showFirstUnpaidMonthError = false;
   DateTime? _firstUnpaidMonth;
@@ -1114,14 +1114,14 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
                 showSelectedIcon: false,
                 segments: [
                   ButtonSegment(
-                    value: ResidenceDuesTrackingStatus.active,
-                    icon: const Icon(Icons.playlist_add_check_rounded),
-                    label: Text(widget.copy.trackingActive),
-                  ),
-                  ButtonSegment(
                     value: ResidenceDuesTrackingStatus.notStarted,
                     icon: const Icon(Icons.pause_circle_outline_rounded),
-                    label: Text(widget.copy.trackingStartsLater),
+                    label: Text(widget.copy.startDuesLater),
+                  ),
+                  ButtonSegment(
+                    value: ResidenceDuesTrackingStatus.active,
+                    icon: const Icon(Icons.playlist_add_check_rounded),
+                    label: Text(widget.copy.startDuesNow),
                   ),
                 ],
                 selected: {_trackingStatus},
@@ -2965,7 +2965,7 @@ class _Copy {
   String get residentCountLabel => arabic ? 'عدد السكان' : 'Residents';
   String get apartmentResidents => arabic ? 'السكان' : 'Residents';
   String get trackingStartPeriod =>
-      arabic ? 'بداية التتبّع' : 'Tracking started';
+      arabic ? 'بداية الاحتساب' : 'Dues start period';
   String get close => arabic ? 'إغلاق' : 'Close';
   String get fieldRequired =>
       arabic ? 'هذا الحقل مطلوب.' : 'This field is required.';
@@ -3006,18 +3006,18 @@ class _Copy {
   String get apartmentAdded => arabic ? 'تمت إضافة الشقة.' : 'Apartment added.';
   String get apartmentFloorUpdated =>
       arabic ? 'تم تحديث طابق الشقة.' : 'Apartment floor updated.';
-  String get duesTracking => arabic ? 'تتبّع الاشتراك' : 'Dues tracking';
-  String get trackingActive => arabic ? 'التتبّع مفعّل' : 'Tracking active';
-  String get trackingStartsLater =>
-      arabic ? 'يبدأ التتبّع لاحقًا' : 'Start tracking later';
+  String get duesTracking => arabic ? 'احتساب الاشتراك' : 'Dues calculation';
+  String get startDuesNow => arabic ? 'بدء الاحتساب الآن' : 'Start now';
+  String get startDuesLater => arabic ? 'بدء الاحتساب لاحقًا' : 'Start later';
+  String get trackingActive => arabic ? 'الاحتساب مفعّل' : 'Calculation active';
   String get trackingNotStarted =>
-      arabic ? 'التتبّع لم يبدأ' : 'Tracking not started';
+      arabic ? 'الاحتساب لم يبدأ' : 'Calculation not started';
   String get trackingLaterHint => arabic
-      ? 'لن تُنشأ استحقاقات أو تذكيرات حتى يبدأ التتبّع يدويًا.'
-      : 'No dues or reminders are created until tracking is started manually.';
+      ? 'لن تُنشأ استحقاقات لهذه الشقة حتى يتم تفعيلها يدويا.'
+      : 'No dues will be created for this apartment until dues calculation is enabled manually.';
   String get lastPaidMonth => arabic ? 'آخر شهر مؤدى' : 'Last paid month';
   String get pastUnpaidDuesQuestion => arabic
-      ? 'هل توجد اشتراكات سابقة غير مؤداة؟'
+      ? 'هل توجد واجبات اشتراك سابقة غير مؤداة؟'
       : 'Are there unpaid dues from previous months?';
   String get no => arabic ? 'لا' : 'No';
   String get yes => arabic ? 'نعم' : 'Yes';
@@ -3027,7 +3027,7 @@ class _Copy {
   String get firstUnpaidMonthRequired =>
       arabic ? 'اختر أول شهر غير مؤدى.' : 'Choose the first unpaid month.';
   String get currentMonthDuesHint => arabic
-      ? 'يبدأ احتساب الاستحقاقات من الشهر الحالي.'
+      ? 'سيبدأ احتساب الاستحقاقات من الشهر الحالي.'
       : 'Dues start from the current month.';
   String get pastUnpaidDuesHint => arabic
       ? 'تُحتسب الاستحقاقات من الشهر المختار إلى الشهر الحالي.'
@@ -3038,9 +3038,11 @@ class _Copy {
   String get startDuesFromCurrentMonthHint => arabic
       ? 'تجاهل مستحقات الأشهر السابقة وبدء الاحتساب من الشهر الحالي، إذا لم ترغب في ذلك فيرجى تحديد آخر شهر مؤدى.'
       : 'Skip dues for previous months and start counting from the current month. Otherwise, select the last paid month.';
-  String get startTracking => arabic ? 'بدء التتبّع' : 'Start tracking';
-  String get duesTrackingStarted =>
-      arabic ? 'بدأ تتبّع اشتراك الشقة.' : 'Apartment dues tracking started.';
+  String get startTracking =>
+      arabic ? 'بدء الاحتساب' : 'Start calculating dues';
+  String get duesTrackingStarted => arabic
+      ? 'بدأ احتساب اشتراك الشقة.'
+      : 'Apartment dues calculation started.';
   String get apartmentDeleted =>
       arabic ? 'تم حذف الشقة.' : 'Apartment deleted.';
   String get apartmentAlreadyExists => arabic
@@ -3118,8 +3120,8 @@ class _Copy {
   String apartmentNumber(String number) =>
       arabic ? 'الشقة $number' : 'Apartment $number';
   String startTrackingFor(String number) => arabic
-      ? 'بدء تتبّع اشتراك الشقة $number'
-      : 'Start dues tracking for apartment $number';
+      ? 'بدء احتساب اشتراك الشقة $number'
+      : 'Start calculating dues for apartment $number';
   String deleteInvitationConfirmation(String name) => arabic
       ? 'هل تريد حذف دعوة $name؟ لن يتمكن من قبولها بعد ذلك.'
       : 'Delete the invitation for $name? They will no longer be able to accept it.';
