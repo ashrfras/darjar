@@ -133,7 +133,8 @@ class ResidenceHomePage extends ConsumerWidget {
               if (activeResidence != null &&
                   activeResidence.apartmentId.isEmpty) ...[
                 _ApartmentAssignmentAlert(
-                  canManageResidence: activeResidence.canManageResidence,
+                  canManageApartmentsAndResidents:
+                      activeResidence.canManageApartmentsAndResidents,
                 ),
                 const SizedBox(height: AppSpacing.medium),
               ],
@@ -156,9 +157,11 @@ class ResidenceHomePage extends ConsumerWidget {
 }
 
 class _ApartmentAssignmentAlert extends StatelessWidget {
-  const _ApartmentAssignmentAlert({required this.canManageResidence});
+  const _ApartmentAssignmentAlert({
+    required this.canManageApartmentsAndResidents,
+  });
 
-  final bool canManageResidence;
+  final bool canManageApartmentsAndResidents;
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +180,7 @@ class _ApartmentAssignmentAlert extends StatelessWidget {
           const SizedBox(width: AppSpacing.medium),
           Expanded(
             child: Text(
-              canManageResidence
+              canManageApartmentsAndResidents
                   ? localizations.duesNoApartmentForManager
                   : localizations.duesNoApartment,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(

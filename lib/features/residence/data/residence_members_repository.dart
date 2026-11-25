@@ -826,7 +826,8 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
           .read(residenceMembersRepositoryProvider)
           .load(
             residenceId,
-            includeInvitations: activeResidence!.canManageResidence,
+            includeInvitations:
+                activeResidence!.canManageApartmentsAndResidents,
           );
     });
   }

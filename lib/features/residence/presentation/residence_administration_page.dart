@@ -37,11 +37,11 @@ class _ResidenceAdministrationPageState
         .watch(residenceContextProvider)
         .value
         ?.activeResidence;
-    if (activeResidence?.canManageResidence != true) {
-      return const _AdministrationRedirect();
-    }
+    final awaitingPresident =
+        activeResidence?.isCreatorAwaitingPresident == true;
     final isPresident =
-        activeResidence!.role == 'president' || activeResidence.role == 'owner';
+        activeResidence?.role == 'president' ||
+        activeResidence?.role == 'owner';
 
     return SingleChildScrollView(
       key: const Key('residence-administration-page'),
@@ -60,9 +60,15 @@ class _ResidenceAdministrationPageState
             children: [
               DarJarPageHeader(
                 title: localizations.residenceAdministration,
-                description: localizations.residenceAdministrationDescription,
+                description: awaitingPresident
+                    ? null
+                    : localizations.residenceAdministrationDescription,
               ),
               const SizedBox(height: AppSpacing.large),
+              if (awaitingPresident) ...[
+                const _AwaitingPresidentCard(),
+                const SizedBox(height: AppSpacing.large),
+              ],
               DarJarCard(
                 key: const Key('residence-management-section'),
                 padding: EdgeInsets.zero,
@@ -79,7 +85,9 @@ class _ResidenceAdministrationPageState
                     _ManagementLink(
                       key: const Key('manage-apartments-link'),
                       icon: Icons.apartment_outlined,
-                      title: localizations.apartments,
+                      title: awaitingPresident
+                          ? localizations.apartmentsAndResidents
+                          : localizations.apartments,
                       description:
                           localizations.apartmentsManagementDescription,
                       route: AppRoutes.manageApartments,
@@ -91,6 +99,7 @@ class _ResidenceAdministrationPageState
                       title: localizations.duesManagement,
                       description: localizations.duesManagementDescription,
                       route: AppRoutes.manageDues,
+                      enabled: !awaitingPresident,
                     ),
                     const Divider(),
                     _ManagementLink(
@@ -99,6 +108,7 @@ class _ResidenceAdministrationPageState
                       title: localizations.financeManagement,
                       description: localizations.manageFinanceDescription,
                       route: AppRoutes.manageFinances,
+                      enabled: !awaitingPresident,
                     ),
                     const Divider(),
                     _ManagementLink(
@@ -107,6 +117,7 @@ class _ResidenceAdministrationPageState
                       title: reportCopy.reports,
                       description: reportCopy.reportsDescription,
                       route: AppRoutes.reports,
+                      enabled: !awaitingPresident,
                     ),
                     const Divider(),
                     _ManagementLink(
@@ -115,11 +126,12 @@ class _ResidenceAdministrationPageState
                       title: localizations.documentsManagement,
                       description: localizations.documentsManagementDescription,
                       route: AppRoutes.manageDocuments,
+                      enabled: !awaitingPresident,
                     ),
                   ],
                 ),
               ),
-              if (isPresident) ...[
+              if (activeResidence != null && isPresident) ...[
                 const SizedBox(height: AppSpacing.large),
                 DarJarCard(
                   padding: EdgeInsets.zero,
@@ -287,12 +299,66 @@ class _ResidenceAdministrationPageState
   }
 }
 
+class _AwaitingPresidentCard extends StatelessWidget {
+  const _AwaitingPresidentCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    const inlineLink = '\uFFFC';
+    final [beforeLink, afterLink] = localizations
+        .residenceAwaitingPresidentDescription(inlineLink)
+        .split(inlineLink);
+
+    return DarJarCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            localizations.residenceAwaitingPresidentTitle,
+            style: theme.textTheme.titleLarge,
+          ),
+          const SizedBox(height: AppSpacing.small),
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(text: beforeLink),
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.baseline,
+                  baseline: TextBaseline.alphabetic,
+                  child: Semantics(
+                    link: true,
+                    child: InkWell(
+                      onTap: () =>
+                          context.push(AppRoutes.appointResidencePresident),
+                      child: Text(
+                        localizations.residencePresidentAppointmentLink,
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                TextSpan(text: afterLink),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ManagementLink extends StatelessWidget {
   const _ManagementLink({
     required this.icon,
     required this.title,
     required this.description,
     required this.route,
+    this.enabled = true,
     super.key,
   });
 
@@ -300,10 +366,12 @@ class _ManagementLink extends StatelessWidget {
   final String title;
   final String description;
   final String route;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      enabled: enabled,
       leading: Icon(icon),
       title: Text(title),
       subtitle: Text(description),
@@ -311,30 +379,30 @@ class _ManagementLink extends StatelessWidget {
         Icons.chevron_left_rounded,
         textDirection: TextDirection.ltr,
       ),
-      onTap: () => context.push(route),
+      onTap: enabled ? () => context.push(route) : null,
     );
   }
 }
 
-class _AdministrationRedirect extends StatefulWidget {
-  const _AdministrationRedirect();
-
-  @override
-  State<_AdministrationRedirect> createState() =>
-      _AdministrationRedirectState();
-}
-
-class _AdministrationRedirectState extends State<_AdministrationRedirect> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.go(AppRoutes.community);
-    });
-  }
+class AppointResidencePresidentPage extends StatelessWidget {
+  const AppointResidencePresidentPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: CircularProgressIndicator());
+    final localizations = AppLocalizations.of(context);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.xLarge),
+      child: Align(
+        alignment: AlignmentDirectional.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 820),
+          child: DarJarSubpageHeader(
+            title: localizations.appointResidencePresident,
+            description: localizations.comingSoon,
+            fallbackLocation: AppRoutes.administration,
+          ),
+        ),
+      ),
+    );
   }
 }

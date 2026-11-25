@@ -1829,6 +1829,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Residence management tools for the president and authorized people.';
 
   @override
+  String get residenceAwaitingPresidentTitle =>
+      'Your residence is waiting for a president';
+
+  @override
+  String residenceAwaitingPresidentDescription(String appointmentLink) {
+    return 'You can start by adding apartments and residents and inviting your neighbors. To enable the remaining management and finance tools, you must $appointmentLink.';
+  }
+
+  @override
+  String get residencePresidentAppointmentLink =>
+      'appoint a residence president';
+
+  @override
+  String get appointResidencePresident => 'Appoint a residence president';
+
+  @override
+  String get apartmentsAndResidents => 'Apartments and residents';
+
+  @override
   String get residenceSettings => 'Residence settings';
 
   @override

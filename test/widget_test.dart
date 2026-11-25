@@ -6342,6 +6342,120 @@ void main() {
     expect(find.byKey(const Key('reset-residence-button')), findsNothing);
   });
 
+  testWidgets('residence creator can edit settings and prepare apartments', (
+    tester,
+  ) async {
+    final membersRepository = _FakeResidenceMembersRepository();
+    final settingsRepository = _FakeResidenceSettingsRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      residenceMembersRepository: membersRepository,
+      residenceSettingsRepository: settingsRepository,
+      residenceContext: const ResidenceContext(
+        residences: [
+          UserResidence(
+            id: 'test-residence',
+            name: 'إقامة الاختبار',
+            address: 'شارع الاختبار',
+            city: '6141010',
+            role: 'resident',
+            apartmentId: '',
+            isCreatorAwaitingPresident: true,
+          ),
+        ],
+        activeResidenceId: 'test-residence',
+      ),
+    );
+    await _enterResidence(tester);
+    await _openAdministration(tester);
+    expect(find.text('إقامتك بانتظار تعيين رئيس'), findsOneWidget);
+    expect(
+      find.textContaining(
+        'يمكنك البدء بإضافة الشقق والسكان ودعوة جيرانك. لتفعيل بقية أدوات الإدارة والمالية، يجب',
+      ),
+      findsOneWidget,
+    );
+    ListTile managementTile(String key) => tester.widget<ListTile>(
+      find.descendant(
+        of: find.byKey(Key(key)),
+        matching: find.byType(ListTile),
+      ),
+    );
+    for (final link in [
+      'manage-dues-link',
+      'manage-finances-link',
+      'manage-reports-link',
+      'manage-documents-link',
+    ]) {
+      final tile = managementTile(link);
+      expect(tile.enabled, isFalse, reason: link);
+      expect(tile.onTap, isNull, reason: link);
+    }
+    final apartments = find.byKey(const Key('manage-apartments-link'));
+    expect(managementTile('manage-apartments-link').enabled, isTrue);
+    final settings = find.byKey(const Key('manage-residence-link'));
+    expect(managementTile('manage-residence-link').enabled, isTrue);
+
+    await tester.tap(settings);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('residence-settings-page')), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const Key('residence-name-field')),
+      'إقامة الياسمين',
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const Key('save-residence-settings-button')).hitTestable(),
+    );
+    await tester.pumpAndSettle();
+    expect(settingsRepository.settings.name, 'إقامة الياسمين');
+    await tester.tap(find.byKey(const Key('subpage-back-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تعيين رئيس الإقامة'), findsNothing);
+    await tester.tap(find.text('تعيين رئيس للإقامة'));
+    await tester.pumpAndSettle();
+    expect(find.text('قريبًا'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('subpage-back-button')));
+    await tester.pumpAndSettle();
+
+    final router = GoRouter.of(tester.element(apartments));
+    router.go(AppRoutes.manageFinances);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('residence-administration-page')),
+      findsOneWidget,
+    );
+
+    await tester.ensureVisible(apartments);
+    await tester.tap(apartments);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('add-apartment-button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('new-apartment-number-field')),
+      '999',
+    );
+    expect(
+      find.byKey(const Key('apartment-dues-tracking-field')),
+      findsNothing,
+    );
+    await tester.tap(find.byKey(const Key('confirm-add-apartment-button')));
+    await tester.pumpAndSettle();
+    expect(
+      membersRepository.data.apartments
+          .singleWhere((apartment) => apartment.number == '999')
+          .duesTrackingStatus,
+      ResidenceDuesTrackingStatus.notStarted,
+    );
+    await tester.tap(find.text('السكان').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('group-invitation-button')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('group-invitation-page')), findsOneWidget);
+  });
+
   testWidgets(
     'residence management is visible with delegated president permissions',
     (tester) async {

@@ -565,6 +565,18 @@
   "profileRoleResident": "ساكن",
   "residenceAdministration": "الإدارة",
   "residenceAdministrationDescription": "أدوات إدارة الإقامة المخصصة للرئيس والأشخاص المخوّلين.",
+  "residenceAwaitingPresidentTitle": "إقامتك بانتظار تعيين رئيس",
+  "residenceAwaitingPresidentDescription": "يمكنك البدء بإضافة الشقق والسكان ودعوة جيرانك. لتفعيل بقية أدوات الإدارة والمالية، يجب {appointmentLink}.",
+  "@residenceAwaitingPresidentDescription": {
+    "placeholders": {
+      "appointmentLink": {
+        "type": "String"
+      }
+    }
+  },
+  "residencePresidentAppointmentLink": "تعيين رئيس للإقامة",
+  "appointResidencePresident": "تعيين رئيس الإقامة",
+  "apartmentsAndResidents": "الشقق والسكان",
   "residenceSettings": "إعدادات الإقامة",
   "apartments": "الشقق والسكان",
   "apartmentsManagementDescription": "إدارة الشقق وتوزيع السكان داخل الإقامة",

@@ -188,7 +188,8 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
             'city': normalizedInput.city,
             'establishmentYear': DateTime.now().year,
             'hasImage': false,
-            'presidentId': user.uid,
+            'presidentId': null,
+            'createdBy': user.uid,
             'joinRequestsEnabled': true,
             'createdAt': FieldValue.serverTimestamp(),
           });
@@ -227,7 +228,7 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
                 : profile['lastName'],
             'phoneNumber': phoneNumber,
             'apartmentId': '',
-            'role': 'president',
+            'role': 'resident',
             'hasPresidentPermissions': false,
             'hasProfileImage': false,
             'status': 'active',
@@ -237,9 +238,8 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
           transaction.set(privateSettingsReference, {
             'createdBy': user.uid,
             'joinCode': joinCode,
-            'managementOrganization':
-                '${normalizedInput.firstName} ${normalizedInput.lastName}',
-            'managementPhone': phoneNumber,
+            'managementOrganization': '',
+            'managementPhone': '',
             'bankName': '',
             'bankAccount': '',
             'defaultSubscriptionAmount': defaultSubscriptionAmount,

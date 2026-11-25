@@ -3357,6 +3357,36 @@ abstract class AppLocalizations {
   /// **'أدوات إدارة الإقامة المخصصة للرئيس والأشخاص المخوّلين.'**
   String get residenceAdministrationDescription;
 
+  /// No description provided for @residenceAwaitingPresidentTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إقامتك بانتظار تعيين رئيس'**
+  String get residenceAwaitingPresidentTitle;
+
+  /// No description provided for @residenceAwaitingPresidentDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكنك البدء بإضافة الشقق والسكان ودعوة جيرانك. لتفعيل بقية أدوات الإدارة والمالية، يجب {appointmentLink}.'**
+  String residenceAwaitingPresidentDescription(String appointmentLink);
+
+  /// No description provided for @residencePresidentAppointmentLink.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعيين رئيس للإقامة'**
+  String get residencePresidentAppointmentLink;
+
+  /// No description provided for @appointResidencePresident.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعيين رئيس الإقامة'**
+  String get appointResidencePresident;
+
+  /// No description provided for @apartmentsAndResidents.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشقق والسكان'**
+  String get apartmentsAndResidents;
+
   /// No description provided for @residenceSettings.
   ///
   /// In ar, this message translates to:

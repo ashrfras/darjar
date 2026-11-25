@@ -359,6 +359,13 @@ class _ApartmentsResidentsPageState
 
   Future<void> _showAddApartmentSheet(ResidenceBuilding building) async {
     final copy = _Copy.of(context);
+    final canTrackDues =
+        ref
+            .read(residenceContextProvider)
+            .value
+            ?.activeResidence
+            ?.canManageResidence ==
+        true;
     final result = await showModalBottomSheet<_NewApartment>(
       context: context,
       useRootNavigator: true,
@@ -368,7 +375,11 @@ class _ApartmentsResidentsPageState
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => _AddApartmentSheet(building: building, copy: copy),
+      builder: (context) => _AddApartmentSheet(
+        building: building,
+        copy: copy,
+        canTrackDues: canTrackDues,
+      ),
     );
     if (!mounted || result == null) return;
     try {
@@ -424,6 +435,13 @@ class _ApartmentsResidentsPageState
     ResidenceFloor floor,
   ) async {
     final copy = _Copy.of(context);
+    final canTrackDues =
+        ref
+            .read(residenceContextProvider)
+            .value
+            ?.activeResidence
+            ?.canManageResidence ==
+        true;
     final result = await showModalBottomSheet<_ApartmentDetailsResult>(
       context: context,
       isScrollControlled: true,
@@ -436,6 +454,7 @@ class _ApartmentsResidentsPageState
         building: building,
         floor: floor,
         copy: copy,
+        canTrackDues: canTrackDues,
       ),
     );
     if (!mounted || result == null) return;
@@ -976,10 +995,15 @@ class _AddResidentSheetState extends State<_AddResidentSheet> {
 }
 
 class _AddApartmentSheet extends StatefulWidget {
-  const _AddApartmentSheet({required this.building, required this.copy});
+  const _AddApartmentSheet({
+    required this.building,
+    required this.copy,
+    required this.canTrackDues,
+  });
 
   final ResidenceBuilding building;
   final _Copy copy;
+  final bool canTrackDues;
 
   @override
   State<_AddApartmentSheet> createState() => _AddApartmentSheetState();
@@ -1040,14 +1064,15 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
                         widget.copy.addApartment,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
-                      const SizedBox(height: AppSpacing.xSmall),
-                      Text(
-                        widget.copy.apartmentStep(_step + 1),
-                        key: const Key('add-apartment-step-label'),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.inkMuted,
+                      if (widget.canTrackDues) ...[
+                        const SizedBox(height: AppSpacing.xSmall),
+                        Text(
+                          widget.copy.apartmentStep(_step + 1),
+                          key: const Key('add-apartment-step-label'),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.inkMuted),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -1089,7 +1114,7 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
                 onChanged: (_) {
                   if (_numberError != null) setState(() => _numberError = null);
                 },
-                onSubmitted: (_) => _continueToTracking(),
+                onSubmitted: (_) => _confirmApartmentDetails(),
                 decoration: InputDecoration(
                   labelText: widget.copy.apartmentNumberLabel,
                   hintText: widget.copy.apartmentNumberHint,
@@ -1098,10 +1123,18 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
               ),
               const SizedBox(height: AppSpacing.xLarge),
               FilledButton.icon(
-                key: const Key('continue-add-apartment-button'),
-                onPressed: _continueToTracking,
-                icon: const Icon(Icons.arrow_forward_rounded),
-                label: Text(widget.copy.next),
+                key: widget.canTrackDues
+                    ? const Key('continue-add-apartment-button')
+                    : const Key('confirm-add-apartment-button'),
+                onPressed: _confirmApartmentDetails,
+                icon: Icon(
+                  widget.canTrackDues
+                      ? Icons.arrow_forward_rounded
+                      : Icons.add_rounded,
+                ),
+                label: Text(
+                  widget.canTrackDues ? widget.copy.next : widget.copy.add,
+                ),
               ),
             ] else ...[
               Text(
@@ -1246,7 +1279,7 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
     }
   }
 
-  void _continueToTracking() {
+  void _confirmApartmentDetails() {
     final number = parseResidenceApartmentNumber(_numberController.text);
     if (number == null) {
       setState(() => _numberError = widget.copy.apartmentNumberRequired);
@@ -1260,6 +1293,10 @@ class _AddApartmentSheetState extends State<_AddApartmentSheet> {
         );
     if (duplicate) {
       setState(() => _numberError = widget.copy.apartmentAlreadyExists);
+      return;
+    }
+    if (!widget.canTrackDues) {
+      _submit();
       return;
     }
     FocusScope.of(context).unfocus();
@@ -1898,6 +1935,7 @@ class _ApartmentDetailsSheet extends StatefulWidget {
     required this.building,
     required this.floor,
     required this.copy,
+    required this.canTrackDues,
   });
 
   final ResidenceApartment apartment;
@@ -1905,6 +1943,7 @@ class _ApartmentDetailsSheet extends StatefulWidget {
   final ResidenceBuilding building;
   final ResidenceFloor floor;
   final _Copy copy;
+  final bool canTrackDues;
 
   @override
   State<_ApartmentDetailsSheet> createState() => _ApartmentDetailsSheetState();
@@ -2078,7 +2117,7 @@ class _ApartmentDetailsSheetState extends State<_ApartmentDetailsSheet> {
                   subtitle: Text(copy.role(member.role)),
                 ),
             const SizedBox(height: AppSpacing.large),
-            if (!apartment.isDuesTrackingActive) ...[
+            if (widget.canTrackDues && !apartment.isDuesTrackingActive) ...[
               FilledButton.icon(
                 key: ValueKey('start-dues-tracking-${apartment.id}'),
                 onPressed: () => Navigator.pop(

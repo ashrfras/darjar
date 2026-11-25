@@ -1792,6 +1792,23 @@ class AppLocalizationsAr extends AppLocalizations {
       'أدوات إدارة الإقامة المخصصة للرئيس والأشخاص المخوّلين.';
 
   @override
+  String get residenceAwaitingPresidentTitle => 'إقامتك بانتظار تعيين رئيس';
+
+  @override
+  String residenceAwaitingPresidentDescription(String appointmentLink) {
+    return 'يمكنك البدء بإضافة الشقق والسكان ودعوة جيرانك. لتفعيل بقية أدوات الإدارة والمالية، يجب $appointmentLink.';
+  }
+
+  @override
+  String get residencePresidentAppointmentLink => 'تعيين رئيس للإقامة';
+
+  @override
+  String get appointResidencePresident => 'تعيين رئيس الإقامة';
+
+  @override
+  String get apartmentsAndResidents => 'الشقق والسكان';
+
+  @override
   String get residenceSettings => 'إعدادات الإقامة';
 
   @override

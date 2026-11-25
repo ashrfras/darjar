@@ -84,11 +84,16 @@ class DarJarShell extends ConsumerWidget {
           ),
         ),
         data: (data) {
-          if (data.activeResidence == null) {
-            return const _ResidenceSetupRedirect();
+          final residence = data.activeResidence;
+          if (residence == null) {
+            return const _ShellRedirect(AppRoutes.residenceSetup);
           }
-          ref.watch(residenceDataWarmupProvider(data.activeResidence!.id));
-          return _buildShell(context, data);
+          final redirect = _administrationRedirect(residence);
+          if (redirect != null) {
+            return _ShellRedirect(redirect, key: ValueKey(redirect));
+          }
+          ref.watch(residenceDataWarmupProvider(residence.id));
+          return _buildShell(context, data, residence);
         },
       ),
     );
@@ -102,14 +107,35 @@ class DarJarShell extends ConsumerWidget {
     };
   }
 
-  Widget _buildShell(BuildContext context, ResidenceContext residenceContext) {
+  String? _administrationRedirect(UserResidence residence) {
+    if (!AppRoutes.isAdministrationPath(location)) return null;
+    if (!residence.canManageApartmentsAndResidents) return AppRoutes.community;
+    if (location == AppRoutes.appointResidencePresident) {
+      return residence.isCreatorAwaitingPresident
+          ? null
+          : AppRoutes.administration;
+    }
+    if (residence.canManageResidence ||
+        location == AppRoutes.administration ||
+        location == AppRoutes.manageResidence ||
+        location == AppRoutes.manageApartments ||
+        location == AppRoutes.groupInvitation) {
+      return null;
+    }
+    return AppRoutes.administration;
+  }
+
+  Widget _buildShell(
+    BuildContext context,
+    ResidenceContext residenceContext,
+    UserResidence residence,
+  ) {
     final localizations = AppLocalizations.of(context);
     final destinations = _destinations(
       localizations,
-      canManageResidence:
-          residenceContext.activeResidence?.canManageResidence ?? false,
+      showAdministration: residence.canManageApartmentsAndResidents,
     );
-    final selectedPath = location.startsWith('/residence/admin/')
+    final selectedPath = AppRoutes.isAdministrationPath(location)
         ? AppRoutes.administration
         : location;
     final selectedIndex = destinations.indexWhere(
@@ -1358,21 +1384,22 @@ class _ResidenceSwitcherOption extends StatelessWidget {
   }
 }
 
-class _ResidenceSetupRedirect extends StatefulWidget {
-  const _ResidenceSetupRedirect();
+class _ShellRedirect extends StatefulWidget {
+  const _ShellRedirect(this.destination, {super.key});
+
+  final String destination;
 
   @override
-  State<_ResidenceSetupRedirect> createState() =>
-      _ResidenceSetupRedirectState();
+  State<_ShellRedirect> createState() => _ShellRedirectState();
 }
 
-class _ResidenceSetupRedirectState extends State<_ResidenceSetupRedirect> {
+class _ShellRedirectState extends State<_ShellRedirect> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.go(AppRoutes.residenceSetup);
+        context.go(widget.destination);
       }
     });
   }
@@ -1401,7 +1428,7 @@ class _ShellDestination {
 
 List<_ShellDestination> _destinations(
   AppLocalizations localizations, {
-  required bool canManageResidence,
+  required bool showAdministration,
 }) {
   return [
     _ShellDestination(
@@ -1425,7 +1452,7 @@ List<_ShellDestination> _destinations(
       selectedIcon: Icons.home_rounded,
       color: AppColors.residence,
     ),
-    if (canManageResidence)
+    if (showAdministration)
       _ShellDestination(
         label: localizations.residenceAdministration,
         path: AppRoutes.administration,

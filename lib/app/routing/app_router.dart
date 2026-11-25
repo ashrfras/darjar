@@ -71,6 +71,7 @@ abstract final class AppRoutes {
   static const manageFinances = '/residence/admin/finances';
   static const manageDocuments = '/residence/admin/documents';
   static const groupInvitation = '/residence/admin/apartments/invitation';
+  static const appointResidencePresident = '/residence/admin/appoint-president';
   static const manageProjects = '/residence/admin/projects';
   static const manageResidence = '/residence/admin/details';
   static const profile = '/profile';
@@ -89,6 +90,9 @@ abstract final class AppRoutes {
   static String communityPost(String id) => '/community/post/$id';
   static String residenceInvitation(String code) => '/join/$code';
   static String receipt(String id) => '/r/$id';
+
+  static bool isAdministrationPath(String path) =>
+      path == administration || path.startsWith('/residence/admin/');
 }
 
 final appInitialLocationProvider = Provider<String>((ref) {
@@ -324,6 +328,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.manageApartments,
             builder: (context, state) => const ApartmentsResidentsPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.appointResidencePresident,
+            builder: (context, state) => const AppointResidencePresidentPage(),
           ),
           GoRoute(
             path: AppRoutes.manageDues,

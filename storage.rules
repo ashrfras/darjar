@@ -53,6 +53,29 @@ service firebase.storage {
         );
     }
 
+    function canEditResidenceImage(residenceId) {
+      return canManageResidence(residenceId)
+        || (signedIn() && isCreatorAwaitingPresident(residenceId));
+    }
+
+    function isCreatorAwaitingPresident(residenceId) {
+      let member = membership(residenceId);
+      let residence = firestore.get(
+        /databases/(default)/documents/residences/$(residenceId)
+      ).data;
+      return member != null
+        && member.status == 'active'
+        && residence != null
+        && residence.get('presidentId', '') == null
+        && (
+          residence.get('createdBy', '') == request.auth.uid
+          || (
+            !residence.keys().hasAny(['createdBy'])
+            && member.get('source', '') == 'residence-creation'
+          )
+        );
+    }
+
     function isAcceptedDocument() {
       return request.resource.size > 0
         && request.resource.size <= 15 * 1024 * 1024
@@ -110,12 +133,12 @@ service firebase.storage {
 
     match /residences/{residenceId}/profile/image.jpg {
       allow read: if canReadResidence(residenceId);
-      allow create, update: if canManageResidence(residenceId)
+      allow create, update: if canEditResidenceImage(residenceId)
         && isAcceptedCommunityImage()
         && request.resource.contentType == 'image/jpeg'
         && request.resource.metadata.residenceId == residenceId
         && request.resource.metadata.uploadedBy == request.auth.uid;
-      allow delete: if canManageResidence(residenceId);
+      allow delete: if canEditResidenceImage(residenceId);
     }
 
     match /users/{userId}/profile/image.jpg {

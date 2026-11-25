@@ -112,6 +112,35 @@ service cloud.firestore {
       return canSupportResidence(residenceId) || isDelegatedManager(residenceId);
     }
 
+    function isCreatorAwaitingPresident(residenceId) {
+      let residence = get(residencePath(residenceId)).data;
+      return signedIn()
+        && residence.get('presidentId', '') == null
+        && isResidenceMember(residenceId)
+        && (
+          residence.get('createdBy', '') == request.auth.uid
+          || (
+            !residence.keys().hasAny(['createdBy'])
+            && get(privateSettingsPath(residenceId)).data.createdBy == request.auth.uid
+          )
+        );
+    }
+
+    function canManageResidenceSetup(residenceId) {
+      return canManageResidence(residenceId)
+        || isCreatorAwaitingPresident(residenceId);
+    }
+
+    function isCreatingResidence(residenceId) {
+      let member = getAfter(memberPath(residenceId, request.auth.uid)).data;
+      return verifiedPhone()
+        && !exists(residencePath(residenceId))
+        && getAfter(residencePath(residenceId)).data.presidentId == null
+        && member.role == 'resident'
+        && member.source == 'residence-creation'
+        && member.joinedAt == request.time;
+    }
+
     function isDelegatedManager(residenceId) {
       let membership = get(
         memberPath(residenceId, request.auth.uid)
@@ -234,14 +263,14 @@ service cloud.firestore {
         && request.resource.data.phoneNumber
           == request.auth.token.phone_number
         && request.resource.data.apartmentId == ''
-        && request.resource.data.role == 'president'
+        && request.resource.data.role == 'resident'
         && request.resource.data.hasPresidentPermissions == false
         && request.resource.data.hasProfileImage == false
         && request.resource.data.status == 'active'
         && request.resource.data.source == 'residence-creation'
         && request.resource.data.joinedAt == request.time
         && !exists(residencePath(residenceId))
-        && getAfter(residencePath(residenceId)).data.name is string;
+        && getAfter(residencePath(residenceId)).data.presidentId == null;
     }
 
     function isJoinCodeMembership(residenceId, memberId) {
@@ -539,17 +568,13 @@ service cloud.firestore {
         && (
           (
             exists(residencePath(residenceId))
-            && canManageResidence(residenceId)
+            && canManageResidenceSetup(residenceId)
           )
-          || (
-            !exists(residencePath(residenceId))
-            && getAfter(residencePath(residenceId)).data.presidentId
-              == request.auth.uid
-          )
+          || isCreatingResidence(residenceId)
         )
         && validPublicResidence(residenceId);
 
-      allow update: if canManageResidence(residenceId)
+      allow update: if canManageResidenceSetup(residenceId)
         && validPublicResidence(residenceId);
 
       allow delete: if false;
@@ -686,6 +711,7 @@ service cloud.firestore {
           'establishmentYear',
           'hasImage',
           'presidentId',
+          'createdBy',
           'joinRequestsEnabled',
           'createdAt'
         ])
@@ -697,12 +723,13 @@ service cloud.firestore {
         && request.resource.data.establishmentYear is int
         && request.resource.data.establishmentYear >= 1800
         && request.resource.data.hasImage == false
-        && request.resource.data.presidentId == request.auth.uid
+        && request.resource.data.presidentId == null
+        && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.joinRequestsEnabled == true
         && request.resource.data.createdAt == request.time;
 
       allow update: if (
-          canManageResidence(residenceId)
+          canManageResidenceSetup(residenceId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'name',
             'address',
@@ -743,11 +770,7 @@ service cloud.firestore {
       match /settings/private {
         allow read: if canReadResidence(residenceId);
 
-        allow create: if verifiedPhone()
-          && !exists(residencePath(residenceId))
-          && getAfter(
-            memberPath(residenceId, request.auth.uid)
-          ).data.role == 'president'
+        allow create: if isCreatingResidence(residenceId)
           && request.resource.data.keys().hasOnly([
             'createdBy',
             'joinCode',
@@ -761,17 +784,15 @@ service cloud.firestore {
           && request.resource.data.createdBy == request.auth.uid
           && request.resource.data.joinCode is string
           && request.resource.data.joinCode.matches('^[0-9]{8}$')
-          && request.resource.data.managementOrganization is string
-          && request.resource.data.managementOrganization.size() > 0
-          && request.resource.data.managementPhone
-            == request.auth.token.phone_number
+          && request.resource.data.managementOrganization == ''
+          && request.resource.data.managementPhone == ''
           && request.resource.data.bankName is string
           && request.resource.data.bankAccount is string
           && request.resource.data.defaultSubscriptionAmount is int
           && request.resource.data.defaultSubscriptionAmount == 150
           && request.resource.data.updatedAt == request.time;
 
-        allow update: if canManageResidence(residenceId)
+        allow update: if canManageResidenceSetup(residenceId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'managementOrganization',
             'managementPhone',
@@ -790,13 +811,13 @@ service cloud.firestore {
       }
 
       match /invitations/{invitationId} {
-        allow read: if canManageResidence(residenceId);
+        allow read: if canManageResidenceSetup(residenceId);
         // A resident checks this document by phone number even when no
         // invitation exists, before joining with a residence code.
         allow get: if verifiedPhone()
           && invitationId == request.auth.token.phone_number;
 
-        allow create: if canManageResidence(residenceId)
+        allow create: if canManageResidenceSetup(residenceId)
           && request.resource.data.keys().hasOnly([
             'suggestedFirstName',
             'suggestedLastName',
@@ -842,7 +863,7 @@ service cloud.firestore {
           && request.resource.data.acceptedBy == request.auth.uid
           && request.resource.data.acceptedAt == request.time;
 
-        allow delete: if canManageResidence(residenceId)
+        allow delete: if canManageResidenceSetup(residenceId)
           && resource.data.status == 'pending';
       }
 
@@ -868,6 +889,16 @@ service cloud.firestore {
                 && !(resource.data.role in ['president', 'owner'])
               )
             )
+            && request.resource.data.updatedAt == request.time
+          )
+          || (
+            isCreatorAwaitingPresident(residenceId)
+            && resource.data.status == 'active'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'apartmentId',
+              'updatedAt'
+            ])
+            && request.resource.data.apartmentId is string
             && request.resource.data.updatedAt == request.time
           )
           || (
@@ -1621,33 +1652,29 @@ service cloud.firestore {
       match /buildings/{buildingId} {
         allow read: if canReadResidence(residenceId)
           || canExploreJoinableResidence(residenceId);
-        allow create: if canManageResidence(residenceId)
-          || (
-            verifiedPhone()
-            && !exists(residencePath(residenceId))
-            && getAfter(
-              memberPath(residenceId, request.auth.uid)
-            ).data.role == 'president'
-          );
-        allow update, delete: if canManageResidence(residenceId);
+        allow create: if canManageResidenceSetup(residenceId)
+          || isCreatingResidence(residenceId);
+        allow update, delete: if canManageResidenceSetup(residenceId);
 
         match /floors/{floorId} {
           allow read: if canReadResidence(residenceId)
             || canExploreJoinableResidence(residenceId);
-          allow create: if canManageResidence(residenceId)
-            || (
-              verifiedPhone()
-              && !exists(residencePath(residenceId))
-              && getAfter(
-                memberPath(residenceId, request.auth.uid)
-              ).data.role == 'president'
-            );
-          allow update, delete: if canManageResidence(residenceId);
+          allow create: if canManageResidenceSetup(residenceId)
+            || isCreatingResidence(residenceId);
+          allow update, delete: if canManageResidenceSetup(residenceId);
 
           match /apartments/{apartmentId} {
             allow read: if canReadResidence(residenceId)
               || canExploreJoinableResidence(residenceId);
-            allow create: if canManageResidence(residenceId)
+            allow create: if (
+                canManageResidence(residenceId)
+                || (
+                  isCreatorAwaitingPresident(residenceId)
+                  && request.resource.data.duesTrackingStatus == 'notStarted'
+                  && request.resource.data.duesTrackingStartPeriodKey == ''
+                  && request.resource.data.openingPaidThroughPeriodKey == ''
+                )
+              )
               && request.resource.data.number is int
               && request.resource.data.number >= 0
               && request.resource.data.createdAt == request.time
@@ -1689,7 +1716,7 @@ service cloud.firestore {
               && request.resource.data.openingPaidThroughPeriodKey is string
               && request.resource.data.duesTrackingStartedAt == request.time
               && request.resource.data.updatedAt == request.time;
-            allow delete: if canManageResidence(residenceId);
+            allow delete: if canManageResidenceSetup(residenceId);
           }
         }
       }
@@ -1702,13 +1729,7 @@ service cloud.firestore {
       allow create: if verifiedPhone()
         && request.resource.data.keys().hasOnly(['residenceId'])
         && request.resource.data.residenceId is string
-        && !exists(residencePath(request.resource.data.residenceId))
-        && getAfter(
-          memberPath(
-            request.resource.data.residenceId,
-            request.auth.uid
-          )
-        ).data.role == 'president'
+        && isCreatingResidence(request.resource.data.residenceId)
         && getAfter(
           privateSettingsPath(request.resource.data.residenceId)
         ).data.joinCode == code;

@@ -1823,6 +1823,24 @@ class AppLocalizationsZgh extends AppLocalizations {
       'ⴰⵍⵍⴰⵍⴻⵏ ⵏ ⵜⴻⴷⴱⴻⵍⵜ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵉ ⵓⵙⴻⵍⵡⴰⵢ ⴷ ⵢⵉⵎⴷⴰⵏⴻⵏ ⵢⴻⵜⵜⵡⴰⵙⴱⴻⴷⴷⴻⵏ.';
 
   @override
+  String get residenceAwaitingPresidentTitle =>
+      'ⵜⴰⵏⴻⵣⴷⵓⵖⵜ ⵏⵏⴻⴽ ⵜⴻⵜⵜⵔⴰⵊⵓ ⴰⵙⴻⵍⵡⴰⵢ';
+
+  @override
+  String residenceAwaitingPresidentDescription(String appointmentLink) {
+    return 'ⵜⵣⴻⵎⵔⴻⴷ ⴰⴷ ⵜⵔⵏⵓⴷ ⵉⵅⵅⴰⵎⴻⵏ ⴷ ⵢⵉⵎⴻⵣⴷⴰⵖ ⵓⵍⴰ ⴰⴷ ⵜⵙⵉⵡⵍⴻⴷ ⵉ ⵢⵉⵊⵊⵉⵔⴰⵏⴻⵏ ⵏⵏⴻⴽ. ⵉⵅⵚⵚⴰ $appointmentLink ⴱⴰⵛ ⴰⴷ ⵅⴻⴷⵎⴻⵏ ⵡⴰⵍⵍⴰⵍⴻⵏ ⵏ ⵜⴻⴷⴱⴻⵍⵜ ⴷ ⵉⴷⵔⵉⵎⴻⵏ.';
+  }
+
+  @override
+  String get residencePresidentAppointmentLink => 'ⴰⴷ ⵉⵜⵜⵡⴰⵙⴱⴷⴷ ⵓⵙⴻⵍⵡⴰⵢ';
+
+  @override
+  String get appointResidencePresident => 'ⵙⴱⴷⴷ ⴰⵙⴻⵍⵡⴰⵢ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ';
+
+  @override
+  String get apartmentsAndResidents => 'ⵉⵅⵅⴰⵎⴻⵏ ⴷ ⵢⵉⵎⴻⵣⴷⴰⵖ';
+
+  @override
   String get residenceSettings => 'ⵉⵙⴻⵖⵡⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ';
 
   @override

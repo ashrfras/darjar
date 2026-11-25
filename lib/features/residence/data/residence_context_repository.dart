@@ -15,6 +15,7 @@ class UserResidence {
     this.hasPresidentPermissions = false,
     this.hasImage = false,
     this.joinedAt,
+    this.isCreatorAwaitingPresident = false,
   });
 
   final String id;
@@ -26,9 +27,13 @@ class UserResidence {
   final bool hasPresidentPermissions;
   final bool hasImage;
   final DateTime? joinedAt;
+  final bool isCreatorAwaitingPresident;
 
   bool get canManageResidence =>
       role == 'president' || role == 'owner' || hasPresidentPermissions;
+
+  bool get canManageApartmentsAndResidents =>
+      canManageResidence || isCreatorAwaitingPresident;
 
   bool get canLeave => role == 'resident' && !hasPresidentPermissions;
 }
@@ -145,14 +150,15 @@ class FirestoreResidenceContextRepository
         for (final membership in memberships)
           membership.reference.parent.parent!.get(),
       ]);
-      final residences = <UserResidence>[
+      final residences = await Future.wait([
         for (var index = 0; index < memberships.length; index++)
           if (residenceDocuments[index].exists)
             _residenceFromDocuments(
               memberships[index],
               residenceDocuments[index],
             ),
-      ]..sort((first, second) => first.name.compareTo(second.name));
+      ]);
+      residences.sort((first, second) => first.name.compareTo(second.name));
 
       final activeId =
           residences.any((residence) => residence.id == storedActiveId)
@@ -317,23 +323,39 @@ class FirestoreResidenceContextRepository
     }
   }
 
-  UserResidence _residenceFromDocuments(
+  Future<UserResidence> _residenceFromDocuments(
     DocumentSnapshot<Map<String, dynamic>> membership,
     DocumentSnapshot<Map<String, dynamic>> residence,
-  ) {
+  ) async {
     final membershipData = membership.data()!;
     final residenceData = residence.data()!;
+    final role = membershipData['role'] as String? ?? 'resident';
+    final hasPresidentPermissions =
+        membershipData['hasPresidentPermissions'] as bool? ?? false;
+    // New residences explicitly store null until a president is appointed.
+    final isCreatorAwaitingPresident =
+        role == 'resident' &&
+        !hasPresidentPermissions &&
+        residenceData.containsKey('presidentId') &&
+        residenceData['presidentId'] == null &&
+        (residenceData['createdBy'] ??
+                (await residence.reference
+                        .collection('settings')
+                        .doc('private')
+                        .get())
+                    .data()?['createdBy']) ==
+            membership.id;
     return UserResidence(
       id: residence.id,
       name: residenceData['name'] as String? ?? '',
       address: residenceData['address'] as String? ?? '',
       city: residenceData['city'] as String? ?? '',
-      role: membershipData['role'] as String? ?? 'resident',
+      role: role,
       apartmentId: membershipData['apartmentId'] as String? ?? '',
-      hasPresidentPermissions:
-          membershipData['hasPresidentPermissions'] as bool? ?? false,
+      hasPresidentPermissions: hasPresidentPermissions,
       hasImage: residenceData['hasImage'] as bool? ?? false,
       joinedAt: (membershipData['joinedAt'] as Timestamp?)?.toDate(),
+      isCreatorAwaitingPresident: isCreatorAwaitingPresident,
     );
   }
 }
