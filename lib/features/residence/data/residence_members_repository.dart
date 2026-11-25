@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:darjar/core/performance/data_load_timer.dart';
 import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -245,7 +246,8 @@ abstract interface class ResidenceMembersRepository {
 
   Future<void> transferPresidency({
     required String residenceId,
-    required String currentPresidentId,
+    required String actorId,
+    required String? currentPresidentId,
     required String newPresidentId,
   });
 }
@@ -747,43 +749,81 @@ class FirestoreResidenceMembersRepository
   @override
   Future<void> transferPresidency({
     required String residenceId,
-    required String currentPresidentId,
+    required String actorId,
+    required String? currentPresidentId,
     required String newPresidentId,
   }) async {
+    if (currentPresidentId == newPresidentId ||
+        (currentPresidentId != null && currentPresidentId != actorId)) {
+      throw const ResidenceMembersFailure('invalid-presidency-transfer');
+    }
     final residence = _firestore.collection('residences').doc(residenceId);
-    final currentPresident = _members(residenceId).doc(currentPresidentId);
+    final actor = _members(residenceId).doc(actorId);
     final newPresident = _members(residenceId).doc(newPresidentId);
+    final event = _firestore.collection('appActivityLog').doc();
     try {
       await _firestore.runTransaction((transaction) async {
-        final residenceDocument = await transaction.get(residence);
-        final currentDocument = await transaction.get(currentPresident);
-        final newDocument = await transaction.get(newPresident);
-        final storedPresidentId =
-            residenceDocument.data()?['presidentId'] as String?;
-        final currentRole = currentDocument.data()?['role'] as String?;
-        if (!currentDocument.exists ||
-            !newDocument.exists ||
-            newDocument.data()?['status'] != 'active' ||
-            (storedPresidentId != null &&
-                storedPresidentId != currentPresidentId) ||
-            (storedPresidentId == null &&
-                currentRole != 'president' &&
-                currentRole != 'owner')) {
+        final residenceData = (await transaction.get(residence)).data();
+        final actorData = (await transaction.get(actor)).data();
+        final targetData = actorId == newPresidentId
+            ? actorData
+            : (await transaction.get(newPresident)).data();
+        final storedPresident = residenceData?['presidentId'];
+        final actorIsPresident =
+            actorData?['role'] == 'president' || actorData?['role'] == 'owner';
+        if (residenceData == null ||
+            actorData?['status'] != 'active' ||
+            targetData?['status'] != 'active' ||
+            targetData?['role'] == 'president' ||
+            targetData?['role'] == 'owner') {
+          throw const ResidenceMembersFailure('invalid-presidency-transfer');
+        }
+        if (currentPresidentId == null) {
+          if (!residenceData.containsKey('presidentId') ||
+              storedPresident != null ||
+              actorData?['role'] != 'resident' ||
+              actorData?['hasPresidentPermissions'] == true) {
+            throw const ResidenceMembersFailure('invalid-presidency-transfer');
+          }
+          final creator =
+              residenceData['createdBy'] ??
+              (await transaction.get(
+                residence.collection('settings').doc('private'),
+              )).data()?['createdBy'];
+          if (creator != actorId) {
+            throw const ResidenceMembersFailure('invalid-presidency-transfer');
+          }
+        } else if (!actorIsPresident ||
+            (storedPresident != null &&
+                storedPresident != currentPresidentId)) {
           throw const ResidenceMembersFailure('invalid-presidency-transfer');
         }
         transaction.update(residence, {
           'presidentId': newPresidentId,
+          'presidencyEventId': event.id,
           'updatedAt': FieldValue.serverTimestamp(),
         });
-        transaction.update(currentPresident, {
-          'role': ResidenceMemberRole.resident.name,
-          'hasPresidentPermissions': false,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+        if (currentPresidentId != null) {
+          transaction.update(actor, {
+            'role': ResidenceMemberRole.resident.name,
+            'hasPresidentPermissions': false,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
         transaction.update(newPresident, {
           'role': ResidenceMemberRole.president.name,
           'hasPresidentPermissions': false,
           'updatedAt': FieldValue.serverTimestamp(),
+        });
+        transaction.set(event, {
+          'type': currentPresidentId == null
+              ? 'residencePresidentAppointed'
+              : 'residencePresidentChanged',
+          'residenceId': residenceId,
+          'actorId': actorId,
+          'userId': newPresidentId,
+          'previousPresidentId': currentPresidentId,
+          'occurredAt': FieldValue.serverTimestamp(),
         });
       });
     } on ResidenceMembersFailure {
@@ -970,17 +1010,30 @@ class ResidenceMembersController extends AsyncNotifier<ResidenceMembersData> {
   }
 
   Future<void> transferPresidency({
-    required String currentPresidentId,
+    required String residenceId,
+    required String actorId,
+    required String? currentPresidentId,
     required String newPresidentId,
   }) async {
+    final activeResidence = ref
+        .read(residenceContextProvider)
+        .value
+        ?.activeResidence;
+    if (activeResidence?.id != residenceId ||
+        ref.read(authRepositoryProvider).currentUser?.uid != actorId) {
+      throw const ResidenceMembersFailure('invalid-presidency-transfer');
+    }
     await ref
         .read(residenceMembersRepositoryProvider)
         .transferPresidency(
-          residenceId: _requiredResidenceId(),
+          residenceId: residenceId,
+          actorId: actorId,
           currentPresidentId: currentPresidentId,
           newPresidentId: newPresidentId,
         );
+    if (!ref.mounted) return;
     ref.invalidate(residenceContextProvider);
+    ref.invalidate(residenceDirectoryProvider);
     ref.invalidateSelf();
   }
 

@@ -1126,8 +1126,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get managementInformation => 'Management information';
 
   @override
+  String get managementPresidentVacantTitle =>
+      'This residence does not have a president yet';
+
+  @override
   String get managementSettingsDescription =>
-      'Management contact and bank account details.';
+      'Residence president and bank account details.';
 
   @override
   String get managementDescription => 'Contact and bank transfer information.';
@@ -1538,6 +1542,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bankAccount => 'Account number';
 
   @override
+  String get managementBankLoadFailed =>
+      'Couldn’t load the residence’s bank details.';
+
+  @override
+  String get managementBankAccountMissing =>
+      'A bank account number has yet to be added for this residence.';
+
+  @override
+  String get managementBankCopyAccount => 'Copy account number';
+
+  @override
+  String get managementBankAccountCopied => 'Bank account number copied';
+
+  @override
+  String get managementBankCopyFailed =>
+      'Couldn’t copy the bank account number.';
+
+  @override
   String get externalTransferNotice =>
       'Transfers happen outside DarJar. The application does not process payments.';
 
@@ -1843,6 +1865,116 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appointResidencePresident => 'Appoint a residence president';
+
+  @override
+  String get residencePresidentTitle => 'Residence president';
+
+  @override
+  String get residencePresidentVacant =>
+      'This residence does not have a president yet.';
+
+  @override
+  String get residencePresidentVacantDescription =>
+      'You can appoint yourself or choose a resident who has joined to manage the residence.';
+
+  @override
+  String get residencePresidentAppoint => 'Appoint president';
+
+  @override
+  String get residencePresidentChoose => 'Choose a residence president';
+
+  @override
+  String get residencePresidentYou => 'You';
+
+  @override
+  String get residencePresidentSearch => 'Search by resident name';
+
+  @override
+  String get residencePresidentNoResults => 'No residents match this name.';
+
+  @override
+  String get residencePresidentAppointSelf => 'Appoint myself as president';
+
+  @override
+  String get residencePresidentMissingResident =>
+      'Can’t find the person you’re looking for?';
+
+  @override
+  String get residencePresidentInviteResident => 'Invite residents';
+
+  @override
+  String get residencePresidentContinue => 'Continue';
+
+  @override
+  String get residencePresidentAssumeTitle => 'Become residence president';
+
+  @override
+  String get residencePresidentAssumeDescription =>
+      'You’ll become president of this residence and gain permission to manage its administration and finances.';
+
+  @override
+  String get residencePresidentAssume => 'Become president';
+
+  @override
+  String residencePresidentAppointConfirmation(String name) {
+    return '$name will become president of this residence and gain permission to manage its administration and finances.';
+  }
+
+  @override
+  String get residencePresidentConfirmAppointment => 'Confirm appointment';
+
+  @override
+  String get residencePresidentDuties =>
+      'The residence president manages administration and finances through DarJar.';
+
+  @override
+  String get residencePresidentChange => 'Change president';
+
+  @override
+  String get residencePresidentCurrent => 'Current president';
+
+  @override
+  String residencePresidentChangeConfirmation(
+    String previousName,
+    String newName,
+  ) {
+    return 'The presidency will transfer from $previousName to $newName. $newName will gain presidential permissions, and $previousName will lose them.';
+  }
+
+  @override
+  String get residencePresidentConfirmChange => 'Confirm change';
+
+  @override
+  String get residencePresidentAppointed =>
+      'The residence president was appointed.';
+
+  @override
+  String get residencePresidentChanged =>
+      'The residence president was changed.';
+
+  @override
+  String get residencePresidentProfileUnavailable =>
+      'The residence president’s profile is temporarily unavailable.';
+
+  @override
+  String get residencePresidentLoadFailed =>
+      'Couldn’t load the residence president and residents.';
+
+  @override
+  String get residencePresidentSaveFailed =>
+      'Couldn’t save the appointment. Try again.';
+
+  @override
+  String get residencePresidentSelectionExpired =>
+      'The appointment couldn’t be completed. Permissions, membership, or the current president may have changed.';
+
+  @override
+  String get appActivityResidencePresidentAppointed =>
+      'Residence president appointed';
+
+  @override
+  String get appActivityResidencePresidentChanged =>
+      'Residence president changed';
 
   @override
   String get apartmentsAndResidents => 'Apartments and residents';

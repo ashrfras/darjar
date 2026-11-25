@@ -249,6 +249,14 @@ class _ActivityTile extends StatelessWidget {
         strings.appActivityResidenceDeleted,
         Icons.delete_outline,
       ),
+      ActivityType.residencePresidentAppointed => (
+        strings.appActivityResidencePresidentAppointed,
+        Icons.badge_outlined,
+      ),
+      ActivityType.residencePresidentChanged => (
+        strings.appActivityResidencePresidentChanged,
+        Icons.swap_horiz_rounded,
+      ),
       ActivityType.unknown => (strings.appActivityLog, Icons.history),
     };
     final date = event.occurredAt.toLocal();

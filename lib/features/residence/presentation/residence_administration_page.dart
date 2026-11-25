@@ -383,26 +383,3 @@ class _ManagementLink extends StatelessWidget {
     );
   }
 }
-
-class AppointResidencePresidentPage extends StatelessWidget {
-  const AppointResidencePresidentPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.xLarge),
-      child: Align(
-        alignment: AlignmentDirectional.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 820),
-          child: DarJarSubpageHeader(
-            title: localizations.appointResidencePresident,
-            description: localizations.comingSoon,
-            fallbackLocation: AppRoutes.administration,
-          ),
-        ),
-      ),
-    );
-  }
-}

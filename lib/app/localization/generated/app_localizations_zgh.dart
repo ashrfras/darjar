@@ -1121,8 +1121,12 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get managementInformation => 'ⵉⵙⴰⵍⵍⴻⵏ ⵏ ⵜⴻⴷⴱⴻⵍⵜ';
 
   @override
+  String get managementPresidentVacantTitle =>
+      'ⵓⵔ ⵉⵜⵜⵓⵙⵜⴰⵢ ⵓⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ ⴰⴷ ⵙⵓⵍ';
+
+  @override
   String get managementSettingsDescription =>
-      'ⵜⵉⴼⵢⴰⵔ ⵏ ⵓⵃⵔⵉⵛ ⵏ ⵜⴻⴷⴱⴻⵍⵜ ⴷ ⵍⵃⵉⵙⴰⴱ ⵏ ⵍⴱⴰⵏⴽⴰ.';
+      'ⵉⵏⵖⵎⵉⵙⵏ ⵏ ⵓⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ ⴷ ⵍⵃⵉⵙⴰⴱ ⵏ ⵍⴱⴰⵏⴽⴰ.';
 
   @override
   String get managementDescription => 'ⵉⵙⴰⵍⴰⵏ ⵏ ⵓⵙⵉⵡⴻⴹ ⴷ ⵓⵙⵉⵡⴻⴹ ⵏ ⵜⴱⴰⵏⴽⴰ.';
@@ -1532,6 +1536,24 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get bankAccount => 'ⵓⵟⵓⵏ ⵏ ⵓⵎⵉⴹⴰⵏ';
 
   @override
+  String get managementBankLoadFailed =>
+      'ⵓⵔ ⵉⵣⴷⵉⵔ ⵓⵙⵉⴷⵎ ⵏ ⵉⵏⵖⵎⵉⵙⵏ ⵏ ⵍⴱⴰⵏⴽⴰ ⵏ ⵜⵣⴷⵓⵖⵜ.';
+
+  @override
+  String get managementBankAccountMissing =>
+      'ⵓⵔ ⵉⵜⵜⵓⵔⵏⵉ ⵡⴰⵎⵎⴰⵙ ⵏ ⵍⵃⵉⵙⴰⴱ ⵏ ⵍⴱⴰⵏⴽⴰ ⵏ ⵜⵣⴷⵓⵖⵜ ⴰⴷ ⵙⵓⵍ.';
+
+  @override
+  String get managementBankCopyAccount => 'ⵙⵏⵖⵍ ⵓⵟⵟⵓⵏ ⵏ ⵍⵃⵉⵙⴰⴱ';
+
+  @override
+  String get managementBankAccountCopied => 'ⵉⵜⵜⵓⵙⵏⵖⵍ ⵓⵟⵟⵓⵏ ⵏ ⵍⵃⵉⵙⴰⴱ ⵏ ⵍⴱⴰⵏⴽⴰ';
+
+  @override
+  String get managementBankCopyFailed =>
+      'ⵓⵔ ⵉⵣⴷⵉⵔ ⵓⵙⵏⵖⵍ ⵏ ⵓⵟⵟⵓⵏ ⵏ ⵍⵃⵉⵙⴰⴱ ⵏ ⵍⴱⴰⵏⴽⴰ.';
+
+  @override
   String get externalTransferNotice =>
       'ⴰⵙⵉⵡⴻⴹ ⵢⴻⵜⵜⵉⵍⵉⴷ ⴱⴻⵔⵔⴰ ⵏ DarJar. ⴰⵙⴻⵏⴼⴰⵔ ⵓⵔ ⵢⴻⵜⵜⴽⴻⵎⵎⵉⵍ ⴰⵔⴰ ⵍⴻⵅⵍⴰⵚ.';
 
@@ -1836,6 +1858,110 @@ class AppLocalizationsZgh extends AppLocalizations {
 
   @override
   String get appointResidencePresident => 'ⵙⴱⴷⴷ ⴰⵙⴻⵍⵡⴰⵢ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ';
+
+  @override
+  String get residencePresidentTitle => 'ⴰⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ';
+
+  @override
+  String get residencePresidentVacant => 'ⵓⵔ ⵉⵜⵜⵓⵙⵜⴰⵢ ⵓⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ ⴰⴷ ⵙⵓⵍ.';
+
+  @override
+  String get residencePresidentVacantDescription =>
+      'ⵜⵣⵎⵔⴷ ⴰⴷ ⵜⵙⵜⴰⵢⴷ ⵉⵎⴰⵏ ⵏⵏⴽ ⵏⵉⵖ ⵢⴰⵏ ⵓⵎⵣⴷⴰⵖ ⵉⴽⵛⵎⵏ ⴰⴷ ⵉⵙⵡⵓⴷⴷⵓ ⵜⴰⵣⴷⵓⵖⵜ.';
+
+  @override
+  String get residencePresidentAppoint => 'ⵙⵜⵢ ⴰⵏⴱⴷⴰⴷ';
+
+  @override
+  String get residencePresidentChoose => 'ⵙⵜⵢ ⴰⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ';
+
+  @override
+  String get residencePresidentYou => 'ⴽⵢⵢⵉ';
+
+  @override
+  String get residencePresidentSearch => 'ⵔⵣⵓ ⵙ ⵢⵉⵙⵎ ⵏ ⵓⵎⵣⴷⴰⵖ';
+
+  @override
+  String get residencePresidentNoResults => 'ⵓⵔ ⵉⵜⵜⵢⴰⴼⴰ ⵓⵎⵣⴷⴰⵖ ⵙ ⵢⵉⵙⵎ ⴰⴷ.';
+
+  @override
+  String get residencePresidentAppointSelf => 'ⵙⵜⵢ ⵉⵎⴰⵏ ⵉⵏⵓ ⴷ ⴰⵏⴱⴷⴰⴷ';
+
+  @override
+  String get residencePresidentMissingResident => 'ⵓⵔ ⵜⵓⴼⵉⴷ ⴰⵎⵣⴷⴰⵖ ⵍⵍⵉ ⵜⵔⵉⴷ?';
+
+  @override
+  String get residencePresidentInviteResident => 'ⵖⵔ ⵉ ⵉⵎⵣⴷⴰⵖⵏ';
+
+  @override
+  String get residencePresidentContinue => 'ⴽⵎⵎⵍ';
+
+  @override
+  String get residencePresidentAssumeTitle => 'ⵉⵍⵉ ⴷ ⴰⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ';
+
+  @override
+  String get residencePresidentAssumeDescription =>
+      'ⵔⴰⴷ ⵜⵉⵍⵉⴷ ⴷ ⴰⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ ⴰⴷ، ⵜⴰⵙⵉⴷ ⵜⵉⵣⵔⴼⵉⵏ ⵏ ⵓⵙⵡⵓⴷⴷⵓ ⵏ ⵜⴷⴱⵍⵜ ⴷ ⵜⴷⵔⵉⵎⵜ.';
+
+  @override
+  String get residencePresidentAssume => 'ⵉⵍⵉ ⴷ ⴰⵏⴱⴷⴰⴷ';
+
+  @override
+  String residencePresidentAppointConfirmation(String name) {
+    return 'ⵔⴰⴷ ⵉⵍⵉ $name ⴷ ⴰⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ ⴰⴷ، ⵉⵙⵉ ⵜⵉⵣⵔⴼⵉⵏ ⵏ ⵓⵙⵡⵓⴷⴷⵓ ⵏ ⵜⴷⴱⵍⵜ ⴷ ⵜⴷⵔⵉⵎⵜ.';
+  }
+
+  @override
+  String get residencePresidentConfirmAppointment => 'ⵙⵏⵜⵎ ⴰⵙⵜⴰⵢ';
+
+  @override
+  String get residencePresidentDuties =>
+      'ⵉⵙⵡⵓⴷⴷⵓ ⵓⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ ⵜⴰⴷⴱⵍⵜ ⴷ ⵜⴰⴷⵔⵉⵎⵜ ⵙ ⴷⴰⵔⵊⴰⵔ.';
+
+  @override
+  String get residencePresidentChange => 'ⵙⵏⴼⵍ ⴰⵏⴱⴷⴰⴷ';
+
+  @override
+  String get residencePresidentCurrent => 'ⴰⵏⴱⴷⴰⴷ ⵏ ⵖⵉⵍⴰⴷ';
+
+  @override
+  String residencePresidentChangeConfirmation(
+    String previousName,
+    String newName,
+  ) {
+    return 'ⵔⴰⴷ ⵉⵎⵎⵓⵜⵜⵉ ⵓⵙⵡⵓⴷⴷⵓ ⵙⴳ $previousName ⵖⵔ $newName. ⵔⴰⴷ ⵉⵙⵉ $newName ⵜⵉⵣⵔⴼⵉⵏ ⵏ ⵓⵏⴱⴷⴰⴷ، ⵔⴰⴷ ⵜⵏⵜ ⵉⵙⵔⵓⵃ $previousName.';
+  }
+
+  @override
+  String get residencePresidentConfirmChange => 'ⵙⵏⵜⵎ ⴰⵙⵏⴼⵍ';
+
+  @override
+  String get residencePresidentAppointed => 'ⵉⵜⵜⵓⵙⵜⴰⵢ ⵓⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ.';
+
+  @override
+  String get residencePresidentChanged => 'ⵉⵜⵜⵓⵙⵏⴼⵍ ⵓⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ.';
+
+  @override
+  String get residencePresidentProfileUnavailable =>
+      'ⵓⵔ ⴳⵉⵏ ⵉⵏⵖⵎⵉⵙⵏ ⵏ ⵓⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ ⵖⵉⵍⴰⴷ.';
+
+  @override
+  String get residencePresidentLoadFailed =>
+      'ⵓⵔ ⵉⵣⴷⵉⵔ ⵓⵙⵉⴷⵎ ⵏ ⵉⵏⵖⵎⵉⵙⵏ ⵏ ⵓⵏⴱⴷⴰⴷ ⴷ ⵉⵎⵣⴷⴰⵖⵏ.';
+
+  @override
+  String get residencePresidentSaveFailed => 'ⵓⵔ ⵉⵣⴷⵉⵔ ⵓⵃⵔⴰⵣ ⵏ ⵓⵙⵜⴰⵢ. ⴰⵔⵎ ⴷⴰⵖ.';
+
+  @override
+  String get residencePresidentSelectionExpired =>
+      'ⵓⵔ ⵉⵣⴷⵉⵔ ⵓⵙⵎⴷ ⵏ ⵓⵙⵜⴰⵢ. ⵉⵖⵉⵢ ⴰⴷ ⵙⵏⴼⵍⵏⵜ ⵜⵉⵣⵔⴼⵉⵏ، ⵜⴰⵎⵓⵔⵉ ⵏ ⵓⵎⵣⴷⴰⵖ ⵏⵉⵖ ⵓⵏⴱⴷⴰⴷ.';
+
+  @override
+  String get appActivityResidencePresidentAppointed =>
+      'ⴰⵙⵜⴰⵢ ⵏ ⵓⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ';
+
+  @override
+  String get appActivityResidencePresidentChanged => 'ⴰⵙⵏⴼⵍ ⵏ ⵓⵏⴱⴷⴰⴷ ⵏ ⵜⵣⴷⵓⵖⵜ';
 
   @override
   String get apartmentsAndResidents => 'ⵉⵅⵅⴰⵎⴻⵏ ⴷ ⵢⵉⵎⴻⵣⴷⴰⵖ';

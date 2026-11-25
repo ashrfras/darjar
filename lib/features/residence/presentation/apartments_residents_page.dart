@@ -565,7 +565,13 @@ class _ApartmentsResidentsPageState
   ) async {
     if (currentMember == null || !currentMember.canManageResidence) return;
     final copy = _Copy.of(context);
+    final residenceId = ref
+        .read(residenceContextProvider)
+        .value
+        ?.activeResidence
+        ?.id;
     final canTransferPresidency =
+        residenceId != null &&
         currentMember.role == ResidenceMemberRole.president &&
         member.id != currentMember.id;
     final roles = [
@@ -615,11 +621,13 @@ class _ApartmentsResidentsPageState
           ],
         ),
       );
-      if (!mounted || confirmed != true) return;
+      if (!mounted || confirmed != true || residenceId == null) return;
       try {
         await ref
             .read(residenceMembersProvider.notifier)
             .transferPresidency(
+              residenceId: residenceId,
+              actorId: currentMember.id,
               currentPresidentId: currentMember.id,
               newPresidentId: member.id,
             );

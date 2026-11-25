@@ -5,17 +5,17 @@ import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
 import 'package:darjar/core/images/app_image_picker.dart';
 import 'package:darjar/core/images/storage_image_provider.dart';
-import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
-import 'package:darjar/core/widgets/darjar_international_phone_field.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_image_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/presentation/darjar_city_picker.dart';
+import 'package:darjar/features/residence/presentation/residence_president_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,9 +61,6 @@ class _ResidenceSettingsFormState
   late final TextEditingController _addressController;
   late final TextEditingController _yearController;
   late final TextEditingController _amountController;
-  late final TextEditingController _managementOrganizationController;
-  late final TextEditingController _managementPhoneController;
-  late String _managementCountryCode;
   late final TextEditingController _bankNameController;
   late final TextEditingController _bankAccountController;
   late ResidenceSettings _savedSettings;
@@ -91,16 +88,6 @@ class _ResidenceSettingsFormState
     _amountController = TextEditingController(
       text: settings.defaultSubscriptionAmount.toString(),
     );
-    _managementOrganizationController = TextEditingController(
-      text: settings.managementOrganization,
-    );
-    final managementPhone = splitInternationalPhoneNumber(
-      settings.managementPhone,
-    );
-    _managementCountryCode = managementPhone.countryCode;
-    _managementPhoneController = TextEditingController(
-      text: managementPhone.nationalNumber,
-    );
     _bankNameController = TextEditingController(text: settings.bankName);
     _bankAccountController = TextEditingController(text: settings.bankAccount);
     _selectedCity = settings.city;
@@ -118,8 +105,6 @@ class _ResidenceSettingsFormState
     _addressController.dispose();
     _yearController.dispose();
     _amountController.dispose();
-    _managementOrganizationController.dispose();
-    _managementPhoneController.dispose();
     _bankNameController.dispose();
     _bankAccountController.dispose();
     super.dispose();
@@ -184,11 +169,7 @@ class _ResidenceSettingsFormState
                               ),
                               const SizedBox(height: AppSpacing.large),
                               _ManagementInformationSection(
-                                organizationController:
-                                    _managementOrganizationController,
-                                phoneController: _managementPhoneController,
-                                countryCode: _managementCountryCode,
-                                onCountryCodeChanged: _setManagementCountryCode,
+                                residenceId: widget.settings.residenceId,
                                 bankNameController: _bankNameController,
                                 bankAccountController: _bankAccountController,
                               ),
@@ -234,13 +215,8 @@ class _ResidenceSettingsFormState
                                       ),
                                       const SizedBox(height: AppSpacing.large),
                                       _ManagementInformationSection(
-                                        organizationController:
-                                            _managementOrganizationController,
-                                        phoneController:
-                                            _managementPhoneController,
-                                        countryCode: _managementCountryCode,
-                                        onCountryCodeChanged:
-                                            _setManagementCountryCode,
+                                        residenceId:
+                                            widget.settings.residenceId,
                                         bankNameController: _bankNameController,
                                         bankAccountController:
                                             _bankAccountController,
@@ -327,14 +303,6 @@ class _ResidenceSettingsFormState
     if (city == null || city == _selectedCity) return;
     setState(() {
       _selectedCity = city;
-      _isDirty = _hasChanges;
-    });
-  }
-
-  void _setManagementCountryCode(String countryCode) {
-    if (countryCode == _managementCountryCode) return;
-    setState(() {
-      _managementCountryCode = countryCode;
       _isDirty = _hasChanges;
     });
   }
@@ -433,11 +401,6 @@ class _ResidenceSettingsFormState
       defaultSubscriptionAmount: amount,
       hasImage: _hasImage,
       buildings: _buildings,
-      managementOrganization: _managementOrganizationController.text.trim(),
-      managementPhone: formatInternationalPhoneNumber(
-        _managementCountryCode,
-        _managementPhoneController.text,
-      ),
       bankName: _bankNameController.text.trim(),
       bankAccount: _bankAccountController.text.trim(),
     );
@@ -497,8 +460,6 @@ class _ResidenceSettingsFormState
     _addressController,
     _yearController,
     _amountController,
-    _managementOrganizationController,
-    _managementPhoneController,
     _bankNameController,
     _bankAccountController,
   ];
@@ -518,15 +479,6 @@ class _ResidenceSettingsFormState
             _savedSettings.establishmentYear.toString() ||
         _amountController.text.trim() !=
             _savedSettings.defaultSubscriptionAmount.toString() ||
-        _managementOrganizationController.text.trim() !=
-            _savedSettings.managementOrganization ||
-        normalizePhoneNumber(
-              formatInternationalPhoneNumber(
-                _managementCountryCode,
-                _managementPhoneController.text,
-              ),
-            ) !=
-            normalizePhoneNumber(_savedSettings.managementPhone) ||
         _bankNameController.text.trim() != _savedSettings.bankName ||
         _bankAccountController.text.trim() != _savedSettings.bankAccount ||
         _hasImage != _savedSettings.hasImage ||
@@ -945,25 +897,19 @@ class _ResidenceInformationSection extends ConsumerWidget {
   }
 }
 
-class _ManagementInformationSection extends StatelessWidget {
+class _ManagementInformationSection extends ConsumerWidget {
   const _ManagementInformationSection({
-    required this.organizationController,
-    required this.phoneController,
-    required this.countryCode,
-    required this.onCountryCodeChanged,
+    required this.residenceId,
     required this.bankNameController,
     required this.bankAccountController,
   });
 
-  final TextEditingController organizationController;
-  final TextEditingController phoneController;
-  final String countryCode;
-  final ValueChanged<String> onCountryCodeChanged;
+  final String residenceId;
   final TextEditingController bankNameController;
   final TextEditingController bankAccountController;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     return _SettingsSection(
       key: const Key('management-information-section'),
@@ -973,23 +919,7 @@ class _ManagementInformationSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DarJarTextField(
-            key: const Key('management-organization-field'),
-            controller: organizationController,
-            label: localizations.managementCompany,
-            prefixIcon: Icons.business_center_outlined,
-          ),
-          const SizedBox(height: AppSpacing.large),
-          DarJarInternationalPhoneField(
-            key: const Key('management-phone-field'),
-            fieldKey: const Key('management-phone-number-field'),
-            countryCodeKey: const Key('management-phone-country-code-field'),
-            controller: phoneController,
-            countryCode: countryCode,
-            onCountryCodeChanged: onCountryCodeChanged,
-            phoneLabel: localizations.phone,
-            countryCodeLabel: localizations.countryCode,
-          ),
+          DarJarCard(child: _presidentSummary(context, ref)),
           const SizedBox(height: AppSpacing.large),
           DarJarTextField(
             key: const Key('management-bank-name-field'),
@@ -1006,6 +936,76 @@ class _ManagementInformationSection extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _presidentSummary(BuildContext context, WidgetRef ref) {
+    final strings = AppLocalizations.of(context);
+    final residenceState = ref.watch(residenceContextProvider);
+    final residence = residenceState.value?.activeResidence;
+    final members = ref.watch(residenceMembersProvider);
+    final userId = ref.watch(authRepositoryProvider).currentUser?.uid;
+
+    if (residenceState.isLoading || members.isLoading) {
+      return const LinearProgressIndicator();
+    }
+    if (residence == null || residence.id != residenceId) {
+      return Text(strings.residencePresidentLoadFailed);
+    }
+    final hasAssignedPresident = hasRecordedResidencePresident(residence);
+    if (members.hasError) {
+      return Text(
+        hasAssignedPresident
+            ? strings.residencePresidentProfileUnavailable
+            : strings.residencePresidentLoadFailed,
+      );
+    }
+
+    final data = members.requireValue;
+    final (:president, :canAppoint, :canTransfer) = residencePresidency(
+      residence,
+      data,
+      userId,
+    );
+    final profileUnavailable = president == null
+        ? hasAssignedPresident
+        : !hasAvailablePresidentProfile(president);
+    if (profileUnavailable) {
+      return Text(strings.residencePresidentProfileUnavailable);
+    }
+
+    void openPresidentPage() {
+      context.push(AppRoutes.appointResidencePresident);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (president == null) ...[
+          Text(
+            strings.managementPresidentVacantTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: AppSpacing.small),
+          Text(strings.residencePresidentVacantDescription),
+        ] else
+          ResidencePresidentProfile(
+            president: president,
+            onChangePresident: canTransfer ? openPresidentPage : null,
+            apartmentNumber: data.apartments
+                .where((apartment) => apartment.id == president.apartmentId)
+                .firstOrNull
+                ?.number,
+          ),
+        if (canAppoint) ...[
+          const SizedBox(height: AppSpacing.medium),
+          FilledButton(
+            key: const Key('residence-president-link'),
+            onPressed: openPresidentPage,
+            child: Text(strings.residencePresidentAppoint),
+          ),
+        ],
+      ],
     );
   }
 }

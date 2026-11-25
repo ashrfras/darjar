@@ -4571,6 +4571,145 @@ void main() {
     expect(find.byKey(const Key('title-only-subpage-header')), findsOneWidget);
   });
 
+  for (final (presidentId, includeProfile, bankFails, expectedMessage) in [
+    ('member-karim', true, false, 'كريم التازي'),
+    ('member-karim', false, false, 'بيانات رئيس الإقامة غير متاحة مؤقتًا.'),
+    (null, false, false, 'لم يتم تعيين رئيس لهذه الإقامة بعد'),
+    ('member-karim', true, true, 'كريم التازي'),
+  ]) {
+    testWidgets(
+      'resident management shows $expectedMessage with bank error: $bankFails',
+      (tester) async {
+        final members = _FakeResidenceMembersRepository()
+          ..data = ResidenceMembersData(
+            buildings: _FakeResidenceMembersRepository.initialData.buildings,
+            members: [
+              if (includeProfile)
+                const ResidenceMember(
+                  id: 'member-karim',
+                  name: 'كريم التازي',
+                  phone: '+212 6 56 78 90 12',
+                  role: ResidenceMemberRole.president,
+                  apartmentId: 'apartment-12',
+                ),
+            ],
+          );
+        final settings = _FakeResidenceSettingsRepository()
+          ..loadFailure = bankFails
+              ? const ResidenceSettingsFailure('permission-denied')
+              : null;
+        await _pumpApp(
+          tester,
+          size: const Size(390, 844),
+          residenceMembersRepository: members,
+          residenceSettingsRepository: settings,
+          residenceContext: ResidenceContext(
+            residences: [
+              UserResidence(
+                id: 'test-residence',
+                name: 'إقامة الاختبار',
+                address: 'شارع الاختبار',
+                city: '6141010',
+                role: 'resident',
+                apartmentId: 'apartment-01',
+                presidentId: presidentId,
+              ),
+            ],
+            activeResidenceId: 'test-residence',
+          ),
+        );
+        await _enterResidence(tester);
+        await tester.tap(find.text('الإقامة'));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('معلومات الإدارة'));
+        await tester.tap(find.text('معلومات الإدارة'));
+        await tester.pumpAndSettle();
+
+        final page = find.byKey(const Key('management-page'));
+        expect(page, findsOneWidget);
+        expect(find.text(expectedMessage), findsOneWidget);
+        expect(find.text('أمين المريني'), findsNothing);
+        expect(find.text('تعيين الرئيس'), findsNothing);
+        expect(find.text('تغيير الرئيس'), findsNothing);
+        expect(
+          find.descendant(of: page, matching: find.byType(TextField)),
+          findsNothing,
+        );
+        if (presidentId != null) {
+          expect(find.text('لم يتم تعيين رئيس لهذه الإقامة بعد'), findsNothing);
+        }
+        if (includeProfile) {
+          expect(
+            find.descendant(of: page, matching: find.byType(DarJarUserAvatar)),
+            findsOneWidget,
+          );
+          expect(find.text('الشقة 12'), findsOneWidget);
+          expect(
+            find.text(formatPhoneNumberForDisplay('+212 6 56 78 90 12')),
+            findsOneWidget,
+          );
+        }
+
+        final bankAccount = find.byWidgetPredicate(
+          (widget) =>
+              widget is SelectableText &&
+              widget.data == settings.settings.bankAccount,
+        );
+        final copyAccount = find.descendant(
+          of: page,
+          matching: find.widgetWithIcon(IconButton, Icons.copy_outlined),
+        );
+        if (bankFails) {
+          expect(copyAccount, findsNothing);
+          expect(
+            find.text('تعذّر جلب المعلومات البنكية للإقامة.'),
+            findsOneWidget,
+          );
+          expect(bankAccount, findsNothing);
+          settings.loadFailure = null;
+          final retry = find.text('إعادة المحاولة');
+          await tester.ensureVisible(retry);
+          await tester.tap(retry);
+          await tester.pumpAndSettle();
+        }
+        expect(bankAccount, findsOneWidget);
+        expect(copyAccount, findsOneWidget);
+        expect(
+          tester.widget<IconButton>(copyAccount).tooltip,
+          'نسخ رقم الحساب',
+        );
+        expect(find.text('نسخ رقم الحساب'), findsNothing);
+        if (includeProfile && !bankFails) {
+          String? copiedText;
+          final messenger = tester.binding.defaultBinaryMessenger;
+          messenger.setMockMethodCallHandler(SystemChannels.platform, (
+            call,
+          ) async {
+            if (call.method == 'Clipboard.setData') {
+              copiedText =
+                  (call.arguments as Map<Object?, Object?>)['text'] as String?;
+            }
+            return null;
+          });
+          addTearDown(
+            () => messenger.setMockMethodCallHandler(
+              SystemChannels.platform,
+              null,
+            ),
+          );
+
+          await tester.ensureVisible(copyAccount);
+          await tester.tap(copyAccount);
+          await tester.pumpAndSettle();
+          expect(copiedText, settings.settings.bankAccount);
+          expect(find.text('تم نسخ رقم الحساب البنكي'), findsOneWidget);
+        }
+        expect(find.text(expectedMessage), findsOneWidget);
+        expect(members.lastIncludeInvitations, isFalse);
+      },
+    );
+  }
+
   testWidgets('residence dashboard exposes its five resident modules', (
     tester,
   ) async {
@@ -6342,6 +6481,296 @@ void main() {
     expect(find.byKey(const Key('reset-residence-button')), findsNothing);
   });
 
+  for (final (mode, selfAppointment, changing) in [
+    ('sole resident appointing themselves', true, false),
+    ('creator appointing another resident', false, false),
+    ('president transferring to another resident', false, true),
+  ]) {
+    testWidgets('residence presidency: $mode', (tester) async {
+      ResidenceContext residenceContext({
+        required String role,
+        bool awaiting = false,
+        String? presidentId,
+      }) => ResidenceContext(
+        residences: [
+          UserResidence(
+            id: 'test-residence',
+            name: 'إقامة الاختبار',
+            address: 'شارع الاختبار',
+            city: '6141010',
+            role: role,
+            apartmentId: 'apartment-12',
+            isCreatorAwaitingPresident: awaiting,
+            presidentId: presidentId,
+          ),
+        ],
+        activeResidenceId: 'test-residence',
+      );
+
+      final contextData = residenceContext(
+        role: changing ? 'president' : 'resident',
+        awaiting: !changing,
+        presidentId: changing ? 'test-user' : null,
+      );
+      final contextRepository = _FakeResidenceContextRepository();
+      final membersRepository = _FakeResidenceMembersRepository()
+        ..data = ResidenceMembersData(
+          buildings: _FakeResidenceMembersRepository.initialData.buildings,
+          members: [
+            ResidenceMember(
+              id: 'test-user',
+              name: 'يوسف العلوي',
+              phone: '+212 6 12 34 56 78',
+              role: changing
+                  ? ResidenceMemberRole.president
+                  : ResidenceMemberRole.resident,
+              apartmentId: 'apartment-12',
+            ),
+            if (!selfAppointment)
+              _FakeResidenceMembersRepository.initialData.members.last,
+            if (!selfAppointment && !changing)
+              for (var index = 0; index < 7; index++)
+                ResidenceMember(
+                  id: 'joined-$index',
+                  name: 'ساكن $index',
+                  phone: '',
+                  role: ResidenceMemberRole.resident,
+                ),
+          ],
+          pendingInvitations: const [
+            ResidencePendingInvitation(
+              id: 'pending',
+              name: 'جار مدعو',
+              phone: '+212600000002',
+              apartmentId: 'apartment-01',
+            ),
+          ],
+        )
+        ..onPresidencyTransferred = (id) {
+          contextRepository.context = residenceContext(
+            role: id == 'test-user' ? 'president' : 'resident',
+            presidentId: id,
+          );
+        };
+
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        residenceContextRepository: contextRepository,
+        residenceContext: contextData,
+        loadResidenceContext: true,
+        residenceMembersRepository: membersRepository,
+      );
+      await _enterResidence(tester);
+      await _openAdministration(tester);
+      await tester.tap(find.byKey(const Key('manage-residence-link')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          changing ? 'يوسف العلوي' : 'لم يتم تعيين رئيس لهذه الإقامة بعد',
+        ),
+        findsOneWidget,
+      );
+      final changeAction = find.byKey(const Key('change-residence-president'));
+      void expectChangeActionBesideName() {
+        final button = tester.widget<TextButton>(changeAction);
+        final label = button.child! as Text;
+        expect(label.data, 'تغيير الرئيس');
+        expect(label.style?.decoration, TextDecoration.none);
+        final action = tester.getTopLeft(changeAction);
+        final name = tester.getTopLeft(find.text('يوسف العلوي'));
+        expect(action.dx, lessThan(name.dx));
+        expect(action.dy, closeTo(name.dy, 1));
+      }
+
+      final presidentLink = changing
+          ? changeAction
+          : find.byKey(const Key('residence-president-link'));
+      await tester.ensureVisible(presidentLink);
+      if (changing) {
+        expectChangeActionBesideName();
+      } else {
+        final button = tester.widget<FilledButton>(presidentLink);
+        expect((button.child! as Text).data, 'تعيين الرئيس');
+      }
+      final bankAccount = find.byKey(
+        const Key('management-bank-account-field'),
+      );
+      final bankField = find.descendant(
+        of: bankAccount,
+        matching: find.byType(TextField),
+      );
+      final originalAccount = tester
+          .widget<TextField>(bankField)
+          .controller!
+          .text;
+      await tester.tap(presidentLink);
+      await tester.pumpAndSettle();
+
+      if (changing) {
+        expectChangeActionBesideName();
+        expect(find.text('يوسف العلوي'), findsOneWidget);
+        expect(find.text('الشقة 12'), findsOneWidget);
+      } else {
+        expect(
+          find.text('لم يتم تعيين رئيس لهذه الإقامة بعد.'),
+          findsOneWidget,
+        );
+      }
+
+      final start = find.text(changing ? 'تغيير الرئيس' : 'تعيين الرئيس');
+      await tester.tap(start);
+      await tester.pumpAndSettle();
+      expect(find.text('أنت'), findsOneWidget);
+      expect(find.text('جار مدعو'), findsNothing);
+      if (changing) {
+        final current = find.ancestor(
+          of: find.text('الرئيس الحالي'),
+          matching: find.byType(ListTile),
+        );
+        expect(tester.widget<ListTile>(current).onTap, isNull);
+      }
+      if (!selfAppointment && !changing) {
+        await tester.tap(find.text('دعوة السكان'));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('group-invitation-page')), findsOneWidget);
+        await tester.tap(find.byKey(const Key('subpage-back-button')));
+        await tester.pumpAndSettle();
+        await tester.tap(start);
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), 'كريم');
+        await tester.pumpAndSettle();
+        expect(find.text('يوسف العلوي'), findsNothing);
+      }
+      if (!selfAppointment) {
+        await tester.tap(find.text('كريم التازي'));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(
+        find.text(selfAppointment ? 'تعيين نفسي رئيسًا' : 'متابعة'),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining(
+          changing ? 'من يوسف العلوي إلى كريم التازي' : 'ستصبح رئيسًا',
+        ),
+        selfAppointment || changing ? findsOneWidget : findsNothing,
+      );
+      if (!selfAppointment && !changing) {
+        expect(find.textContaining('سيصبح كريم التازي رئيسًا'), findsOneWidget);
+      }
+
+      if (selfAppointment) {
+        await tester.tap(find.text('إلغاء'));
+        await tester.pumpAndSettle();
+        expect(membersRepository.presidencyTransferCount, 0);
+        await tester.tap(start);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('تعيين نفسي رئيسًا'));
+        await tester.pumpAndSettle();
+      }
+      final confirmText = selfAppointment
+          ? 'تولي الرئاسة'
+          : changing
+          ? 'تأكيد تغيير الرئيس'
+          : 'تأكيد التعيين';
+      expect(membersRepository.presidencyTransferCount, 0);
+      await tester.tap(find.text(confirmText));
+      await tester.pumpAndSettle();
+      expect(membersRepository.presidencyTransferCount, 1);
+      expect(
+        membersRepository.data.members
+            .where((member) => member.role == ResidenceMemberRole.president)
+            .single
+            .id,
+        selfAppointment ? 'test-user' : 'member-karim',
+      );
+      expect(
+        find.byKey(const Key('residence-president-page')),
+        selfAppointment ? findsOneWidget : findsNothing,
+      );
+      if (selfAppointment) {
+        expect(find.text('يوسف العلوي'), findsOneWidget);
+        expect(find.text('تم تعيين رئيس الإقامة.'), findsOneWidget);
+        await tester.tap(find.byKey(const Key('subpage-back-button')));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const Key('management-information-section')),
+          findsOneWidget,
+        );
+        expect(find.text('يوسف العلوي'), findsOneWidget);
+        expect(find.text('تغيير الرئيس'), findsOneWidget);
+        expect(find.text('لم يتم تعيين رئيس لهذه الإقامة بعد'), findsNothing);
+        expect(
+          tester.widget<TextField>(bankField).controller!.text,
+          originalAccount,
+        );
+      } else {
+        expect(find.text('تغيير الرئيس'), findsNothing);
+        expect(find.text('الإدارة'), findsNothing);
+      }
+    });
+  }
+
+  for (final (presidentId, includeProfile, expectedMessage) in [
+    ('other-president', true, 'نادية أمين'),
+    ('other-president', false, 'بيانات رئيس الإقامة غير متاحة مؤقتًا.'),
+    (null, false, 'لم يتم تعيين رئيس لهذه الإقامة بعد'),
+  ]) {
+    testWidgets('management information shows $expectedMessage to a delegate', (
+      tester,
+    ) async {
+      final members = _FakeResidenceMembersRepository()
+        ..data = ResidenceMembersData(
+          buildings: _FakeResidenceMembersRepository.initialData.buildings,
+          members: [
+            if (includeProfile)
+              const ResidenceMember(
+                id: 'other-president',
+                name: 'نادية أمين',
+                phone: '+212600000002',
+                role: ResidenceMemberRole.president,
+              ),
+          ],
+        );
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        residenceMembersRepository: members,
+        residenceContext: ResidenceContext(
+          residences: [
+            UserResidence(
+              id: 'test-residence',
+              name: 'إقامة الاختبار',
+              address: 'شارع الاختبار',
+              city: '6141010',
+              role: 'resident',
+              hasPresidentPermissions: true,
+              apartmentId: '',
+              presidentId: presidentId,
+            ),
+          ],
+          activeResidenceId: 'test-residence',
+        ),
+      );
+      await _enterResidence(tester);
+      await _openAdministration(tester);
+      await tester.tap(find.byKey(const Key('manage-residence-link')));
+      await tester.pumpAndSettle();
+
+      expect(find.text(expectedMessage), findsOneWidget);
+      expect(find.byKey(const Key('residence-president-link')), findsNothing);
+      expect(find.byKey(const Key('change-residence-president')), findsNothing);
+      if (presidentId != null) {
+        expect(find.text('لم يتم تعيين رئيس لهذه الإقامة بعد'), findsNothing);
+      }
+      expect(
+        find.byKey(const Key('management-bank-account-field')),
+        findsOneWidget,
+      );
+    });
+  }
+
   testWidgets('residence creator can edit settings and prepare apartments', (
     tester,
   ) async {
@@ -6416,7 +6845,8 @@ void main() {
     expect(find.text('تعيين رئيس الإقامة'), findsNothing);
     await tester.tap(find.text('تعيين رئيس للإقامة'));
     await tester.pumpAndSettle();
-    expect(find.text('قريبًا'), findsOneWidget);
+    expect(find.byKey(const Key('residence-president-page')), findsOneWidget);
+    expect(find.text('رئيس الإقامة'), findsWidgets);
     await tester.tap(find.byKey(const Key('subpage-back-button')));
     await tester.pumpAndSettle();
 
@@ -7019,62 +7449,51 @@ void main() {
       for (final fieldKey in [
         'management-organization-field',
         'management-phone-field',
+      ]) {
+        expect(find.byKey(Key(fieldKey)), findsNothing);
+      }
+      for (final fieldKey in [
         'management-bank-name-field',
         'management-bank-account-field',
       ]) {
         expect(find.byKey(Key(fieldKey)), findsOneWidget);
       }
-      expect(
-        tester
-            .widget<TextField>(
-              find.descendant(
-                of: find.byKey(const Key('management-organization-field')),
-                matching: find.byType(TextField),
-              ),
-            )
-            .controller
-            ?.text,
-        'أمين المريني',
+      final managementSection = find.byKey(
+        const Key('management-information-section'),
       );
       expect(
-        tester
-            .widget<TextField>(
-              find.descendant(
-                of: find.byKey(const Key('management-phone-number-field')),
-                matching: find.byType(TextField),
-              ),
-            )
-            .controller
-            ?.text,
-        '600000001',
-      );
-      final managementPhoneField = tester.widget<TextField>(
         find.descendant(
-          of: find.byKey(const Key('management-phone-number-field')),
-          matching: find.byType(TextField),
+          of: managementSection,
+          matching: find.text('يوسف العلوي'),
         ),
+        findsOneWidget,
       );
-      expect(managementPhoneField.textDirection, TextDirection.ltr);
-      expect(managementPhoneField.decoration?.labelText, isNull);
-      expect(managementPhoneField.decoration?.hintText, 'الهاتف');
       expect(
-        Directionality.of(
-          tester.element(
-            find.descendant(
-              of: find.byKey(const Key('management-phone-number-field')),
-              matching: find.byType(TextField),
-            ),
+        find.descendant(of: managementSection, matching: find.text('الشقة 12')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: managementSection,
+          matching: find.text(
+            formatPhoneNumberForDisplay('+212 6 12 34 56 78'),
           ),
         ),
-        TextDirection.rtl,
+        findsOneWidget,
       );
       expect(
-        tester
-            .widget<DarJarCountryCodePickerField>(
-              find.byKey(const Key('management-phone-country-code-field')),
-            )
-            .value,
-        '+212',
+        find.descendant(
+          of: managementSection,
+          matching: find.byType(DarJarUserAvatar),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: managementSection,
+          matching: find.text('أمين المريني'),
+        ),
+        findsNothing,
       );
       expect(
         find.byKey(const Key('residence-subscription-section')),
@@ -7211,12 +7630,8 @@ void main() {
       expect(find.byKey(const Key('permanent-invitation-link')), findsNothing);
 
       await tester.enterText(
-        find.byKey(const Key('management-organization-field')),
-        'شركة الإدارة الجديدة',
-      );
-      await tester.enterText(
-        find.byKey(const Key('management-phone-number-field')),
-        '5 22 11 22 33',
+        find.byKey(const Key('management-bank-account-field')),
+        '007 810 0000000000000001 00',
       );
       await tester.tap(
         find.byKey(const Key('save-residence-settings-button')).hitTestable(),
@@ -7225,9 +7640,13 @@ void main() {
       expect(find.text('تم حفظ إعدادات الإقامة.'), findsOneWidget);
       expect(
         settingsRepository.settings.managementOrganization,
-        'شركة الإدارة الجديدة',
+        'أمين المريني',
       );
-      expect(settingsRepository.settings.managementPhone, '+212 5 22 11 22 33');
+      expect(settingsRepository.settings.managementPhone, '+212600000001');
+      expect(
+        settingsRepository.settings.bankAccount,
+        '007 810 0000000000000001 00',
+      );
       expect(settingsRepository.settings.defaultSubscriptionAmount, 150);
       expect(authRepository.currentUser?.phoneNumber, '+212600000001');
     },
@@ -8878,6 +9297,8 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
 
   ResidenceMembersData data = initialData;
   final List<_CreatedInvitation> createdInvitations = [];
+  ValueChanged<String>? onPresidencyTransferred;
+  int presidencyTransferCount = 0;
   int loadCount = 0;
   bool? lastIncludeInvitations;
 
@@ -9204,9 +9625,11 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
   @override
   Future<void> transferPresidency({
     required String residenceId,
-    required String currentPresidentId,
+    required String actorId,
+    required String? currentPresidentId,
     required String newPresidentId,
   }) async {
+    presidencyTransferCount++;
     data = ResidenceMembersData(
       buildings: data.buildings,
       pendingInvitations: data.pendingInvitations,
@@ -9229,6 +9652,7 @@ class _FakeResidenceMembersRepository implements ResidenceMembersRepository {
           ),
       ],
     );
+    onPresidencyTransferred?.call(newPresidentId);
   }
 }
 
@@ -9741,7 +10165,7 @@ class _FakeResidenceInvitationRepository
 
 class _FakeResidenceSettingsRepository implements ResidenceSettingsRepository {
   ResidenceSettings settings = const ResidenceSettings(
-    residenceId: '10284736',
+    residenceId: 'test-residence',
     joinCode: '48273165',
     name: 'إقامة الاختبار',
     address: 'شارع الاختبار',
@@ -9764,8 +10188,13 @@ class _FakeResidenceSettingsRepository implements ResidenceSettingsRepository {
     bankAccount: '007 810 0000000000000000 00',
   );
 
+  ResidenceSettingsFailure? loadFailure;
+
   @override
-  Future<ResidenceSettings> load(String residenceId) async => settings;
+  Future<ResidenceSettings> load(String residenceId) async {
+    if (loadFailure case final ResidenceSettingsFailure failure) throw failure;
+    return settings;
+  }
 
   @override
   Future<void> save(ResidenceSettings settings) async {

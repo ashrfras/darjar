@@ -110,14 +110,10 @@ class DarJarShell extends ConsumerWidget {
   String? _administrationRedirect(UserResidence residence) {
     if (!AppRoutes.isAdministrationPath(location)) return null;
     if (!residence.canManageApartmentsAndResidents) return AppRoutes.community;
-    if (location == AppRoutes.appointResidencePresident) {
-      return residence.isCreatorAwaitingPresident
-          ? null
-          : AppRoutes.administration;
-    }
     if (residence.canManageResidence ||
         location == AppRoutes.administration ||
         location == AppRoutes.manageResidence ||
+        location == AppRoutes.appointResidencePresident ||
         location == AppRoutes.manageApartments ||
         location == AppRoutes.groupInvitation) {
       return null;

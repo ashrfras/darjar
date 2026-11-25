@@ -31,6 +31,7 @@ import 'package:darjar/features/residence/presentation/management_page.dart';
 import 'package:darjar/features/residence/presentation/apartments_residents_page.dart';
 import 'package:darjar/features/residence/presentation/residence_admin_page.dart';
 import 'package:darjar/features/residence/presentation/residence_administration_page.dart';
+import 'package:darjar/features/residence/presentation/residence_president_page.dart';
 import 'package:darjar/features/residence/presentation/residence_finances_page.dart';
 import 'package:darjar/features/residence/presentation/residence_home_page.dart';
 import 'package:darjar/features/residence/presentation/residence_members_page.dart';
@@ -331,7 +332,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.appointResidencePresident,
-            builder: (context, state) => const AppointResidencePresidentPage(),
+            builder: (context, state) => const ResidencePresidentPage(),
           ),
           GoRoute(
             path: AppRoutes.manageDues,

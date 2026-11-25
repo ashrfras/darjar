@@ -19,6 +19,8 @@ enum ActivityType {
   accountDeletionRequested,
   accountDeleted,
   residenceDeleted,
+  residencePresidentAppointed,
+  residencePresidentChanged,
   unknown,
 }
 

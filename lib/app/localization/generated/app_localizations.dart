@@ -2138,10 +2138,16 @@ abstract class AppLocalizations {
   /// **'معلومات الإدارة'**
   String get managementInformation;
 
+  /// No description provided for @managementPresidentVacantTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم تعيين رئيس لهذه الإقامة بعد'**
+  String get managementPresidentVacantTitle;
+
   /// No description provided for @managementSettingsDescription.
   ///
   /// In ar, this message translates to:
-  /// **'بيانات جهة الإدارة والتواصل والحساب البنكي.'**
+  /// **'بيانات رئيس الإقامة والحساب البنكي.'**
   String get managementSettingsDescription;
 
   /// No description provided for @managementDescription.
@@ -2841,6 +2847,36 @@ abstract class AppLocalizations {
   /// **'رقم الحساب'**
   String get bankAccount;
 
+  /// No description provided for @managementBankLoadFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر جلب المعلومات البنكية للإقامة.'**
+  String get managementBankLoadFailed;
+
+  /// No description provided for @managementBankAccountMissing.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يُضف رقم الحساب البنكي لهذه الإقامة بعد.'**
+  String get managementBankAccountMissing;
+
+  /// No description provided for @managementBankCopyAccount.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسخ رقم الحساب'**
+  String get managementBankCopyAccount;
+
+  /// No description provided for @managementBankAccountCopied.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم نسخ رقم الحساب البنكي'**
+  String get managementBankAccountCopied;
+
+  /// No description provided for @managementBankCopyFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر نسخ رقم الحساب البنكي.'**
+  String get managementBankCopyFailed;
+
   /// No description provided for @externalTransferNotice.
   ///
   /// In ar, this message translates to:
@@ -3380,6 +3416,189 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تعيين رئيس الإقامة'**
   String get appointResidencePresident;
+
+  /// No description provided for @residencePresidentTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'رئيس الإقامة'**
+  String get residencePresidentTitle;
+
+  /// No description provided for @residencePresidentVacant.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم تعيين رئيس لهذه الإقامة بعد.'**
+  String get residencePresidentVacant;
+
+  /// No description provided for @residencePresidentVacantDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكنك تعيين نفسك أو اختيار أحد السكان المنضمين لتولي إدارة شؤون الإقامة.'**
+  String get residencePresidentVacantDescription;
+
+  /// No description provided for @residencePresidentAppoint.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعيين الرئيس'**
+  String get residencePresidentAppoint;
+
+  /// No description provided for @residencePresidentChoose.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر رئيس الإقامة'**
+  String get residencePresidentChoose;
+
+  /// No description provided for @residencePresidentYou.
+  ///
+  /// In ar, this message translates to:
+  /// **'أنت'**
+  String get residencePresidentYou;
+
+  /// No description provided for @residencePresidentSearch.
+  ///
+  /// In ar, this message translates to:
+  /// **'البحث باسم الساكن'**
+  String get residencePresidentSearch;
+
+  /// No description provided for @residencePresidentNoResults.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم العثور على سكان بهذا الاسم.'**
+  String get residencePresidentNoResults;
+
+  /// No description provided for @residencePresidentAppointSelf.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعيين نفسي رئيسًا'**
+  String get residencePresidentAppointSelf;
+
+  /// No description provided for @residencePresidentMissingResident.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم تجد الشخص المطلوب؟'**
+  String get residencePresidentMissingResident;
+
+  /// No description provided for @residencePresidentInviteResident.
+  ///
+  /// In ar, this message translates to:
+  /// **'دعوة السكان'**
+  String get residencePresidentInviteResident;
+
+  /// No description provided for @residencePresidentContinue.
+  ///
+  /// In ar, this message translates to:
+  /// **'متابعة'**
+  String get residencePresidentContinue;
+
+  /// No description provided for @residencePresidentAssumeTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تولي رئاسة الإقامة'**
+  String get residencePresidentAssumeTitle;
+
+  /// No description provided for @residencePresidentAssumeDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'ستصبح رئيسًا لهذه الإقامة، وستحصل على صلاحيات إدارة شؤونها الإدارية والمالية.'**
+  String get residencePresidentAssumeDescription;
+
+  /// No description provided for @residencePresidentAssume.
+  ///
+  /// In ar, this message translates to:
+  /// **'تولي الرئاسة'**
+  String get residencePresidentAssume;
+
+  /// No description provided for @residencePresidentAppointConfirmation.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيصبح {name} رئيسًا لهذه الإقامة، وسيحصل على صلاحيات إدارتها الإدارية والمالية.'**
+  String residencePresidentAppointConfirmation(String name);
+
+  /// No description provided for @residencePresidentConfirmAppointment.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد التعيين'**
+  String get residencePresidentConfirmAppointment;
+
+  /// No description provided for @residencePresidentDuties.
+  ///
+  /// In ar, this message translates to:
+  /// **'يتولى رئيس الإقامة إدارة الشؤون الإدارية والمالية عبر دارجار.'**
+  String get residencePresidentDuties;
+
+  /// No description provided for @residencePresidentChange.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير الرئيس'**
+  String get residencePresidentChange;
+
+  /// No description provided for @residencePresidentCurrent.
+  ///
+  /// In ar, this message translates to:
+  /// **'الرئيس الحالي'**
+  String get residencePresidentCurrent;
+
+  /// No description provided for @residencePresidentChangeConfirmation.
+  ///
+  /// In ar, this message translates to:
+  /// **'ستُنقل الرئاسة من {previousName} إلى {newName}. سيحصل {newName} على صلاحيات الرئاسة، وسيفقد {previousName} هذه الصلاحيات.'**
+  String residencePresidentChangeConfirmation(
+    String previousName,
+    String newName,
+  );
+
+  /// No description provided for @residencePresidentConfirmChange.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد تغيير الرئيس'**
+  String get residencePresidentConfirmChange;
+
+  /// No description provided for @residencePresidentAppointed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تعيين رئيس الإقامة.'**
+  String get residencePresidentAppointed;
+
+  /// No description provided for @residencePresidentChanged.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تغيير رئيس الإقامة.'**
+  String get residencePresidentChanged;
+
+  /// No description provided for @residencePresidentProfileUnavailable.
+  ///
+  /// In ar, this message translates to:
+  /// **'بيانات رئيس الإقامة غير متاحة مؤقتًا.'**
+  String get residencePresidentProfileUnavailable;
+
+  /// No description provided for @residencePresidentLoadFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل معلومات رئيس الإقامة والسكان.'**
+  String get residencePresidentLoadFailed;
+
+  /// No description provided for @residencePresidentSaveFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر حفظ التعيين. حاول مرة أخرى.'**
+  String get residencePresidentSaveFailed;
+
+  /// No description provided for @residencePresidentSelectionExpired.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر إتمام التعيين. ربما تغيّرت الصلاحيات أو عضوية الساكن أو الرئيس الحالي.'**
+  String get residencePresidentSelectionExpired;
+
+  /// No description provided for @appActivityResidencePresidentAppointed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعيين رئيس الإقامة'**
+  String get appActivityResidencePresidentAppointed;
+
+  /// No description provided for @appActivityResidencePresidentChanged.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير رئيس الإقامة'**
+  String get appActivityResidencePresidentChanged;
 
   /// No description provided for @apartmentsAndResidents.
   ///

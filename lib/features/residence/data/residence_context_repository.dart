@@ -15,6 +15,7 @@ class UserResidence {
     this.hasPresidentPermissions = false,
     this.hasImage = false,
     this.joinedAt,
+    this.presidentId,
     this.isCreatorAwaitingPresident = false,
   });
 
@@ -27,6 +28,7 @@ class UserResidence {
   final bool hasPresidentPermissions;
   final bool hasImage;
   final DateTime? joinedAt;
+  final String? presidentId;
   final bool isCreatorAwaitingPresident;
 
   bool get canManageResidence =>
@@ -351,6 +353,7 @@ class FirestoreResidenceContextRepository
       address: residenceData['address'] as String? ?? '',
       city: residenceData['city'] as String? ?? '',
       role: role,
+      presidentId: residenceData['presidentId'] as String?,
       apartmentId: membershipData['apartmentId'] as String? ?? '',
       hasPresidentPermissions: hasPresidentPermissions,
       hasImage: residenceData['hasImage'] as bool? ?? false,
@@ -432,6 +435,7 @@ final residenceForSupportProvider =
           city: data['city'] as String? ?? '',
           hasImage: data['hasImage'] as bool? ?? false,
           role: 'developer',
+          presidentId: data['presidentId'] as String?,
           apartmentId: '',
           hasPresidentPermissions: true,
         );

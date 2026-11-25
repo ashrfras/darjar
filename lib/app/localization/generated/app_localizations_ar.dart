@@ -1103,8 +1103,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get managementInformation => 'معلومات الإدارة';
 
   @override
+  String get managementPresidentVacantTitle =>
+      'لم يتم تعيين رئيس لهذه الإقامة بعد';
+
+  @override
   String get managementSettingsDescription =>
-      'بيانات جهة الإدارة والتواصل والحساب البنكي.';
+      'بيانات رئيس الإقامة والحساب البنكي.';
 
   @override
   String get managementDescription => 'بيانات التواصل والتحويل البنكي.';
@@ -1505,6 +1509,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bankAccount => 'رقم الحساب';
 
   @override
+  String get managementBankLoadFailed => 'تعذّر جلب المعلومات البنكية للإقامة.';
+
+  @override
+  String get managementBankAccountMissing =>
+      'لم يُضف رقم الحساب البنكي لهذه الإقامة بعد.';
+
+  @override
+  String get managementBankCopyAccount => 'نسخ رقم الحساب';
+
+  @override
+  String get managementBankAccountCopied => 'تم نسخ رقم الحساب البنكي';
+
+  @override
+  String get managementBankCopyFailed => 'تعذّر نسخ رقم الحساب البنكي.';
+
+  @override
   String get externalTransferNotice =>
       'يتم التحويل خارج دارجار. لا يعالج التطبيق أي دفعات.';
 
@@ -1804,6 +1824,111 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get appointResidencePresident => 'تعيين رئيس الإقامة';
+
+  @override
+  String get residencePresidentTitle => 'رئيس الإقامة';
+
+  @override
+  String get residencePresidentVacant => 'لم يتم تعيين رئيس لهذه الإقامة بعد.';
+
+  @override
+  String get residencePresidentVacantDescription =>
+      'يمكنك تعيين نفسك أو اختيار أحد السكان المنضمين لتولي إدارة شؤون الإقامة.';
+
+  @override
+  String get residencePresidentAppoint => 'تعيين الرئيس';
+
+  @override
+  String get residencePresidentChoose => 'اختر رئيس الإقامة';
+
+  @override
+  String get residencePresidentYou => 'أنت';
+
+  @override
+  String get residencePresidentSearch => 'البحث باسم الساكن';
+
+  @override
+  String get residencePresidentNoResults =>
+      'لم يتم العثور على سكان بهذا الاسم.';
+
+  @override
+  String get residencePresidentAppointSelf => 'تعيين نفسي رئيسًا';
+
+  @override
+  String get residencePresidentMissingResident => 'لم تجد الشخص المطلوب؟';
+
+  @override
+  String get residencePresidentInviteResident => 'دعوة السكان';
+
+  @override
+  String get residencePresidentContinue => 'متابعة';
+
+  @override
+  String get residencePresidentAssumeTitle => 'تولي رئاسة الإقامة';
+
+  @override
+  String get residencePresidentAssumeDescription =>
+      'ستصبح رئيسًا لهذه الإقامة، وستحصل على صلاحيات إدارة شؤونها الإدارية والمالية.';
+
+  @override
+  String get residencePresidentAssume => 'تولي الرئاسة';
+
+  @override
+  String residencePresidentAppointConfirmation(String name) {
+    return 'سيصبح $name رئيسًا لهذه الإقامة، وسيحصل على صلاحيات إدارتها الإدارية والمالية.';
+  }
+
+  @override
+  String get residencePresidentConfirmAppointment => 'تأكيد التعيين';
+
+  @override
+  String get residencePresidentDuties =>
+      'يتولى رئيس الإقامة إدارة الشؤون الإدارية والمالية عبر دارجار.';
+
+  @override
+  String get residencePresidentChange => 'تغيير الرئيس';
+
+  @override
+  String get residencePresidentCurrent => 'الرئيس الحالي';
+
+  @override
+  String residencePresidentChangeConfirmation(
+    String previousName,
+    String newName,
+  ) {
+    return 'ستُنقل الرئاسة من $previousName إلى $newName. سيحصل $newName على صلاحيات الرئاسة، وسيفقد $previousName هذه الصلاحيات.';
+  }
+
+  @override
+  String get residencePresidentConfirmChange => 'تأكيد تغيير الرئيس';
+
+  @override
+  String get residencePresidentAppointed => 'تم تعيين رئيس الإقامة.';
+
+  @override
+  String get residencePresidentChanged => 'تم تغيير رئيس الإقامة.';
+
+  @override
+  String get residencePresidentProfileUnavailable =>
+      'بيانات رئيس الإقامة غير متاحة مؤقتًا.';
+
+  @override
+  String get residencePresidentLoadFailed =>
+      'تعذّر تحميل معلومات رئيس الإقامة والسكان.';
+
+  @override
+  String get residencePresidentSaveFailed =>
+      'تعذّر حفظ التعيين. حاول مرة أخرى.';
+
+  @override
+  String get residencePresidentSelectionExpired =>
+      'تعذّر إتمام التعيين. ربما تغيّرت الصلاحيات أو عضوية الساكن أو الرئيس الحالي.';
+
+  @override
+  String get appActivityResidencePresidentAppointed => 'تعيين رئيس الإقامة';
+
+  @override
+  String get appActivityResidencePresidentChanged => 'تغيير رئيس الإقامة';
 
   @override
   String get apartmentsAndResidents => 'الشقق والسكان';

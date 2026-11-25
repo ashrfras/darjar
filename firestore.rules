@@ -179,6 +179,66 @@ service cloud.firestore {
         );
     }
 
+    function activityEventPath(eventId) {
+      return /databases/$(database)/documents/appActivityLog/$(eventId);
+    }
+
+    // Membership changes and the activity entry must accompany a new pointer.
+    function presidencyIsChanging(residenceId) {
+      let path = residencePath(residenceId);
+      let before = get(path).data;
+      let after = getAfter(path).data;
+      return after.get('presidentId', null) is string
+        && after.presidentId != before.get('presidentId', null)
+        && after.get('presidencyEventId', null) is string
+        && after.presidencyEventId.matches('^[A-Za-z0-9]{20}$')
+        && after.presidencyEventId != before.get('presidencyEventId', null);
+    }
+
+    function validPresidencyActivity(residenceId, targetId, eventId, previousId) {
+      let path = activityEventPath(eventId);
+      let event = getAfter(path).data;
+      return !exists(path)
+        && event.keys().hasOnly([
+          'type', 'residenceId', 'actorId', 'userId', 'previousPresidentId', 'occurredAt'
+        ])
+        && event.type == (previousId == null
+          ? 'residencePresidentAppointed' : 'residencePresidentChanged')
+        && event.residenceId == residenceId
+        && event.actorId == request.auth.uid
+        && event.userId == targetId
+        && event.previousPresidentId == previousId
+        && event.occurredAt == request.time;
+    }
+
+    function validPresidencyUpdate(residenceId, targetId, eventId) {
+      let actorPath = memberPath(residenceId, request.auth.uid);
+      let targetPath = memberPath(residenceId, targetId);
+      let actor = get(actorPath).data;
+      let target = get(targetPath).data;
+      let previousId = actor.role in ['president', 'owner'] ? request.auth.uid : null;
+      return actor.status == 'active'
+        && target.status == 'active'
+        && !(target.role in ['president', 'owner'])
+        && getAfter(targetPath).data.role == 'president'
+        && getAfter(targetPath).data.hasPresidentPermissions == false
+        && (
+          (
+            previousId == null
+            && actor.role == 'resident'
+            && actor.get('hasPresidentPermissions', false) == false
+            && isCreatorAwaitingPresident(residenceId)
+          )
+          || (
+            previousId == request.auth.uid
+            && (resource.data.get('presidentId', null) in [null, previousId])
+            && getAfter(actorPath).data.role == 'resident'
+            && getAfter(actorPath).data.hasPresidentPermissions == false
+          )
+        )
+        && validPresidencyActivity(residenceId, targetId, eventId, previousId);
+    }
+
     function isRecentlyVerifiedPresident(residenceId) {
       return isPresident(residenceId)
         && request.auth.token.auth_time is int
@@ -751,20 +811,19 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time
         )
         || (
-          isPresident(residenceId)
+          signedIn()
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'presidentId',
+            'presidencyEventId',
             'updatedAt'
           ])
-          && request.resource.data.presidentId is string
-          && request.resource.data.presidentId != request.auth.uid
-          && getAfter(
-            memberPath(residenceId, request.resource.data.presidentId)
-          ).data.role == 'president'
-          && getAfter(
-            memberPath(residenceId, request.auth.uid)
-          ).data.role == 'resident'
+          && presidencyIsChanging(residenceId)
           && request.resource.data.updatedAt == request.time
+          && validPresidencyUpdate(
+            residenceId,
+            request.resource.data.presidentId,
+            request.resource.data.presidencyEventId
+          )
         );
 
       match /settings/private {
@@ -953,32 +1012,29 @@ service cloud.firestore {
             && request.resource.data.updatedAt == request.time
           )
           || (
-            isPresident(residenceId)
-            && memberId != request.auth.uid
-            && !(resource.data.role in ['president', 'owner'])
+            signedIn()
+            && presidencyIsChanging(residenceId)
+            && resource.data.status == 'active'
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
               'role',
               'hasPresidentPermissions',
               'updatedAt'
             ])
-            && request.resource.data.role == 'president'
             && request.resource.data.hasPresidentPermissions == false
-            && getAfter(residencePath(residenceId)).data.presidentId == memberId
             && request.resource.data.updatedAt == request.time
-          )
-          || (
-            memberId == request.auth.uid
-            && isPresident(residenceId)
-            && resource.data.role in ['president', 'owner']
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              'role',
-              'hasPresidentPermissions',
-              'updatedAt'
-            ])
-            && request.resource.data.role == 'resident'
-            && request.resource.data.hasPresidentPermissions == false
-            && getAfter(residencePath(residenceId)).data.presidentId != memberId
-            && request.resource.data.updatedAt == request.time
+            && (
+              (
+                !(resource.data.role in ['president', 'owner'])
+                && request.resource.data.role == 'president'
+                && getAfter(residencePath(residenceId)).data.presidentId == memberId
+              )
+              || (
+                memberId == request.auth.uid
+                && resource.data.role in ['president', 'owner']
+                && request.resource.data.role == 'resident'
+                && getAfter(residencePath(residenceId)).data.presidentId != memberId
+              )
+            )
           )
           || (
             memberId == request.auth.uid
@@ -1750,7 +1806,10 @@ service cloud.firestore {
     }
 
     match /appActivityLog/{eventId} {
-      allow read, write: if false;
+      allow create: if signedIn()
+        && request.resource.data.residenceId is string
+        && presidencyIsChanging(request.resource.data.residenceId)
+        && getAfter(residencePath(request.resource.data.residenceId)).data.presidencyEventId == eventId;
     }
 
     match /appPermissions/{userId} {
