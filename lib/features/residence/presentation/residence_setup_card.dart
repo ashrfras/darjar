@@ -3,93 +3,46 @@ import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_radius.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
-import 'package:darjar/features/auth/data/auth_repository.dart';
-import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_progress_provider.dart';
+import 'package:darjar/features/residence/data/residence_setup_visibility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ResidenceSetupCard extends ConsumerWidget {
   const ResidenceSetupCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user =
-        ref.watch(authStateProvider).value ??
-        ref.watch(authRepositoryProvider).currentUser;
-    final residence = ref
-        .watch(residenceContextProvider)
-        .value
-        ?.activeResidence;
-    if (user == null || residence == null || residence.createdBy != user.uid) {
+    final scope = ref.watch(residenceSetupScopeProvider);
+    if (scope == null) return const SizedBox.shrink();
+
+    final preference = residenceSetupVisibilityProvider(scope);
+    final visibility = ref.watch(preference);
+    if (visibility.value != ResidenceSetupVisibility.visible &&
+        !visibility.hasError) {
       return const SizedBox.shrink();
     }
-    return _DismissibleSetupCard(
-      key: ValueKey((user.uid, residence.id)),
-      scope: (
-        userId: user.uid,
-        residenceId: residence.id,
-        phoneNumber: user.phoneNumber,
-      ),
-    );
-  }
-}
-
-class _DismissibleSetupCard extends ConsumerStatefulWidget {
-  const _DismissibleSetupCard({required this.scope, super.key});
-
-  final ResidenceSetupScope scope;
-
-  @override
-  ConsumerState<_DismissibleSetupCard> createState() =>
-      _DismissibleSetupCardState();
-}
-
-class _DismissibleSetupCardState extends ConsumerState<_DismissibleSetupCard> {
-  late final String _preferenceKey =
-      'residence_setup_hidden/${widget.scope.userId}/${widget.scope.residenceId}';
-  late final Future<bool> _hiddenPreference = SharedPreferences.getInstance()
-      .then((preferences) => preferences.getBool(_preferenceKey) ?? false);
-  bool _hidden = false;
-  bool _saving = false;
-
-  Future<void> _hide() async {
-    setState(() => _saving = true);
-    try {
-      final preferences = await SharedPreferences.getInstance();
-      if (!await preferences.setBool(_preferenceKey, true)) {
-        throw StateError('Could not save residence setup preference');
-      }
-      if (mounted) setState(() => _hidden = true);
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).communityActionFailed),
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_hidden) return const SizedBox.shrink();
-    return FutureBuilder<bool>(
-      future: _hiddenPreference,
-      builder: (context, preference) {
-        if (preference.connectionState != ConnectionState.done ||
-            preference.data == true) {
-          return const SizedBox.shrink();
-        }
-        return _SetupChecklist(
-          scope: widget.scope,
-          onHide: _saving ? null : _hide,
-        );
-      },
+    return _SetupChecklist(
+      scope: scope,
+      onHide: visibility.isLoading
+          ? null
+          : () async {
+              try {
+                await ref
+                    .read(preference.notifier)
+                    .setVisibility(ResidenceSetupVisibility.hiddenUnread);
+              } catch (_) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(context).communityActionFailed,
+                    ),
+                  ),
+                );
+              }
+            },
     );
   }
 }
@@ -103,7 +56,7 @@ class _SetupChecklist extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(residenceSetupProgressProvider(scope));
-    if (progress == null) return const SizedBox.shrink();
+    if (progress == null || progress.isComplete) return const SizedBox.shrink();
     final strings = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
@@ -140,7 +93,6 @@ class _SetupChecklist extends ConsumerWidget {
       ),
     ];
     final completed = steps.where((step) => step.complete).length;
-    if (completed == steps.length) return const SizedBox.shrink();
     return Padding(
       key: const Key('residence-setup-card'),
       padding: const EdgeInsets.only(bottom: AppSpacing.large),

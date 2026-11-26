@@ -74,6 +74,8 @@
   "setupChecklistAddApartments": "إضافة الشقق",
   "setupChecklistInviteNeighbors": "دعوة الجيران",
   "setupChecklistHide": "إخفاء هذه البطاقة",
+  "setupChecklistHiddenNotificationTitle": "تم إخفاء بطاقة الإعداد",
+  "setupChecklistHiddenNotificationBody": "انقر هنا لإظهارها مجددًا في الموجز.",
   "setupChecklistProgress": "{completed} من {total} خطوات",
   "@setupChecklistProgress": {"placeholders": {"completed": {"type": "int"}, "total": {"type": "int"}}},
   "createResidence": "إنشاء إقامة",

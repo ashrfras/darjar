@@ -74,6 +74,8 @@
   "setupChecklistAddApartments": "Add apartments",
   "setupChecklistInviteNeighbors": "Invite neighbors",
   "setupChecklistHide": "Hide this card",
+  "setupChecklistHiddenNotificationTitle": "Setup card hidden",
+  "setupChecklistHiddenNotificationBody": "Tap here to show it again in the feed.",
   "setupChecklistProgress": "{completed} of {total} steps",
   "createResidence": "Create residence",
   "joinResidence": "Join residence",

@@ -248,6 +248,14 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get setupChecklistHide => 'ⴼⴼⴻⵔ ⵜⴰⴽⴰⵔⴹⴰ ⴰⴷ';
 
   @override
+  String get setupChecklistHiddenNotificationTitle =>
+      'ⵜⴻⵜⵜⵡⴰⴼⴼⴻⵔ ⵜⴽⴰⵔⴹⴰ ⵏ ⵓⵙⵡⴻⴳⴳⴻⵎ';
+
+  @override
+  String get setupChecklistHiddenNotificationBody =>
+      'ⴽⵍⵉⴽⵉ ⴷⴰ ⴰⴷ ⵜⴱⴰⵏ ⴷⴰⵖ ⴷⴻⴳ ⵍⵇⵓⵜ.';
+
+  @override
   String setupChecklistProgress(int completed, int total) {
     return '$completed ⵙⴳ $total ⵏ ⵜⵙⵓⵔⵉⴼⵉⵏ';
   }

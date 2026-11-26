@@ -162,14 +162,17 @@ void main() {
       expect(feed, findsOneWidget);
     });
 
-    testWidgets('persists dismissal for the creator and residence', (
+    testWidgets('restores a dismissed checklist from the notifications bell', (
       tester,
     ) async {
+      SharedPreferences.setMockInitialValues({});
+      addTearDown(() => SharedPreferences.setMockInitialValues({}));
       await _pumpApp(
         tester,
         size: const Size(390, 844),
         initialLocation: AppRoutes.community,
         residenceContext: creatorContext,
+        notificationsRepository: MockNotificationsRepository(seed: []),
         setupProgress: () => (
           hasUpperFloor: false,
           hasApartment: false,
@@ -177,31 +180,95 @@ void main() {
           hasPresident: false,
         ),
       );
+      final card = find.byKey(setupCardKey);
+      final bell = find.byKey(const Key('notifications-button'));
+      final badge = find.byKey(const Key('notifications-unread-badge'));
+      final reminder = find.byKey(
+        const Key('residence-setup-reminder-notification'),
+      );
+      expect(badge, findsNothing);
+
       final hide = find.text('إخفاء هذه البطاقة');
       await tester.ensureVisible(hide);
       await tester.tap(hide);
       await tester.pumpAndSettle();
-      expect(find.byKey(setupCardKey), findsNothing);
-      final preferences = await SharedPreferences.getInstance();
+      expect(card, findsNothing);
       expect(
-        preferences.getBool(
-          'residence_setup_hidden/test-user/setup-checklist-test',
-        ),
-        isTrue,
+        find.descendant(of: badge, matching: find.text('1')),
+        findsOneWidget,
       );
+      final preferences = await SharedPreferences.getInstance();
+      const preferenceKey =
+          'residence_setup_visibility/test-user/setup-checklist-test';
+      expect(preferences.getString(preferenceKey), 'hiddenUnread');
+
       final feed = find.byKey(const Key('community-feed-page'));
       final router = ProviderScope.containerOf(
         tester.element(feed),
       ).read(appRouterProvider);
-      router.go(AppRoutes.createPost);
+      router.go(AppRoutes.directory);
       await tester.pumpAndSettle();
-      router.go(AppRoutes.community);
+      await tester.tap(bell);
       await tester.pumpAndSettle();
-      expect(find.byKey(setupCardKey), findsNothing);
-      await preferences.remove(
-        'residence_setup_hidden/test-user/setup-checklist-test',
-      );
+      expect(reminder, findsOneWidget);
+      expect(find.text('تم إخفاء بطاقة الإعداد'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('mark-notifications-read-button')));
+      await tester.pumpAndSettle();
+      expect(badge, findsNothing);
+      expect(reminder, findsOneWidget);
+      expect(preferences.getString(preferenceKey), 'hiddenRead');
+
+      await tester.tap(reminder);
+      await tester.pumpAndSettle();
+      expect(feed, findsOneWidget);
+      expect(card.hitTestable(), findsOneWidget);
+      expect(preferences.getString(preferenceKey), 'visible');
+
+      await tester.tap(bell);
+      await tester.pumpAndSettle();
+      expect(reminder, findsNothing);
     });
+
+    testWidgets(
+      'shows a reminder for legacy dismissals only while incomplete',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({
+          'residence_setup_hidden/test-user/setup-checklist-test': true,
+        });
+        addTearDown(() => SharedPreferences.setMockInitialValues({}));
+        var hasPresident = false;
+        await _pumpApp(
+          tester,
+          size: const Size(390, 844),
+          initialLocation: AppRoutes.community,
+          residenceContext: creatorContext,
+          notificationsRepository: MockNotificationsRepository(seed: []),
+          setupProgress: () => (
+            hasUpperFloor: true,
+            hasApartment: true,
+            hasNeighbor: true,
+            hasPresident: hasPresident,
+          ),
+        );
+        final feed = find.byKey(const Key('community-feed-page'));
+        final container = ProviderScope.containerOf(tester.element(feed));
+        final badge = find.byKey(const Key('notifications-unread-badge'));
+        final reminder = find.byKey(
+          const Key('residence-setup-reminder-notification'),
+        );
+        expect(find.byKey(setupCardKey), findsNothing);
+        expect(badge, findsOneWidget);
+        await tester.tap(find.byKey(const Key('notifications-button')));
+        await tester.pumpAndSettle();
+        expect(reminder, findsOneWidget);
+
+        hasPresident = true;
+        container.invalidate(residenceSetupProgressProvider);
+        await tester.pumpAndSettle();
+        expect(reminder, findsNothing);
+        expect(badge, findsNothing);
+      },
+    );
 
     testWidgets('never loads the checklist for a non-creator', (tester) async {
       await _pumpApp(

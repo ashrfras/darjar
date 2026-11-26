@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
+import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,10 +12,32 @@ typedef ResidenceSetupProgress = ({
   bool hasPresident,
 });
 
+extension ResidenceSetupCompletion on ResidenceSetupProgress {
+  bool get isComplete =>
+      hasUpperFloor && hasApartment && hasNeighbor && hasPresident;
+}
+
 typedef ResidenceSetupScope = ({
   String residenceId,
   String userId,
   String? phoneNumber,
+});
+
+final residenceSetupScopeProvider = Provider.autoDispose<ResidenceSetupScope?>((
+  ref,
+) {
+  final user =
+      ref.watch(authStateProvider).value ??
+      ref.watch(authRepositoryProvider).currentUser;
+  final residence = ref.watch(residenceContextProvider).value?.activeResidence;
+  if (user == null || residence == null || residence.createdBy != user.uid) {
+    return null;
+  }
+  return (
+    userId: user.uid,
+    residenceId: residence.id,
+    phoneNumber: user.phoneNumber,
+  );
 });
 
 final residenceSetupProgressProvider = Provider.autoDispose

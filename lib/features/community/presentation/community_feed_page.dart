@@ -15,6 +15,8 @@ import 'package:darjar/features/community/presentation/collapsible_feed_group.da
 import 'package:darjar/features/community/presentation/community_post_card.dart';
 import 'package:darjar/features/community/presentation/residence_activity_card.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_setup_progress_provider.dart';
+import 'package:darjar/features/residence/data/residence_setup_visibility.dart';
 import 'package:darjar/features/residence/presentation/residence_setup_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,6 +54,24 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
 
   @override
   Widget build(BuildContext context) {
+    final setupScope = ref.watch(residenceSetupScopeProvider);
+    if (setupScope != null) {
+      ref.listen(residenceSetupVisibilityProvider(setupScope), (
+        previous,
+        next,
+      ) {
+        if (previous?.value?.isHidden == true &&
+            next.value == ResidenceSetupVisibility.visible) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _scrollController.hasClients) {
+              _scrollController.jumpTo(
+                _scrollController.position.minScrollExtent,
+              );
+            }
+          });
+        }
+      });
+    }
     final postsState = ref.watch(communityPostsProvider);
     final activitiesState = ref.watch(feedActivitiesProvider);
     final feedState = ref.watch(feedItemsProvider);

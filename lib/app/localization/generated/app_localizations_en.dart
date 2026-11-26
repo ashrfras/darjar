@@ -248,6 +248,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupChecklistHide => 'Hide this card';
 
   @override
+  String get setupChecklistHiddenNotificationTitle => 'Setup card hidden';
+
+  @override
+  String get setupChecklistHiddenNotificationBody =>
+      'Tap here to show it again in the feed.';
+
+  @override
   String setupChecklistProgress(int completed, int total) {
     return '$completed of $total steps';
   }

@@ -18,7 +18,9 @@ import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
 import 'package:darjar/features/notifications/data/notifications_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_setup_progress_provider.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
+import 'package:darjar/features/residence/data/residence_setup_visibility.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
 import 'package:darjar/features/shell/data/residence_data_warmup.dart';
 import 'package:flutter/material.dart';
@@ -498,7 +500,14 @@ class _NotificationsAction extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
-    final unreadCount = ref.watch(unreadNotificationsCountProvider);
+    final setupReminderUnread = ref.watch(
+      residenceSetupReminderProvider.select(
+        (reminder) => reminder?.isUnread ?? false,
+      ),
+    );
+    final unreadCount =
+        ref.watch(unreadNotificationsCountProvider) +
+        (setupReminderUnread ? 1 : 0);
     return IconButton(
       key: const Key('notifications-button'),
       tooltip: localizations.notifications,
@@ -551,6 +560,13 @@ class _NotificationsSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final notifications = ref.watch(notificationsProvider);
+    final setupReminder = ref.watch(residenceSetupReminderProvider);
+    final unreadSetupReminder = setupReminder?.isUnread == true
+        ? setupReminder
+        : null;
+    final hasUnreadNotifications =
+        notifications.value?.any((notification) => !notification.isRead) ??
+        false;
     final now = ref.watch(notificationTimeNowProvider);
     final apartmentNotAssigned = ref.watch(
       residenceContextProvider.select(
@@ -583,18 +599,75 @@ class _NotificationsSheet extends ConsumerWidget {
                 TextButton(
                   key: const Key('mark-notifications-read-button'),
                   onPressed:
-                      notifications.value?.any(
-                            (notification) => !notification.isRead,
-                          ) ==
-                          true
-                      ? () =>
-                            ref.read(notificationActionsProvider).markAllRead()
+                      hasUnreadNotifications || unreadSetupReminder != null
+                      ? () async {
+                          if (unreadSetupReminder != null) {
+                            await _setSetupVisibility(
+                              context,
+                              ref,
+                              unreadSetupReminder.scope,
+                              ResidenceSetupVisibility.hiddenRead,
+                            );
+                          }
+                          if (hasUnreadNotifications && context.mounted) {
+                            await ref
+                                .read(notificationActionsProvider)
+                                .markAllRead();
+                          }
+                        }
                       : null,
                   child: Text(localizations.markAllNotificationsRead),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.small),
+            if (setupReminder != null) ...[
+              ListTile(
+                key: const Key('residence-setup-reminder-notification'),
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  backgroundColor: AppColors.primarySoft,
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  child: const Icon(Icons.fact_check_outlined),
+                ),
+                title: Text(
+                  localizations.setupChecklistHiddenNotificationTitle,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xSmall),
+                  child: Text(
+                    localizations.setupChecklistHiddenNotificationBody,
+                  ),
+                ),
+                trailing: setupReminder.isUnread
+                    ? const Badge(
+                        smallSize: 8,
+                        backgroundColor: AppColors.warning,
+                      )
+                    : null,
+                onTap: () async {
+                  final restored = await _setSetupVisibility(
+                    context,
+                    ref,
+                    setupReminder.scope,
+                    ResidenceSetupVisibility.visible,
+                  );
+                  if (!context.mounted ||
+                      !restored ||
+                      ref.read(residenceSetupScopeProvider) !=
+                          setupReminder.scope) {
+                    return;
+                  }
+                  final router = GoRouter.of(context);
+                  Navigator.of(context).pop();
+                  router.go(AppRoutes.community);
+                },
+              ),
+              if (apartmentNotAssigned ||
+                  notifications.value?.isNotEmpty == true)
+                const Divider(),
+            ],
             if (apartmentNotAssigned) ...[
               ListTile(
                 key: const Key('apartment-not-assigned-notification'),
@@ -630,6 +703,7 @@ class _NotificationsSheet extends ConsumerWidget {
               ),
               data: (items) {
                 if (items.isEmpty) {
+                  if (setupReminder != null) return const SizedBox.shrink();
                   return Padding(
                     padding: const EdgeInsets.all(AppSpacing.xLarge),
                     child: Text(
@@ -669,6 +743,28 @@ class _NotificationsSheet extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<bool> _setSetupVisibility(
+    BuildContext context,
+    WidgetRef ref,
+    ResidenceSetupScope scope,
+    ResidenceSetupVisibility visibility,
+  ) async {
+    try {
+      return await ref
+          .read(residenceSetupVisibilityProvider(scope).notifier)
+          .setVisibility(visibility);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).communityActionFailed),
+          ),
+        );
+      }
+      return false;
+    }
   }
 
   Future<void> _openNotification(

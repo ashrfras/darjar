@@ -80,6 +80,8 @@
   "setupChecklistAddApartments": "ⵔⵏⵓ ⵜⵉⵣⴷⵓⵖⵉⵏ",
   "setupChecklistInviteNeighbors": "ⵖⵔ ⵉ ⵉⴷ ⵍⴵⵉⵔⴰⵏ",
   "setupChecklistHide": "ⴼⴼⴻⵔ ⵜⴰⴽⴰⵔⴹⴰ ⴰⴷ",
+  "setupChecklistHiddenNotificationTitle": "ⵜⴻⵜⵜⵡⴰⴼⴼⴻⵔ ⵜⴽⴰⵔⴹⴰ ⵏ ⵓⵙⵡⴻⴳⴳⴻⵎ",
+  "setupChecklistHiddenNotificationBody": "ⴽⵍⵉⴽⵉ ⴷⴰ ⴰⴷ ⵜⴱⴰⵏ ⴷⴰⵖ ⴷⴻⴳ ⵍⵇⵓⵜ.",
   "setupChecklistProgress": "{completed} ⵙⴳ {total} ⵏ ⵜⵙⵓⵔⵉⴼⵉⵏ",
   "createResidence": "ⵙⵏⵓⵍⴼⵓ ⵜⴰⵣⴻⴷⵖⴰ",
   "joinResidence": "ⴽⵛⴻⵎ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵜ",

@@ -247,6 +247,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setupChecklistHide => 'إخفاء هذه البطاقة';
 
   @override
+  String get setupChecklistHiddenNotificationTitle => 'تم إخفاء بطاقة الإعداد';
+
+  @override
+  String get setupChecklistHiddenNotificationBody =>
+      'انقر هنا لإظهارها مجددًا في الموجز.';
+
+  @override
   String setupChecklistProgress(int completed, int total) {
     return '$completed من $total خطوات';
   }

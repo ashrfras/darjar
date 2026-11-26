@@ -538,6 +538,18 @@ abstract class AppLocalizations {
   /// **'إخفاء هذه البطاقة'**
   String get setupChecklistHide;
 
+  /// No description provided for @setupChecklistHiddenNotificationTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إخفاء بطاقة الإعداد'**
+  String get setupChecklistHiddenNotificationTitle;
+
+  /// No description provided for @setupChecklistHiddenNotificationBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'انقر هنا لإظهارها مجددًا في الموجز.'**
+  String get setupChecklistHiddenNotificationBody;
+
   /// No description provided for @setupChecklistProgress.
   ///
   /// In ar, this message translates to:
