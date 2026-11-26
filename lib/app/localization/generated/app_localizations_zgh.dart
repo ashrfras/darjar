@@ -226,6 +226,33 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get yourInformation => 'ⵉⵙⴰⵍⴰⵏⵉⴽ';
 
   @override
+  String get setupChecklistTitle => 'ⴱⴷⵓ ⴰⵙⵡⴻⴳⴳⴻⵎ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ ⵏⵏⴻⴽ!';
+
+  @override
+  String get setupChecklistDescription =>
+      'ⵜⵣⵎⵔⴷ ⴰⴷ ⵜⵙⵡⴻⴳⴳⵎⴷ ⵜⴰⵏⴻⵣⴷⵓⵖⵜ ⵏⵏⴻⴽ ⵉⵎⵉⴽ ⵙ ⵉⵎⵉⴽ, ⵜⵖⵔⴷ ⵉ ⵉⴷ ⵍⴵⵉⵔⴰⵏ ⴰⴷ ⴷ ⴽⵛⵎⵏ.';
+
+  @override
+  String get setupChecklistCreateResidence => 'ⴰⵙⵏⵓⵍⴼⵓ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ';
+
+  @override
+  String get setupChecklistSetFloorCount => 'ⵙⴱⴻⴷⴷ ⴰⵎⴹⴰⵏ ⵏ ⵢⵉⴹⴰⵔⵔⴻⵏ';
+
+  @override
+  String get setupChecklistAddApartments => 'ⵔⵏⵓ ⵜⵉⵣⴷⵓⵖⵉⵏ';
+
+  @override
+  String get setupChecklistInviteNeighbors => 'ⵖⵔ ⵉ ⵉⴷ ⵍⴵⵉⵔⴰⵏ';
+
+  @override
+  String get setupChecklistHide => 'ⴼⴼⴻⵔ ⵜⴰⴽⴰⵔⴹⴰ ⴰⴷ';
+
+  @override
+  String setupChecklistProgress(int completed, int total) {
+    return '$completed ⵙⴳ $total ⵏ ⵜⵙⵓⵔⵉⴼⵉⵏ';
+  }
+
+  @override
   String get createResidence => 'ⵙⵏⵓⵍⴼⵓ ⵜⴰⵣⴻⴷⵖⴰ';
 
   @override

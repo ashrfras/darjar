@@ -15,6 +15,7 @@ import 'package:darjar/features/community/presentation/collapsible_feed_group.da
 import 'package:darjar/features/community/presentation/community_post_card.dart';
 import 'package:darjar/features/community/presentation/residence_activity_card.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/presentation/residence_setup_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -121,6 +122,7 @@ class _CommunityFeedPageState extends ConsumerState<CommunityFeedPage> {
                               onTap: () => context.push(AppRoutes.createPost),
                             ),
                             const SizedBox(height: AppSpacing.large),
+                            const ResidenceSetupCard(),
                             if (feedState.isLoading && items.isEmpty)
                               const DarJarLoadingSkeleton()
                             else if (feedState.hasError && items.isEmpty)

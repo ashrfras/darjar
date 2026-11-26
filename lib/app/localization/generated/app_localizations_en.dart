@@ -226,6 +226,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yourInformation => 'Your information';
 
   @override
+  String get setupChecklistTitle => 'Let’s set up your residence!';
+
+  @override
+  String get setupChecklistDescription =>
+      'Set up your residence at your own pace and invite your neighbors to join.';
+
+  @override
+  String get setupChecklistCreateResidence => 'Create the residence';
+
+  @override
+  String get setupChecklistSetFloorCount => 'Set the number of floors';
+
+  @override
+  String get setupChecklistAddApartments => 'Add apartments';
+
+  @override
+  String get setupChecklistInviteNeighbors => 'Invite neighbors';
+
+  @override
+  String get setupChecklistHide => 'Hide this card';
+
+  @override
+  String setupChecklistProgress(int completed, int total) {
+    return '$completed of $total steps';
+  }
+
+  @override
   String get createResidence => 'Create residence';
 
   @override

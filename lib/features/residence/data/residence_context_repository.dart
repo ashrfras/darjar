@@ -16,6 +16,7 @@ class UserResidence {
     this.hasImage = false,
     this.joinedAt,
     this.presidentId,
+    this.createdBy,
     this.isCreatorAwaitingPresident = false,
   });
 
@@ -29,6 +30,7 @@ class UserResidence {
   final bool hasImage;
   final DateTime? joinedAt;
   final String? presidentId;
+  final String? createdBy;
   final bool isCreatorAwaitingPresident;
 
   bool get canManageResidence =>
@@ -334,19 +336,26 @@ class FirestoreResidenceContextRepository
     final role = membershipData['role'] as String? ?? 'resident';
     final hasPresidentPermissions =
         membershipData['hasPresidentPermissions'] as bool? ?? false;
+    var createdBy = residenceData['createdBy'] as String?;
+    if (createdBy == null) {
+      // Older residences keep creator information in private settings.
+      try {
+        final settings = await residence.reference
+            .collection('settings')
+            .doc('private')
+            .get();
+        createdBy = settings.data()?['createdBy'] as String?;
+      } on FirebaseException catch (error) {
+        if (kDebugMode) debugPrint('Residence creator lookup: ${error.code}');
+      }
+    }
     // New residences explicitly store null until a president is appointed.
     final isCreatorAwaitingPresident =
         role == 'resident' &&
         !hasPresidentPermissions &&
         residenceData.containsKey('presidentId') &&
         residenceData['presidentId'] == null &&
-        (residenceData['createdBy'] ??
-                (await residence.reference
-                        .collection('settings')
-                        .doc('private')
-                        .get())
-                    .data()?['createdBy']) ==
-            membership.id;
+        createdBy == membership.id;
     return UserResidence(
       id: residence.id,
       name: residenceData['name'] as String? ?? '',
@@ -354,6 +363,7 @@ class FirestoreResidenceContextRepository
       city: residenceData['city'] as String? ?? '',
       role: role,
       presidentId: residenceData['presidentId'] as String?,
+      createdBy: createdBy,
       apartmentId: membershipData['apartmentId'] as String? ?? '',
       hasPresidentPermissions: hasPresidentPermissions,
       hasImage: residenceData['hasImage'] as bool? ?? false,

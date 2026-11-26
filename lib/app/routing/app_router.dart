@@ -328,7 +328,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.manageApartments,
-            builder: (context, state) => const ApartmentsResidentsPage(),
+            builder: (context, state) => ApartmentsResidentsPage(
+              showResidentsFirst:
+                  state.uri.queryParameters['view'] == 'residents',
+            ),
           ),
           GoRoute(
             path: AppRoutes.appointResidencePresident,

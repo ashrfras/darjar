@@ -225,6 +225,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get yourInformation => 'معلوماتك';
 
   @override
+  String get setupChecklistTitle => 'لنبدأ بإعداد إقامتك!';
+
+  @override
+  String get setupChecklistDescription =>
+      'يمكنك إعداد إقامتك تدريجيًا، ودعوة جيرانك للانضمام إليها.';
+
+  @override
+  String get setupChecklistCreateResidence => 'إنشاء الإقامة';
+
+  @override
+  String get setupChecklistSetFloorCount => 'تحديد عدد الطوابق';
+
+  @override
+  String get setupChecklistAddApartments => 'إضافة الشقق';
+
+  @override
+  String get setupChecklistInviteNeighbors => 'دعوة الجيران';
+
+  @override
+  String get setupChecklistHide => 'إخفاء هذه البطاقة';
+
+  @override
+  String setupChecklistProgress(int completed, int total) {
+    return '$completed من $total خطوات';
+  }
+
+  @override
   String get createResidence => 'إنشاء إقامة';
 
   @override

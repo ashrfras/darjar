@@ -496,6 +496,54 @@ abstract class AppLocalizations {
   /// **'معلوماتك'**
   String get yourInformation;
 
+  /// No description provided for @setupChecklistTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'لنبدأ بإعداد إقامتك!'**
+  String get setupChecklistTitle;
+
+  /// No description provided for @setupChecklistDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكنك إعداد إقامتك تدريجيًا، ودعوة جيرانك للانضمام إليها.'**
+  String get setupChecklistDescription;
+
+  /// No description provided for @setupChecklistCreateResidence.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء الإقامة'**
+  String get setupChecklistCreateResidence;
+
+  /// No description provided for @setupChecklistSetFloorCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحديد عدد الطوابق'**
+  String get setupChecklistSetFloorCount;
+
+  /// No description provided for @setupChecklistAddApartments.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة الشقق'**
+  String get setupChecklistAddApartments;
+
+  /// No description provided for @setupChecklistInviteNeighbors.
+  ///
+  /// In ar, this message translates to:
+  /// **'دعوة الجيران'**
+  String get setupChecklistInviteNeighbors;
+
+  /// No description provided for @setupChecklistHide.
+  ///
+  /// In ar, this message translates to:
+  /// **'إخفاء هذه البطاقة'**
+  String get setupChecklistHide;
+
+  /// No description provided for @setupChecklistProgress.
+  ///
+  /// In ar, this message translates to:
+  /// **'{completed} من {total} خطوات'**
+  String setupChecklistProgress(int completed, int total);
+
   /// No description provided for @createResidence.
   ///
   /// In ar, this message translates to:

@@ -49,6 +49,7 @@ import 'package:darjar/features/residence/data/residence_finance_repository.dart
 import 'package:darjar/features/residence/data/residence_important_notifications.dart';
 import 'package:darjar/features/residence/data/residence_invitation_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
+import 'package:darjar/features/residence/data/residence_setup_progress_provider.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/data/residence_settings_repository.dart';
 import 'package:darjar/features/residence/presentation/moroccan_cities.dart';
@@ -63,11 +64,156 @@ import 'package:go_router/go_router.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:image/image.dart' as test_image;
 import 'package:printing/printing.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/link.dart';
 
 void main() {
   SharedPreferences.setMockInitialValues({});
+
+  group('residence setup checklist', () {
+    const creatorResidence = UserResidence(
+      id: 'setup-checklist-test',
+      name: 'إقامة الاختبار',
+      address: '',
+      city: '',
+      role: 'resident',
+      apartmentId: '',
+      createdBy: 'test-user',
+      isCreatorAwaitingPresident: true,
+    );
+    const creatorContext = ResidenceContext(
+      residences: [creatorResidence],
+      activeResidenceId: 'setup-checklist-test',
+    );
+    const setupCardKey = Key('residence-setup-card');
+
+    testWidgets('links to existing pages and updates completion', (
+      tester,
+    ) async {
+      ResidenceSetupProgress progress = (
+        hasUpperFloor: false,
+        hasApartment: false,
+        hasNeighbor: false,
+        hasPresident: false,
+      );
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: AppRoutes.community,
+        residenceContext: creatorContext,
+        setupProgress: () => progress,
+      );
+      final card = find.byKey(setupCardKey);
+      final feed = find.byKey(const Key('community-feed-page'));
+      final container = ProviderScope.containerOf(tester.element(feed));
+      final router = container.read(appRouterProvider);
+      expect(Directionality.of(tester.element(card)), TextDirection.rtl);
+      expect(find.text('1 من 5 خطوات'), findsOneWidget);
+      expect(find.text('دعوة الجيران'), findsOneWidget);
+
+      Future<void> openStep(String label, Finder destination) async {
+        final row = find.descendant(
+          of: card,
+          matching: find.widgetWithText(ListTile, label),
+        );
+        await tester.ensureVisible(row);
+        await tester.tap(row);
+        await tester.pumpAndSettle();
+        expect(destination, findsOneWidget);
+        router.pop();
+        await tester.pumpAndSettle();
+      }
+
+      await openStep(
+        'تحديد عدد الطوابق',
+        find.text('معلومات الإقامة').hitTestable(),
+      );
+      await openStep('إضافة الشقق', find.byKey(const Key('apartments-view')));
+      await openStep('دعوة الجيران', find.byKey(const Key('residents-view')));
+      await openStep(
+        'تعيين رئيس الإقامة',
+        find.byKey(const Key('residence-president-page')),
+      );
+
+      progress = (
+        hasUpperFloor: false,
+        hasApartment: true,
+        hasNeighbor: true,
+        hasPresident: true,
+      );
+      container.invalidate(residenceSetupProgressProvider);
+      await tester.pumpAndSettle();
+      expect(find.text('4 من 5 خطوات'), findsOneWidget);
+      final inviteRow = find.widgetWithText(ListTile, 'دعوة الجيران');
+      expect(tester.widget<ListTile>(inviteRow).onTap, isNull);
+      final floorsRow = find.widgetWithText(ListTile, 'تحديد عدد الطوابق');
+      expect(tester.widget<ListTile>(floorsRow).onTap, isNotNull);
+
+      progress = (
+        hasUpperFloor: true,
+        hasApartment: true,
+        hasNeighbor: true,
+        hasPresident: true,
+      );
+      container.invalidate(residenceSetupProgressProvider);
+      await tester.pumpAndSettle();
+      expect(card, findsNothing);
+      expect(feed, findsOneWidget);
+    });
+
+    testWidgets('persists dismissal for the creator and residence', (
+      tester,
+    ) async {
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: AppRoutes.community,
+        residenceContext: creatorContext,
+        setupProgress: () => (
+          hasUpperFloor: false,
+          hasApartment: false,
+          hasNeighbor: false,
+          hasPresident: false,
+        ),
+      );
+      final hide = find.text('إخفاء هذه البطاقة');
+      await tester.ensureVisible(hide);
+      await tester.tap(hide);
+      await tester.pumpAndSettle();
+      expect(find.byKey(setupCardKey), findsNothing);
+      final preferences = await SharedPreferences.getInstance();
+      expect(
+        preferences.getBool(
+          'residence_setup_hidden/test-user/setup-checklist-test',
+        ),
+        isTrue,
+      );
+      final feed = find.byKey(const Key('community-feed-page'));
+      final router = ProviderScope.containerOf(
+        tester.element(feed),
+      ).read(appRouterProvider);
+      router.go(AppRoutes.createPost);
+      await tester.pumpAndSettle();
+      router.go(AppRoutes.community);
+      await tester.pumpAndSettle();
+      expect(find.byKey(setupCardKey), findsNothing);
+      await preferences.remove(
+        'residence_setup_hidden/test-user/setup-checklist-test',
+      );
+    });
+
+    testWidgets('never loads the checklist for a non-creator', (tester) async {
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        initialLocation: AppRoutes.community,
+        setupProgress: () =>
+            throw StateError('A non-creator loaded the checklist'),
+      );
+      expect(find.byKey(setupCardKey), findsNothing);
+    });
+  });
 
   group('community author names', () {
     test('uses the current residence member name for an existing post', () {
@@ -7434,18 +7580,27 @@ void main() {
         find.byKey(const Key('management-information-section')),
         findsOneWidget,
       );
-      expect(
-        tester
-            .getTopLeft(find.byKey(const Key('management-information-section')))
-            .dy,
-        greaterThan(
-          tester
-              .getTopLeft(
-                find.byKey(const Key('residence-information-section')),
-              )
-              .dy,
-        ),
-      );
+      for (final width in [390.0, 1440.0]) {
+        tester.view.physicalSize = Size(width, 844);
+        await tester.pumpAndSettle();
+        final information = find.byKey(
+          const Key('residence-information-section'),
+        );
+        final structure = find.byKey(const Key('residence-structure-section'));
+        final management = find.byKey(
+          const Key('management-information-section'),
+        );
+        expect(
+          tester.getTopLeft(structure).dy,
+          greaterThan(tester.getBottomLeft(information).dy),
+        );
+        expect(
+          tester.getTopLeft(management).dy,
+          greaterThan(tester.getBottomLeft(structure).dy),
+        );
+      }
+      tester.view.physicalSize = const Size(390, 844);
+      await tester.pumpAndSettle();
       for (final fieldKey in [
         'management-organization-field',
         'management-phone-field',
@@ -8278,6 +8433,31 @@ void main() {
     expect(membersRepository.loadCount, greaterThan(firstLoadCount));
   });
 
+  testWidgets('group invitation QR keeps dark ink on white in dark mode', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'app_theme_mode': 'dark'});
+    addTearDown(() {
+      SharedPreferences.setMockInitialValues({});
+      AppColors.configure(ThemeMode.system);
+    });
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      initialLocation: AppRoutes.groupInvitation,
+    );
+
+    final qrFinder = find.byType(QrImageView);
+    expect(Theme.of(tester.element(qrFinder)).brightness, Brightness.dark);
+    final qr = tester.widget<QrImageView>(qrFinder);
+    expect(qr.eyeStyle.color, const Color(0xFF17151D));
+    expect(qr.dataModuleStyle.color, qr.eyeStyle.color);
+    final frame = tester.widget<Container>(
+      find.byKey(const Key('group-invitation-qr-code')),
+    );
+    expect((frame.decoration as BoxDecoration).color, Colors.white);
+  });
+
   testWidgets('residents use international phones and group invitations', (
     tester,
   ) async {
@@ -8618,6 +8798,7 @@ Future<void> _pumpApp(
   ResidenceContext? residenceContext,
   bool loadResidenceContext = false,
   Object? residenceContextError,
+  ResidenceSetupProgress? Function()? setupProgress,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -8681,6 +8862,10 @@ Future<void> _pumpApp(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        if (setupProgress != null)
+          residenceSetupProgressProvider.overrideWith(
+            (ref, scope) => setupProgress(),
+          ),
         if (mockStorageImages)
           storageImageBytesProvider.overrideWith(
             (ref, path) async => throw StateError('image-not-found'),

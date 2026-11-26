@@ -33,7 +33,9 @@ class _ApartmentDetailsResult {
 }
 
 class ApartmentsResidentsPage extends ConsumerStatefulWidget {
-  const ApartmentsResidentsPage({super.key});
+  const ApartmentsResidentsPage({this.showResidentsFirst = false, super.key});
+
+  final bool showResidentsFirst;
 
   @override
   ConsumerState<ApartmentsResidentsPage> createState() =>
@@ -42,13 +44,16 @@ class ApartmentsResidentsPage extends ConsumerStatefulWidget {
 
 class _ApartmentsResidentsPageState
     extends ConsumerState<ApartmentsResidentsPage> {
-  _ManagementView _view = _ManagementView.apartments;
+  late _ManagementView _view;
   String _query = '';
   String? _selectedBuildingId;
 
   @override
   void initState() {
     super.initState();
+    _view = widget.showResidentsFirst
+        ? _ManagementView.residents
+        : _ManagementView.apartments;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) ref.invalidate(residenceMembersProvider);
     });
@@ -89,7 +94,6 @@ class _ApartmentsResidentsPageState
                 title: copy.pageTitle,
                 description: compact ? null : copy.pageDescription,
                 fallbackLocation: AppRoutes.administration,
-                onBack: () => context.go(AppRoutes.administration),
               ),
               const SizedBox(height: AppSpacing.large),
               if (membersState.isLoading)

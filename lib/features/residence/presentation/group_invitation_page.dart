@@ -186,6 +186,7 @@ class _InvitationQr extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const qrInk = Color(0xFF17151D);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -202,13 +203,13 @@ class _InvitationQr extends StatelessWidget {
             version: QrVersions.auto,
             size: compact ? 190 : 200,
             padding: EdgeInsets.zero,
-            eyeStyle: QrEyeStyle(
+            eyeStyle: const QrEyeStyle(
               eyeShape: QrEyeShape.square,
-              color: AppColors.ink,
+              color: qrInk,
             ),
-            dataModuleStyle: QrDataModuleStyle(
+            dataModuleStyle: const QrDataModuleStyle(
               dataModuleShape: QrDataModuleShape.square,
-              color: AppColors.ink,
+              color: qrInk,
             ),
           ),
         ),

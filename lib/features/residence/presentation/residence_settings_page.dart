@@ -149,104 +149,58 @@ class _ResidenceSettingsFormState
                     const SizedBox(height: AppSpacing.large),
                     LayoutBuilder(
                       builder: (context, constraints) {
+                        final residenceSections = [
+                          _ResidenceInformationSection(
+                            residenceId: widget.settings.residenceId,
+                            residenceIdController: _joinCodeController,
+                            nameController: _nameController,
+                            addressController: _addressController,
+                            selectedCity: _selectedCity,
+                            onCityChanged: _setCity,
+                            yearController: _yearController,
+                            hasImage: _hasImage,
+                            selectedImageBytes: _selectedImageBytes,
+                            processingImage: _processingImage,
+                            onSelectImage: _selectImage,
+                            onRemoveImage: _removeImage,
+                          ),
+                          const SizedBox(height: AppSpacing.large),
+                          _ResidenceStructureSection(
+                            buildings: _buildings,
+                            onAddBuilding: () => _showBuildingDialog(),
+                            onEditBuilding: (building) =>
+                                _showBuildingDialog(building: building),
+                            onDeleteBuilding: _deleteBuilding,
+                          ),
+                          const SizedBox(height: AppSpacing.large),
+                          _ManagementInformationSection(
+                            residenceId: widget.settings.residenceId,
+                            bankNameController: _bankNameController,
+                            bankAccountController: _bankAccountController,
+                          ),
+                        ];
+                        final subscription = _SubscriptionSection(
+                          amountController: _amountController,
+                        );
                         if (constraints.maxWidth < 760) {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _ResidenceInformationSection(
-                                residenceId: widget.settings.residenceId,
-                                residenceIdController: _joinCodeController,
-                                nameController: _nameController,
-                                addressController: _addressController,
-                                selectedCity: _selectedCity,
-                                onCityChanged: _setCity,
-                                yearController: _yearController,
-                                hasImage: _hasImage,
-                                selectedImageBytes: _selectedImageBytes,
-                                processingImage: _processingImage,
-                                onSelectImage: _selectImage,
-                                onRemoveImage: _removeImage,
-                              ),
+                              ...residenceSections,
                               const SizedBox(height: AppSpacing.large),
-                              _ManagementInformationSection(
-                                residenceId: widget.settings.residenceId,
-                                bankNameController: _bankNameController,
-                                bankAccountController: _bankAccountController,
-                              ),
-                              const SizedBox(height: AppSpacing.large),
-                              _ResidenceStructureSection(
-                                buildings: _buildings,
-                                onAddBuilding: () => _showBuildingDialog(),
-                                onEditBuilding: (building) =>
-                                    _showBuildingDialog(building: building),
-                                onDeleteBuilding: _deleteBuilding,
-                              ),
-                              const SizedBox(height: AppSpacing.large),
-                              _SubscriptionSection(
-                                amountController: _amountController,
-                              ),
+                              subscription,
                             ],
                           );
                         }
 
-                        return Column(
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    children: [
-                                      _ResidenceInformationSection(
-                                        residenceId:
-                                            widget.settings.residenceId,
-                                        residenceIdController:
-                                            _joinCodeController,
-                                        nameController: _nameController,
-                                        addressController: _addressController,
-                                        selectedCity: _selectedCity,
-                                        onCityChanged: _setCity,
-                                        yearController: _yearController,
-                                        hasImage: _hasImage,
-                                        selectedImageBytes: _selectedImageBytes,
-                                        processingImage: _processingImage,
-                                        onSelectImage: _selectImage,
-                                        onRemoveImage: _removeImage,
-                                      ),
-                                      const SizedBox(height: AppSpacing.large),
-                                      _ManagementInformationSection(
-                                        residenceId:
-                                            widget.settings.residenceId,
-                                        bankNameController: _bankNameController,
-                                        bankAccountController:
-                                            _bankAccountController,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.large),
-                                Expanded(
-                                  child: Column(
-                                    children: [
-                                      _ResidenceStructureSection(
-                                        buildings: _buildings,
-                                        onAddBuilding: () =>
-                                            _showBuildingDialog(),
-                                        onEditBuilding: (building) =>
-                                            _showBuildingDialog(
-                                              building: building,
-                                            ),
-                                        onDeleteBuilding: _deleteBuilding,
-                                      ),
-                                      const SizedBox(height: AppSpacing.large),
-                                      _SubscriptionSection(
-                                        amountController: _amountController,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                            Expanded(
+                              child: Column(children: residenceSections),
                             ),
+                            const SizedBox(width: AppSpacing.large),
+                            Expanded(child: subscription),
                           ],
                         );
                       },
