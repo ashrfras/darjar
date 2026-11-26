@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:darjar/features/community/presentation/community_like_button.dart';
 import 'package:darjar/features/community/presentation/community_post_save_button.dart';
 import 'package:darjar/features/community/presentation/community_post_action_icon.dart';
@@ -11,6 +13,7 @@ import 'package:darjar/core/utils/person_name.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/community/data/community_repository.dart';
+import 'package:darjar/features/community/presentation/edit_post_dialog.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -203,7 +206,57 @@ class _PostContent extends StatelessWidget {
   }
 }
 
-class _PostHeader extends StatelessWidget {
+class _EditPostMenuLabel extends StatefulWidget {
+  const _EditPostMenuLabel({required this.createdAt});
+
+  final DateTime? createdAt;
+
+  @override
+  State<_EditPostMenuLabel> createState() => _EditPostMenuLabelState();
+}
+
+class _EditPostMenuLabelState extends State<_EditPostMenuLabel> {
+  Timer? _expiryTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    final remaining = widget.createdAt
+        ?.add(communityPostEditWindow)
+        .difference(DateTime.now());
+    if (remaining != null && remaining > Duration.zero) {
+      _expiryTimer = Timer(remaining, () => setState(() {}));
+    }
+  }
+
+  @override
+  void dispose() {
+    _expiryTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Keep the item tappable after expiry so it can explain the time limit.
+    final color = isCommunityPostEditOpen(widget.createdAt, DateTime.now())
+        ? null
+        : Theme.of(context).disabledColor;
+    return Row(
+      children: [
+        Icon(Icons.edit_outlined, color: color),
+        const SizedBox(width: AppSpacing.small),
+        Flexible(
+          child: Text(
+            AppLocalizations.of(context).editPost,
+            style: TextStyle(color: color),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PostHeader extends ConsumerWidget {
   const _PostHeader({
     required this.post,
     required this.apartmentLabel,
@@ -217,7 +270,7 @@ class _PostHeader extends StatelessWidget {
   final Future<void> Function(CommunityReportReason) onReport;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final color = post.kind.color;
     final showRoleBadge =
         !post.isSystem && _showsCommunityRoleBadge(post.authorRole);
@@ -328,6 +381,15 @@ class _PostHeader extends StatelessWidget {
             onSelected: (value) {
               if (value == 'archive') _confirmArchive(context);
               if (value == 'report') _showReportDialog(context);
+              if (value == 'edit') {
+                showEditPostDialog(
+                  context,
+                  post: post,
+                  onSave: (content) => ref
+                      .read(communityActionsProvider)
+                      .editPost(post.id, content),
+                );
+              }
             },
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -342,6 +404,11 @@ class _PostHeader extends StatelessWidget {
                   ],
                 ),
               ),
+              if (post.isCurrentUser)
+                PopupMenuItem(
+                  value: 'edit',
+                  child: _EditPostMenuLabel(createdAt: post.createdAt),
+                ),
               if (onArchive != null)
                 PopupMenuItem(
                   value: 'archive',

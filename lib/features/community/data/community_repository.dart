@@ -19,6 +19,10 @@ const communityImageMaxDimension = appImageMaxDimension;
 const communityImageTargetSizeBytes = appImageTargetSizeBytes;
 const communityPostsPageSize = 10;
 const communityWelcomePostId = 'darjar-welcome';
+const communityPostEditWindow = Duration(minutes: 15);
+
+bool isCommunityPostEditOpen(DateTime? createdAt, DateTime now) =>
+    createdAt != null && now.isBefore(createdAt.add(communityPostEditWindow));
 
 const communityWelcomePost = CommunityPost(
   id: communityWelcomePostId,
@@ -144,6 +148,8 @@ class CommunityPost {
   int get commentCount => commentCountOverride ?? comments.length;
 
   CommunityPost copyWith({
+    String? content,
+    bool? isCurrentUser,
     int? likes,
     List<CommunityComment>? comments,
     bool? isLiked,
@@ -158,12 +164,12 @@ class CommunityPost {
       authorUnit: authorUnit,
       authorRole: authorRole,
       timeLabel: timeLabel,
-      content: content,
+      content: content ?? this.content,
       kind: kind,
       likes: likes ?? this.likes,
       comments: comments ?? this.comments,
       isOfficial: isOfficial,
-      isCurrentUser: isCurrentUser,
+      isCurrentUser: isCurrentUser ?? this.isCurrentUser,
       isLiked: isLiked ?? this.isLiked,
       isSaved: isSaved ?? this.isSaved,
       imagePaths: imagePaths,
@@ -233,6 +239,13 @@ abstract interface class CommunityRepository {
     List<CommunityPostImageUpload> images,
     String? eventDate,
     String? eventLocation,
+  });
+
+  Future<void> editPost({
+    required String residenceId,
+    required String userId,
+    required String postId,
+    required String content,
   });
 
   Future<void> toggleLike({
@@ -443,10 +456,11 @@ class MockCommunityRepository implements CommunityRepository {
     required String userId,
     int limit = communityPostsPageSize,
   }) async* {
-    yield getPosts().take(limit).toList(growable: false);
-    yield* _changes.stream.map(
-      (posts) => posts.take(limit).toList(growable: false),
-    );
+    List<CommunityPost> visiblePosts(List<CommunityPost> posts) => [
+      for (final post in posts.take(limit)) _withViewer(post, userId),
+    ];
+    yield visiblePosts(getPosts());
+    yield* _changes.stream.map(visiblePosts);
   }
 
   @override
@@ -455,11 +469,18 @@ class MockCommunityRepository implements CommunityRepository {
     required String userId,
     required String postId,
   }) async* {
-    yield getPost(postId);
+    final post = getPost(postId);
+    yield post == null ? null : _withViewer(post, userId);
     await for (final posts in _changes.stream) {
-      yield posts.where((post) => post.id == postId).firstOrNull;
+      final updated = posts.where((post) => post.id == postId).firstOrNull;
+      yield updated == null ? null : _withViewer(updated, userId);
     }
   }
+
+  CommunityPost _withViewer(CommunityPost post, String userId) =>
+      post.authorId.isEmpty
+      ? post
+      : post.copyWith(isCurrentUser: post.authorId == userId);
 
   @override
   Future<String> createPost({
@@ -477,6 +498,7 @@ class MockCommunityRepository implements CommunityRepository {
     final post = CommunityPost(
       id: 'post-${DateTime.now().microsecondsSinceEpoch}',
       author: 'أحمد من العمارة',
+      authorId: userId,
       authorUnit: 'العمارة أ · شقة 12',
       timeLabel: 'الآن',
       content: content,
@@ -496,6 +518,27 @@ class MockCommunityRepository implements CommunityRepository {
     _posts.insert(0, post);
     _notify();
     return post.id;
+  }
+
+  @override
+  Future<void> editPost({
+    required String residenceId,
+    required String userId,
+    required String postId,
+    required String content,
+  }) async {
+    final post = getPost(postId);
+    if (post == null || post.authorId != userId || post.isSystem) {
+      throw const CommunityFailure('post-edit-forbidden');
+    }
+    if (!isCommunityPostEditOpen(post.createdAt, DateTime.now())) {
+      throw const CommunityFailure('post-edit-expired');
+    }
+    final normalizedContent = content.trim();
+    if (normalizedContent.isEmpty || normalizedContent.length > 5000) {
+      throw const CommunityFailure('invalid-post');
+    }
+    _update(postId, (post) => post.copyWith(content: normalizedContent));
   }
 
   @override
@@ -783,6 +826,42 @@ class FirebaseCommunityRepository implements CommunityRepository {
         for (final path in uploadedPaths)
           _storage.ref(path).delete().catchError((_) {}),
       ]);
+      throw _failure(error);
+    }
+  }
+
+  @override
+  Future<void> editPost({
+    required String residenceId,
+    required String userId,
+    required String postId,
+    required String content,
+  }) async {
+    final normalizedContent = content.trim();
+    if (normalizedContent.isEmpty || normalizedContent.length > 5000) {
+      throw const CommunityFailure('invalid-post');
+    }
+    final reference = _posts(residenceId).doc(postId);
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final data = (await transaction.get(reference)).data();
+        if (data == null ||
+            data['authorId'] != userId ||
+            data['archivedAt'] != null) {
+          throw const CommunityFailure('post-edit-forbidden');
+        }
+        if (!isCommunityPostEditOpen(
+          _dateTime(data['createdAt']),
+          DateTime.now(),
+        )) {
+          throw const CommunityFailure('post-edit-expired');
+        }
+        transaction.update(reference, {
+          'content': normalizedContent,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      });
+    } catch (error) {
       throw _failure(error);
     }
   }
@@ -1247,6 +1326,18 @@ class CommunityActions {
           images: images,
           eventDate: eventDate,
           eventLocation: eventLocation,
+        );
+  }
+
+  Future<void> editPost(String postId, String content) async {
+    final (residenceId, userId) = await _scope();
+    await _ref
+        .read(communityRepositoryProvider)
+        .editPost(
+          residenceId: residenceId,
+          userId: userId,
+          postId: postId,
+          content: content,
         );
   }
 

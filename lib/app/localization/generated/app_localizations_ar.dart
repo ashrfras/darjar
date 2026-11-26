@@ -553,6 +553,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postKindEvent => 'مناسبة';
 
   @override
+  String get editPost => 'تعديل المنشور';
+
+  @override
+  String get postEditExpired =>
+      'يمكن تعديل المنشور فقط خلال أول 15 دقيقة من نشره.';
+
+  @override
+  String get postEditInvalidContent => 'أدخل نصًا من 1 إلى 5000 حرف.';
+
+  @override
+  String get postEditFailed => 'تعذّر حفظ التعديل. حاول مرة أخرى.';
+
+  @override
   String get deletePost => 'حذف المنشور';
 
   @override

@@ -1567,6 +1567,20 @@ service cloud.firestore {
           && request.resource.data.createdAt == request.time
           && request.resource.data.updatedAt == request.time;
 
+        allow update: if isResidenceMember(residenceId)
+          && resource.data.authorId == request.auth.uid
+          && resource.data.get('archivedAt', null) == null
+          && resource.data.createdAt is timestamp
+          && request.time < resource.data.createdAt + duration.value(15, 'm')
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'content',
+            'updatedAt'
+          ])
+          && request.resource.data.content is string
+          && request.resource.data.content.size() > 0
+          && request.resource.data.content.size() <= 5000
+          && request.resource.data.updatedAt == request.time;
+
         allow update: if (
             canManageResidence(residenceId)
             || (isResidenceMember(residenceId) && resource.data.authorId == request.auth.uid)

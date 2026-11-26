@@ -559,6 +559,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postKindEvent => 'Event';
 
   @override
+  String get editPost => 'Edit post';
+
+  @override
+  String get postEditExpired =>
+      'You can only edit a post within 15 minutes of first publishing it.';
+
+  @override
+  String get postEditInvalidContent => 'Enter between 1 and 5,000 characters.';
+
+  @override
+  String get postEditFailed => 'Could not save your edit. Try again.';
+
+  @override
   String get deletePost => 'Delete post';
 
   @override

@@ -1120,6 +1120,30 @@ abstract class AppLocalizations {
   /// **'مناسبة'**
   String get postKindEvent;
 
+  /// No description provided for @editPost.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل المنشور'**
+  String get editPost;
+
+  /// No description provided for @postEditExpired.
+  ///
+  /// In ar, this message translates to:
+  /// **'يمكن تعديل المنشور فقط خلال أول 15 دقيقة من نشره.'**
+  String get postEditExpired;
+
+  /// No description provided for @postEditInvalidContent.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل نصًا من 1 إلى 5000 حرف.'**
+  String get postEditInvalidContent;
+
+  /// No description provided for @postEditFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر حفظ التعديل. حاول مرة أخرى.'**
+  String get postEditFailed;
+
   /// No description provided for @deletePost.
   ///
   /// In ar, this message translates to:

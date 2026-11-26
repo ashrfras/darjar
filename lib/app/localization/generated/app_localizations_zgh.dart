@@ -561,6 +561,19 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get postKindEvent => 'ⵜⴰⴷⵢⴰⵏⵜ';
 
   @override
+  String get editPost => 'ⴱⴻⴷⴷⴻⵍ ⴰⴹⵔⵉⵙ';
+
+  @override
+  String get postEditExpired =>
+      'ⵜⵣⴻⵎⵔⴻⴹ ⴰⴷ ⵜⴱⴻⴷⴷⵍⴻⴹ ⴰⴹⵔⵉⵙ ⵖⵉⵔ ⴷⴻⴳ 15 ⵏ ⵜⴻⵙⴷⴰⵜⵉⵏ ⵏ ⵜⴰⵣⵡⴰⵔⴰ ⵙⴻⴳ ⵓⵙⵓⴼⴼⴻⵖ.';
+
+  @override
+  String get postEditInvalidContent => 'ⵙⴻⴽⵛⴻⵎ ⵙⴻⴳ 1 ⴰⵔ 5000 ⵏ ⵢⵉⵙⴻⴽⴽⵉⵍⴻⵏ.';
+
+  @override
+  String get postEditFailed => 'ⵓⵔ ⵉⵣⴷⵉⵔ ⵓⵃⵔⴰⵣ ⵏ ⵓⴱⴻⴷⴷⴻⵍ. ⴰⵔⴻⵎ ⴷⴰⵖ.';
+
+  @override
   String get deletePost => 'ⴽⴽⴻⵙ ⴰⴹⵔⵉⵙ';
 
   @override
