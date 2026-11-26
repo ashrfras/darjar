@@ -4140,6 +4140,12 @@ abstract class AppLocalizations {
   /// **'وافق الرئيس على طلب انضمامك إلى الإقامة'**
   String get membershipApprovedNotification;
 
+  /// No description provided for @residenceCreatedNotification.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إنشاء إقامتك'**
+  String get residenceCreatedNotification;
+
   /// No description provided for @residenceSettingsPageDescription.
   ///
   /// In ar, this message translates to:

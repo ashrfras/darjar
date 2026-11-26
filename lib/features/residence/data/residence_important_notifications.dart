@@ -4,6 +4,7 @@ enum ImportantResidenceNotificationKind {
   paymentRecorded,
   overdueDues,
   membershipApproved,
+  residenceCreated,
 }
 
 class ImportantResidenceNotification {
@@ -25,13 +26,16 @@ class ImportantResidenceNotification {
 List<ImportantResidenceNotification> deriveImportantResidenceNotifications({
   required ResidenceDuesOverview duesOverview,
   required DateTime? joinedAt,
+  bool joinedAtCreation = false,
   DateTime? now,
 }) {
   final currentPeriodKey = residenceDuesPeriodKey(now ?? DateTime.now());
   final notifications = <ImportantResidenceNotification>[
     ImportantResidenceNotification(
-      id: 'membership-approved',
-      kind: ImportantResidenceNotificationKind.membershipApproved,
+      id: joinedAtCreation ? 'residence-created' : 'membership-approved',
+      kind: joinedAtCreation
+          ? ImportantResidenceNotificationKind.residenceCreated
+          : ImportantResidenceNotificationKind.membershipApproved,
       occurredAt: joinedAt,
     ),
     for (final group in duesOverview.paymentGroups)

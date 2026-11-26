@@ -706,6 +706,7 @@
   "overdueDuesNotification": "Dues for {period} are overdue",
   "@overdueDuesNotification": {"placeholders": {"period": {"type": "String"}}},
   "membershipApprovedNotification": "The president approved your request to join the residence",
+  "residenceCreatedNotification": "Your residence was created",
   "residenceSettingsPageDescription": "Manage residence information, structure, and subscriptions.",
   "saveChanges": "Save changes",
   "residenceInformation": "Residence information",

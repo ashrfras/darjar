@@ -2272,6 +2272,9 @@ class AppLocalizationsZgh extends AppLocalizations {
       'ⵢⴻⵇⴱⴻⵍ ⵓⵙⴻⵍⵡⴰⵢ ⴰⵙⵓⵜⴻⵔⵉⴽ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴽⴻⵛⵎⴻⴹ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵜ';
 
   @override
+  String get residenceCreatedNotification => 'ⵜⴻⵜⵜⵡⴰⵙⵏⵓⵍⴼⴰ ⵜⵏⴻⵣⴷⵓⵖⵜⵉⴽ';
+
+  @override
   String get residenceSettingsPageDescription =>
       'ⵙⵙⴻⵍⵃⵓ ⵉⵙⴰⵍⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⵜⵓⵚⴽⵉⵡⵜ, ⴷ ⵢⵉⵄⴻⴳⴳⴰⵍⴻⵏ.';
 

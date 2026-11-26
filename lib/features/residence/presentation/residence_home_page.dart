@@ -145,7 +145,7 @@ class ResidenceHomePage extends ConsumerWidget {
                 finances: finances,
                 residenceMembers: residenceMembers,
                 residenceSettings: residenceSettings,
-                joinedAt: activeResidence?.joinedAt,
+                activeResidence: activeResidence,
               ),
             ],
           ),
@@ -203,7 +203,7 @@ class _DashboardGrid extends StatelessWidget {
     required this.finances,
     required this.residenceMembers,
     required this.residenceSettings,
-    required this.joinedAt,
+    required this.activeResidence,
   });
 
   final ResidenceDashboardData data;
@@ -212,7 +212,7 @@ class _DashboardGrid extends StatelessWidget {
   final AsyncValue<ResidenceFinances> finances;
   final AsyncValue<ResidenceMembersData> residenceMembers;
   final AsyncValue<ResidenceSettings> residenceSettings;
-  final DateTime? joinedAt;
+  final UserResidence? activeResidence;
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +238,10 @@ class _DashboardGrid extends StatelessWidget {
             SizedBox(width: pairWidth, child: _DocumentsCard(documents)),
             SizedBox(
               width: pairWidth,
-              child: _NotificationsCard(dues: residentDues, joinedAt: joinedAt),
+              child: _NotificationsCard(
+                dues: residentDues,
+                residence: activeResidence,
+              ),
             ),
             SizedBox(
               width: constraints.maxWidth,
@@ -790,16 +793,17 @@ class _DocumentsCard extends StatelessWidget {
 }
 
 class _NotificationsCard extends StatelessWidget {
-  const _NotificationsCard({required this.dues, required this.joinedAt});
+  const _NotificationsCard({required this.dues, required this.residence});
 
   final AsyncValue<ResidenceDuesOverview> dues;
-  final DateTime? joinedAt;
+  final UserResidence? residence;
 
   @override
   Widget build(BuildContext context) {
     final notifications = deriveImportantResidenceNotifications(
       duesOverview: dues.value ?? ResidenceDuesOverview.empty,
-      joinedAt: joinedAt,
+      joinedAt: residence?.joinedAt,
+      joinedAtCreation: residence?.joinedAtCreation ?? false,
     );
     return _DashboardCard(
       title: AppLocalizations.of(context).importantNotifications,
@@ -873,6 +877,8 @@ String _notificationText(
       ),
     ImportantResidenceNotificationKind.membershipApproved =>
       localizations.membershipApprovedNotification,
+    ImportantResidenceNotificationKind.residenceCreated =>
+      localizations.residenceCreatedNotification,
   };
 }
 
@@ -880,7 +886,8 @@ Color _notificationColor(ImportantResidenceNotificationKind kind) {
   return switch (kind) {
     ImportantResidenceNotificationKind.paymentRecorded => AppColors.primary,
     ImportantResidenceNotificationKind.overdueDues => AppColors.warning,
-    ImportantResidenceNotificationKind.membershipApproved => AppColors.primary,
+    ImportantResidenceNotificationKind.membershipApproved ||
+    ImportantResidenceNotificationKind.residenceCreated => AppColors.primary,
   };
 }
 

@@ -2287,6 +2287,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'The president approved your request to join the residence';
 
   @override
+  String get residenceCreatedNotification => 'Your residence was created';
+
+  @override
   String get residenceSettingsPageDescription =>
       'Manage residence information, structure, and subscriptions.';
 

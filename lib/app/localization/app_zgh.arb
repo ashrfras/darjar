@@ -934,6 +934,7 @@
     }
   },
   "membershipApprovedNotification": "ⵢⴻⵇⴱⴻⵍ ⵓⵙⴻⵍⵡⴰⵢ ⴰⵙⵓⵜⴻⵔⵉⴽ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴽⴻⵛⵎⴻⴹ ⵖⴻⵔ ⵜⵏⴻⵣⴷⵓⵖⵜ",
+  "residenceCreatedNotification": "ⵜⴻⵜⵜⵡⴰⵙⵏⵓⵍⴼⴰ ⵜⵏⴻⵣⴷⵓⵖⵜⵉⴽ",
   "residenceSettingsPageDescription": "ⵙⵙⴻⵍⵃⵓ ⵉⵙⴰⵍⴰⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ, ⵜⵓⵚⴽⵉⵡⵜ, ⴷ ⵢⵉⵄⴻⴳⴳⴰⵍⴻⵏ.",
   "saveChanges": "ⵃⵔⴻⵣ ⵉⴱⴻⴷⴷⴰⵍⴻⵏ",
   "residenceInformation": "ⵉⵙⴰⵍⵍⴻⵏ ⵏ ⵜⵏⴻⵣⴷⵓⵖⵜ",

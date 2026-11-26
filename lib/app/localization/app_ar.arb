@@ -716,6 +716,7 @@
   "overdueDuesNotification": "مستحقات {period} متأخرة",
   "@overdueDuesNotification": {"placeholders": {"period": {"type": "String"}}},
   "membershipApprovedNotification": "وافق الرئيس على طلب انضمامك إلى الإقامة",
+  "residenceCreatedNotification": "تم إنشاء إقامتك",
   "residenceSettingsPageDescription": "تحكّم في معلومات الإقامة وهيكلها والاشتراك.",
   "saveChanges": "حفظ التغييرات",
   "residenceInformation": "معلومات الإقامة",

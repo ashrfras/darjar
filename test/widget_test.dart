@@ -2708,6 +2708,20 @@ void main() {
       residenceSetupRepository: _FakeResidenceSetupRepository(
         offerWhatsAppSupport: true,
       ),
+      residenceContext: const ResidenceContext(
+        residences: [
+          UserResidence(
+            id: 'created-residence',
+            name: 'إقامة الياسمين',
+            address: 'حي المعاريف',
+            city: '6141010',
+            role: 'resident',
+            apartmentId: '',
+            joinedAtCreation: true,
+          ),
+        ],
+        activeResidenceId: 'created-residence',
+      ),
     );
 
     final prompt = find.text('هل تحتاج إلى مساعدة؟');
@@ -2726,6 +2740,13 @@ void main() {
     expect(find.byKey(const Key('compact-shell')), findsOneWidget);
     expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);
+
+    await tester.tap(find.text('الإقامة'));
+    await tester.pumpAndSettle();
+    final notification = find.text('تم إنشاء إقامتك');
+    await tester.ensureVisible(notification);
+    expect(notification, findsOneWidget);
+    expect(find.text('وافق الرئيس على طلب انضمامك إلى الإقامة'), findsNothing);
   });
 
   for (final (unanswered, choice) in [

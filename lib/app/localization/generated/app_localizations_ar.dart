@@ -2236,6 +2236,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'وافق الرئيس على طلب انضمامك إلى الإقامة';
 
   @override
+  String get residenceCreatedNotification => 'تم إنشاء إقامتك';
+
+  @override
   String get residenceSettingsPageDescription =>
       'تحكّم في معلومات الإقامة وهيكلها والاشتراك.';
 
