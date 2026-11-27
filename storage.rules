@@ -13,6 +13,13 @@ service firebase.storage {
       return /databases/(default)/documents/residences/$(residenceId)/members/$(request.auth.uid);
     }
 
+    function residenceAcceptsWrites(residenceId) {
+      let residence = firestore.get(
+        /databases/(default)/documents/residences/$(residenceId)
+      ).data;
+      return residence != null && residence.get('deletionStartedBy', null) == null;
+    }
+
     function membership(residenceId) {
       return firestore.get(memberPath(residenceId)).data;
     }
@@ -39,7 +46,8 @@ service firebase.storage {
     }
 
     function canManageResidence(residenceId) {
-      return canSupportResidence(residenceId) || isDelegatedManager(residenceId);
+      return (canSupportResidence(residenceId) || isDelegatedManager(residenceId))
+        && residenceAcceptsWrites(residenceId);
     }
 
     function isDelegatedManager(residenceId) {
@@ -66,6 +74,7 @@ service firebase.storage {
       return member != null
         && member.status == 'active'
         && residence != null
+        && residence.get('deletionStartedBy', null) == null
         && residence.get('presidentId', '') == null
         && (
           residence.get('createdBy', '') == request.auth.uid
@@ -121,6 +130,7 @@ service firebase.storage {
     match /residences/{residenceId}/community/{postId}/{imageId} {
       allow read: if canReadResidence(residenceId);
       allow create: if isResidenceMember(residenceId)
+        && residenceAcceptsWrites(residenceId)
         && isAcceptedCommunityImage()
         && imageId.matches('^image-[0-3]$')
         && request.resource.metadata.residenceId == residenceId

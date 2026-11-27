@@ -299,7 +299,8 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
           .collection('residences')
           .doc(residenceId)
           .get();
-      if (!residenceDocument.exists) {
+      if (!residenceDocument.exists ||
+          residenceDocument.data()?['deletionStartedBy'] != null) {
         return null;
       }
       final data = residenceDocument.data()!;

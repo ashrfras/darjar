@@ -5,6 +5,7 @@ import 'package:darjar_phone_verification/src/google_cloud_identity_gateway.dart
 import 'package:darjar_phone_verification/src/http_api.dart';
 import 'package:darjar_phone_verification/src/phone_verification_service.dart';
 import 'package:darjar_phone_verification/src/professional_profiles.dart';
+import 'package:darjar_phone_verification/src/residence_deletion.dart';
 import 'package:darjar_phone_verification/src/zavu_sms_gateway.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:shelf/shelf_io.dart';
@@ -60,6 +61,13 @@ Future<void> main() async {
     professionalProfiles: ProfessionalProfiles(
       projectId: projectId,
       client: firestoreClient,
+    ),
+    residenceDeletion: ResidenceDeletion(
+      projectId: projectId,
+      client: firestoreClient,
+      storageBucket:
+          environment['FIREBASE_STORAGE_BUCKET'] ??
+          '$projectId.firebasestorage.app',
     ),
     verifyProfessionalToken: identity.verifyProfessionalToken,
   ).handler;

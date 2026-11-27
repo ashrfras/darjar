@@ -2829,6 +2829,48 @@ abstract class AppLocalizations {
   /// **'تعرّف على جيرانك وبيانات السكن داخل الإقامة.'**
   String get residenceResidentsDescription;
 
+  /// No description provided for @residenceDelete.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الإقامة'**
+  String get residenceDelete;
+
+  /// No description provided for @residenceDeleteDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف بيانات الإقامة وإبطال الدعوات'**
+  String get residenceDeleteDescription;
+
+  /// No description provided for @residenceDeleteConfirmation.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد حذف هذه الإقامة نهائيًا؟ ستُحذف جميع بياناتها وتُبطل الدعوات المرسلة.'**
+  String get residenceDeleteConfirmation;
+
+  /// No description provided for @residenceDeleting.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ حذف الإقامة…'**
+  String get residenceDeleting;
+
+  /// No description provided for @residenceDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حذف الإقامة.'**
+  String get residenceDeleted;
+
+  /// No description provided for @residenceDeleteBlocked.
+  ///
+  /// In ar, this message translates to:
+  /// **'انضم ساكن آخر إلى الإقامة، لذلك لم يعد حذفها ممكنًا.'**
+  String get residenceDeleteBlocked;
+
+  /// No description provided for @residenceDeleteError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر إكمال حذف الإقامة. حاول مرة أخرى.'**
+  String get residenceDeleteError;
+
   /// No description provided for @residenceLeave.
   ///
   /// In ar, this message translates to:

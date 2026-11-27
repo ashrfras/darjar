@@ -70,12 +70,23 @@ class PhoneVerificationApi {
     idToken: idToken,
   );
 
+  Future<void> deleteResidence(String residenceId, String idToken) async {
+    await _post(
+      '/v1/residences/delete',
+      {'residenceId': residenceId},
+      expectedStatus: 200,
+      idToken: idToken,
+      timeout: const Duration(minutes: 2),
+    );
+  }
+
   Future<Map<String, Object?>> _post(
     String path,
     Map<String, Object?> requestBody, {
     required int expectedStatus,
     String? localDevelopmentSecret,
     String? idToken,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     if (!_baseUri.hasScheme || !_baseUri.hasAuthority) {
       throw const AuthFailure('verification-service-not-configured');
@@ -94,7 +105,7 @@ class PhoneVerificationApi {
             },
             body: jsonEncode(requestBody),
           )
-          .timeout(const Duration(seconds: 30));
+          .timeout(timeout);
       final body = _decodeObject(response.body);
       if (response.statusCode != expectedStatus) {
         final code = body['code'] as String? ?? 'authentication-service-error';

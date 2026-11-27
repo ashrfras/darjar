@@ -1525,6 +1525,29 @@ class AppLocalizationsZgh extends AppLocalizations {
       'ⵎⵍⴰⵍ ⴷ ⵍⴵⵉⵔⴰⵏⵉⴽ, ⵥⴻⵔ ⴰⵏⴷⴰ ⵜⵜⵖⵉⵎⵉⵏ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ.';
 
   @override
+  String get residenceDelete => 'ⴽⴽⵙ ⵜⴰⵣⴷⴷⵓⵖⵜ';
+
+  @override
+  String get residenceDeleteDescription => 'ⴽⴽⵙ ⵉⵙⴼⴽⴰ ⵏ ⵜⵣⴷⴷⵓⵖⵜ ⴷ ⵜⵙⵉⵡⴷⵉⵏ';
+
+  @override
+  String get residenceDeleteConfirmation =>
+      'ⵜⵔⵉⴷ ⴰⴷ ⵜⴽⴽⵙⴷ ⵜⴰⵣⴷⴷⵓⵖⵜ ⴰⴷ ⵉ ⵃⴰⵡⴰⵜ? ⵔⴰⴷ ⵜⵜⵡⴰⴽⴽⵙⵏ ⵉⵙⴼⴽⴰ ⵏⵏⵙ ⴰⴽⴽⵯ, ⵔⴰⴷ ⴱⴷⴷⵏⵜ ⵜⵙⵉⵡⴷⵉⵏ.';
+
+  @override
+  String get residenceDeleting => 'ⵜⴰⵣⴷⴷⵓⵖⵜ ⴰⵔ ⵜⵜⵡⴰⴽⴽⴰⵙ…';
+
+  @override
+  String get residenceDeleted => 'ⵜⵜⵡⴰⴽⴽⵙ ⵜⵣⴷⴷⵓⵖⵜ.';
+
+  @override
+  String get residenceDeleteBlocked =>
+      'ⵉⴽⵛⵎ ⵓⵎⵣⴷⴰⵖ ⵢⴰⴹⵏ, ⵓⵔ ⵜⵣⵎⵉⵔⴷ ⴰⴷ ⵜⴽⴽⵙⴷ ⵜⴰⵣⴷⴷⵓⵖⵜ.';
+
+  @override
+  String get residenceDeleteError => 'ⵓⵔ ⵜⵜⵡⴰⴽⴽⵙ ⵜⵣⴷⴷⵓⵖⵜ. ⴰⵔⵎ ⴷⴰⵖ.';
+
+  @override
   String get residenceLeave => 'ⴼⴼⴻⵖ ⵙⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜ';
 
   @override

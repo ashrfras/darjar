@@ -82,7 +82,7 @@ Iterable<ActivityLogEvent> activityEvents({
       );
     }
   } else if (path case ['documents', 'residences', final residenceId]) {
-    if (isCreation || isDeletion) {
+    if (isCreation || (isDeletion && before['deletionStartedBy'] == null)) {
       yield ActivityLogEvent(
         type: isCreation ? 'residenceCreated' : 'residenceDeleted',
         residenceId: residenceId,

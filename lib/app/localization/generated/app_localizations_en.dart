@@ -1531,6 +1531,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Meet your neighbors and see where they live in the residence.';
 
   @override
+  String get residenceDelete => 'Delete residence';
+
+  @override
+  String get residenceDeleteDescription =>
+      'Delete residence data and invalidate invitations';
+
+  @override
+  String get residenceDeleteConfirmation =>
+      'Permanently delete this residence? All its data will be deleted and any invitations will be invalidated.';
+
+  @override
+  String get residenceDeleting => 'Deleting residence…';
+
+  @override
+  String get residenceDeleted => 'Residence deleted.';
+
+  @override
+  String get residenceDeleteBlocked =>
+      'Another resident has joined this residence, so it can no longer be deleted.';
+
+  @override
+  String get residenceDeleteError =>
+      'Could not finish deleting the residence. Try again.';
+
+  @override
   String get residenceLeave => 'Leave residence';
 
   @override

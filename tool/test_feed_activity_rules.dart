@@ -72,6 +72,7 @@ Future<void> main() async {
     ]) {
       await commit(
         [
+          seed('residences/feed-delete-test', {'presidentId': 'president'}),
           if (role != 'outsider')
             seed('residences/feed-delete-test/members/$role', {
               'status': role == 'inactive' ? 'inactive' : 'active',

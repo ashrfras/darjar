@@ -6,6 +6,7 @@ import 'package:shelf_router/shelf_router.dart';
 
 import 'phone_verification_service.dart';
 import 'professional_profiles.dart';
+import 'residence_deletion.dart';
 
 class PhoneVerificationApi {
   PhoneVerificationApi({
@@ -13,6 +14,7 @@ class PhoneVerificationApi {
     required Set<String> allowedOrigins,
     String? localDevelopmentSecret,
     ProfessionalProfiles? professionalProfiles,
+    ResidenceDeletion? residenceDeletion,
     Future<VerifiedProfessionalIdentity> Function(String)?
     verifyProfessionalToken,
   }) : this._(
@@ -20,6 +22,7 @@ class PhoneVerificationApi {
          allowedOrigins,
          localDevelopmentSecret?.trim() ?? '',
          professionalProfiles,
+         residenceDeletion,
          verifyProfessionalToken,
        );
 
@@ -28,6 +31,7 @@ class PhoneVerificationApi {
     this._allowedOrigins,
     this._localDevelopmentSecret,
     this._professionalProfiles,
+    this._residenceDeletion,
     this._verifyProfessionalToken,
   );
 
@@ -35,6 +39,7 @@ class PhoneVerificationApi {
   final Set<String> _allowedOrigins;
   final String _localDevelopmentSecret;
   final ProfessionalProfiles? _professionalProfiles;
+  final ResidenceDeletion? _residenceDeletion;
   final Future<VerifiedProfessionalIdentity> Function(String)?
   _verifyProfessionalToken;
 
@@ -46,6 +51,9 @@ class PhoneVerificationApi {
     if (_professionalProfiles != null && _verifyProfessionalToken != null) {
       router.post('/v1/professional-profile/<action>', _professionalProfile);
     }
+    if (_residenceDeletion != null && _verifyProfessionalToken != null) {
+      router.post('/v1/residences/delete', _deleteResidence);
+    }
     return const Pipeline()
         .addMiddleware(_securityHeaders)
         .addMiddleware(_cors)
@@ -56,17 +64,8 @@ class PhoneVerificationApi {
 
   Future<Response> _professionalProfile(Request request, String action) async {
     try {
-      final authorization = request.headers['authorization'] ?? '';
-      if (!authorization.startsWith('Bearer ') || authorization.length > 8192) {
-        throw const ProfessionalFailure(
-          'invalid-identity',
-          HttpStatus.unauthorized,
-        );
-      }
       final input = await _requestJson(request);
-      final identity = await _verifyProfessionalToken!(
-        authorization.substring(7),
-      );
+      final identity = await _verifiedIdentity(request);
       final profiles = _professionalProfiles!;
       switch (action) {
         case 'discover':
@@ -118,6 +117,39 @@ class PhoneVerificationApi {
         'code': 'professional-service-error',
       });
     }
+  }
+
+  Future<Response> _deleteResidence(Request request) async {
+    try {
+      final identity = await _verifiedIdentity(request);
+      final input = await _requestJson(request);
+      final id = input['residenceId'];
+      if (id is! String) throw const FormatException();
+      await _residenceDeletion!.delete(id, identity.uid);
+      return _jsonResponse(HttpStatus.ok, {'residenceId': id});
+    } on ResidenceDeletionFailure catch (error) {
+      return _jsonResponse(error.status, {'code': error.code});
+    } on ProfessionalFailure catch (error) {
+      return _jsonResponse(error.status, {'code': error.code});
+    } on FormatException {
+      return _jsonResponse(HttpStatus.badRequest, {'code': 'invalid-request'});
+    } catch (error, stackTrace) {
+      stderr.writeln('$error\n$stackTrace');
+      return _jsonResponse(HttpStatus.internalServerError, {
+        'code': 'residence-delete-failed',
+      });
+    }
+  }
+
+  Future<VerifiedProfessionalIdentity> _verifiedIdentity(Request request) {
+    final authorization = request.headers['authorization'] ?? '';
+    if (!authorization.startsWith('Bearer ') || authorization.length > 8192) {
+      throw const ProfessionalFailure(
+        'invalid-identity',
+        HttpStatus.unauthorized,
+      );
+    }
+    return _verifyProfessionalToken!(authorization.substring(7));
   }
 
   Future<Response> _start(Request request) async {

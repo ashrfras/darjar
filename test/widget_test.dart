@@ -45,6 +45,7 @@ import 'package:darjar/features/receipts/data/payment_receipt_repository.dart';
 import 'package:darjar/features/receipts/domain/payment_receipt.dart';
 import 'package:darjar/features/residence/data/residence_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_deletion_repository.dart';
 import 'package:darjar/features/residence/data/residence_dues_repository.dart';
 import 'package:darjar/features/residence/data/residence_finance_repository.dart';
 import 'package:darjar/features/residence/data/residence_important_notifications.dart';
@@ -7864,6 +7865,54 @@ void main() {
     },
   );
 
+  for (final awaitingPresident in [true, false]) {
+    testWidgets(
+      'eligible creator sees standalone deletion in administration (awaiting president: $awaitingPresident)',
+      (tester) async {
+        await _pumpApp(
+          tester,
+          size: const Size(390, 844),
+          initialLocation: AppRoutes.residence,
+          canDeleteResidence: true,
+          residenceContext: ResidenceContext(
+            activeResidenceId: 'test-residence',
+            residences: [
+              UserResidence(
+                id: 'test-residence',
+                name: 'إقامة الاختبار',
+                address: '',
+                city: '6141010',
+                role: 'resident',
+                apartmentId: '',
+                createdBy: 'test-user',
+                isCreatorAwaitingPresident: awaitingPresident,
+              ),
+            ],
+          ),
+        );
+
+        final deletion = find.byKey(const Key('delete-residence-row'));
+        expect(find.byKey(const Key('residence-home-page')), findsOneWidget);
+        expect(deletion, findsNothing);
+        await _openAdministration(tester);
+
+        final card = find.byKey(const Key('residence-reset-and-deletion-card'));
+        expect(find.descendant(of: card, matching: deletion), findsOneWidget);
+        expect(find.byKey(const Key('reset-residence-button')), findsNothing);
+        if (!awaitingPresident) {
+          expect(
+            find.byKey(const Key('residence-management-section')),
+            findsNothing,
+          );
+          GoRouter.of(tester.element(card)).go(AppRoutes.manageFinances);
+          await tester.pumpAndSettle();
+          expect(deletion, findsOneWidget);
+          expect(find.byKey(const Key('manage-finances-link')), findsNothing);
+        }
+      },
+    );
+  }
+
   testWidgets(
     'president reset moves to management and account stays standard',
     (tester) async {
@@ -9681,6 +9730,7 @@ Future<void> _pumpApp(
   NotificationsRepository? notificationsRepository,
   PaymentReceiptRepository? paymentReceiptRepository,
   ResidenceContext? residenceContext,
+  bool canDeleteResidence = false,
   bool loadResidenceContext = false,
   Object? residenceContextError,
   ResidenceSetupProgress? Function()? setupProgress,
@@ -9790,6 +9840,9 @@ Future<void> _pumpApp(
             whatsAppSupportRepository,
           ),
         residenceContextRepositoryProvider.overrideWithValue(contextRepository),
+        canDeleteResidenceProvider.overrideWith(
+          (ref, _) => Stream.value(canDeleteResidence),
+        ),
         residenceMembersRepositoryProvider.overrideWithValue(membersRepository),
         residenceDuesRepositoryProvider.overrideWithValue(duesRepository),
         residenceFinanceRepositoryProvider.overrideWithValue(financeRepository),

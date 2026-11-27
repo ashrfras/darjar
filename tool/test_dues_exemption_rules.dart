@@ -73,6 +73,7 @@ Future<void> main() async {
   try {
     await commit(
       [
+        seed('residences/exemption-test', {'presidentId': 'manager'}),
         seed('residences/exemption-test/members/manager', {
           'status': 'active',
           'role': 'owner',

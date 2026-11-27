@@ -1500,6 +1500,29 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعرّف على جيرانك وبيانات السكن داخل الإقامة.';
 
   @override
+  String get residenceDelete => 'حذف الإقامة';
+
+  @override
+  String get residenceDeleteDescription => 'حذف بيانات الإقامة وإبطال الدعوات';
+
+  @override
+  String get residenceDeleteConfirmation =>
+      'هل تريد حذف هذه الإقامة نهائيًا؟ ستُحذف جميع بياناتها وتُبطل الدعوات المرسلة.';
+
+  @override
+  String get residenceDeleting => 'جارٍ حذف الإقامة…';
+
+  @override
+  String get residenceDeleted => 'تم حذف الإقامة.';
+
+  @override
+  String get residenceDeleteBlocked =>
+      'انضم ساكن آخر إلى الإقامة، لذلك لم يعد حذفها ممكنًا.';
+
+  @override
+  String get residenceDeleteError => 'تعذّر إكمال حذف الإقامة. حاول مرة أخرى.';
+
+  @override
   String get residenceLeave => 'مغادرة الإقامة';
 
   @override

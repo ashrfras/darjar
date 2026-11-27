@@ -9,8 +9,10 @@ import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/profile/data/profile_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_deletion_repository.dart';
 import 'package:darjar/features/residence/data/residence_members_repository.dart';
 import 'package:darjar/features/residence/data/residence_reset_repository.dart';
+import 'package:darjar/features/residence/presentation/residence_delete_action.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -42,6 +44,8 @@ class _ResidenceAdministrationPageState
     final isPresident =
         activeResidence?.role == 'president' ||
         activeResidence?.role == 'owner';
+    final canManage = activeResidence?.canManageApartmentsAndResidents == true;
+    final deletionTarget = ref.watch(activeResidenceDeletionProvider).value;
 
     return SingleChildScrollView(
       key: const Key('residence-administration-page'),
@@ -60,7 +64,7 @@ class _ResidenceAdministrationPageState
             children: [
               DarJarPageHeader(
                 title: localizations.residenceAdministration,
-                description: awaitingPresident
+                description: awaitingPresident || !canManage
                     ? null
                     : localizations.residenceAdministrationDescription,
               ),
@@ -69,95 +73,117 @@ class _ResidenceAdministrationPageState
                 const _AwaitingPresidentCard(),
                 const SizedBox(height: AppSpacing.large),
               ],
-              DarJarCard(
-                key: const Key('residence-management-section'),
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    _ManagementLink(
-                      key: const Key('manage-residence-link'),
-                      icon: Icons.domain_outlined,
-                      title: localizations.residenceSettings,
-                      description: localizations.residenceManagementDescription,
-                      route: AppRoutes.manageResidence,
-                    ),
-                    const Divider(),
-                    _ManagementLink(
-                      key: const Key('manage-apartments-link'),
-                      icon: Icons.apartment_outlined,
-                      title: awaitingPresident
-                          ? localizations.apartmentsAndResidents
-                          : localizations.apartments,
-                      description:
-                          localizations.apartmentsManagementDescription,
-                      route: AppRoutes.manageApartments,
-                    ),
-                    const Divider(),
-                    _ManagementLink(
-                      key: const Key('manage-dues-link'),
-                      icon: Icons.receipt_long_outlined,
-                      title: localizations.duesManagement,
-                      description: localizations.duesManagementDescription,
-                      route: AppRoutes.manageDues,
-                      enabled: !awaitingPresident,
-                    ),
-                    const Divider(),
-                    _ManagementLink(
-                      key: const Key('manage-finances-link'),
-                      icon: Icons.account_balance_wallet_outlined,
-                      title: localizations.financeManagement,
-                      description: localizations.manageFinanceDescription,
-                      route: AppRoutes.manageFinances,
-                      enabled: !awaitingPresident,
-                    ),
-                    const Divider(),
-                    _ManagementLink(
-                      key: const Key('manage-reports-link'),
-                      icon: Icons.assessment_outlined,
-                      title: reportCopy.reports,
-                      description: reportCopy.reportsDescription,
-                      route: AppRoutes.reports,
-                      enabled: !awaitingPresident,
-                    ),
-                    const Divider(),
-                    _ManagementLink(
-                      key: const Key('manage-documents-link'),
-                      icon: Icons.folder_outlined,
-                      title: localizations.documentsManagement,
-                      description: localizations.documentsManagementDescription,
-                      route: AppRoutes.manageDocuments,
-                      enabled: !awaitingPresident,
-                    ),
-                  ],
-                ),
-              ),
-              if (activeResidence != null && isPresident) ...[
-                const SizedBox(height: AppSpacing.large),
+              if (canManage)
                 DarJarCard(
+                  key: const Key('residence-management-section'),
                   padding: EdgeInsets.zero,
-                  child: ListTile(
-                    key: const Key('reset-residence-button'),
-                    enabled: !_resettingResidence,
-                    leading: const Icon(Icons.restart_alt_rounded),
-                    title: Text(
-                      _resettingResidence
-                          ? localizations.resetResidenceInProgress
-                          : localizations.resetResidence,
-                    ),
-                    subtitle: Text(localizations.resetResidenceDescription),
-                    trailing: _resettingResidence
-                        ? const SizedBox.square(
-                            dimension: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Icon(
-                            Icons.chevron_left_rounded,
-                            color: AppColors.inkMuted,
-                            textDirection: TextDirection.ltr,
+                  child: Column(
+                    children: [
+                      _ManagementLink(
+                        key: const Key('manage-residence-link'),
+                        icon: Icons.domain_outlined,
+                        title: localizations.residenceSettings,
+                        description:
+                            localizations.residenceManagementDescription,
+                        route: AppRoutes.manageResidence,
+                      ),
+                      const Divider(),
+                      _ManagementLink(
+                        key: const Key('manage-apartments-link'),
+                        icon: Icons.apartment_outlined,
+                        title: awaitingPresident
+                            ? localizations.apartmentsAndResidents
+                            : localizations.apartments,
+                        description:
+                            localizations.apartmentsManagementDescription,
+                        route: AppRoutes.manageApartments,
+                      ),
+                      const Divider(),
+                      _ManagementLink(
+                        key: const Key('manage-dues-link'),
+                        icon: Icons.receipt_long_outlined,
+                        title: localizations.duesManagement,
+                        description: localizations.duesManagementDescription,
+                        route: AppRoutes.manageDues,
+                        enabled: !awaitingPresident,
+                      ),
+                      const Divider(),
+                      _ManagementLink(
+                        key: const Key('manage-finances-link'),
+                        icon: Icons.account_balance_wallet_outlined,
+                        title: localizations.financeManagement,
+                        description: localizations.manageFinanceDescription,
+                        route: AppRoutes.manageFinances,
+                        enabled: !awaitingPresident,
+                      ),
+                      const Divider(),
+                      _ManagementLink(
+                        key: const Key('manage-reports-link'),
+                        icon: Icons.assessment_outlined,
+                        title: reportCopy.reports,
+                        description: reportCopy.reportsDescription,
+                        route: AppRoutes.reports,
+                        enabled: !awaitingPresident,
+                      ),
+                      const Divider(),
+                      _ManagementLink(
+                        key: const Key('manage-documents-link'),
+                        icon: Icons.folder_outlined,
+                        title: localizations.documentsManagement,
+                        description:
+                            localizations.documentsManagementDescription,
+                        route: AppRoutes.manageDocuments,
+                        enabled: !awaitingPresident,
+                      ),
+                    ],
+                  ),
+                ),
+              if (activeResidence != null &&
+                  (isPresident || deletionTarget != null)) ...[
+                if (canManage) const SizedBox(height: AppSpacing.large),
+                DarJarCard(
+                  key: const Key('residence-reset-and-deletion-card'),
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      if (isPresident)
+                        ListTile(
+                          key: const Key('reset-residence-button'),
+                          enabled: !_resettingResidence,
+                          leading: const Icon(Icons.restart_alt_rounded),
+                          title: Text(
+                            _resettingResidence
+                                ? localizations.resetResidenceInProgress
+                                : localizations.resetResidence,
                           ),
-                    onTap: _resettingResidence
-                        ? null
-                        : () => _confirmResidenceReset(activeResidence),
+                          subtitle: Text(
+                            localizations.resetResidenceDescription,
+                          ),
+                          trailing: _resettingResidence
+                              ? const SizedBox.square(
+                                  dimension: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.chevron_left_rounded,
+                                  color: AppColors.inkMuted,
+                                  textDirection: TextDirection.ltr,
+                                ),
+                          onTap: _resettingResidence
+                              ? null
+                              : () => _confirmResidenceReset(activeResidence),
+                        ),
+                      if (isPresident && deletionTarget != null)
+                        const Divider(height: 1),
+                      if (deletionTarget != null)
+                        ResidenceDeleteAction(
+                          key: ValueKey(deletionTarget),
+                          target: deletionTarget,
+                          enabled: !_resettingResidence,
+                        ),
+                    ],
                   ),
                 ),
               ],

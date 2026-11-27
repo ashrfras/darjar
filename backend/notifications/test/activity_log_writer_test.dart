@@ -82,6 +82,20 @@ void main() {
     },
   );
 
+  test('self-service residence deletion leaves no linked activity event', () {
+    expect(
+      activityEvents(
+        documentPath: 'documents/residences/r',
+        observedAt: changed,
+        change: const FirestoreDocumentChange(
+          value: {},
+          oldValue: {'deletionStartedBy': 'creator'},
+        ),
+      ),
+      isEmpty,
+    );
+  });
+
   test(
     'out-of-order post candidates share a single event key per residence',
     () {

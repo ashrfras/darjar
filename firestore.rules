@@ -89,11 +89,19 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time;
     }
 
-    function isResidenceMember(residenceId) {
+    function residenceAcceptsWrites(residenceId) {
+      return get(residencePath(residenceId)).data.get('deletionStartedBy', null) == null;
+    }
+
+    function hasActiveMembership(residenceId) {
       return signedIn()
         && get(
           memberPath(residenceId, request.auth.uid)
         ).data.status == 'active';
+    }
+
+    function isResidenceMember(residenceId) {
+      return hasActiveMembership(residenceId) && residenceAcceptsWrites(residenceId);
     }
 
     function canSupportResidence(residenceId) {
@@ -105,11 +113,12 @@ service cloud.firestore {
     }
 
     function canReadResidence(residenceId) {
-      return canSupportResidence(residenceId) || isResidenceMember(residenceId);
+      return canSupportResidence(residenceId) || hasActiveMembership(residenceId);
     }
 
     function canManageResidence(residenceId) {
-      return canSupportResidence(residenceId) || isDelegatedManager(residenceId);
+      return (canSupportResidence(residenceId) || isDelegatedManager(residenceId))
+        && residenceAcceptsWrites(residenceId);
     }
 
     function isCreatorAwaitingPresident(residenceId) {
@@ -162,7 +171,8 @@ service cloud.firestore {
 
     function canExploreJoinableResidence(residenceId) {
       return verifiedPhone()
-        && get(residencePath(residenceId)).data.joinRequestsEnabled == true;
+        && get(residencePath(residenceId)).data.joinRequestsEnabled == true
+        && residenceAcceptsWrites(residenceId);
     }
 
     function isPresident(residenceId) {
@@ -173,6 +183,7 @@ service cloud.firestore {
       return signedIn()
         && membership.status == 'active'
         && membership.role in ['president', 'owner']
+        && residenceAcceptsWrites(residenceId)
         && (
           residence.presidentId == request.auth.uid
           || residence.presidentId == null
@@ -189,6 +200,7 @@ service cloud.firestore {
       let before = get(path).data;
       let after = getAfter(path).data;
       return after.get('presidentId', null) is string
+        && before.get('deletionStartedBy', null) == null
         && after.presidentId != before.get('presidentId', null)
         && after.get('presidencyEventId', null) is string
         && after.presidencyEventId.matches('^[A-Za-z0-9]{20}$')
@@ -261,6 +273,7 @@ service cloud.firestore {
       ).data;
       return verifiedPhone()
         && request.auth.uid == memberId
+        && residenceAcceptsWrites(residenceId)
         && request.resource.data.keys().hasOnly([
           'userId',
           'firstName',
@@ -368,7 +381,7 @@ service cloud.firestore {
         && get(
           residenceCodePath(request.resource.data.residenceCode)
         ).data.residenceId == residenceId
-        && get(residencePath(residenceId)).data.joinRequestsEnabled == true;
+        && canExploreJoinableResidence(residenceId);
     }
 
     function updatesWhatsAppSupport() {
@@ -952,6 +965,7 @@ service cloud.firestore {
           && request.resource.data.createdAt == request.time;
 
         allow update: if verifiedPhone()
+          && residenceAcceptsWrites(residenceId)
           && resource.data.phoneNumber == request.auth.token.phone_number
           && resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -982,7 +996,7 @@ service cloud.firestore {
           || isInvitationMembership(residenceId, memberId)
           || isJoinCodeMembership(residenceId, memberId);
 
-        allow update: if (
+        allow update: if residenceAcceptsWrites(residenceId) && ((
             canManageResidence(residenceId)
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
               'apartmentId',
@@ -1136,7 +1150,7 @@ service cloud.firestore {
             && isInvitationMembership(residenceId, memberId)
             && get(invitationPath(residenceId, request.resource.data.sourceInvitationId))
               .data.status == 'pending'
-          );
+          ));
       }
 
       match /dues/{dueId} {

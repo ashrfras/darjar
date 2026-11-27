@@ -550,6 +550,7 @@ void main() {
             }),
             403,
           );
+          await put('residences/rules-residence', {'name': 'Residence'});
           await put('residences/rules-residence/members/$uid', {
             'status': 'active',
             'role': 'resident',

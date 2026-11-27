@@ -22,9 +22,11 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
     return GoogleCloudNotificationBackend._(projectId, client);
   }
 
+  String get _documentsName =>
+      'projects/$_projectId/databases/(default)/documents';
+
   String get _documentsBase =>
-      'https://firestore.googleapis.com/v1/projects/$_projectId/'
-      'databases/(default)/documents';
+      'https://firestore.googleapis.com/v1/$_documentsName';
 
   @override
   Future<BackendDocument?> getDocument(String path) async {
@@ -119,20 +121,35 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
           updateTime = document['updateTime']! as String;
         }
       }
-      final response = await _client.patch(
-        uri.replace(
-          queryParameters: {
-            if (updateTime == null) 'currentDocument.exists': 'false',
-            'currentDocument.updateTime': ?updateTime,
-          },
+      final precondition = <String, Object?>{
+        if (updateTime == null) 'exists': false else 'updateTime': updateTime,
+      };
+      final document = {
+        'fields': fields.map(
+          (key, value) => MapEntry(key, _firestoreValue(value)),
         ),
-        headers: const {'content-type': 'application/json'},
-        body: jsonEncode({
-          'fields': fields.map(
-            (key, value) => MapEntry(key, _firestoreValue(value)),
-          ),
-        }),
-      );
+      };
+      final residenceId = fields['residenceId'];
+      final response =
+          residenceId is String && fields['type'] != 'residenceDeleted'
+          ? await _commitForResidence(residenceId, {
+              'update': {
+                'name': '$_documentsName/appActivityLog/$id',
+                ...document,
+              },
+              'currentDocument': precondition,
+            })
+          : await _client.patch(
+              uri.replace(
+                queryParameters: {
+                  if (updateTime == null) 'currentDocument.exists': 'false',
+                  'currentDocument.updateTime': ?updateTime,
+                },
+              ),
+              headers: const {'content-type': 'application/json'},
+              body: jsonEncode(document),
+            );
+      if (response == null) return;
       final status = response.statusCode >= 400
           ? (jsonDecode(response.body) as Map<String, Object?>)['error']
           : null;
@@ -152,14 +169,10 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
 
   @override
   Future<bool> createNotification(NotificationPayload notification) async {
-    final parent = 'users/${notification.recipientUserId}';
-    final uri = Uri.parse(
-      '$_documentsBase/$parent/notifications',
-    ).replace(queryParameters: {'documentId': notification.id});
-    final response = await _client.post(
-      uri,
-      headers: const {'content-type': 'application/json'},
-      body: jsonEncode({
+    final response = await _commitForResidence(notification.residenceId, {
+      'update': {
+        'name':
+            '$_documentsName/users/${notification.recipientUserId}/notifications/${notification.id}',
         'fields': {
           'type': _stringValue(notification.type),
           'residenceId': _stringValue(notification.residenceId),
@@ -174,23 +187,26 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
           },
           'readAt': {'nullValue': null},
         },
-      }),
-    );
-    if (response.statusCode == 409) return false;
+      },
+      'currentDocument': {'exists': false},
+    });
+    if (response == null) return false;
+    if (response.statusCode == 409 || response.statusCode == 400) {
+      final error = (jsonDecode(response.body) as Map)['error']?['status'];
+      if (error == 'ALREADY_EXISTS' || error == 'FAILED_PRECONDITION') {
+        return false;
+      }
+    }
     _expectSuccess(response, 'create notification ${notification.id}');
     return true;
   }
 
   @override
   Future<bool> createFeedActivity(FeedActivityPayload activity) async {
-    final parent = 'residences/${activity.residenceId}';
-    final uri = Uri.parse(
-      '$_documentsBase/$parent/feedActivities',
-    ).replace(queryParameters: {'documentId': activity.id});
-    final response = await _client.post(
-      uri,
-      headers: const {'content-type': 'application/json'},
-      body: jsonEncode({
+    final response = await _commitForResidence(activity.residenceId, {
+      'update': {
+        'name':
+            '$_documentsName/residences/${activity.residenceId}/feedActivities/${activity.id}',
         'fields': {
           'type': _firestoreValue(activity.type),
           'category': _firestoreValue(activity.category),
@@ -203,11 +219,68 @@ class GoogleCloudNotificationBackend implements NotificationBackend {
           'likesCount': _firestoreValue(0),
           'occurredAt': _firestoreValue(activity.occurredAt.toUtc()),
         },
-      }),
-    );
-    if (response.statusCode == 409) return false;
+      },
+      'currentDocument': {'exists': false},
+    });
+    if (response == null) return false;
+    if (response.statusCode == 409 || response.statusCode == 400) {
+      final error = (jsonDecode(response.body) as Map)['error']?['status'];
+      if (error == 'ALREADY_EXISTS' || error == 'FAILED_PRECONDITION') {
+        return false;
+      }
+    }
     _expectSuccess(response, 'create feed activity ${activity.id}');
     return true;
+  }
+
+  // The transaction keeps delayed events from recreating deleted records.
+  Future<http.Response?> _commitForResidence(
+    String residenceId,
+    Map<String, Object?> write,
+  ) async {
+    Future<http.Response> post(String action, Map<String, Object?> body) =>
+        _client.post(
+          Uri.parse('$_documentsBase:$action'),
+          headers: const {'content-type': 'application/json'},
+          body: jsonEncode(body),
+        );
+    for (var attempt = 0; ; attempt++) {
+      final begun = await post('beginTransaction', const {});
+      _expectSuccess(begun, 'begin residence event write');
+      final transaction =
+          (jsonDecode(begun.body) as Map)['transaction'] as String;
+      var committed = false;
+      try {
+        final residence = await post('batchGet', {
+          'documents': ['$_documentsName/residences/$residenceId'],
+          'transaction': transaction,
+        });
+        _expectSuccess(residence, 'read residence for event write');
+        final rows = jsonDecode(residence.body) as List;
+        final document = (rows.single as Map)['found'] as Map?;
+        if (document == null) return null;
+        if ((document['fields'] as Map?)?.containsKey('deletionStartedBy') ==
+            true) {
+          return null;
+        }
+        final result = await post('commit', {
+          'transaction': transaction,
+          'writes': [write],
+        });
+        committed = result.statusCode == 200;
+        if (result.statusCode != 409 ||
+            (jsonDecode(result.body) as Map)['error']?['status'] != 'ABORTED' ||
+            attempt == 4) {
+          return result;
+        }
+      } finally {
+        if (!committed) {
+          await post('rollback', {
+            'transaction': transaction,
+          }).catchError((_) => http.Response('', 500));
+        }
+      }
+    }
   }
 
   @override

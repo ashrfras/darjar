@@ -155,10 +155,13 @@ class FirestoreAccountOnboardingRepository
               index < pendingInvitationDocuments.length;
               index++
             )
-              _invitationFromDocument(
-                pendingInvitationDocuments[index],
-                residenceDocuments[index],
-              ),
+              if (residenceDocuments[index].exists &&
+                  residenceDocuments[index].data()?['deletionStartedBy'] ==
+                      null)
+                _invitationFromDocument(
+                  pendingInvitationDocuments[index],
+                  residenceDocuments[index],
+                ),
           ]..sort(
             (first, second) =>
                 first.residenceName.compareTo(second.residenceName),

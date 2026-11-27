@@ -22,6 +22,7 @@ import 'package:darjar/features/directory/presentation/directory_entry_image.dar
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
 import 'package:darjar/features/notifications/data/notifications_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
+import 'package:darjar/features/residence/data/residence_deletion_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_progress_provider.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_visibility.dart';
@@ -106,7 +107,10 @@ class DarJarShell extends ConsumerWidget {
           if (residence == null) {
             return _ShellRedirect(AppRoutes.residenceSetup, source: location);
           }
-          final redirect = _administrationRedirect(residence);
+          final deletion = residence.canManageApartmentsAndResidents
+              ? null
+              : ref.watch(activeResidenceDeletionProvider);
+          final redirect = _administrationRedirect(residence, deletion);
           if (redirect != null) {
             return _ShellRedirect(
               redirect,
@@ -115,7 +119,13 @@ class DarJarShell extends ConsumerWidget {
             );
           }
           ref.watch(residenceDataWarmupProvider(residence.id));
-          return _buildShell(context, data, residence);
+          return _buildShell(
+            context,
+            data,
+            showAdministration:
+                residence.canManageApartmentsAndResidents ||
+                deletion?.value != null,
+          );
         },
       ),
     );
@@ -129,9 +139,20 @@ class DarJarShell extends ConsumerWidget {
     };
   }
 
-  String? _administrationRedirect(UserResidence residence) {
+  String? _administrationRedirect(
+    UserResidence residence,
+    AsyncValue<ResidenceDeletionTarget?>? deletion,
+  ) {
     if (!AppRoutes.isAdministrationPath(location)) return null;
-    if (!residence.canManageApartmentsAndResidents) return AppRoutes.community;
+    if (!residence.canManageApartmentsAndResidents) {
+      if (location == AppRoutes.administration &&
+          (deletion?.isLoading == true || deletion?.value != null)) {
+        return null;
+      }
+      return deletion?.value != null
+          ? AppRoutes.administration
+          : AppRoutes.community;
+    }
     if (residence.canManageResidence ||
         location == AppRoutes.administration ||
         location == AppRoutes.manageResidence ||
@@ -145,13 +166,13 @@ class DarJarShell extends ConsumerWidget {
 
   Widget _buildShell(
     BuildContext context,
-    ResidenceContext residenceContext,
-    UserResidence residence,
-  ) {
+    ResidenceContext residenceContext, {
+    required bool showAdministration,
+  }) {
     final localizations = AppLocalizations.of(context);
     final destinations = _destinations(
       localizations,
-      showAdministration: residence.canManageApartmentsAndResidents,
+      showAdministration: showAdministration,
     );
     final selectedPath = AppRoutes.isAdministrationPath(location)
         ? AppRoutes.administration

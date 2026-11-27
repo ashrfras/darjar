@@ -129,6 +129,12 @@ gcloud run deploy darjar-phone-verification \
 ~ZAVU_SENDER_ID=YOUR_SENDER_ID
 ```
 
+يتطلب حذف الإقامة من التطبيق أن يتمكّن حساب تشغيل خدمة التحقق من سرد ملفات
+حاوية Firebase Storage وحذفها (`storage.objects.list` و`storage.objects.delete`).
+تستعمل الخدمة `raq-darjar.firebasestorage.app` افتراضيًا لهذا المشروع. يمكن تحديد
+حاوية أخرى عبر `FIREBASE_STORAGE_BUCKET`. انشر قواعد Firestore وStorage
+والنسخة المحدّثة من خدمة الإشعارات قبل إتاحة الحذف في التطبيق.
+
 ## 5. الفحص والبناء
 
 ```bash
