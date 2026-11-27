@@ -1,3 +1,4 @@
+import 'package:darjar/core/widgets/darjar_setup_scaffold.dart';
 import 'package:darjar/features/reports/presentation/financial_report_page.dart';
 import 'package:darjar/features/account/presentation/account_resolution_page.dart';
 import 'package:darjar/features/activity_log/presentation/activity_log_page.dart';
@@ -7,6 +8,8 @@ import 'package:darjar/features/community/presentation/community_feed_page.dart'
 import 'package:darjar/features/community/presentation/create_post_page.dart';
 import 'package:darjar/features/community/presentation/community_post_detail_page.dart';
 import 'package:darjar/features/directory/presentation/directory_page.dart';
+import 'package:darjar/features/directory/presentation/professional_enrollment.dart';
+import 'package:darjar/features/directory/presentation/professional_workspace.dart';
 import 'package:darjar/features/directory/presentation/directory_profile_page.dart';
 import 'package:darjar/features/directory/presentation/create_service_page.dart';
 import 'package:darjar/features/documents/presentation/residence_documents_management_page.dart';
@@ -53,6 +56,11 @@ abstract final class AppRoutes {
   static const community = '/community';
   static const createPost = '/community/create';
   static const directory = '/directory';
+  static const professional = '/professional';
+  static const startProfessional = '$professional/start';
+  static const createProfessional = '$professional/create';
+  static const editProfessional = '$professional/edit';
+  static const previewProfessional = '$professional/preview';
   static const createService = '/directory/create';
   static const residence = '/residence';
   static const residenceResidents = '/residence/residents';
@@ -255,6 +263,39 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.joinResidence,
         builder: (context, state) =>
             ResidenceSetupPage(invitationCode: state.pathParameters['code']),
+      ),
+      GoRoute(
+        path: AppRoutes.startProfessional,
+        builder: (context, state) => const ProfessionalEnrollmentPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.createProfessional,
+        builder: (context, state) => DarJarSetupScaffold(
+          backButtonKey: const Key('professional-create-back-button'),
+          onBack: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.residenceSetup);
+            }
+          },
+          child: const CreateServicePage(professional: true),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.professional,
+        builder: (context, state) => const ProfessionalWorkspace(),
+      ),
+      GoRoute(
+        path: AppRoutes.editProfessional,
+        builder: (context, state) =>
+            const ProfessionalWorkspace(view: ProfessionalWorkspaceView.edit),
+      ),
+      GoRoute(
+        path: AppRoutes.previewProfessional,
+        builder: (context, state) => const ProfessionalWorkspace(
+          view: ProfessionalWorkspaceView.preview,
+        ),
       ),
       ShellRoute(
         observers: [_KeyboardDismissNavigatorObserver()],

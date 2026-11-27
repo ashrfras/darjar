@@ -27,6 +27,7 @@ import 'package:darjar/features/community/data/community_repository.dart';
 import 'package:darjar/features/community/data/feed_repository.dart';
 import 'package:darjar/features/community/domain/feed_item.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
+import 'package:darjar/features/directory/data/professional_profile_repository.dart';
 import 'package:darjar/features/directory/data/service_categories_repository.dart';
 import 'package:darjar/features/directory/presentation/service_category_icon.dart';
 import 'package:darjar/features/directory/presentation/service_phone_launcher.dart';
@@ -1808,6 +1809,7 @@ void main() {
         greaterThan(tester.getBottomLeft(signedInPhone).dy),
       );
 
+      await tester.ensureVisible(setupSignOut);
       await tester.tap(setupSignOut);
       await tester.pumpAndSettle();
       expect(
@@ -3485,8 +3487,11 @@ void main() {
     final newResidence = find.byKey(
       const Key('residence-switcher-new-residence'),
     );
-    expect(find.text('إقامة جديدة'), findsOneWidget);
-    expect(find.text('إنشاء أو الانضمام إلى إقامة جديدة'), findsOneWidget);
+    expect(find.text('إضافة فضاء جديد'), findsOneWidget);
+    expect(
+      find.text('إنشاء إقامة أو الانضمام إليها أو إضافة خدماتك.'),
+      findsOneWidget,
+    );
     expect(find.text('الحالية'), findsNothing);
     expect(
       find.descendant(
@@ -4481,6 +4486,698 @@ void main() {
     await tester.tap(find.byKey(const Key('submit-recommendation-button')));
     await tester.pumpAndSettle();
     expect(find.text('خدمة سريعة وموثوقة'), findsOneWidget);
+  });
+
+  group('professional spaces', () {
+    const listingId = 'mohamed-electrician';
+    const candidate = (
+      id: listingId,
+      name: 'محمد الكهربائي',
+      profession: 'كهربائي · إصلاح الأعطال والتركيبات',
+      categoryId: 'home-maintenance',
+    );
+    const namedAccount = AccountResolution(
+      phoneNumber: '+212600000001',
+      profile: UserProfile(
+        firstName: 'محمد',
+        lastName: 'العلمي',
+        phoneNumber: '+212600000001',
+      ),
+      invitations: [],
+    );
+
+    for (final hasResidence in [false, true]) {
+      testWidgets(
+        hasResidence
+            ? 'a resident adds a professional space and keeps their residence'
+            : 'a new professional publishes a complete listing without a residence',
+        (tester) async {
+          final initial = hasResidence
+              ? _defaultResidenceContext
+              : const ResidenceContext(residences: [], activeResidenceId: null);
+          final spaces = _FakeResidenceContextRepository(context: initial);
+          final directory = _TestDirectoryRepository(ownerId: 'resident');
+          ProfessionalServiceInput? draft;
+          final professionals = _TestProfessionalProfileRepository(
+            onCreate: (input) {
+              draft = input;
+              directory.entries.add(
+                DirectoryEntry(
+                  id: 'new-professional',
+                  name: input.name,
+                  categoryId: input.categoryId,
+                  subcategoryIds: input.subcategoryIds,
+                  profession: input.profession,
+                  phone: '+212600000001',
+                  score: 0,
+                  recommendationCount: 0,
+                  localRecommendationCount: 0,
+                  workedResidences: [],
+                  reviews: [],
+                  city: input.city,
+                  ownerUid: 'test-user',
+                  selfListed: true,
+                ),
+              );
+              spaces.context = ResidenceContext(
+                residences: initial.residences,
+                activeResidenceId: initial.activeResidenceId,
+                professionalServiceId: 'new-professional',
+                prefersProfessional: true,
+              );
+            },
+          );
+          await _pumpApp(
+            tester,
+            size: const Size(820, 1050),
+            initialLocation: AppRoutes.accountResolution,
+            residenceContext: initial,
+            accountRepository: _FakeAccountOnboardingRepository(
+              resolution: hasResidence
+                  ? namedAccount
+                  : const AccountResolution(
+                      phoneNumber: '+212600000001',
+                      profile: null,
+                      invitations: [],
+                    ),
+            ),
+            mockStorageImages: true,
+            loadResidenceContext: true,
+            residenceContextRepository: spaces,
+            directoryRepository: directory,
+            professionalProfileRepository: professionals,
+          );
+          if (hasResidence) {
+            await tester.tap(find.byKey(const Key('residence-selector')));
+            await tester.pumpAndSettle();
+            await tester.tap(
+              find.byKey(const Key('residence-switcher-new-residence')),
+            );
+            await tester.pumpAndSettle();
+          }
+          expect(
+            find.byKey(const Key('join-my-residence-option')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const Key('create-new-residence-option')),
+            findsOneWidget,
+          );
+          final choice = find.byKey(const Key('professional-option'));
+          await tester.ensureVisible(choice);
+          await tester.tap(choice);
+          await tester.pumpAndSettle();
+          expect(find.text('إنشاء ملف مهني'), findsOneWidget);
+          expect(
+            find.descendant(
+              of: find.byKey(const Key('setup-brand-title')),
+              matching: find.byType(Image),
+            ),
+            findsOneWidget,
+          );
+          expect(find.byKey(const Key('subpage-back-button')), findsNothing);
+          if (!hasResidence) {
+            await tester.tap(
+              find.byKey(const Key('professional-create-back-button')),
+            );
+            await tester.pumpAndSettle();
+            expect(choice, findsOneWidget);
+            await tester.ensureVisible(choice);
+            await tester.tap(choice);
+            await tester.pumpAndSettle();
+          }
+          expect(draft, isNull);
+
+          await tester.enterText(
+            find.byKey(const Key('service-name-field')),
+            'شركة النور',
+          );
+          await tester.tap(find.byKey(const Key('service-category-field')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('صيانة المنزل').last);
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.byKey(const ValueKey('service-subcategory-electrician')),
+          );
+          await tester.tap(find.text('اختر المدينة').last);
+          await tester.pumpAndSettle();
+          await tester.enterText(
+            find.byKey(const Key('city-search-field')),
+            'الدار البيضاء',
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const ValueKey('city-option-6141010')));
+          await tester.pumpAndSettle();
+          if (!hasResidence) {
+            await tester.enterText(
+              find.byKey(const Key('professional-first-name')),
+              'أمين',
+            );
+            await tester.enterText(
+              find.byKey(const Key('professional-last-name')),
+              'العلمي',
+            );
+          }
+          final save = find.byKey(const Key('save-service-button'));
+          await tester.ensureVisible(save);
+          await tester.tap(save);
+          await tester.pumpAndSettle();
+          expect(draft?.city, '6141010');
+          expect(draft?.subcategoryIds, ['electrician']);
+          expect(
+            find.byKey(const Key('professional-workspace')),
+            findsOneWidget,
+          );
+          expect(find.byKey(const Key('community-feed-page')), findsNothing);
+          expect(spaces.context.activeResidence, isNull);
+          expect(spaces.context.residences, initial.residences);
+          expect(find.text('شركة النور'), findsWidgets);
+        },
+      );
+    }
+
+    testWidgets(
+      'automatically offers an existing listing and keeps its reviews on claim',
+      (tester) async {
+        final spaces = _FakeResidenceContextRepository();
+        final directory = _TestDirectoryRepository(
+          ownerId: 'original-resident',
+        );
+        final recommendations = MockDirectoryRecommendationsRepository();
+        await recommendations.recommend(
+          entryId: listingId,
+          residenceId: 'other-residence',
+          userId: 'another-resident',
+          comment: 'توصية سابقة محفوظة',
+        );
+        String? claimedId;
+        final professionals = _TestProfessionalProfileRepository(
+          candidates: [candidate],
+          onClaim: (id) {
+            claimedId = id;
+            directory.claimListing(id, 'test-user');
+            spaces.context = const ResidenceContext(
+              residences: [],
+              activeResidenceId: null,
+              professionalServiceId: listingId,
+            );
+          },
+        );
+        await _pumpApp(
+          tester,
+          size: const Size(820, 900),
+          initialLocation: AppRoutes.accountResolution,
+          loadResidenceContext: true,
+          mockStorageImages: true,
+          accountRepository: _FakeAccountOnboardingRepository(
+            resolution: namedAccount,
+          ),
+          residenceContextRepository: spaces,
+          directoryRepository: directory,
+          professionalProfileRepository: professionals,
+          directoryRecommendationsRepository: recommendations,
+        );
+        expect(
+          find.byKey(const Key('professional-claim-dialog')),
+          findsOneWidget,
+        );
+        expect(find.text(candidate.name), findsOneWidget);
+        await tester.tap(find.text('إدارة ملفي المهني'));
+        await tester.pumpAndSettle();
+        expect(claimedId, listingId);
+        expect(directory.entries.single.createdBy, 'original-resident');
+        expect(find.text('توصية سابقة محفوظة'), findsOneWidget);
+        await tester.tap(find.text('معاينة في دليل الخدمات'));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
+        expect(find.byKey(const Key('brand-home-button')), findsOneWidget);
+        expect(find.text('توصية سابقة محفوظة'), findsOneWidget);
+        expect(find.byKey(const Key('recommend-entry-button')), findsNothing);
+        await tester.tap(find.byKey(const Key('subpage-back-button')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('تعديل الخدمة'));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('service-name-field')),
+          'محمد للصيانة',
+        );
+        final save = find.byKey(const Key('save-service-button'));
+        await tester.ensureVisible(save);
+        await tester.tap(save);
+        await tester.pumpAndSettle();
+        expect(directory.entries.single.id, listingId);
+        expect(directory.entries.single.name, 'محمد للصيانة');
+        expect(find.text('توصية سابقة محفوظة'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'defers the automatic offer and can open it later from add space',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        addTearDown(() => SharedPreferences.setMockInitialValues({}));
+        final professionals = _TestProfessionalProfileRepository(
+          candidates: [candidate],
+        );
+        await _pumpApp(
+          tester,
+          size: const Size(820, 900),
+          initialLocation: AppRoutes.residenceSetup,
+          professionalProfileRepository: professionals,
+        );
+        expect(
+          find.byKey(const Key('professional-claim-dialog')),
+          findsOneWidget,
+        );
+        await tester.tap(find.text('ليس الآن'));
+        await tester.pumpAndSettle();
+        final preferences = await SharedPreferences.getInstance();
+        expect(
+          preferences.getStringList('professional-claim-dismissed-test-user'),
+          [listingId],
+        );
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await _pumpApp(
+          tester,
+          size: const Size(820, 900),
+          initialLocation: AppRoutes.residenceSetup,
+          professionalProfileRepository: professionals,
+        );
+        expect(
+          find.byKey(const Key('professional-claim-dialog')),
+          findsNothing,
+        );
+        await tester.tap(find.byKey(const Key('professional-option')));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const Key('professional-claim-dialog')),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('a professional joins a residence from the space switcher', (
+      tester,
+    ) async {
+      const initial = ResidenceContext(
+        residences: [],
+        activeResidenceId: null,
+        professionalServiceId: listingId,
+      );
+      const residence = ResidenceCodeSummary(
+        residenceId: 'joined-residence',
+        code: '48273165',
+        name: 'إقامة الياسمين',
+        address: 'المعاريف',
+        city: '6141010',
+        joinRequestsEnabled: true,
+        apartments: [
+          ResidenceJoinApartment(
+            id: 'a12',
+            number: '12',
+            buildingNameAr: '',
+            buildingNameEn: '',
+            floorNameAr: '',
+            floorNameEn: '',
+          ),
+        ],
+      );
+      final spaces = _FakeResidenceContextRepository(context: initial);
+      final directory = _TestDirectoryRepository()
+        ..claimListing(listingId, 'test-user');
+      final setup = _FakeResidenceSetupRepository(
+        residence: residence,
+        onJoin: () {
+          spaces.context = ResidenceContext(
+            residences: [
+              UserResidence(
+                id: residence.residenceId,
+                name: residence.name,
+                address: residence.address,
+                city: residence.city,
+                role: 'resident',
+                apartmentId: 'a12',
+              ),
+            ],
+            activeResidenceId: residence.residenceId,
+            professionalServiceId: listingId,
+          );
+        },
+      );
+      await _pumpApp(
+        tester,
+        size: const Size(820, 900),
+        initialLocation: AppRoutes.professional,
+        accountRepository: _FakeAccountOnboardingRepository(
+          resolution: namedAccount,
+        ),
+        residenceContext: initial,
+        residenceContextRepository: spaces,
+        loadResidenceContext: true,
+        directoryRepository: directory,
+        residenceSetupRepository: setup,
+        mockStorageImages: true,
+      );
+      await tester.tap(find.byKey(const Key('residence-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('residence-switcher-new-residence')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('join-my-residence-option')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('join-residence-code-field')),
+        residence.code,
+      );
+      await tester.tap(find.byKey(const Key('search-residence-button')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('join-first-name-field')), findsNothing);
+      await tester.tap(find.byKey(const Key('join-apartment-field')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('الشقة 12').last);
+      await tester.pumpAndSettle();
+      final join = find.byKey(const Key('join-found-residence-button'));
+      await tester.ensureVisible(join);
+      await tester.tap(join);
+      await tester.pumpAndSettle();
+      expect(setup.requestedResidence?.residenceId, residence.residenceId);
+      expect(find.byKey(const Key('community-feed-page')), findsOneWidget);
+      expect(spaces.context.professionalServiceId, listingId);
+      expect(spaces.context.activeResidence?.id, residence.residenceId);
+    });
+
+    for (final hasResidence in [true, false]) {
+      testWidgets(
+        hasResidence
+            ? 'deleting a professional listing returns the owner to their residence'
+            : 'deleting a professional listing keeps its former owner signed in',
+        (tester) async {
+          final auth = _FakeAuthRepository();
+          final remaining = hasResidence
+              ? _defaultResidenceContext
+              : const ResidenceContext(residences: [], activeResidenceId: null);
+          final initial = ResidenceContext(
+            residences: remaining.residences,
+            activeResidenceId: remaining.activeResidenceId,
+            professionalServiceId: listingId,
+            prefersProfessional: true,
+          );
+          final spaces = _FakeResidenceContextRepository(context: initial);
+          final directory = _TestDirectoryRepository()
+            ..claimListing(listingId, 'test-user');
+          final response = Completer<void>();
+          final deletions = <String>[];
+          final professionals = _TestProfessionalProfileRepository(
+            onDelete: (id) async {
+              deletions.add(id);
+              directory.removeListing(id);
+              spaces.context = remaining;
+              await response.future;
+            },
+          );
+          await _pumpApp(
+            tester,
+            size: const Size(390, 844),
+            initialLocation: AppRoutes.professional,
+            authRepository: auth,
+            accountRepository: _FakeAccountOnboardingRepository(
+              resolution: namedAccount,
+            ),
+            residenceContext: initial,
+            residenceContextRepository: spaces,
+            loadResidenceContext: true,
+            mockStorageImages: true,
+            directoryRepository: directory,
+            professionalProfileRepository: professionals,
+          );
+
+          final link = find.byKey(
+            const Key('delete-professional-service-button'),
+          );
+          final options = find.byKey(const Key('professional-service-options'));
+          expect(link, findsNothing);
+          await tester.tap(find.text('تعديل الخدمة'));
+          await tester.pumpAndSettle();
+          expect(link, findsNothing);
+          expect(options, findsNothing);
+          await tester.tap(find.byKey(const Key('subpage-back-button')));
+          await tester.pumpAndSettle();
+
+          await tester.tap(options);
+          await tester.pumpAndSettle();
+          expect(
+            tester
+                .getTopLeft(
+                  find.byKey(const Key('professional-service-availability')),
+                )
+                .dy,
+            lessThan(tester.getTopLeft(link).dy),
+          );
+          await tester.tap(link);
+          await tester.pumpAndSettle();
+          expect(find.textContaining('سيبقى حسابك'), findsOneWidget);
+          await tester.tap(
+            find.descendant(
+              of: find.byType(AlertDialog),
+              matching: find.text('إلغاء'),
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(deletions, isEmpty);
+          expect(directory.entries.single.id, listingId);
+
+          await tester.tap(options);
+          await tester.pumpAndSettle();
+          await tester.tap(link);
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.byKey(const Key('confirm-delete-professional-service-button')),
+          );
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 350));
+          expect(deletions, [listingId]);
+          expect(directory.entries, isEmpty);
+          response.complete();
+          await tester.pumpAndSettle();
+
+          expect(auth.currentUser?.uid, 'test-user');
+          expect(find.byKey(const Key('professional-workspace')), findsNothing);
+          expect(
+            find.byKey(
+              Key(
+                hasResidence ? 'community-feed-page' : 'residence-setup-page',
+              ),
+            ),
+            findsOneWidget,
+          );
+        },
+      );
+    }
+
+    testWidgets(
+      'a rated service offers pause and reactivation and keeps its reviews',
+      (tester) async {
+        const initial = ResidenceContext(
+          residences: [],
+          activeResidenceId: null,
+          professionalServiceId: listingId,
+        );
+        final directory = _TestDirectoryRepository()
+          ..claimListing(listingId, 'test-user');
+        final recommendations = MockDirectoryRecommendationsRepository();
+        await recommendations.recommend(
+          entryId: listingId,
+          residenceId: 'review-residence',
+          userId: 'reviewer',
+          comment: 'توصية موثوقة',
+        );
+        final changes = <bool>[];
+        await _pumpApp(
+          tester,
+          size: const Size(390, 844),
+          initialLocation: AppRoutes.professional,
+          residenceContext: initial,
+          mockStorageImages: true,
+          directoryRepository: directory,
+          directoryRecommendationsRepository: recommendations,
+          professionalProfileRepository: _TestProfessionalProfileRepository(
+            onSetPaused: (id, paused) {
+              changes.add(paused);
+              directory.setPaused(id, paused);
+            },
+          ),
+        );
+        final options = find.byKey(const Key('professional-service-options'));
+        final delete = find.byKey(
+          const Key('delete-professional-service-button'),
+        );
+        final changeAvailability = find.byKey(
+          const Key('professional-service-availability'),
+        );
+        await tester.tap(options);
+        await tester.pumpAndSettle();
+        expect(delete, findsNothing);
+        await tester.tap(changeAvailability);
+        await tester.pumpAndSettle();
+        expect(find.text('إيقاف نشاطك المهني؟'), findsOneWidget);
+        expect(
+          find.text(
+            'لن يظهر ملفك في دليل الخدمات، ولن يتمكن السكان من العثور عليه من خلال البحث. يمكنك إعادة تفعيله في أي وقت، مع الاحتفاظ بتوصياتك وتقييماتك السابقة.',
+          ),
+          findsOneWidget,
+        );
+        await tester.tap(find.text('إلغاء'));
+        await tester.pumpAndSettle();
+        expect(changes, isEmpty);
+        await tester.tap(options);
+        await tester.pumpAndSettle();
+        await tester.tap(changeAvailability);
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const Key('confirm-pause-professional-service-button')),
+        );
+        await tester.pumpAndSettle();
+        expect(changes, [true]);
+        expect(find.text('النشاط متوقف'), findsOneWidget);
+        expect(find.text('توصية موثوقة'), findsOneWidget);
+        expect(
+          (await directory.watchEntries(city: '6141010', limit: 10).first),
+          isEmpty,
+        );
+
+        await tester.tap(options);
+        await tester.pumpAndSettle();
+        expect(delete, findsNothing);
+        expect(find.text('تفعيل النشاط'), findsOneWidget);
+        await tester.tap(changeAvailability);
+        await tester.pumpAndSettle();
+        expect(changes, [true, false]);
+        expect(find.text('النشاط متوقف'), findsNothing);
+        expect(find.text('توصية موثوقة'), findsOneWidget);
+        expect(
+          (await directory.watchEntries(city: '6141010', limit: 10).first)
+              .single
+              .id,
+          listingId,
+        );
+      },
+    );
+
+    testWidgets(
+      'restores the professional space and switches between it and two residences',
+      (tester) async {
+        const otherResidence = UserResidence(
+          id: 'other-residence',
+          name: 'إقامة ثانية',
+          address: 'شارع الاختبار',
+          city: '6141010',
+          role: 'resident',
+          apartmentId: 'a1',
+        );
+        final residences = [
+          ..._defaultResidenceContext.residences,
+          otherResidence,
+        ];
+        final saved = ResidenceContext(
+          residences: residences,
+          activeResidenceId: 'test-residence',
+          professionalServiceId: listingId,
+          prefersProfessional: true,
+        );
+        final spaces = _FakeResidenceContextRepository(context: saved);
+        final directory = _TestDirectoryRepository()
+          ..claimListing(listingId, 'test-user');
+        final professionals = _TestProfessionalProfileRepository(
+          onActivate: () {
+            spaces.context = ResidenceContext(
+              residences: residences,
+              activeResidenceId: spaces.context.activeResidenceId,
+              professionalServiceId: listingId,
+              prefersProfessional: true,
+            );
+          },
+        );
+        await _pumpApp(
+          tester,
+          size: const Size(820, 900),
+          initialLocation: AppRoutes.accountResolution,
+          accountRepository: _FakeAccountOnboardingRepository(
+            resolution: namedAccount,
+          ),
+          residenceContext: saved,
+          mockStorageImages: true,
+          residenceContextRepository: spaces,
+          loadResidenceContext: true,
+          directoryRepository: directory,
+          professionalProfileRepository: professionals,
+        );
+        expect(find.byKey(const Key('professional-workspace')), findsOneWidget);
+        final brand = find.byKey(const Key('brand-home-button'));
+        for (final (width, shell, asset) in [
+          (390.0, 'compact-shell', 'darjar-logo-header-compact.png'),
+          (820.0, 'medium-shell', 'darjar-logo-header-compact.png'),
+          (1280.0, 'expanded-shell', 'darjar-logo-header.png'),
+        ]) {
+          tester.view.physicalSize = Size(width, 900);
+          await tester.pumpAndSettle();
+
+          expect(find.byKey(Key(shell)), findsOneWidget);
+          final logo = tester.widget<Image>(
+            find.descendant(of: brand, matching: find.byType(Image)),
+          );
+          expect((logo.image as AssetImage).assetName, endsWith(asset));
+          expect(find.byType(NavigationBar), findsNothing);
+          expect(find.byType(NavigationRail), findsNothing);
+          expect(find.byKey(const Key('notifications-button')), findsNothing);
+          expect(find.byKey(const Key('profile-button')), findsOneWidget);
+        }
+        await tester.tap(find.byKey(const Key('profile-button')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('profile-page')), findsOneWidget);
+        await tester.tap(brand);
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('professional-workspace')), findsOneWidget);
+        expect(find.byKey(const Key('community-feed-page')), findsNothing);
+        tester.view.physicalSize = const Size(820, 900);
+        await tester.pumpAndSettle();
+        final selector = find.byKey(const Key('residence-selector'));
+        await tester.tap(selector);
+        await tester.pumpAndSettle();
+        final professional = find.byKey(
+          const ValueKey('professional-switcher-option-$listingId'),
+        );
+        expect(
+          find.descendant(
+            of: professional,
+            matching: find.byIcon(Icons.check_circle_rounded),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(
+            const ValueKey('residence-switcher-option-test-residence'),
+          ),
+          findsOneWidget,
+        );
+        await tester.tap(
+          find.byKey(
+            const ValueKey('residence-switcher-option-other-residence'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(spaces.context.activeResidence?.id, 'other-residence');
+        expect(find.byKey(const Key('professional-workspace')), findsNothing);
+        await tester.tap(selector);
+        await tester.pumpAndSettle();
+        await tester.tap(professional);
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('professional-workspace')), findsOneWidget);
+        expect(spaces.context.activeResidence, isNull);
+        expect(spaces.context.activeResidenceId, 'other-residence');
+      },
+    );
   });
 
   testWidgets('resident can add a directory service', (tester) async {
@@ -8734,6 +9431,56 @@ class _TestServiceCategoriesRepository implements ServiceCategoriesRepository {
   }
 }
 
+class _TestProfessionalProfileRepository
+    implements ProfessionalProfileRepository {
+  _TestProfessionalProfileRepository({
+    this.candidates = const [],
+    this.onClaim,
+    this.onCreate,
+    this.onActivate,
+    this.onSetPaused,
+    this.onDelete,
+  });
+
+  final List<ProfessionalCandidate> candidates;
+  final void Function(String id)? onClaim;
+  final void Function(ProfessionalServiceInput input)? onCreate;
+  final VoidCallback? onActivate;
+  final void Function(String id, bool paused)? onSetPaused;
+  final Future<void> Function(String id)? onDelete;
+  int discoveryCount = 0;
+
+  @override
+  Future<List<ProfessionalCandidate>> discover(AuthUser user) async {
+    discoveryCount++;
+    return candidates;
+  }
+
+  @override
+  Future<void> claim(AuthUser user, String id, PersonalName? name) async =>
+      onClaim?.call(id);
+
+  @override
+  Future<void> create(
+    AuthUser user,
+    ProfessionalServiceInput input,
+    PersonalName? name,
+  ) async => onCreate?.call(input);
+
+  @override
+  Future<void> activate(AuthUser user) async => onActivate?.call();
+
+  @override
+  Future<void> setPaused(
+    AuthUser user,
+    String id, {
+    required bool paused,
+  }) async => onSetPaused?.call(id, paused);
+
+  @override
+  Future<void> delete(AuthUser user, String id) async => onDelete?.call(id);
+}
+
 class _TestDirectoryRepository implements DirectoryRepository {
   _TestDirectoryRepository({
     this.ownerId = 'test-user',
@@ -8761,13 +9508,54 @@ class _TestDirectoryRepository implements DirectoryRepository {
     ),
   ];
 
+  void setPaused(String id, bool paused) {
+    final index = entries.indexWhere((entry) => entry.id == id);
+    entries[index] = entries[index].copyWith(isPaused: paused);
+    _changes.add(List.unmodifiable(entries));
+  }
+
+  void removeListing(String id) {
+    entries.removeWhere((entry) => entry.id == id);
+    _changes.add(List.unmodifiable(entries));
+  }
+
+  void claimListing(String id, String owner) {
+    final index = entries.indexWhere((entry) => entry.id == id);
+    final entry = entries[index];
+    entries[index] = DirectoryEntry(
+      id: entry.id,
+      name: entry.name,
+      categoryId: entry.categoryId,
+      subcategoryIds: entry.subcategoryIds,
+      profession: entry.profession,
+      phone: entry.phone,
+      score: entry.score,
+      recommendationCount: entry.recommendationCount,
+      localRecommendationCount: entry.localRecommendationCount,
+      workedResidences: entry.workedResidences,
+      reviews: entry.reviews,
+      createdBy: entry.createdBy,
+      city: entry.city,
+      ownerUid: owner,
+    );
+    _changes.add(List.unmodifiable(entries));
+  }
+
+  @override
+  Stream<DirectoryEntry?> watchEntry(String id) async* {
+    DirectoryEntry? find() =>
+        entries.where((entry) => entry.id == id).firstOrNull;
+    yield find();
+    yield* _changes.stream.map((_) => find());
+  }
+
   @override
   Stream<List<DirectoryEntry>> watchEntries({
     required String city,
     required int limit,
   }) async* {
     List<DirectoryEntry> visibleEntries() => entries
-        .where((entry) => entry.city == city)
+        .where((entry) => entry.city == city && !entry.isPaused)
         .take(limit)
         .toList(growable: false);
 
@@ -8815,6 +9603,7 @@ class _TestDirectoryRepository implements DirectoryRepository {
   @override
   Future<void> updateService({
     required String serviceId,
+    String? city,
     required String userId,
     required String name,
     required String categoryId,
@@ -8824,7 +9613,7 @@ class _TestDirectoryRepository implements DirectoryRepository {
     required String neighborhood,
   }) async {
     final index = entries.indexWhere((entry) => entry.id == serviceId);
-    if (index == -1 || entries[index].createdBy != userId) {
+    if (index == -1 || !entries[index].canEdit(userId)) {
       throw const DirectoryFailure('not-service-owner');
     }
     final previous = entries[index];
@@ -8842,7 +9631,11 @@ class _TestDirectoryRepository implements DirectoryRepository {
       reviews: previous.reviews,
       neighborhood: neighborhood.trim(),
       createdBy: previous.createdBy,
-      city: previous.city,
+      city: city ?? previous.city,
+      ownerUid: previous.ownerUid,
+      selfListed: previous.selfListed,
+      isPaused: previous.isPaused,
+      hasStoredFeedback: previous.hasStoredFeedback,
     );
     _changes.add(List.unmodifiable(entries));
   }
@@ -8876,6 +9669,7 @@ Future<void> _pumpApp(
   ResidenceDocumentPicker? residenceDocumentPicker,
   CommunityRepository? communityRepository,
   DirectoryRepository? directoryRepository,
+  ProfessionalProfileRepository? professionalProfileRepository,
   ServiceCategoriesRepository? serviceCategoriesRepository,
   ServicePhoneLauncher? servicePhoneLauncher,
   DirectoryRecommendationsRepository? directoryRecommendationsRepository,
@@ -9007,6 +9801,9 @@ Future<void> _pumpApp(
         ),
         communityRepositoryProvider.overrideWithValue(
           currentCommunityRepository,
+        ),
+        professionalProfileRepositoryProvider.overrideWithValue(
+          professionalProfileRepository ?? _TestProfessionalProfileRepository(),
         ),
         directoryRepositoryProvider.overrideWithValue(
           currentDirectoryRepository,
@@ -9421,10 +10218,12 @@ class _FakeResidenceSetupRepository implements ResidenceSetupRepository {
   _FakeResidenceSetupRepository({
     this.residence,
     this.offerWhatsAppSupport = false,
+    this.onJoin,
   });
 
   final ResidenceCodeSummary? residence;
   final bool offerWhatsAppSupport;
+  final VoidCallback? onJoin;
   CreateResidenceInput? createdInput;
   ResidenceCodeSummary? requestedResidence;
   String? requestedApartmentId;
@@ -9460,6 +10259,7 @@ class _FakeResidenceSetupRepository implements ResidenceSetupRepository {
   }) async {
     requestedResidence = residence;
     requestedApartmentId = apartmentId;
+    onJoin?.call();
   }
 }
 
@@ -10503,6 +11303,12 @@ class _FakeResidenceContextRepository implements ResidenceContextRepository {
   }) async {
     await setActiveResidenceBarrier?.future;
     selectedResidenceId = residenceId;
+    context = ResidenceContext(
+      residences: context.residences,
+      activeResidenceId: residenceId,
+      invitations: context.invitations,
+      professionalServiceId: context.professionalServiceId,
+    );
   }
 
   @override

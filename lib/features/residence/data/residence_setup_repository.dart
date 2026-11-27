@@ -214,6 +214,7 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
           } else {
             transaction.update(userReference, {
               'activeResidenceId': residenceReference.id,
+              'activeSpaceType': 'residence',
               'updatedAt': FieldValue.serverTimestamp(),
             });
           }
@@ -380,6 +381,7 @@ class FirestoreResidenceSetupRepository implements ResidenceSetupRepository {
         if (userDocument.exists) {
           transaction.update(userReference, {
             'activeResidenceId': residence.residenceId,
+            'activeSpaceType': 'residence',
             'updatedAt': FieldValue.serverTimestamp(),
           });
         } else {

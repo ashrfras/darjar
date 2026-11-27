@@ -6,6 +6,7 @@ import 'package:darjar/app/theme/app_theme.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_theme_mode_controller.dart';
 import 'package:darjar/core/widgets/darjar_keyboard_dismiss_region.dart';
+import 'package:darjar/features/directory/presentation/professional_enrollment.dart';
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,7 +29,10 @@ class DarJarApp extends ConsumerWidget {
         title: AppLocalizations.of(context).siteTitle,
         color: Theme.of(context).colorScheme.primary,
         child: DarJarKeyboardDismissRegion(
-          child: child ?? const SizedBox.shrink(),
+          child: ProfessionalClaimPrompt(
+            router: router,
+            child: child ?? const SizedBox.shrink(),
+          ),
         ),
       ),
       debugShowCheckedModeBanner: false,

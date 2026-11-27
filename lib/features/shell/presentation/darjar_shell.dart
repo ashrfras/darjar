@@ -15,6 +15,10 @@ import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_brand.dart';
 import 'package:darjar/core/widgets/darjar_image_avatar.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
+import 'package:darjar/features/directory/data/directory_repository.dart';
+import 'package:darjar/features/directory/data/professional_profile_repository.dart';
+import 'package:darjar/features/directory/data/service_categories_repository.dart';
+import 'package:darjar/features/directory/presentation/directory_entry_image.dart';
 import 'package:darjar/features/notifications/data/notification_push_service.dart';
 import 'package:darjar/features/notifications/data/notifications_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
@@ -86,13 +90,29 @@ class DarJarShell extends ConsumerWidget {
           ),
         ),
         data: (data) {
+          if (data.activeProfessionalId != null) {
+            if (location == AppRoutes.profile ||
+                location.startsWith('/profile/') ||
+                location == AppRoutes.settings ||
+                location == AppRoutes.appActivityLog) {
+              return DarJarProfessionalShell(
+                residenceContext: data,
+                child: child,
+              );
+            }
+            return _ShellRedirect(AppRoutes.professional, source: location);
+          }
           final residence = data.activeResidence;
           if (residence == null) {
-            return const _ShellRedirect(AppRoutes.residenceSetup);
+            return _ShellRedirect(AppRoutes.residenceSetup, source: location);
           }
           final redirect = _administrationRedirect(residence);
           if (redirect != null) {
-            return _ShellRedirect(redirect, key: ValueKey(redirect));
+            return _ShellRedirect(
+              redirect,
+              source: location,
+              key: ValueKey(redirect),
+            );
           }
           ref.watch(residenceDataWarmupProvider(residence.id));
           return _buildShell(context, data, residence);
@@ -149,28 +169,71 @@ class DarJarShell extends ConsumerWidget {
           )
         : child;
 
+    return _SpaceScaffold(
+      destinations: destinations,
+      selectedIndex: selectedIndex,
+      residenceContext: residenceContext,
+      child: page,
+    );
+  }
+}
+
+class DarJarProfessionalShell extends StatelessWidget {
+  const DarJarProfessionalShell({
+    required this.residenceContext,
+    required this.child,
+    super.key,
+  });
+
+  final ResidenceContext residenceContext;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SpaceScaffold(
+      destinations: const [],
+      selectedIndex: -1,
+      residenceContext: residenceContext,
+      child: SafeArea(top: false, child: child),
+    );
+  }
+}
+
+class _SpaceScaffold extends StatelessWidget {
+  const _SpaceScaffold({
+    required this.destinations,
+    required this.selectedIndex,
+    required this.residenceContext,
+    required this.child,
+  });
+
+  final List<_ShellDestination> destinations;
+  final int selectedIndex;
+  final ResidenceContext residenceContext;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     return ResponsiveBuilder(
-      builder: (context, sizeClass) {
-        return switch (sizeClass) {
-          WindowSizeClass.compact => _CompactShell(
-            destinations: destinations,
-            selectedIndex: selectedIndex < 0 ? 0 : selectedIndex,
-            residenceContext: residenceContext,
-            child: page,
-          ),
-          WindowSizeClass.medium => _MediumShell(
-            destinations: destinations,
-            selectedIndex: selectedIndex,
-            residenceContext: residenceContext,
-            child: page,
-          ),
-          WindowSizeClass.expanded => _ExpandedShell(
-            destinations: destinations,
-            selectedIndex: selectedIndex,
-            residenceContext: residenceContext,
-            child: page,
-          ),
-        };
+      builder: (context, sizeClass) => switch (sizeClass) {
+        WindowSizeClass.compact => _CompactShell(
+          destinations: destinations,
+          selectedIndex: math.max(selectedIndex, 0),
+          residenceContext: residenceContext,
+          child: child,
+        ),
+        WindowSizeClass.medium => _MediumShell(
+          destinations: destinations,
+          selectedIndex: selectedIndex,
+          residenceContext: residenceContext,
+          child: child,
+        ),
+        WindowSizeClass.expanded => _ExpandedShell(
+          destinations: destinations,
+          selectedIndex: selectedIndex,
+          residenceContext: residenceContext,
+          child: child,
+        ),
       },
     );
   }
@@ -239,24 +302,27 @@ class _CompactShell extends StatelessWidget {
         leading: _CompactIdentity(residenceContext),
         title: const SizedBox.shrink(),
         actions: [
-          _NotificationsAction(compact: true),
+          if (destinations.isNotEmpty) _NotificationsAction(compact: true),
           _ProfileAction(compact: true),
           const SizedBox(width: 6),
         ],
       ),
       body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) => context.go(destinations[index].path),
-        destinations: [
-          for (final destination in destinations)
-            NavigationDestination(
-              icon: Icon(destination.icon),
-              selectedIcon: Icon(destination.selectedIcon),
-              label: destination.label,
+      bottomNavigationBar: destinations.isEmpty
+          ? null
+          : NavigationBar(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (index) =>
+                  context.go(destinations[index].path),
+              destinations: [
+                for (final destination in destinations)
+                  NavigationDestination(
+                    icon: Icon(destination.icon),
+                    selectedIcon: Icon(destination.selectedIcon),
+                    label: destination.label,
+                  ),
+              ],
             ),
-        ],
-      ),
     );
   }
 }
@@ -281,37 +347,39 @@ class _MediumShell extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            const _Brand(compact: true),
+            _Brand(residenceContext, compact: true),
             const SizedBox(width: AppSpacing.large),
-            Flexible(child: _ResidenceSelector(residenceContext)),
+            Flexible(child: SpaceSelector(residenceContext)),
           ],
         ),
         actions: [
-          const _NotificationsAction(),
+          if (destinations.isNotEmpty) const _NotificationsAction(),
           _ProfileAction(),
           const SizedBox(width: AppSpacing.large),
         ],
       ),
-      body: Row(
-        children: [
-          NavigationRail(
-            selectedIndex: selectedIndex < 0 ? null : selectedIndex,
-            onDestinationSelected: (index) =>
-                context.go(destinations[index].path),
-            labelType: NavigationRailLabelType.all,
-            destinations: [
-              for (final destination in destinations)
-                NavigationRailDestination(
-                  icon: Icon(destination.icon),
-                  selectedIcon: Icon(destination.selectedIcon),
-                  label: Text(destination.label),
+      body: destinations.isEmpty
+          ? child
+          : Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: selectedIndex < 0 ? null : selectedIndex,
+                  onDestinationSelected: (index) =>
+                      context.go(destinations[index].path),
+                  labelType: NavigationRailLabelType.all,
+                  destinations: [
+                    for (final destination in destinations)
+                      NavigationRailDestination(
+                        icon: Icon(destination.icon),
+                        selectedIcon: Icon(destination.selectedIcon),
+                        label: Text(destination.label),
+                      ),
+                  ],
                 ),
-            ],
-          ),
-          const VerticalDivider(),
-          Expanded(child: child),
-        ],
-      ),
+                const VerticalDivider(),
+                Expanded(child: child),
+              ],
+            ),
     );
   }
 }
@@ -345,9 +413,9 @@ class _ExpandedShell extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const _Brand(),
+                  _Brand(residenceContext),
                   const SizedBox(height: AppSpacing.xxLarge),
-                  _ResidenceSelector(residenceContext, expanded: true),
+                  SpaceSelector(residenceContext, expanded: true),
                   const SizedBox(height: AppSpacing.xLarge),
                   for (var index = 0; index < destinations.length; index++)
                     Padding(
@@ -359,18 +427,20 @@ class _ExpandedShell extends StatelessWidget {
                       ),
                     ),
                   const Spacer(),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          localizations.notifications,
-                          style: Theme.of(context).textTheme.labelLarge,
+                  if (destinations.isNotEmpty) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            localizations.notifications,
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
                         ),
-                      ),
-                      const _NotificationsAction(),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.small),
+                        const _NotificationsAction(),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.small),
+                  ],
                   Material(
                     color: Colors.transparent,
                     child: ListTile(
@@ -437,8 +507,9 @@ class _SidebarDestination extends StatelessWidget {
 }
 
 class _Brand extends StatelessWidget {
-  const _Brand({this.compact = false});
+  const _Brand(this.residenceContext, {this.compact = false});
 
+  final ResidenceContext residenceContext;
   final bool compact;
 
   @override
@@ -452,7 +523,11 @@ class _Brand extends StatelessWidget {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         key: const Key('brand-home-button'),
-        onTap: () => context.go(AppRoutes.community),
+        onTap: () => context.go(
+          residenceContext.activeProfessionalId == null
+              ? AppRoutes.community
+              : AppRoutes.professional,
+        ),
         child: Row(
           mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
           children: [
@@ -971,22 +1046,23 @@ class _CompactIdentity extends StatelessWidget {
       padding: const EdgeInsetsDirectional.only(start: 12),
       child: Row(
         children: [
-          const _Brand(compact: true),
+          _Brand(residenceContext, compact: true),
           const SizedBox(width: 10),
           const SizedBox(height: 24, child: VerticalDivider()),
           const SizedBox(width: 8),
-          Expanded(child: _ResidenceSelector(residenceContext, compact: true)),
+          Expanded(child: SpaceSelector(residenceContext, compact: true)),
         ],
       ),
     );
   }
 }
 
-class _ResidenceSelector extends ConsumerWidget {
-  const _ResidenceSelector(
+class SpaceSelector extends ConsumerWidget {
+  const SpaceSelector(
     this.residenceContext, {
     this.compact = false,
     this.expanded = false,
+    super.key,
   });
 
   final ResidenceContext residenceContext;
@@ -995,14 +1071,25 @@ class _ResidenceSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final active = residenceContext.activeResidence!;
+    final active = residenceContext.activeResidence;
+    final id = residenceContext.professionalServiceId;
+    final listing = id == null
+        ? null
+        : ref.watch(professionalEntryProvider(id)).value;
+    final professional =
+        listing?.isOwnedBy(
+              ref.watch(authRepositoryProvider).currentUser?.uid,
+            ) ==
+            true
+        ? listing
+        : null;
     final localizations = AppLocalizations.of(context);
     return Material(
       key: const Key('residence-selector'),
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(AppRadius.medium),
       child: InkWell(
-        onTap: () => _showResidenceSwitcher(context, ref),
+        onTap: () => _showResidenceSwitcher(context, ref, professional),
         borderRadius: BorderRadius.circular(AppRadius.medium),
         mouseCursor: SystemMouseCursors.click,
         hoverColor: Colors.transparent,
@@ -1023,19 +1110,24 @@ class _ResidenceSelector extends ConsumerWidget {
             key: compact ? const Key('compact-residence') : null,
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (expanded) ...[
+              if (expanded && active != null) ...[
                 DarJarResidenceAvatar(
                   residenceId: active.id,
                   hasImage: active.hasImage,
                   size: 42,
                 ),
                 const SizedBox(width: AppSpacing.medium),
+              ] else if (expanded && professional != null) ...[
+                DirectoryEntryImage(entry: professional, radius: 21),
+                const SizedBox(width: AppSpacing.medium),
               ],
               Flexible(
                 child: Text(
-                  localizations.residenceDisplayName(
-                    normalizeResidenceName(active.name),
-                  ),
+                  active == null
+                      ? professional?.name ?? localizations.selectSpace
+                      : localizations.residenceDisplayName(
+                          normalizeResidenceName(active.name),
+                        ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: expanded
@@ -1061,36 +1153,65 @@ class _ResidenceSelector extends ConsumerWidget {
   Future<void> _showResidenceSwitcher(
     BuildContext context,
     WidgetRef ref,
+    DirectoryEntry? professional,
   ) async {
-    final residenceId = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: AppColors.ink.withValues(alpha: 0.34),
-      isScrollControlled: true,
-      useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 560),
-      builder: (sheetContext) => _ResidenceSwitcherSheet(
-        residenceContext: residenceContext,
-        onNewResidence: () {
-          Navigator.of(sheetContext).pop();
-          context.go(
-            AppRoutes.residenceSetup,
-            extra: GoRouterState.of(context).uri.toString(),
-          );
-        },
-      ),
-    );
-    if (residenceId != null && context.mounted) {
-      await _select(context, ref, residenceId);
+    final selection =
+        await showModalBottomSheet<({String id, bool professional})>(
+          context: context,
+          backgroundColor: Colors.transparent,
+          barrierColor: AppColors.ink.withValues(alpha: 0.34),
+          isScrollControlled: true,
+          useSafeArea: true,
+          constraints: const BoxConstraints(maxWidth: 560),
+          builder: (sheetContext) => _ResidenceSwitcherSheet(
+            residenceContext: residenceContext,
+            professional: professional,
+            onNewResidence: () {
+              Navigator.of(sheetContext).pop();
+              context.go(
+                AppRoutes.residenceSetup,
+                extra: GoRouterState.of(context).uri.toString(),
+              );
+            },
+          ),
+        );
+    if (selection == null || !context.mounted) return;
+    if (!selection.professional) {
+      await _selectResidence(context, ref, selection.id);
+      return;
+    }
+    if (residenceContext.activeProfessionalId == selection.id) return;
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user == null) return;
+    try {
+      await ref.read(professionalProfileRepositoryProvider).activate(user);
+      if (!context.mounted ||
+          ref.read(authRepositoryProvider).currentUser?.uid != user.uid) {
+        return;
+      }
+      if (residenceContext.supportResidence != null) {
+        ref.read(residenceSupportProvider.notifier).close();
+      }
+      ref.refresh(residenceContextProvider.future).ignore();
+      context.go(AppRoutes.professional);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).professionalProfileUnavailable,
+          ),
+        ),
+      );
     }
   }
 
-  Future<void> _select(
+  Future<void> _selectResidence(
     BuildContext context,
     WidgetRef ref,
     String residenceId,
   ) async {
-    if (residenceId == residenceContext.activeResidenceId) {
+    if (residenceId == residenceContext.activeResidence?.id) {
       return;
     }
     final user = ref.read(authRepositoryProvider).currentUser;
@@ -1115,6 +1236,11 @@ class _ResidenceSelector extends ConsumerWidget {
       if (!context.mounted) return;
       if (residenceContext.supportResidence != null) {
         ref.read(residenceSupportProvider.notifier).close();
+      }
+      if (residenceContext.activeProfessionalId != null) {
+        ref.refresh(residenceContextProvider.future).ignore();
+        context.go(AppRoutes.community);
+        return;
       }
       final updatedContext = await ref.refresh(residenceContextProvider.future);
       if (updatedContext.activeResidence == null) {
@@ -1190,21 +1316,37 @@ class _ResidenceSwitchingOverlay extends StatelessWidget {
   }
 }
 
-class _ResidenceSwitcherSheet extends StatelessWidget {
+class _ResidenceSwitcherSheet extends ConsumerWidget {
   const _ResidenceSwitcherSheet({
     required this.residenceContext,
     required this.onNewResidence,
+    this.professional,
   });
 
   final ResidenceContext residenceContext;
   final VoidCallback onNewResidence;
+  final DirectoryEntry? professional;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final optionHeight = _ResidenceSwitcherOption.height(context);
     const visibleResidenceLimit = 3;
+    final professional = this.professional;
+    final categories = professional == null
+        ? const <ServiceCategory>[]
+        : ref.watch(serviceCategoriesProvider).value ??
+              const <ServiceCategory>[];
+    final specialty = professional == null
+        ? ''
+        : categories
+                  .where((category) => category.id == professional.categoryId)
+                  .firstOrNull
+                  ?.localizedLongName(
+                    Localizations.localeOf(context).languageCode,
+                  ) ??
+              professional.profession;
     const residenceGap = AppSpacing.xSmall;
     final support = residenceContext.supportResidence;
     final residences = [
@@ -1262,12 +1404,12 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            localizations.selectResidence,
+                            localizations.selectSpace,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: AppSpacing.xSmall),
                           Text(
-                            localizations.residenceSwitcherDescription,
+                            localizations.spaceSwitcherDescription,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: AppColors.inkMuted),
                           ),
@@ -1299,20 +1441,70 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
                       key: const Key('residence-switcher-list'),
                       padding: EdgeInsets.zero,
                       shrinkWrap: true,
-                      itemCount: residences.length,
+                      itemCount:
+                          residences.length + (professional == null ? 0 : 1),
                       separatorBuilder: (context, index) =>
                           const SizedBox(height: residenceGap),
                       itemBuilder: (context, index) {
+                        if (professional != null &&
+                            index == residences.length) {
+                          return SizedBox(
+                            height: optionHeight,
+                            child: _ResidenceSwitcherOption(
+                              key: ValueKey(
+                                'professional-switcher-option-${professional.id}',
+                              ),
+                              title: professional.name,
+                              subtitle: [
+                                specialty,
+                                localizedMoroccanCityName(
+                                  localizations,
+                                  professional.city,
+                                ),
+                              ].where((value) => value.isNotEmpty).join(' • '),
+                              avatar: DirectoryEntryImage(
+                                entry: professional,
+                                radius: 22,
+                              ),
+                              selected:
+                                  residenceContext.activeProfessionalId ==
+                                  professional.id,
+                              activeLabel: localizations.currentSpace,
+                              onTap: () => Navigator.of(
+                                context,
+                              ).pop((id: professional.id, professional: true)),
+                            ),
+                          );
+                        }
                         final residence = residences[index];
                         return SizedBox(
                           height: optionHeight,
                           child: _ResidenceSwitcherOption(
-                            residence: residence,
+                            key: ValueKey(
+                              'residence-switcher-option-${residence.id}',
+                            ),
+                            title: localizations.residenceDisplayName(
+                              normalizeResidenceName(residence.name),
+                            ),
+                            subtitle: [
+                              residence.address,
+                              localizedMoroccanCityName(
+                                localizations,
+                                residence.city,
+                              ),
+                            ].where((value) => value.isNotEmpty).join(' • '),
+                            avatar: DarJarResidenceAvatar(
+                              residenceId: residence.id,
+                              hasImage: residence.hasImage,
+                              size: 44,
+                            ),
                             selected:
                                 residence.id ==
-                                residenceContext.activeResidenceId,
-                            onTap: () =>
-                                Navigator.of(context).pop(residence.id),
+                                residenceContext.activeResidence?.id,
+                            activeLabel: localizations.currentResidence,
+                            onTap: () => Navigator.of(
+                              context,
+                            ).pop((id: residence.id, professional: false)),
                           ),
                         );
                       },
@@ -1339,12 +1531,12 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              localizations.newResidence,
+                              localizations.addSpace,
                               style: textTheme.titleMedium,
                             ),
                             const SizedBox(height: AppSpacing.xSmall),
                             Text(
-                              localizations.newResidenceDescription,
+                              localizations.addSpaceDescription,
                               style: textTheme.bodySmall?.copyWith(
                                 color: AppColors.inkMuted,
                               ),
@@ -1372,12 +1564,19 @@ class _ResidenceSwitcherSheet extends StatelessWidget {
 
 class _ResidenceSwitcherOption extends StatelessWidget {
   const _ResidenceSwitcherOption({
-    required this.residence,
+    required this.title,
+    required this.subtitle,
+    required this.avatar,
+    required this.activeLabel,
     required this.selected,
+    super.key,
     required this.onTap,
   });
 
-  final UserResidence residence;
+  final String title;
+  final String subtitle;
+  final Widget avatar;
+  final String activeLabel;
   final bool selected;
   final VoidCallback onTap;
 
@@ -1410,13 +1609,7 @@ class _ResidenceSwitcherOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    final address = [
-      residence.address,
-      localizedMoroccanCityName(localizations, residence.city),
-    ].where((value) => value.isNotEmpty).join(' • ');
     return DarJarCard(
-      key: ValueKey('residence-switcher-option-${residence.id}'),
       padding: EdgeInsets.zero,
       onTap: onTap,
       child: AnimatedContainer(
@@ -1425,11 +1618,7 @@ class _ResidenceSwitcherOption extends StatelessWidget {
         color: selected ? AppColors.primarySoft : AppColors.surface,
         child: Row(
           children: [
-            DarJarResidenceAvatar(
-              residenceId: residence.id,
-              hasImage: residence.hasImage,
-              size: _avatarSize,
-            ),
+            avatar,
             const SizedBox(width: AppSpacing.medium),
             Expanded(
               child: Column(
@@ -1437,19 +1626,17 @@ class _ResidenceSwitcherOption extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    localizations.residenceDisplayName(
-                      normalizeResidenceName(residence.name),
-                    ),
+                    title,
                     maxLines: _titleMaxLines,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: selected ? AppColors.primary : AppColors.ink,
                     ),
                   ),
-                  if (address.isNotEmpty) ...[
+                  if (subtitle.isNotEmpty) ...[
                     const SizedBox(height: AppSpacing.xSmall),
                     Text(
-                      address,
+                      subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -1467,7 +1654,7 @@ class _ResidenceSwitcherOption extends StatelessWidget {
                   : Icons.arrow_forward_ios_rounded,
               color: selected ? AppColors.primary : AppColors.inkMuted,
               size: selected ? 24 : 16,
-              semanticLabel: selected ? localizations.currentResidence : null,
+              semanticLabel: selected ? activeLabel : null,
             ),
           ],
         ),
@@ -1477,9 +1664,10 @@ class _ResidenceSwitcherOption extends StatelessWidget {
 }
 
 class _ShellRedirect extends StatefulWidget {
-  const _ShellRedirect(this.destination, {super.key});
+  const _ShellRedirect(this.destination, {required this.source, super.key});
 
   final String destination;
+  final String source;
 
   @override
   State<_ShellRedirect> createState() => _ShellRedirectState();
@@ -1490,8 +1678,10 @@ class _ShellRedirectState extends State<_ShellRedirect> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.go(widget.destination);
+      if (!mounted) return;
+      final router = GoRouter.of(context);
+      if (router.routeInformationProvider.value.uri.path == widget.source) {
+        router.go(widget.destination);
       }
     });
   }

@@ -442,6 +442,7 @@ service cloud.firestore {
           'lastName',
           'hasProfileImage',
           'activeResidenceId',
+          'activeSpaceType',
           'updatedAt'
         ])
         && request.resource.data.firstName is string
@@ -461,6 +462,21 @@ service cloud.firestore {
             && getAfter(
               memberPath(request.resource.data.activeResidenceId, userId)
             ).data.status == 'active'
+          )
+        )
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeSpaceType'])
+          || (
+            request.resource.data.activeSpaceType == 'residence'
+            && request.resource.data.activeResidenceId is string
+            && getAfter(memberPath(request.resource.data.activeResidenceId, userId)).data.status == 'active'
+          )
+          || (
+            request.resource.data.activeSpaceType == 'professional'
+            && resource.data.professionalServiceId is string
+            && ownsListedService(resource.data.professionalServiceId)
+            && get(servicePath(resource.data.professionalServiceId)).data.status in ['active', 'paused']
+            && resource.data.get('accountStatus', '') != 'deletionRequested'
           )
         )
         && request.resource.data.updatedAt == request.time
@@ -534,8 +550,20 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    function ownsService(listing) {
+      return signedIn() && listing.get('ownerUid', '') == request.auth.uid;
+    }
+
+    function ownsListedService(serviceId) {
+      return ownsService(get(servicePath(serviceId)).data);
+    }
+
     match /services/{serviceId} {
-      allow read: if signedIn();
+      allow get: if signedIn()
+        && (resource == null || resource.data.status == 'active' || ownsService(resource.data));
+
+      // Older clients discard non-active services after their city query.
+      allow list: if signedIn();
 
       allow create: if isResidenceMember(
           request.resource.data.createdFromResidenceId
@@ -569,6 +597,7 @@ service cloud.firestore {
         && request.resource.data.profession.size() <= 160
         && request.resource.data.phone is string
         && request.resource.data.phone.matches('^[+][1-9][0-9]{7,14}$')
+        && !exists(/databases/$(database)/documents/professionalPhones/$(request.resource.data.phone))
         && request.resource.data.neighborhood is string
         && request.resource.data.neighborhood.size() <= 120
         && validMoroccanCity(request.resource.data.city)
@@ -585,16 +614,26 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time;
 
       allow update: if signedIn()
-        && resource.data.createdBy == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'name',
-          'categoryId',
-          'subcategoryIds',
-          'profession',
-          'phone',
-          'neighborhood',
-          'updatedAt'
-        ])
+        && (
+          (
+            resource.data.get('ownerUid', null) in [null, '']
+            && resource.data.createdBy == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'name', 'categoryId', 'subcategoryIds', 'profession', 'phone',
+              'neighborhood', 'updatedAt'
+            ])
+          ) || (
+            verifiedPhone()
+            && ownsService(resource.data)
+            && resource.data.status in ['active', 'paused']
+            && get(userPath(request.auth.uid)).data.get('accountStatus', '') != 'deletionRequested'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'name', 'categoryId', 'subcategoryIds', 'profession', 'city',
+              'neighborhood', 'updatedAt'
+            ])
+            && validMoroccanCity(request.resource.data.city)
+          )
+        )
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 120
@@ -608,8 +647,14 @@ service cloud.firestore {
         ).data.subcategoryIds.hasAll(request.resource.data.subcategoryIds)
         && request.resource.data.profession is string
         && request.resource.data.profession.size() <= 160
-        && request.resource.data.phone is string
-        && request.resource.data.phone.matches('^[+][1-9][0-9]{7,14}$')
+        && (
+          request.resource.data.phone == resource.data.phone
+          || (
+            request.resource.data.phone is string
+            && request.resource.data.phone.matches('^[+][1-9][0-9]{7,14}$')
+            && !exists(/databases/$(database)/documents/professionalPhones/$(request.resource.data.phone))
+          )
+        )
         && request.resource.data.neighborhood is string
         && request.resource.data.neighborhood.size() <= 120
         && request.resource.data.updatedAt == request.time;
@@ -720,7 +765,8 @@ service cloud.firestore {
         ])
         && request.resource.data.entryId is string
         && request.resource.data.entryId.size() > 0
-        && exists(servicePath(request.resource.data.entryId))
+        && getAfter(servicePath(request.resource.data.entryId)).data.status == 'active'
+        && !ownsListedService(request.resource.data.entryId)
         && request.resource.data.residenceId is string
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.authorName is string
@@ -734,6 +780,8 @@ service cloud.firestore {
 
       allow update: if signedIn()
         && resource.data.userId == request.auth.uid
+        && getAfter(servicePath(resource.data.entryId)).data.status == 'active'
+        && !ownsListedService(resource.data.entryId)
         && request.resource.data.entryId == resource.data.entryId
         && request.resource.data.residenceId == resource.data.residenceId
         && request.resource.data.userId == resource.data.userId
@@ -753,9 +801,11 @@ service cloud.firestore {
         && request.resource.data.comment.size() <= 1000
         && request.resource.data.createdAt == request.time;
 
-      allow delete: if isRecentlyVerifiedPresident(
-        resource.data.residenceId
-      );
+      allow delete: if isRecentlyVerifiedPresident(resource.data.residenceId)
+        && (
+          !exists(servicePath(resource.data.entryId))
+          || !ownsListedService(resource.data.entryId)
+        );
 
     }
 

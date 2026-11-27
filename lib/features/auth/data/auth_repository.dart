@@ -14,6 +14,13 @@ class AuthUser {
 
   final String uid;
   final String? phoneNumber;
+
+  @override
+  bool operator ==(Object other) =>
+      other is AuthUser && uid == other.uid && phoneNumber == other.phoneNumber;
+
+  @override
+  int get hashCode => Object.hash(uid, phoneNumber);
 }
 
 abstract interface class AuthRepository {

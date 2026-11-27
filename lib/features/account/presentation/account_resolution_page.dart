@@ -10,6 +10,7 @@ import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_setup_repository.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -150,6 +151,7 @@ class _AccountResolutionPageState extends ConsumerState<AccountResolutionPage> {
           );
       if (mounted) {
         ref.invalidate(accountResolutionProvider);
+        ref.invalidate(residenceContextProvider);
         context.go(AppRoutes.community);
       }
     } on AccountOnboardingFailure catch (error) {
@@ -418,6 +420,13 @@ class _InvitationConfirmation extends StatelessWidget {
                 style: Theme.of(
                   context,
                 ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+              ),
+              const SizedBox(height: AppSpacing.medium),
+              TextButton(
+                onPressed: isSubmitting
+                    ? null
+                    : () => context.push(AppRoutes.startProfessional),
+                child: Text(localizations.professionalOption),
               ),
             ],
           ),

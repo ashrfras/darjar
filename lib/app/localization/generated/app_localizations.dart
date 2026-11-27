@@ -451,7 +451,7 @@ abstract class AppLocalizations {
   /// No description provided for @residenceSetupDescription.
   ///
   /// In ar, this message translates to:
-  /// **'انضم إلى إقامتك الحالية أو أنشئ إقامة جديدة لجيرانك.'**
+  /// **'انضم إلى إقامتك، أو أنشئ إقامة لجيرانك، أو أضف خدماتك إلى دليل المدينة.'**
   String get residenceSetupDescription;
 
   /// No description provided for @residenceSetupSignedInAs.
@@ -5057,6 +5057,216 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تعذر حفظ تفضيل واتساب. يمكنك المحاولة من صفحة الدعم والتواصل.'**
   String get whatsAppSupportSaveError;
+
+  /// No description provided for @professionalOption.
+  ///
+  /// In ar, this message translates to:
+  /// **'أنا مهني'**
+  String get professionalOption;
+
+  /// No description provided for @professionalOptionDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضف خدماتك إلى دليل المدينة وعرّف السكان بما تقدمه.'**
+  String get professionalOptionDescription;
+
+  /// No description provided for @claimProfessionalTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل هذا ملفك المهني؟'**
+  String get claimProfessionalTitle;
+
+  /// No description provided for @claimProfessionalDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'وجدنا ملفا مهنيا مسجلا برقم هاتفك في دليل خدمات دارجار. يمكنك ربطه بحسابك وإدارة معلوماته والاحتفاظ بالتوصيات والتقييمات السابقة.'**
+  String get claimProfessionalDescription;
+
+  /// No description provided for @claimProfessionalAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة ملفي المهني'**
+  String get claimProfessionalAction;
+
+  /// No description provided for @claimProfessionalMultiple.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر ملفا واحدا من الملفات المسجلة برقمك.'**
+  String get claimProfessionalMultiple;
+
+  /// No description provided for @professionalNotNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'ليس الآن'**
+  String get professionalNotNow;
+
+  /// No description provided for @professionalProfileUnavailable.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر الوصول إلى الملف المهني.'**
+  String get professionalProfileUnavailable;
+
+  /// No description provided for @professionalPhoneInUse.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقمك مرتبط بملف في دليل الخدمات بالفعل. راجع الملفات الموجودة قبل إنشاء ملف.'**
+  String get professionalPhoneInUse;
+
+  /// No description provided for @professionalClaimUnavailable.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يعد هذا الملف متاحا للمطالبة. أعد فتح خيار «أنا مهني» للتحقق من الملفات المتاحة.'**
+  String get professionalClaimUnavailable;
+
+  /// No description provided for @professionalCreateTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء ملف مهني'**
+  String get professionalCreateTitle;
+
+  /// No description provided for @professionalVerifiedContact.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم التواصل المؤكد'**
+  String get professionalVerifiedContact;
+
+  /// No description provided for @professionalPreview.
+  ///
+  /// In ar, this message translates to:
+  /// **'معاينة في دليل الخدمات'**
+  String get professionalPreview;
+
+  /// No description provided for @professionalSelfListed.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضافه المهني'**
+  String get professionalSelfListed;
+
+  /// No description provided for @professionalResidentListed.
+  ///
+  /// In ar, this message translates to:
+  /// **'أضافه أحد السكان'**
+  String get professionalResidentListed;
+
+  /// No description provided for @selectSpace.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار الفضاء'**
+  String get selectSpace;
+
+  /// No description provided for @spaceSwitcherDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر الإقامة أو النشاط المهني الذي تريد الانتقال إليه.'**
+  String get spaceSwitcherDescription;
+
+  /// No description provided for @addSpace.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة فضاء جديد'**
+  String get addSpace;
+
+  /// No description provided for @addSpaceDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء إقامة أو الانضمام إليها أو إضافة خدماتك.'**
+  String get addSpaceDescription;
+
+  /// No description provided for @currentSpace.
+  ///
+  /// In ar, this message translates to:
+  /// **'الفضاء النشط'**
+  String get currentSpace;
+
+  /// No description provided for @professionalDeleteService.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الخدمة'**
+  String get professionalDeleteService;
+
+  /// No description provided for @professionalDeleteTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الخدمة؟'**
+  String get professionalDeleteTitle;
+
+  /// No description provided for @professionalDeleteDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيُحذف ملف «{name}» من دليل المدينة. سيبقى حسابك وإقاماتك المرتبطة به.'**
+  String professionalDeleteDescription(String name);
+
+  /// No description provided for @professionalServiceDeleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حذف الخدمة من الدليل.'**
+  String get professionalServiceDeleted;
+
+  /// No description provided for @professionalServiceDeleteFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر حذف الخدمة. حاول مجددًا.'**
+  String get professionalServiceDeleteFailed;
+
+  /// No description provided for @professionalServiceOptions.
+  ///
+  /// In ar, this message translates to:
+  /// **'خيارات إضافية'**
+  String get professionalServiceOptions;
+
+  /// No description provided for @professionalPauseActivity.
+  ///
+  /// In ar, this message translates to:
+  /// **'إيقاف النشاط'**
+  String get professionalPauseActivity;
+
+  /// No description provided for @professionalResumeActivity.
+  ///
+  /// In ar, this message translates to:
+  /// **'تفعيل النشاط'**
+  String get professionalResumeActivity;
+
+  /// No description provided for @professionalPauseTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إيقاف نشاطك المهني؟'**
+  String get professionalPauseTitle;
+
+  /// No description provided for @professionalPauseDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'لن يظهر ملفك في دليل الخدمات، ولن يتمكن السكان من العثور عليه من خلال البحث. يمكنك إعادة تفعيله في أي وقت، مع الاحتفاظ بتوصياتك وتقييماتك السابقة.'**
+  String get professionalPauseDescription;
+
+  /// No description provided for @professionalActivityPaused.
+  ///
+  /// In ar, this message translates to:
+  /// **'النشاط متوقف'**
+  String get professionalActivityPaused;
+
+  /// No description provided for @professionalServicePaused.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إيقاف النشاط.'**
+  String get professionalServicePaused;
+
+  /// No description provided for @professionalServiceResumed.
+  ///
+  /// In ar, this message translates to:
+  /// **'أُعيد تفعيل النشاط.'**
+  String get professionalServiceResumed;
+
+  /// No description provided for @professionalAvailabilityUpdateFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تغيير حالة النشاط. حاول مجددًا.'**
+  String get professionalAvailabilityUpdateFailed;
+
+  /// No description provided for @professionalServiceHasFeedback.
+  ///
+  /// In ar, this message translates to:
+  /// **'يتعذّر حذف خدمة لديها توصيات أو تقييمات. يمكنك إيقاف النشاط لإخفائها من الدليل.'**
+  String get professionalServiceHasFeedback;
 }
 
 class _AppLocalizationsDelegate

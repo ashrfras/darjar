@@ -59,11 +59,23 @@ class PhoneVerificationApi {
     return customToken;
   }
 
+  Future<Map<String, Object?>> professionalProfile(
+    String action,
+    String idToken,
+    Map<String, Object?> body,
+  ) => _post(
+    '/v1/professional-profile/$action',
+    body,
+    expectedStatus: action == 'create' ? 201 : 200,
+    idToken: idToken,
+  );
+
   Future<Map<String, Object?>> _post(
     String path,
     Map<String, Object?> requestBody, {
     required int expectedStatus,
     String? localDevelopmentSecret,
+    String? idToken,
   }) async {
     if (!_baseUri.hasScheme || !_baseUri.hasAuthority) {
       throw const AuthFailure('verification-service-not-configured');
@@ -75,6 +87,7 @@ class PhoneVerificationApi {
             headers: {
               'content-type': 'application/json',
               'accept': 'application/json',
+              if (idToken != null) 'authorization': 'Bearer $idToken',
               if (localDevelopmentSecret != null &&
                   localDevelopmentSecret.isNotEmpty)
                 'x-darjar-local-auth': localDevelopmentSecret,

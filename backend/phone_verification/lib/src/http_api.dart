@@ -5,35 +5,119 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 import 'phone_verification_service.dart';
+import 'professional_profiles.dart';
 
 class PhoneVerificationApi {
   PhoneVerificationApi({
     required PhoneVerificationService service,
     required Set<String> allowedOrigins,
     String? localDevelopmentSecret,
-  }) : this._(service, allowedOrigins, localDevelopmentSecret?.trim() ?? '');
+    ProfessionalProfiles? professionalProfiles,
+    Future<VerifiedProfessionalIdentity> Function(String)?
+    verifyProfessionalToken,
+  }) : this._(
+         service,
+         allowedOrigins,
+         localDevelopmentSecret?.trim() ?? '',
+         professionalProfiles,
+         verifyProfessionalToken,
+       );
 
   PhoneVerificationApi._(
     this._service,
     this._allowedOrigins,
     this._localDevelopmentSecret,
+    this._professionalProfiles,
+    this._verifyProfessionalToken,
   );
 
   final PhoneVerificationService _service;
   final Set<String> _allowedOrigins;
   final String _localDevelopmentSecret;
+  final ProfessionalProfiles? _professionalProfiles;
+  final Future<VerifiedProfessionalIdentity> Function(String)?
+  _verifyProfessionalToken;
 
   Handler get handler {
     final router = Router()
       ..get('/health', (Request request) => Response.ok('ok'))
       ..post('/v1/phone-verifications', _start)
       ..post('/v1/phone-verifications/<sessionId>/check', _check);
+    if (_professionalProfiles != null && _verifyProfessionalToken != null) {
+      router.post('/v1/professional-profile/<action>', _professionalProfile);
+    }
     return const Pipeline()
         .addMiddleware(_securityHeaders)
         .addMiddleware(_cors)
         .addMiddleware(_preflight)
         .addMiddleware(logRequests())
         .addHandler(router.call);
+  }
+
+  Future<Response> _professionalProfile(Request request, String action) async {
+    try {
+      final authorization = request.headers['authorization'] ?? '';
+      if (!authorization.startsWith('Bearer ') || authorization.length > 8192) {
+        throw const ProfessionalFailure(
+          'invalid-identity',
+          HttpStatus.unauthorized,
+        );
+      }
+      final input = await _requestJson(request);
+      final identity = await _verifyProfessionalToken!(
+        authorization.substring(7),
+      );
+      final profiles = _professionalProfiles!;
+      switch (action) {
+        case 'discover':
+          return _jsonResponse(
+            HttpStatus.ok,
+            await profiles.discover(identity),
+          );
+        case 'claim':
+          final id = input['serviceId'];
+          if (id is! String) {
+            throw const FormatException('A service ID is required.');
+          }
+          return _jsonResponse(HttpStatus.ok, {
+            'serviceId': await profiles.claim(identity, id, input),
+          });
+        case 'create':
+          return _jsonResponse(HttpStatus.created, {
+            'serviceId': await profiles.create(identity, input),
+          });
+        case 'set-availability':
+          final id = input['serviceId'];
+          final paused = input['paused'];
+          if (id is! String || paused is! bool) {
+            throw const FormatException(
+              'A service ID and availability are required.',
+            );
+          }
+          await profiles.setPaused(identity, id, paused: paused);
+          return _jsonResponse(HttpStatus.ok, {'serviceId': id});
+        case 'delete':
+          final id = input['serviceId'];
+          if (id is! String) {
+            throw const FormatException('A service ID is required.');
+          }
+          await profiles.delete(identity, id);
+          return _jsonResponse(HttpStatus.ok, {'serviceId': id});
+        default:
+          return _jsonResponse(HttpStatus.notFound, {
+            'code': 'invalid-request',
+          });
+      }
+    } on ProfessionalFailure catch (error) {
+      return _jsonResponse(error.status, {'code': error.code});
+    } on FormatException {
+      return _jsonResponse(HttpStatus.badRequest, {'code': 'invalid-request'});
+    } catch (error, stackTrace) {
+      stderr.writeln('$error\n$stackTrace');
+      return _jsonResponse(HttpStatus.internalServerError, {
+        'code': 'professional-service-error',
+      });
+    }
   }
 
   Future<Response> _start(Request request) async {
@@ -150,7 +234,8 @@ class PhoneVerificationApi {
             ...response.headers,
             'access-control-allow-origin': origin,
             'access-control-allow-methods': 'POST, OPTIONS',
-            'access-control-allow-headers': 'Content-Type, X-Darjar-Local-Auth',
+            'access-control-allow-headers':
+                'Authorization, Content-Type, X-Darjar-Local-Auth',
             'access-control-max-age': '3600',
             'vary': 'Origin',
           },

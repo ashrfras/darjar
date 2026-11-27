@@ -278,6 +278,7 @@ class FirestoreAccountOnboardingRepository
         } else if (profile.activeResidenceId == null) {
           transaction.update(userReference, {
             'activeResidenceId': invitations.first.residenceId,
+            'activeSpaceType': 'residence',
             'updatedAt': FieldValue.serverTimestamp(),
           });
         }
@@ -368,6 +369,7 @@ class FirestoreAccountOnboardingRepository
         } else {
           transaction.update(userReference, {
             'activeResidenceId': invitation.residenceId,
+            'activeSpaceType': 'residence',
             'updatedAt': FieldValue.serverTimestamp(),
           });
         }

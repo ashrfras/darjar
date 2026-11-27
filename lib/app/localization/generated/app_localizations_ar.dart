@@ -198,7 +198,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get residenceSetupDescription =>
-      'انضم إلى إقامتك الحالية أو أنشئ إقامة جديدة لجيرانك.';
+      'انضم إلى إقامتك، أو أنشئ إقامة لجيرانك، أو أضف خدماتك إلى دليل المدينة.';
 
   @override
   String get residenceSetupSignedInAs => 'أنت مسجّل الدخول بالرقم';
@@ -2759,4 +2759,122 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get whatsAppSupportSaveError =>
       'تعذر حفظ تفضيل واتساب. يمكنك المحاولة من صفحة الدعم والتواصل.';
+
+  @override
+  String get professionalOption => 'أنا مهني';
+
+  @override
+  String get professionalOptionDescription =>
+      'أضف خدماتك إلى دليل المدينة وعرّف السكان بما تقدمه.';
+
+  @override
+  String get claimProfessionalTitle => 'هل هذا ملفك المهني؟';
+
+  @override
+  String get claimProfessionalDescription =>
+      'وجدنا ملفا مهنيا مسجلا برقم هاتفك في دليل خدمات دارجار. يمكنك ربطه بحسابك وإدارة معلوماته والاحتفاظ بالتوصيات والتقييمات السابقة.';
+
+  @override
+  String get claimProfessionalAction => 'إدارة ملفي المهني';
+
+  @override
+  String get claimProfessionalMultiple =>
+      'اختر ملفا واحدا من الملفات المسجلة برقمك.';
+
+  @override
+  String get professionalNotNow => 'ليس الآن';
+
+  @override
+  String get professionalProfileUnavailable => 'تعذّر الوصول إلى الملف المهني.';
+
+  @override
+  String get professionalPhoneInUse =>
+      'رقمك مرتبط بملف في دليل الخدمات بالفعل. راجع الملفات الموجودة قبل إنشاء ملف.';
+
+  @override
+  String get professionalClaimUnavailable =>
+      'لم يعد هذا الملف متاحا للمطالبة. أعد فتح خيار «أنا مهني» للتحقق من الملفات المتاحة.';
+
+  @override
+  String get professionalCreateTitle => 'إنشاء ملف مهني';
+
+  @override
+  String get professionalVerifiedContact => 'رقم التواصل المؤكد';
+
+  @override
+  String get professionalPreview => 'معاينة في دليل الخدمات';
+
+  @override
+  String get professionalSelfListed => 'أضافه المهني';
+
+  @override
+  String get professionalResidentListed => 'أضافه أحد السكان';
+
+  @override
+  String get selectSpace => 'اختيار الفضاء';
+
+  @override
+  String get spaceSwitcherDescription =>
+      'اختر الإقامة أو النشاط المهني الذي تريد الانتقال إليه.';
+
+  @override
+  String get addSpace => 'إضافة فضاء جديد';
+
+  @override
+  String get addSpaceDescription =>
+      'إنشاء إقامة أو الانضمام إليها أو إضافة خدماتك.';
+
+  @override
+  String get currentSpace => 'الفضاء النشط';
+
+  @override
+  String get professionalDeleteService => 'حذف الخدمة';
+
+  @override
+  String get professionalDeleteTitle => 'حذف الخدمة؟';
+
+  @override
+  String professionalDeleteDescription(String name) {
+    return 'سيُحذف ملف «$name» من دليل المدينة. سيبقى حسابك وإقاماتك المرتبطة به.';
+  }
+
+  @override
+  String get professionalServiceDeleted => 'تم حذف الخدمة من الدليل.';
+
+  @override
+  String get professionalServiceDeleteFailed =>
+      'تعذّر حذف الخدمة. حاول مجددًا.';
+
+  @override
+  String get professionalServiceOptions => 'خيارات إضافية';
+
+  @override
+  String get professionalPauseActivity => 'إيقاف النشاط';
+
+  @override
+  String get professionalResumeActivity => 'تفعيل النشاط';
+
+  @override
+  String get professionalPauseTitle => 'إيقاف نشاطك المهني؟';
+
+  @override
+  String get professionalPauseDescription =>
+      'لن يظهر ملفك في دليل الخدمات، ولن يتمكن السكان من العثور عليه من خلال البحث. يمكنك إعادة تفعيله في أي وقت، مع الاحتفاظ بتوصياتك وتقييماتك السابقة.';
+
+  @override
+  String get professionalActivityPaused => 'النشاط متوقف';
+
+  @override
+  String get professionalServicePaused => 'تم إيقاف النشاط.';
+
+  @override
+  String get professionalServiceResumed => 'أُعيد تفعيل النشاط.';
+
+  @override
+  String get professionalAvailabilityUpdateFailed =>
+      'تعذّر تغيير حالة النشاط. حاول مجددًا.';
+
+  @override
+  String get professionalServiceHasFeedback =>
+      'يتعذّر حذف خدمة لديها توصيات أو تقييمات. يمكنك إيقاف النشاط لإخفائها من الدليل.';
 }

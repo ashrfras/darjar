@@ -18,20 +18,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class DirectoryProfilePage extends ConsumerWidget {
-  const DirectoryProfilePage({required this.entryId, super.key});
+  const DirectoryProfilePage({required this.entryId, this.preview, super.key});
 
   final String entryId;
+  final DirectoryEntry? preview;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(directoryEntriesProvider);
-    final entry = ref.read(directoryEntriesProvider.notifier).find(entryId);
+    final isPreview = preview != null;
+    final entry = isPreview
+        ? preview
+        : ref
+              .watch(directoryEntriesProvider)
+              .where((entry) => entry.id == entryId)
+              .firstOrNull;
+    final fallback = isPreview ? AppRoutes.professional : AppRoutes.directory;
     final localizations = AppLocalizations.of(context);
     if (entry == null) {
       return ListView(
         padding: const EdgeInsets.all(AppSpacing.xLarge),
         children: [
-          DarJarSubpageHeader(fallbackLocation: AppRoutes.directory),
+          DarJarSubpageHeader(fallbackLocation: fallback),
           const SizedBox(height: AppSpacing.large),
           Center(child: Text(localizations.directoryProfileNotFound)),
         ],
@@ -50,8 +57,8 @@ class DirectoryProfilePage extends ConsumerWidget {
         .toList();
     final compact = MediaQuery.sizeOf(context).width < 600;
     final currentUser = ref.watch(authRepositoryProvider).currentUser;
-    final canEdit =
-        entry.createdBy.isNotEmpty && entry.createdBy == currentUser?.uid;
+    final canEdit = !isPreview && entry.canEdit(currentUser?.uid);
+    final canRecommend = !isPreview && !entry.isOwnedBy(currentUser?.uid);
     return SingleChildScrollView(
       key: const Key('directory-profile-page'),
       padding: EdgeInsets.fromLTRB(
@@ -67,7 +74,7 @@ class DirectoryProfilePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DarJarSubpageHeader(fallbackLocation: AppRoutes.directory),
+              DarJarSubpageHeader(fallbackLocation: fallback),
               const SizedBox(height: AppSpacing.small),
               DarJarCard(
                 child: Stack(
@@ -96,6 +103,15 @@ class DirectoryProfilePage extends ConsumerWidget {
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: AppColors.inkMuted),
                         ),
+                        if (entry.selfListed || entry.createdBy.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.small),
+                          Text(
+                            entry.selfListed
+                                ? localizations.professionalSelfListed
+                                : localizations.professionalResidentListed,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
                         const SizedBox(height: AppSpacing.large),
                         Wrap(
                           alignment: WrapAlignment.center,
@@ -112,11 +128,12 @@ class DirectoryProfilePage extends ConsumerWidget {
                               label: localizations.recommendations,
                               icon: Icons.thumb_up_alt_rounded,
                             ),
-                            _Metric(
-                              value: '${entry.localRecommendationCount}',
-                              label: localizations.fromYourResidence,
-                              icon: Icons.apartment_rounded,
-                            ),
+                            if (!isPreview)
+                              _Metric(
+                                value: '${entry.localRecommendationCount}',
+                                label: localizations.fromYourResidence,
+                                icon: Icons.apartment_rounded,
+                              ),
                           ],
                         ),
                         const SizedBox(height: AppSpacing.xLarge),
@@ -131,21 +148,23 @@ class DirectoryProfilePage extends ConsumerWidget {
                                 expanded: true,
                               ),
                             ),
-                            const SizedBox(width: AppSpacing.small),
-                            Expanded(
-                              child: DarJarButton(
-                                key: const Key('recommend-entry-button'),
-                                label: localizations.recommend,
-                                icon: Icons.thumb_up_alt_outlined,
-                                variant: DarJarButtonVariant.secondary,
-                                onPressed: () => _showRecommendationSheet(
-                                  context,
-                                  ref,
-                                  entry,
+                            if (canRecommend)
+                              const SizedBox(width: AppSpacing.small),
+                            if (canRecommend)
+                              Expanded(
+                                child: DarJarButton(
+                                  key: const Key('recommend-entry-button'),
+                                  label: localizations.recommend,
+                                  icon: Icons.thumb_up_alt_outlined,
+                                  variant: DarJarButtonVariant.secondary,
+                                  onPressed: () => _showRecommendationSheet(
+                                    context,
+                                    ref,
+                                    entry,
+                                  ),
+                                  expanded: true,
                                 ),
-                                expanded: true,
                               ),
-                            ),
                           ],
                         ),
                         const SizedBox(height: AppSpacing.medium),

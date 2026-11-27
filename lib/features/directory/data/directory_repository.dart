@@ -39,6 +39,10 @@ class DirectoryEntry {
     this.neighborhood = 'المعاريف',
     this.createdBy = '',
     this.city = '',
+    this.ownerUid,
+    this.selfListed = false,
+    this.isPaused = false,
+    this.hasStoredFeedback = false,
   });
 
   final String id;
@@ -55,12 +59,29 @@ class DirectoryEntry {
   final String neighborhood;
   final String createdBy;
   final String city;
+  final String? ownerUid;
+  final bool selfListed;
+  final bool isPaused;
+  final bool hasStoredFeedback;
+
+  bool get hasFeedback =>
+      hasStoredFeedback ||
+      score > 0 ||
+      recommendationCount > 0 ||
+      reviews.isNotEmpty;
+
+  bool isOwnedBy(String? uid) =>
+      uid != null && uid.isNotEmpty && ownerUid == uid;
+  bool canEdit(String? uid) =>
+      isOwnedBy(uid) ||
+      (ownerUid == null && createdBy.isNotEmpty && createdBy == uid);
 
   DirectoryEntry copyWith({
     int? recommendationCount,
     int? localRecommendationCount,
     List<String>? workedResidences,
     List<DirectoryReview>? reviews,
+    bool? isPaused,
   }) {
     return DirectoryEntry(
       id: id,
@@ -78,6 +99,10 @@ class DirectoryEntry {
       neighborhood: neighborhood,
       createdBy: createdBy,
       city: city,
+      ownerUid: ownerUid,
+      selfListed: selfListed,
+      isPaused: isPaused ?? this.isPaused,
+      hasStoredFeedback: hasStoredFeedback,
     );
   }
 }
@@ -110,7 +135,7 @@ class DirectoryRecommendationFailure implements Exception {
 }
 
 abstract interface class DirectoryRecommendationsRepository {
-  Stream<List<DirectoryRecommendation>> watch();
+  Stream<List<DirectoryRecommendation>> watch({String? entryId});
 
   Future<void> recommend({
     required String entryId,
@@ -127,9 +152,11 @@ class FirestoreDirectoryRecommendationsRepository
   final FirebaseFirestore _firestore;
 
   @override
-  Stream<List<DirectoryRecommendation>> watch() {
-    return _firestore
-        .collection('directoryRecommendations')
+  Stream<List<DirectoryRecommendation>> watch({String? entryId}) {
+    final collection = _firestore.collection('directoryRecommendations');
+    return (entryId == null
+            ? collection
+            : collection.where('entryId', isEqualTo: entryId))
         .snapshots()
         .map(
           (snapshot) =>
@@ -214,9 +241,14 @@ class MockDirectoryRecommendationsRepository
   final List<DirectoryRecommendation> values = [];
 
   @override
-  Stream<List<DirectoryRecommendation>> watch() async* {
-    yield List.unmodifiable(values);
-    yield* _recommendations.stream;
+  Stream<List<DirectoryRecommendation>> watch({String? entryId}) async* {
+    List<DirectoryRecommendation> filtered(
+      List<DirectoryRecommendation> values,
+    ) => List.unmodifiable(
+      values.where((value) => entryId == null || value.entryId == entryId),
+    );
+    yield filtered(values);
+    yield* _recommendations.stream.map(filtered);
   }
 
   @override
@@ -251,6 +283,8 @@ class MockDirectoryRecommendationsRepository
 }
 
 abstract interface class DirectoryRepository {
+  Stream<DirectoryEntry?> watchEntry(String id);
+
   Stream<List<DirectoryEntry>> watchEntries({
     required String city,
     required int limit,
@@ -269,6 +303,7 @@ abstract interface class DirectoryRepository {
 
   Future<void> updateService({
     required String serviceId,
+    String? city,
     required String userId,
     required String name,
     required String categoryId,
@@ -292,6 +327,18 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
   final FirebaseFirestore _firestore;
 
   @override
+  Stream<DirectoryEntry?> watchEntry(String id) => _firestore
+      .collection('services')
+      .doc(id)
+      .snapshots()
+      .map(
+        (document) => switch (document.data()?['status']) {
+          'active' || 'paused' => _fromDocument(document),
+          _ => null,
+        },
+      );
+
+  @override
   Stream<List<DirectoryEntry>> watchEntries({
     required String city,
     required int limit,
@@ -299,16 +346,11 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
     return _firestore
         .collection('services')
         .where('city', isEqualTo: city)
+        .where('status', isEqualTo: 'active')
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()
-        .map((snapshot) {
-          final entries = snapshot.docs
-              .where((document) => document.data()['status'] == 'active')
-              .map(_fromDocument)
-              .toList();
-          return entries;
-        })
+        .map((snapshot) => snapshot.docs.map(_fromDocument).toList())
         .handleError((Object error) => throw _failure(error));
   }
 
@@ -387,6 +429,7 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
   @override
   Future<void> updateService({
     required String serviceId,
+    String? city,
     required String userId,
     required String name,
     required String categoryId,
@@ -407,7 +450,7 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
         subcategoryIds.length > 8 ||
         subcategoryIds.toSet().length != subcategoryIds.length ||
         normalizedProfession.length > 160 ||
-        !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(normalizedPhone) ||
+        (city != null && !RegExp(r'^[0-9]{7,10}$').hasMatch(city)) ||
         normalizedNeighborhood.length > 120) {
       throw const DirectoryFailure('invalid-service');
     }
@@ -422,8 +465,14 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
       final validSubcategoryIds = List<String>.from(
         categoryData?['subcategoryIds'] as List? ?? const [],
       );
-      if (!results[0].exists || serviceData?['createdBy'] != userId) {
+      if (!results[0].exists ||
+          !_fromDocument(results[0]).canEdit(userId) ||
+          (city != null && serviceData?['ownerUid'] != userId)) {
         throw const DirectoryFailure('not-service-owner');
+      }
+      if (serviceData?['ownerUid'] != userId &&
+          !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(normalizedPhone)) {
+        throw const DirectoryFailure('invalid-service');
       }
       if (!results[1].exists ||
           !subcategoryIds.every(validSubcategoryIds.contains)) {
@@ -434,7 +483,8 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
         'categoryId': categoryId,
         'subcategoryIds': subcategoryIds,
         'profession': normalizedProfession,
-        'phone': normalizedPhone,
+        if (serviceData?['ownerUid'] != userId) 'phone': normalizedPhone,
+        'city': ?city,
         'neighborhood': normalizedNeighborhood,
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -444,9 +494,11 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
   }
 
   DirectoryEntry _fromDocument(
-    QueryDocumentSnapshot<Map<String, dynamic>> document,
+    DocumentSnapshot<Map<String, dynamic>> document,
   ) {
-    final data = document.data();
+    final data = document.data()!;
+    final storedCount = data['recommendationCount'];
+    final storedReviews = data['reviews'];
     return DirectoryEntry(
       id: document.id,
       name: data['name'] as String? ?? '',
@@ -456,7 +508,10 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
           : [if (data['subcategoryId'] case final String legacyId) legacyId],
       profession: data['profession'] as String? ?? '',
       phone: data['phone'] as String? ?? '',
-      score: 0,
+      score: switch (data['score']) {
+        final num score => score.toDouble(),
+        _ => 0,
+      },
       recommendationCount: 0,
       localRecommendationCount: 0,
       workedResidences: const [],
@@ -464,6 +519,15 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
       neighborhood: data['neighborhood'] as String? ?? '',
       createdBy: data['createdBy'] as String? ?? '',
       city: data['city'] as String? ?? '',
+      ownerUid: switch (data['ownerUid']) {
+        final String uid when uid.isNotEmpty => uid,
+        _ => null,
+      },
+      selfListed: data['source'] == 'professional',
+      isPaused: data['status'] == 'paused',
+      hasStoredFeedback:
+          (storedCount is num && storedCount > 0) ||
+          (storedReviews is List && storedReviews.isNotEmpty),
     );
   }
 
@@ -505,6 +569,7 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
   String? _activeResidenceId;
   String? _activeCity;
   int _entryLimit = pageSize;
+  int _entriesBinding = 0;
   bool _hasMore = true;
   bool _loadingMore = false;
 
@@ -513,18 +578,20 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
 
   @override
   List<DirectoryEntry> build() {
-    final activeCity = ref.watch(
-      residenceContextProvider.select(
-        (state) => state.value?.activeResidence?.city,
-      ),
+    final (residenceId, activeCity) = ref.watch(
+      residenceContextProvider.select((state) {
+        final residence = state.value?.activeResidence;
+        return (residence?.id, residence?.city);
+      }),
     );
     ref.onDispose(() {
       _entriesRetryTimer?.cancel();
       _entriesSubscription?.cancel();
       _recommendationsSubscription?.cancel();
     });
+    if (_activeCity != activeCity) _baseEntries = const [];
     unawaited(_bindEntries(activeCity));
-    unawaited(_bindRecommendations());
+    unawaited(_bindRecommendations(residenceId));
     return const [];
   }
 
@@ -643,8 +710,10 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
   }
 
   Future<void> _bindEntries(String? city) async {
+    final binding = ++_entriesBinding;
     _entriesRetryTimer?.cancel();
     await _entriesSubscription?.cancel();
+    if (binding != _entriesBinding || !ref.mounted) return;
     if (_activeCity != city) _entryLimit = pageSize;
     _activeCity = city;
     if (city == null || city.isEmpty) {
@@ -684,10 +753,15 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
     await firstSnapshot.future;
   }
 
-  Future<void> _bindRecommendations() async {
-    final context = await ref.read(residenceContextProvider.future);
-    _activeResidenceId = context.activeResidence?.id;
+  Future<void> _bindRecommendations(String? residenceId) async {
+    _activeResidenceId = residenceId;
+    _recommendations = const [];
     await _recommendationsSubscription?.cancel();
+    if (residenceId == null ||
+        residenceId != _activeResidenceId ||
+        !ref.mounted) {
+      return;
+    }
     _recommendationsSubscription = ref
         .read(directoryRecommendationsRepositoryProvider)
         .watch()
@@ -700,44 +774,46 @@ class DirectoryController extends Notifier<List<DirectoryEntry>> {
   void _rebuild() {
     state = [
       for (final entry in _baseEntries)
-        _mergeEntry(
+        mergeDirectoryRecommendations(
           entry,
           _recommendations
               .where((recommendation) => recommendation.entryId == entry.id)
               .toList(growable: false),
+          activeResidenceId: _activeResidenceId,
         ),
     ];
   }
+}
 
-  DirectoryEntry _mergeEntry(
-    DirectoryEntry entry,
-    List<DirectoryRecommendation> recommendations,
-  ) {
-    final localCount = recommendations
-        .where(
-          (recommendation) => recommendation.residenceId == _activeResidenceId,
-        )
-        .length;
-    return entry.copyWith(
-      recommendationCount: entry.recommendationCount + recommendations.length,
-      localRecommendationCount: entry.localRecommendationCount + localCount,
-      workedResidences: {
-        ...entry.workedResidences,
-        ...recommendations.map((recommendation) => recommendation.residence),
-      }.toList(),
-      reviews: [
-        for (final recommendation in recommendations)
-          DirectoryReview(
-            userId: recommendation.userId,
-            author: recommendation.author,
-            residence: recommendation.residence,
-            comment: recommendation.comment,
-            timeLabel: _recommendationTimeLabel(recommendation.createdAt),
-          ),
-        ...entry.reviews,
-      ],
-    );
-  }
+DirectoryEntry mergeDirectoryRecommendations(
+  DirectoryEntry entry,
+  List<DirectoryRecommendation> recommendations, {
+  String? activeResidenceId,
+}) {
+  final localCount = recommendations
+      .where(
+        (recommendation) => recommendation.residenceId == activeResidenceId,
+      )
+      .length;
+  return entry.copyWith(
+    recommendationCount: entry.recommendationCount + recommendations.length,
+    localRecommendationCount: entry.localRecommendationCount + localCount,
+    workedResidences: {
+      ...entry.workedResidences,
+      ...recommendations.map((recommendation) => recommendation.residence),
+    }.toList(),
+    reviews: [
+      for (final recommendation in recommendations)
+        DirectoryReview(
+          userId: recommendation.userId,
+          author: recommendation.author,
+          residence: recommendation.residence,
+          comment: recommendation.comment,
+          timeLabel: _recommendationTimeLabel(recommendation.createdAt),
+        ),
+      ...entry.reviews,
+    ],
+  );
 }
 
 String _recommendationTimeLabel(DateTime date) {

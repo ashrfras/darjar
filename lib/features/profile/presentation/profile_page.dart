@@ -73,6 +73,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
     final isDeveloper =
         ref.watch(developerAccessProvider).asData?.value == true;
     final activeResidence = residenceContext?.activeResidence;
+    final isProfessional = residenceContext?.activeProfessionalId != null;
     final roleLabel = switch (activeResidence?.role) {
       'president' || 'owner' => localizations.profileRolePresident,
       'deputy' || 'manager' => localizations.profileRoleDeputy,
@@ -98,7 +99,9 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
             children: [
               DarJarSubpageHeader(
                 title: localizations.profile,
-                fallbackLocation: AppRoutes.community,
+                fallbackLocation: isProfessional
+                    ? AppRoutes.professional
+                    : AppRoutes.community,
               ),
               const SizedBox(height: AppSpacing.small),
               DarJarCard(
@@ -143,11 +146,13 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: AppColors.inkMuted),
                           ),
-                          const SizedBox(height: AppSpacing.small),
-                          DarJarBadge(
-                            label: roleLabel,
-                            tone: DarJarBadgeTone.info,
-                          ),
+                          if (!isProfessional) ...[
+                            const SizedBox(height: AppSpacing.small),
+                            DarJarBadge(
+                              label: roleLabel,
+                              tone: DarJarBadgeTone.info,
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -189,7 +194,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
                               residence: widget.profile.residences[index],
                               isCurrent:
                                   widget.profile.residences[index].id ==
-                                  residenceContext?.activeResidenceId,
+                                  residenceContext?.activeResidence?.id,
                               isSwitching:
                                   widget.profile.residences[index].id ==
                                   _switchingResidenceId,
@@ -370,7 +375,7 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
   Future<void> _switchResidence(String residenceId) async {
     final residenceContext = ref.read(residenceContextProvider).value;
     if (_switchingResidenceId != null ||
-        residenceId == residenceContext?.activeResidenceId) {
+        residenceId == residenceContext?.activeResidence?.id) {
       return;
     }
     final user = ref.read(authRepositoryProvider).currentUser;
@@ -386,6 +391,9 @@ class _ProfileContentState extends ConsumerState<_ProfileContent> {
         ref.read(residenceSupportProvider.notifier).close();
       }
       ref.invalidate(residenceContextProvider);
+      if (residenceContext?.activeProfessionalId != null) {
+        context.go(AppRoutes.community);
+      }
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)

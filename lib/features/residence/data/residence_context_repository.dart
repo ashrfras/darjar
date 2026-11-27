@@ -50,15 +50,26 @@ class ResidenceContext {
     required this.activeResidenceId,
     this.invitations = const [],
     this.supportResidence,
+    this.professionalServiceId,
+    this.prefersProfessional = false,
   });
 
   final List<UserResidence> residences;
   final String? activeResidenceId;
   final List<ResidenceInvitation> invitations;
   final UserResidence? supportResidence;
+  final String? professionalServiceId;
+  final bool prefersProfessional;
+
+  String? get activeProfessionalId =>
+      supportResidence == null &&
+          (prefersProfessional || activeResidenceId == null)
+      ? professionalServiceId
+      : null;
 
   UserResidence? get activeResidence {
     if (supportResidence case final UserResidence residence) return residence;
+    if (activeProfessionalId != null) return null;
     final activeId = activeResidenceId;
     if (activeId == null) {
       return null;
@@ -179,6 +190,10 @@ class FirestoreResidenceContextRepository
       return ResidenceContext(
         residences: residences,
         activeResidenceId: activeId,
+        professionalServiceId: profile?['accountStatus'] == 'deletionRequested'
+            ? null
+            : profile?['professionalServiceId'] as String?,
+        prefersProfessional: profile?['activeSpaceType'] == 'professional',
       );
     } on FirebaseException catch (error) {
       throw ResidenceContextFailure(error.code, error.message);
@@ -320,6 +335,7 @@ class FirestoreResidenceContextRepository
       }
       await _firestore.collection('users').doc(user.uid).update({
         'activeResidenceId': residenceId,
+        'activeSpaceType': 'residence',
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on ResidenceContextFailure {
@@ -480,5 +496,6 @@ final residenceContextProvider = FutureProvider<ResidenceContext>((ref) async {
     activeResidenceId: support.id,
     invitations: membership.invitations,
     supportResidence: support,
+    professionalServiceId: membership.professionalServiceId,
   );
 });

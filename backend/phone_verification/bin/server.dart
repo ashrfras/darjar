@@ -4,6 +4,7 @@ import 'package:darjar_phone_verification/src/firestore_verification_session_sto
 import 'package:darjar_phone_verification/src/google_cloud_identity_gateway.dart';
 import 'package:darjar_phone_verification/src/http_api.dart';
 import 'package:darjar_phone_verification/src/phone_verification_service.dart';
+import 'package:darjar_phone_verification/src/professional_profiles.dart';
 import 'package:darjar_phone_verification/src/zavu_sms_gateway.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:shelf/shelf_io.dart';
@@ -56,6 +57,11 @@ Future<void> main() async {
     service: service,
     allowedOrigins: allowedOrigins,
     localDevelopmentSecret: environment['LOCAL_DEVELOPMENT_AUTH_SECRET'],
+    professionalProfiles: ProfessionalProfiles(
+      projectId: projectId,
+      client: firestoreClient,
+    ),
+    verifyProfessionalToken: identity.verifyProfessionalToken,
   ).handler;
   final port = int.tryParse(environment['PORT'] ?? '') ?? 8080;
   final server = await serve(handler, InternetAddress.anyIPv4, port);

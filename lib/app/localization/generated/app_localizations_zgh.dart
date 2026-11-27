@@ -199,7 +199,7 @@ class AppLocalizationsZgh extends AppLocalizations {
 
   @override
   String get residenceSetupDescription =>
-      'ⵜⵜⴻⴽⴽⵉⴹ ⴷⴻⴳ ⵜⵏⴻⵣⴷⵓⵖⵜⵉⴽ ⵏ ⵜⵓⵔⴰ ⵏⴻⵖ ⵙⵏⵓⵍⴼⵓⴷ ⵜⴰⵎⴰⵢⵏⵓⵜ ⵉ ⵍⴵⵉⵔⴰⵏⵉⴽ.';
+      'ⴷⴷⵓ ⵖⵔ ⵜⵣⴷⵓⵖⵜ ⵏⵏⴽ, ⵙⵏⴼⵍⵓⵍ ⵜⵉⵏ ⵉⵏⴰⵔⵓⴳⵏ ⵏⵏⴽ, ⵏⵉⵖ ⵔⵏⵓ ⵜⵉⵙⵓⵖⴰⵍ ⵏⵏⴽ ⵖⵔ ⵓⵎⵏⵉⵔ ⵏ ⵜⵎⴷⵉⵏⵜ.';
 
   @override
   String get residenceSetupSignedInAs => 'ⵜⴽⴻⵛⵎⴻⴹ ⵙ';
@@ -2790,4 +2790,122 @@ class AppLocalizationsZgh extends AppLocalizations {
   @override
   String get whatsAppSupportSaveError =>
       'ⵓⵔ ⵉⵜⵜⵓⵃⴹⴰ ⵓⵙⵜⴰⵢ ⵏ WhatsApp. ⴰⵔⵎ ⴷⴰⵖ ⴳ ⵜⵙⵏⴰ ⵏ ⵜⵉⵡⵉⵙⵉ.';
+
+  @override
+  String get professionalOption => 'ⵏⴽⴽⵉ ⴷ ⴰⵎⵙⵏⴰⵢ';
+
+  @override
+  String get professionalOptionDescription =>
+      'ⵔⵏⵓ ⵜⵉⵙⵓⵖⴰⵍ ⵏⵏⴽ ⵖⵔ ⵓⵎⵏⵉⵔ ⵏ ⵜⵎⴷⵉⵏⵜ.';
+
+  @override
+  String get claimProfessionalTitle => 'ⵉⵙ ⴷ ⴰⴼⴰⵢⵍⵓ ⵏⵏⴽ ⵏ ⵜⵎⵙⵏⵉⵜ?';
+
+  @override
+  String get claimProfessionalDescription =>
+      'ⵏⵓⴼⴰ ⴰⴼⴰⵢⵍⵓ ⵏ ⵜⵎⵙⵏⵉⵜ ⵙ ⵓⵟⵟⵓⵏ ⵏ ⵜⵉⵍⵉⴼⵓⵏⵜ ⵏⵏⴽ ⴳ ⵓⵎⵏⵉⵔ ⵏ ⴷⴰⵔⵊⴰⵔ. ⵣⴷⵉ ⵜ ⴰⴽⴷ ⵓⵎⵉⴹⴰⵏ ⵏⵏⴽ ⴰⴷ ⵜⵙⵡⵓⴷⴷⵓⴷ ⵉⵏⵖⵎⵉⵙⵏ ⵏⵏⵙ ⴷ ⴰⴷ ⵜⵃⵟⵟⵓⴷ ⵉⵙⵓⵎⴰⵔ ⴷ ⵉⵙⴽⵉⵔⵏ.';
+
+  @override
+  String get claimProfessionalAction => 'ⵙⵡⵓⴷⴷⵓ ⴰⴼⴰⵢⵍⵓ ⵉⵏⵓ';
+
+  @override
+  String get claimProfessionalMultiple =>
+      'ⴼⵔⵏ ⵢⴰⵏ ⵓⴼⴰⵢⵍⵓ ⵉⵜⵜⵢⴰⵔⴰⵏ ⵙ ⵓⵟⵟⵓⵏ ⵏⵏⴽ.';
+
+  @override
+  String get professionalNotNow => 'ⵓⵔ ⴷ ⵖⵉⵍⴰ';
+
+  @override
+  String get professionalProfileUnavailable => 'ⵓⵔ ⵉⵣⴹⵉⵔ ⴰⴷ ⵉⴰⵡⴹ ⵖⵔ ⵓⴼⴰⵢⵍⵓ.';
+
+  @override
+  String get professionalPhoneInUse =>
+      'ⴰⵟⵟⵓⵏ ⵏⵏⴽ ⵉⵣⴷⵉ ⴰⴽⴷ ⵓⴼⴰⵢⵍⵓ ⴳ ⵓⵎⵏⵉⵔ. ⵥⵕ ⵉⴼⵓⵢⵍⴰ ⵢⴰⴷⵏⵉⵏ.';
+
+  @override
+  String get professionalClaimUnavailable =>
+      'ⵓⵔ ⵉⵍⵍⵉ ⵙⵓⵍ ⵓⴼⴰⵢⵍⵓ ⴰⴷ ⵉ ⵓⵙⵙⵓⵜⵔ. ⴰⵔⵥⵎ ⵢⴰⴷⵏ ⵜⴰⴼⵔⵏⵉⵜ ⵏ ⵜⵎⵙⵏⵉⵜ.';
+
+  @override
+  String get professionalCreateTitle => 'ⵙⵏⴼⵍⵓⵍ ⴰⴼⴰⵢⵍⵓ ⵏ ⵜⵎⵙⵏⵉⵜ';
+
+  @override
+  String get professionalVerifiedContact => 'ⴰⵟⵟⵓⵏ ⵏ ⵓⵏⵢⴰⵍ ⵉⵜⵜⵓⵙⴷⴻⴷ';
+
+  @override
+  String get professionalPreview => 'ⵙⴽⵏ ⴳ ⵓⵎⵏⵉⵔ ⵏ ⵜⵉⵙⵓⵖⴰⵍ';
+
+  @override
+  String get professionalSelfListed => 'ⵢⵓⵔⴰ ⵜ ⵓⵎⵙⵏⴰⵢ';
+
+  @override
+  String get professionalResidentListed => 'ⵢⵓⵔⴰ ⵜ ⵢⴰⵏ ⵓⵎⵣⴷⴰⵖ';
+
+  @override
+  String get selectSpace => 'ⴼⵔⵏ ⴰⵎⴽⴰⵏ';
+
+  @override
+  String get spaceSwitcherDescription =>
+      'ⴼⵔⵏ ⵜⴰⵣⴷⵓⵖⵜ ⵏⵉⵖ ⵜⴰⵡⵓⵔⵉ ⵍⵍⵉ ⵜⵔⵉⴷ ⴰⴷ ⵜⵔⵣⵎⴷ.';
+
+  @override
+  String get addSpace => 'ⵔⵏⵓ ⴰⵎⴽⴰⵏ ⴰⵎⴰⵢⵏⵓ';
+
+  @override
+  String get addSpaceDescription =>
+      'ⵙⵏⴼⵍⵓⵍ ⵜⴰⵣⴷⵓⵖⵜ ⵏⵉⵖ ⴷⴷⵓ ⵖⵓⵔⵙ ⵏⵉⵖ ⵔⵏⵓ ⵜⵉⵙⵓⵖⴰⵍ ⵏⵏⴽ.';
+
+  @override
+  String get currentSpace => 'ⴰⵎⴽⴰⵏ ⴰⵎⵉⵔⴰⵏ';
+
+  @override
+  String get professionalDeleteService => 'ⴽⴽⴻⵙ ⵜⴰⵙⵓⵖⵍⵜ';
+
+  @override
+  String get professionalDeleteTitle => 'ⴰⴷ ⵜⴻⴽⴽⵙⴻⴷ ⵜⴰⵙⵓⵖⵍⵜ?';
+
+  @override
+  String professionalDeleteDescription(String name) {
+    return 'ⴰⴷ ⵉⵜⵜⵓⴽⴽⴻⵙ «$name» ⵙⴳ ⵓⵎⵏⵉⵔ ⵏ ⵜⵎⴷⵉⵏⵜ. ⴰⴷ ⵉⵇⵇⵉⵎ ⵓⵎⵉⴹⴰⵏ ⵏⵏⴽ ⴷ ⵜⵣⴷⵓⵖⵉⵏ ⵏⵏⴽ.';
+  }
+
+  @override
+  String get professionalServiceDeleted => 'ⵜⴻⵜⵜⵓⴽⴽⴻⵙ ⵜⴰⵙⵓⵖⵍⵜ ⵙⴳ ⵓⵎⵏⵉⵔ.';
+
+  @override
+  String get professionalServiceDeleteFailed =>
+      'ⵓⵔ ⵏⵣⴹⵉⵔ ⴰⴷ ⵏⴽⴽⴻⵙ ⵜⴰⵙⵓⵖⵍⵜ. ⴰⵔⵎ ⴷⴰⵖ.';
+
+  @override
+  String get professionalServiceOptions => 'ⵜⵉⴼⵔⴰⵏⵉⵏ ⵢⴰⴹⵏⵉⵏ';
+
+  @override
+  String get professionalPauseActivity => 'ⵙⴱⴻⴷⴷ ⵜⴰⵡⵓⵔⵉ';
+
+  @override
+  String get professionalResumeActivity => 'ⴰⵍⵙ ⴰⵙⵔⵓⵙ ⵏ ⵜⴰⵡⵓⵔⵉ';
+
+  @override
+  String get professionalPauseTitle => 'ⵉⵙ ⴰⴷ ⵜⵙⴱⴻⴷⴷⴻⴷ ⵜⴰⵡⵓⵔⵉ ⵏⵏⴽ?';
+
+  @override
+  String get professionalPauseDescription =>
+      'ⴰⴷ ⵉⵜⵜⵓⴼⴼⴻⵔ ⵓⴼⴰⵢⵍⵓ ⵏⵏⴽ ⴳ ⵓⵎⵏⵉⵔ. ⵓⵔ ⵔⴰⴷ ⵜ ⴰⴼⵏ ⵉⵎⵣⴷⴰⵖ ⴳ ⵓⵔⵣⵣⵓ. ⵜⵣⵎⵔⴷ ⴰⴷ ⵜ ⵜⴰⵍⵙⴷ ⴽⵓ ⴰⴽⵓⴷ ⵙ ⵉⵙⵓⵎⴰⵔ ⴷ ⵉⵙⴽⵉⵔⵏ ⵏⵏⴽ.';
+
+  @override
+  String get professionalActivityPaused => 'ⵜⴻⵜⵜⵓⵙⴱⴻⴷⴷ ⵜⴰⵡⵓⵔⵉ';
+
+  @override
+  String get professionalServicePaused => 'ⵜⴻⵜⵜⵓⵙⴱⴻⴷⴷ ⵜⴰⵡⵓⵔⵉ.';
+
+  @override
+  String get professionalServiceResumed => 'ⵜⴻⵜⵜⵓⵙⵔⵙ ⵢⴰⴷⵏ ⵜⴰⵡⵓⵔⵉ.';
+
+  @override
+  String get professionalAvailabilityUpdateFailed =>
+      'ⵓⵔ ⵏⵣⴹⵉⵔ ⴰⴷ ⵏⵙⵏⴼⵍ ⴰⴷⴷⴰⴷ ⵏ ⵜⴰⵡⵓⵔⵉ. ⴰⵔⵎ ⴷⴰⵖ.';
+
+  @override
+  String get professionalServiceHasFeedback =>
+      'ⵓⵔ ⵜⵣⵎⵔⴷ ⴰⴷ ⵜⴻⴽⴽⵙⴻⴷ ⵜⴰⵙⵓⵖⵍⵜ ⴰⴽⴷ ⵉⵙⵓⵎⴰⵔ ⵏⵉⵖ ⵉⵙⴽⵉⵔⵏ. ⵜⵣⵎⵔⴷ ⴰⴷ ⵜⵙⴱⴻⴷⴷⴻⴷ ⵜⴰⵡⵓⵔⵉ.';
 }

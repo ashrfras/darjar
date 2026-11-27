@@ -5,6 +5,12 @@ import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_international_phone_field.dart';
 import 'package:darjar/core/widgets/darjar_page_header.dart';
+import 'package:darjar/core/widgets/darjar_phone_number.dart';
+import 'package:darjar/core/widgets/darjar_setup_scaffold.dart';
+import 'package:darjar/features/directory/data/professional_profile_repository.dart';
+import 'package:darjar/features/directory/presentation/professional_enrollment.dart';
+import 'package:darjar/features/residence/presentation/darjar_city_picker.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/core/widgets/darjar_text_field.dart';
 import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
@@ -15,9 +21,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class CreateServicePage extends ConsumerStatefulWidget {
-  const CreateServicePage({this.entryId, super.key});
+  const CreateServicePage({this.entryId, this.professional = false, super.key});
 
   final String? entryId;
+  final bool professional;
 
   @override
   ConsumerState<CreateServicePage> createState() => _CreateServicePageState();
@@ -29,6 +36,9 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
   final _professionController = TextEditingController();
   final _phoneController = TextEditingController();
   final _neighborhoodController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  String? _city;
   String _countryCode = '+212';
   String? _categoryId;
   final Set<String> _subcategoryIds = {};
@@ -41,6 +51,8 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
     _professionController.dispose();
     _phoneController.dispose();
     _neighborhoodController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     super.dispose();
   }
 
@@ -48,15 +60,49 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final editing = widget.entryId != null;
+    final professional = widget.professional;
+    final onboarding = professional && !editing;
+    final currentUser = ref.watch(authRepositoryProvider).currentUser;
+    final existing = professional && editing
+        ? ref.watch(professionalEntryProvider(widget.entryId!))
+        : null;
+    final profile = professional && !editing && currentUser != null
+        ? ref.watch(professionalAccountProfileProvider(currentUser))
+        : null;
     DirectoryEntry? entry;
     if (editing) {
-      ref.watch(directoryEntriesProvider);
-      entry = ref.read(directoryEntriesProvider.notifier).find(widget.entryId!);
-      if (entry != null && !_initializedFromEntry) {
-        _populateFrom(entry);
+      if (professional) {
+        entry = existing?.value;
+      } else {
+        ref.watch(directoryEntriesProvider);
+        entry = ref
+            .read(directoryEntriesProvider.notifier)
+            .find(widget.entryId!);
       }
+      if (entry != null && !_initializedFromEntry) _populateFrom(entry);
     }
-    final currentUser = ref.watch(authRepositoryProvider).currentUser;
+    final lockedPhone =
+        professional || entry?.isOwnedBy(currentUser?.uid) == true;
+    final fallback = professional
+        ? (editing ? AppRoutes.professional : AppRoutes.residenceSetup)
+        : (editing
+              ? AppRoutes.directoryProfile(widget.entryId!)
+              : AppRoutes.directory);
+    if (existing?.isLoading == true || profile?.isLoading == true) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (profile?.hasError == true) {
+      return Scaffold(
+        body: Center(
+          child: DarJarButton(
+            label: localizations.accountResolutionRetry,
+            onPressed: () => ref.invalidate(
+              professionalAccountProfileProvider(currentUser!),
+            ),
+          ),
+        ),
+      );
+    }
     final categoriesState = ref.watch(serviceCategoriesProvider);
     final categories = categoriesState.value ?? const <ServiceCategory>[];
     final languageCode = Localizations.localeOf(context).languageCode;
@@ -67,14 +113,15 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
 
     if (editing &&
         (entry == null ||
-            entry.createdBy.isEmpty ||
-            entry.createdBy != currentUser?.uid)) {
+            (professional
+                ? !entry.isOwnedBy(currentUser?.uid)
+                : !entry.canEdit(currentUser?.uid)))) {
       return Scaffold(
         backgroundColor: Colors.transparent,
         body: ListView(
           padding: const EdgeInsets.all(AppSpacing.xLarge),
           children: [
-            DarJarSubpageHeader(fallbackLocation: AppRoutes.directory),
+            DarJarSubpageHeader(fallbackLocation: fallback),
             const SizedBox(height: AppSpacing.large),
             Center(child: Text(localizations.directoryProfileNotFound)),
           ],
@@ -86,35 +133,44 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
       key: Key(editing ? 'edit-service-page' : 'create-service-page'),
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          compact ? 12 : AppSpacing.xLarge,
-          compact ? 16 : AppSpacing.xLarge,
-          compact ? 12 : AppSpacing.xLarge,
-          AppSpacing.xxLarge,
-        ),
+        padding: onboarding
+            ? const EdgeInsets.all(AppSpacing.xLarge)
+            : EdgeInsets.fromLTRB(
+                compact ? 12 : AppSpacing.xLarge,
+                compact ? 16 : AppSpacing.xLarge,
+                compact ? 12 : AppSpacing.xLarge,
+                AppSpacing.xxLarge,
+              ),
         child: Align(
           alignment: AlignmentDirectional.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 780),
+            constraints: BoxConstraints(maxWidth: onboarding ? 640 : 780),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                DarJarSubpageHeader(
-                  title: editing
-                      ? localizations.editService
-                      : localizations.createService,
-                  fallbackLocation: editing
-                      ? AppRoutes.directoryProfile(widget.entryId!)
-                      : AppRoutes.directory,
-                ),
-                const SizedBox(height: AppSpacing.xLarge),
-                Text(
-                  editing
-                      ? localizations.editServiceDescription
-                      : localizations.createServiceDescription,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: AppSpacing.large),
+                if (onboarding) ...[
+                  DarJarSetupIntroduction(
+                    icon: Icons.badge_outlined,
+                    title: localizations.professionalCreateTitle,
+                    description: localizations.professionalOptionDescription,
+                  ),
+                  const SizedBox(height: AppSpacing.xLarge),
+                ] else ...[
+                  DarJarSubpageHeader(
+                    title: editing
+                        ? localizations.editService
+                        : localizations.createService,
+                    fallbackLocation: fallback,
+                  ),
+                  const SizedBox(height: AppSpacing.xLarge),
+                  Text(
+                    editing
+                        ? localizations.editServiceDescription
+                        : localizations.createServiceDescription,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: AppSpacing.large),
+                ],
                 DarJarCard(
                   child: Form(
                     key: _formKey,
@@ -215,18 +271,40 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
                           ),
                         ),
                         const SizedBox(height: AppSpacing.large),
-                        DarJarInternationalPhoneField(
-                          controller: _phoneController,
-                          countryCode: _countryCode,
-                          onCountryCodeChanged: (value) =>
-                              setState(() => _countryCode = value),
-                          phoneLabel: localizations.servicePhone,
-                          countryCodeLabel: localizations.countryCode,
-                          fieldKey: const Key('service-phone-field'),
-                          countryCodeKey: const Key(
-                            'service-country-code-field',
+                        if (professional) ...[
+                          DarJarCityPickerField(
+                            value: _city,
+                            enabled: !_saving,
+                            validator: (value) => value == null
+                                ? localizations.setupFieldRequired
+                                : null,
+                            onChanged: (value) => setState(() => _city = value),
                           ),
-                        ),
+                          const SizedBox(height: AppSpacing.large),
+                        ],
+                        if (lockedPhone)
+                          InputDecorator(
+                            decoration: InputDecoration(
+                              labelText:
+                                  localizations.professionalVerifiedContact,
+                            ),
+                            child: DarJarPhoneNumber(
+                              entry?.phone ?? currentUser?.phoneNumber ?? '',
+                            ),
+                          )
+                        else
+                          DarJarInternationalPhoneField(
+                            controller: _phoneController,
+                            countryCode: _countryCode,
+                            onCountryCodeChanged: (value) =>
+                                setState(() => _countryCode = value),
+                            phoneLabel: localizations.servicePhone,
+                            countryCodeLabel: localizations.countryCode,
+                            fieldKey: const Key('service-phone-field'),
+                            countryCodeKey: const Key(
+                              'service-country-code-field',
+                            ),
+                          ),
                         const SizedBox(height: AppSpacing.large),
                         DarJarTextField(
                           key: const Key('service-neighborhood-field'),
@@ -235,6 +313,14 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
                           hint: localizations.serviceNeighborhoodHint,
                           prefixIcon: Icons.location_on_outlined,
                         ),
+                        if (professional &&
+                            !editing &&
+                            profile?.hasValue == true &&
+                            profile?.value == null)
+                          ProfessionalPersonalNameFields(
+                            firstName: _firstNameController,
+                            lastName: _lastNameController,
+                          ),
                         if (_saving) ...[
                           const SizedBox(height: AppSpacing.large),
                           Text(
@@ -253,16 +339,17 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
                               _SaveButton(
                                 saving: _saving,
                                 editing: editing,
-                                onPressed: _save,
+                                onPressed: () => _save(
+                                  professionalEntry: entry,
+                                  needsName:
+                                      profile?.hasValue == true &&
+                                      profile?.value == null,
+                                ),
                               ),
                               const SizedBox(height: AppSpacing.small),
                               _CancelButton(
                                 saving: _saving,
-                                fallbackLocation: editing
-                                    ? AppRoutes.directoryProfile(
-                                        widget.entryId!,
-                                      )
-                                    : AppRoutes.directory,
+                                fallbackLocation: fallback,
                               ),
                             ],
                           )
@@ -272,17 +359,18 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
                             children: [
                               _CancelButton(
                                 saving: _saving,
-                                fallbackLocation: editing
-                                    ? AppRoutes.directoryProfile(
-                                        widget.entryId!,
-                                      )
-                                    : AppRoutes.directory,
+                                fallbackLocation: fallback,
                               ),
                               const SizedBox(width: AppSpacing.medium),
                               _SaveButton(
                                 saving: _saving,
                                 editing: editing,
-                                onPressed: _save,
+                                onPressed: () => _save(
+                                  professionalEntry: entry,
+                                  needsName:
+                                      profile?.hasValue == true &&
+                                      profile?.value == null,
+                                ),
                               ),
                             ],
                           ),
@@ -298,26 +386,89 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
     );
   }
 
-  Future<void> _save() async {
+  Future<void> _save({
+    required DirectoryEntry? professionalEntry,
+    required bool needsName,
+  }) async {
     final localizations = AppLocalizations.of(context);
     final digits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
     final nationalNumber = digits.startsWith('0')
         ? digits.substring(1)
         : digits;
     final phone = '$_countryCode$nationalNumber';
+    final user = ref.read(authRepositoryProvider).currentUser;
+    final id = widget.entryId;
+    final lockedPhone =
+        widget.professional || professionalEntry?.isOwnedBy(user?.uid) == true;
+    final name = (
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+    );
+    if (needsName && (name.firstName.isEmpty || name.lastName.isEmpty)) {
+      _showMessage(localizations.accountResolutionMissingProfile);
+      return;
+    }
     if (!(_formKey.currentState?.validate() ?? false) ||
         _categoryId == null ||
         _subcategoryIds.isEmpty ||
         _professionController.text.trim().length > 160 ||
-        !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(phone)) {
+        (!lockedPhone && !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(phone))) {
       _showMessage(localizations.completeServiceFields);
       return;
     }
 
     setState(() => _saving = true);
     try {
+      if (widget.professional) {
+        if (user == null) throw const DirectoryFailure('missing-user');
+        final city = _city!;
+        if (id == null) {
+          await ref.read(professionalProfileRepositoryProvider).create(user, (
+            name: _nameController.text,
+            categoryId: _categoryId!,
+            subcategoryIds: _subcategoryIds.toList(),
+            profession: _professionController.text,
+            neighborhood: _neighborhoodController.text,
+            city: city,
+          ), needsName ? name : null);
+        } else {
+          await ref
+              .read(directoryRepositoryProvider)
+              .updateService(
+                serviceId: id,
+                userId: user.uid,
+                name: _nameController.text,
+                categoryId: _categoryId!,
+                subcategoryIds: _subcategoryIds.toList(),
+                profession: _professionController.text,
+                phone: professionalEntry!.phone,
+                neighborhood: _neighborhoodController.text,
+                city: city,
+              );
+        }
+        if (!mounted ||
+            ref.read(authRepositoryProvider).currentUser?.uid != user.uid) {
+          return;
+        }
+        if (id == null) {
+          refreshProfessionalSpace(
+            ProviderScope.containerOf(context, listen: false),
+            user,
+          );
+        }
+        context.go(AppRoutes.professional);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              id == null
+                  ? localizations.serviceCreated
+                  : localizations.serviceUpdated,
+            ),
+          ),
+        );
+        return;
+      }
       final controller = ref.read(directoryEntriesProvider.notifier);
-      final id = widget.entryId;
       if (id == null) {
         final createdId = await controller.createService(
           name: _nameController.text,
@@ -339,7 +490,7 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
           categoryId: _categoryId!,
           subcategoryIds: _subcategoryIds.toList(),
           profession: _professionController.text,
-          phone: phone,
+          phone: lockedPhone ? professionalEntry!.phone : phone,
           neighborhood: _neighborhoodController.text,
         );
         if (!mounted) return;
@@ -348,8 +499,18 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
           context,
         ).showSnackBar(SnackBar(content: Text(localizations.serviceUpdated)));
       }
-    } on DirectoryFailure {
-      if (mounted) {
+    } on DirectoryFailure catch (error) {
+      if (mounted &&
+          widget.professional &&
+          id == null &&
+          [
+            'directory-phone-exists',
+            'already-owns-service',
+          ].contains(error.code)) {
+        ref.invalidate(residenceContextProvider);
+        _showMessage(localizations.professionalPhoneInUse);
+        context.replace(AppRoutes.startProfessional);
+      } else if (mounted) {
         _showMessage(
           widget.entryId == null
               ? localizations.serviceCreateFailed
@@ -367,6 +528,7 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
     _professionController.text = entry.profession;
     _neighborhoodController.text = entry.neighborhood;
     _categoryId = entry.categoryId;
+    _city = entry.city.isEmpty ? null : entry.city;
     _subcategoryIds
       ..clear()
       ..addAll(entry.subcategoryIds);

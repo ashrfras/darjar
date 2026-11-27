@@ -4,7 +4,7 @@ import 'package:darjar/app/localization/generated/app_localizations.dart';
 import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/app/theme/app_spacing.dart';
-import 'package:darjar/core/widgets/darjar_brand.dart';
+import 'package:darjar/core/widgets/darjar_setup_scaffold.dart';
 import 'package:darjar/core/widgets/darjar_button.dart';
 import 'package:darjar/core/widgets/darjar_card.dart';
 import 'package:darjar/core/widgets/darjar_phone_number.dart';
@@ -69,37 +69,26 @@ class _ResidenceSetupPageState extends State<ResidenceSetupPage> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    return Scaffold(
+    return DarJarSetupScaffold(
       key: const Key('residence-setup-page'),
-      appBar: AppBar(
-        title: const DarJarBrand(key: Key('setup-brand-title')),
-        leading: IconButton(
-          key: const Key('residence-setup-back-button'),
-          tooltip: localizations.back,
-          onPressed: _goBack,
-          icon: const BackButtonIcon(),
+      backButtonKey: const Key('residence-setup-back-button'),
+      onBack: _goBack,
+      child: switch (_step) {
+        ResidenceSetupStep.choice => _ResidenceChoice(
+          key: const ValueKey('residence-choice'),
+          onCreate: () => setState(() => _step = ResidenceSetupStep.create),
+          onJoin: () => setState(() => _step = ResidenceSetupStep.join),
         ),
-      ),
-      body: SafeArea(
-        top: false,
-        child: switch (_step) {
-          ResidenceSetupStep.choice => _ResidenceChoice(
-            key: const ValueKey('residence-choice'),
-            onCreate: () => setState(() => _step = ResidenceSetupStep.create),
-            onJoin: () => setState(() => _step = ResidenceSetupStep.join),
+        ResidenceSetupStep.create => const _ScrollableResidenceSetupStep(
+          child: _CreateResidenceForm(key: ValueKey('create-residence-form')),
+        ),
+        ResidenceSetupStep.join => _ScrollableResidenceSetupStep(
+          child: _JoinResidenceForm(
+            key: const ValueKey('join-residence-form'),
+            invitationCode: widget.invitationCode,
           ),
-          ResidenceSetupStep.create => const _ScrollableResidenceSetupStep(
-            child: _CreateResidenceForm(key: ValueKey('create-residence-form')),
-          ),
-          ResidenceSetupStep.join => _ScrollableResidenceSetupStep(
-            child: _JoinResidenceForm(
-              key: const ValueKey('join-residence-form'),
-              invitationCode: widget.invitationCode,
-            ),
-          ),
-        },
-      ),
+        ),
+      },
     );
   }
 }
@@ -148,16 +137,11 @@ class _ResidenceChoiceState extends ConsumerState<_ResidenceChoice> {
         .watch(authRepositoryProvider)
         .currentUser
         ?.phoneNumber;
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xLarge,
-            AppSpacing.xLarge,
-            AppSpacing.xLarge,
-            0,
-          ),
-          sliver: SliverToBoxAdapter(
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.xLarge),
             child: Align(
               alignment: AlignmentDirectional.topCenter,
               child: ConstrainedBox(
@@ -165,7 +149,7 @@ class _ResidenceChoiceState extends ConsumerState<_ResidenceChoice> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _StepIntroduction(
+                    DarJarSetupIntroduction(
                       icon: Icons.apartment_rounded,
                       title: localizations.residenceSetupTitle,
                       description: localizations.residenceSetupDescription,
@@ -186,51 +170,54 @@ class _ResidenceChoiceState extends ConsumerState<_ResidenceChoice> {
                       description: localizations.createNewResidenceDescription,
                       onTap: widget.onCreate,
                     ),
+                    const SizedBox(height: AppSpacing.large),
+                    _ChoiceCard(
+                      key: const Key('professional-option'),
+                      icon: Icons.badge_outlined,
+                      title: localizations.professionalOption,
+                      description: localizations.professionalOptionDescription,
+                      onTap: () => context.push(AppRoutes.startProfessional),
+                    ),
                   ],
                 ),
               ),
             ),
           ),
         ),
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: Padding(
+        if (phoneNumber != null && phoneNumber.isNotEmpty)
+          Padding(
             padding: const EdgeInsets.all(AppSpacing.xLarge),
-            child: Align(
-              alignment: AlignmentDirectional.bottomCenter,
-              child: phoneNumber == null || phoneNumber.isEmpty
-                  ? const SizedBox.shrink()
-                  : Column(
-                      key: const Key('residence-setup-signed-in-footer'),
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          localizations.residenceSetupSignedInAs,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.inkMuted),
-                        ),
-                        const SizedBox(height: AppSpacing.xSmall),
-                        DarJarPhoneNumber(
-                          phoneNumber,
-                          key: const Key('residence-setup-signed-in-phone'),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.inkMuted),
-                        ),
-                        const SizedBox(height: AppSpacing.small),
-                        TextButton(
-                          key: const Key('residence-setup-sign-out-button'),
-                          onPressed: _isSigningOut ? null : _confirmSignOut,
-                          child: Text(
-                            _isSigningOut
-                                ? localizations.signingOut
-                                : localizations.signOut,
-                          ),
-                        ),
-                      ],
-                    ),
+            child: Column(
+              key: const Key('residence-setup-signed-in-footer'),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  localizations.residenceSetupSignedInAs,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+                ),
+                const SizedBox(height: AppSpacing.xSmall),
+                DarJarPhoneNumber(
+                  phoneNumber,
+                  key: const Key('residence-setup-signed-in-phone'),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.inkMuted),
+                ),
+                const SizedBox(height: AppSpacing.small),
+                TextButton(
+                  key: const Key('residence-setup-sign-out-button'),
+                  onPressed: _isSigningOut ? null : _confirmSignOut,
+                  child: Text(
+                    _isSigningOut
+                        ? localizations.signingOut
+                        : localizations.signOut,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
       ],
     );
   }
@@ -373,7 +360,7 @@ class _CreateResidenceFormState extends ConsumerState<_CreateResidenceForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _StepIntroduction(
+          DarJarSetupIntroduction(
             icon: Icons.add_home_work_outlined,
             title: localizations.createNewResidence,
             description: profile.hasValue && registeredProfile == null
@@ -635,7 +622,7 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _StepIntroduction(
+        DarJarSetupIntroduction(
           icon: Icons.password_rounded,
           title: localizations.joinMyResidence,
           description: localizations.joinCodeDescription,
@@ -872,7 +859,7 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
       user: user,
       residenceId: residence.residenceId,
     );
-    ref.invalidate(residenceContextProvider);
+    ref.refresh(residenceContextProvider.future).ignore();
     if (mounted) context.go(AppRoutes.community);
     return true;
   }
@@ -920,7 +907,7 @@ class _JoinResidenceFormState extends ConsumerState<_JoinResidenceForm> {
             );
       }
       if (mounted) {
-        ref.invalidate(residenceContextProvider);
+        ref.refresh(residenceContextProvider.future).ignore();
         ref.invalidate(accountResolutionProvider);
         context.go(AppRoutes.community);
       }
@@ -1054,37 +1041,6 @@ class _FormSectionTitle extends StatelessWidget {
         Icon(icon, color: AppColors.primary, size: 22),
         const SizedBox(width: AppSpacing.small),
         Text(title, style: Theme.of(context).textTheme.titleLarge),
-      ],
-    );
-  }
-}
-
-class _StepIntroduction extends StatelessWidget {
-  const _StepIntroduction({
-    required this.icon,
-    required this.title,
-    required this.description,
-  });
-
-  final IconData icon;
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: AppColors.primary, size: 32),
-        const SizedBox(height: AppSpacing.medium),
-        Text(title, style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: AppSpacing.small),
-        Text(
-          description,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: AppColors.inkMuted),
-        ),
       ],
     );
   }

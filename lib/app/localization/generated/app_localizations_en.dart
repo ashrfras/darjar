@@ -199,7 +199,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get residenceSetupDescription =>
-      'Join your current residence or create a new one for your neighbors.';
+      'Join your residence, create one for your neighbors, or add your services to the city directory.';
 
   @override
   String get residenceSetupSignedInAs => 'You\'re signed in with';
@@ -2812,4 +2812,125 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsAppSupportSaveError =>
       'Couldn\'t save your WhatsApp preference. You can try again from Support and contact.';
+
+  @override
+  String get professionalOption => 'I’m a professional';
+
+  @override
+  String get professionalOptionDescription =>
+      'Add your services to the city directory and show residents what you offer.';
+
+  @override
+  String get claimProfessionalTitle => 'Is this your professional profile?';
+
+  @override
+  String get claimProfessionalDescription =>
+      'We found a professional profile in the DarJar directory with your phone number. Link it to your account to manage it and keep its existing recommendations and ratings.';
+
+  @override
+  String get claimProfessionalAction => 'Manage my professional profile';
+
+  @override
+  String get claimProfessionalMultiple =>
+      'Choose one of the profiles listed with your phone number.';
+
+  @override
+  String get professionalNotNow => 'Not now';
+
+  @override
+  String get professionalProfileUnavailable =>
+      'The professional profile is unavailable.';
+
+  @override
+  String get professionalPhoneInUse =>
+      'Your number is already linked to a directory listing. Check the existing listings before creating a profile.';
+
+  @override
+  String get professionalClaimUnavailable =>
+      'This listing is no longer available to claim. Open “I’m a professional” again to check available listings.';
+
+  @override
+  String get professionalCreateTitle => 'Create a professional profile';
+
+  @override
+  String get professionalVerifiedContact => 'Verified contact number';
+
+  @override
+  String get professionalPreview => 'Preview in the directory';
+
+  @override
+  String get professionalSelfListed => 'Listed by the professional';
+
+  @override
+  String get professionalResidentListed => 'Listed by a resident';
+
+  @override
+  String get selectSpace => 'Choose a space';
+
+  @override
+  String get spaceSwitcherDescription =>
+      'Choose the residence or professional activity you want to open.';
+
+  @override
+  String get addSpace => 'Add a new space';
+
+  @override
+  String get addSpaceDescription =>
+      'Create or join a residence, or add your services.';
+
+  @override
+  String get currentSpace => 'Current space';
+
+  @override
+  String get professionalDeleteService => 'Delete service';
+
+  @override
+  String get professionalDeleteTitle => 'Delete this service?';
+
+  @override
+  String professionalDeleteDescription(String name) {
+    return '“$name” will be removed from the city directory. Your account and residence memberships will remain.';
+  }
+
+  @override
+  String get professionalServiceDeleted =>
+      'The service was removed from the directory.';
+
+  @override
+  String get professionalServiceDeleteFailed =>
+      'Could not delete the service. Try again.';
+
+  @override
+  String get professionalServiceOptions => 'More options';
+
+  @override
+  String get professionalPauseActivity => 'Pause activity';
+
+  @override
+  String get professionalResumeActivity => 'Reactivate activity';
+
+  @override
+  String get professionalPauseTitle => 'Pause your professional activity?';
+
+  @override
+  String get professionalPauseDescription =>
+      'Your profile will be hidden from the directory and residents will not be able to find it in search. You can reactivate it at any time and keep your existing recommendations and ratings.';
+
+  @override
+  String get professionalActivityPaused => 'Activity paused';
+
+  @override
+  String get professionalServicePaused => 'Your activity has been paused.';
+
+  @override
+  String get professionalServiceResumed =>
+      'Your activity has been reactivated.';
+
+  @override
+  String get professionalAvailabilityUpdateFailed =>
+      'Could not update your activity status. Try again.';
+
+  @override
+  String get professionalServiceHasFeedback =>
+      'A service with recommendations or ratings cannot be deleted. You can pause it to hide it from the directory.';
 }
