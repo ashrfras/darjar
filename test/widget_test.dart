@@ -8506,38 +8506,38 @@ void main() {
       expect(buildingDialog.backgroundColor, AppColors.surface);
       expect(buildingDialog.surfaceTintColor, Colors.transparent);
       expect(find.text('مثال: جناح أ'), findsOneWidget);
-      expect(
-        tester
-            .widget<TextField>(
-              find.descendant(
-                of: find.byKey(const Key('building-floor-count-field')),
-                matching: find.byType(TextField),
-              ),
-            )
-            .controller
-            ?.text,
-        '0',
+      final floorField = find.byKey(const Key('building-floor-count-field'));
+      final decreaseFloors = find.ancestor(
+        of: find.byTooltip('إنقاص عدد الطوابق'),
+        matching: find.byType(IconButton),
       );
+      final increaseFloors = find.byTooltip('زيادة عدد الطوابق');
+      String floorCountText() =>
+          tester.widget<TextField>(floorField).controller!.text;
+
+      expect(Directionality.of(tester.element(floorField)), TextDirection.rtl);
+      expect(floorCountText(), '0');
+      expect(tester.widget<IconButton>(decreaseFloors).onPressed, isNull);
+      await tester.tap(increaseFloors);
+      await tester.pumpAndSettle();
+      expect(floorCountText(), '1');
+      await tester.tap(decreaseFloors);
+      await tester.pumpAndSettle();
+      expect(floorCountText(), '0');
+      expect(tester.testTextInput.isVisible, isFalse);
+      await tester.tap(find.byKey(const Key('confirm-building-button')));
+      await tester.pumpAndSettle();
+      expect(find.text('أدخل اسم المبنى وعدد طوابق صحيحاً.'), findsOneWidget);
       await tester.enterText(
         find.byKey(const Key('building-name-field')),
         'المبنى B',
       );
-      await tester.enterText(
-        find.byKey(const Key('building-floor-count-field')),
-        '5 طوابق',
-      );
-      expect(
-        tester
-            .widget<TextField>(
-              find.descendant(
-                of: find.byKey(const Key('building-floor-count-field')),
-                matching: find.byType(TextField),
-              ),
-            )
-            .controller
-            ?.text,
-        '5',
-      );
+      await tester.enterText(floorField, '٤ طوابق');
+      await tester.pumpAndSettle();
+      expect(floorCountText(), '٤');
+      await tester.tap(increaseFloors);
+      await tester.pumpAndSettle();
+      expect(floorCountText(), '5');
       await tester.tap(find.byKey(const Key('confirm-building-button')));
       await tester.pumpAndSettle();
       expect(find.text('المبنى B'), findsOneWidget);
@@ -8546,10 +8546,13 @@ void main() {
       await tester.ensureVisible(editBuildingButton);
       await tester.tap(editBuildingButton);
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.byKey(const Key('building-floor-count-field')),
-        '0',
-      );
+      expect(floorCountText(), '5');
+      await tester.enterText(floorField, '1');
+      await tester.pumpAndSettle();
+      await tester.tap(decreaseFloors);
+      await tester.pumpAndSettle();
+      expect(floorCountText(), '0');
+      expect(tester.widget<IconButton>(decreaseFloors).onPressed, isNull);
       await tester.tap(find.byKey(const Key('confirm-building-button')));
       await tester.pumpAndSettle();
       expect(find.text('عدد الطوابق فوق الأرضي: 0'), findsOneWidget);

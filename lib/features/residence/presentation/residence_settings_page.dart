@@ -523,18 +523,29 @@ class _BuildingEditorDialog extends StatefulWidget {
 enum _UnsavedChangesAction { discard, save }
 
 class _BuildingEditorDialogState extends State<_BuildingEditorDialog> {
+  static final _floorCountFormatter = FilteringTextInputFormatter.allow(
+    RegExp('[0-9٠-٩۰-۹]'),
+  );
+
   late final TextEditingController _nameController = TextEditingController(
     text: widget.building?.name,
   );
-  late final TextEditingController _floorsController = TextEditingController(
-    text: widget.building?.floorCount.toString() ?? '0',
+  late final _floorCountController = TextEditingController(
+    text: (widget.building?.floorCount ?? 0).toString(),
   );
   bool _showError = false;
+
+  int? get _floorCount => int.tryParse(
+    _floorCountController.text.replaceAllMapped(RegExp('[٠-٩۰-۹]'), (match) {
+      final code = match[0]!.codeUnitAt(0);
+      return '${code - (code >= 0x6f0 ? 0x6f0 : 0x660)}';
+    }),
+  );
 
   @override
   void dispose() {
     _nameController.dispose();
-    _floorsController.dispose();
+    _floorCountController.dispose();
     super.dispose();
   }
 
@@ -564,13 +575,37 @@ class _BuildingEditorDialogState extends State<_BuildingEditorDialog> {
                 prefixIcon: Icons.apartment_outlined,
               ),
               const SizedBox(height: AppSpacing.large),
-              DarJarTextField(
-                key: const Key('building-floor-count-field'),
-                controller: _floorsController,
-                label: localizations.floorCount,
-                prefixIcon: Icons.layers_outlined,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _floorCountController,
+                builder: (context, value, child) {
+                  final floorCount = value.text.isEmpty ? 0 : _floorCount;
+                  return TextField(
+                    key: const Key('building-floor-count-field'),
+                    controller: _floorCountController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [_floorCountFormatter],
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      labelText: localizations.floorCount,
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                      prefixIcon: IconButton(
+                        tooltip: localizations.decreaseFloorCount,
+                        onPressed: floorCount != null && floorCount > 0
+                            ? () => _setFloorCount(floorCount - 1)
+                            : null,
+                        icon: const Icon(Icons.remove_rounded),
+                      ),
+                      suffixIcon: IconButton(
+                        tooltip: localizations.increaseFloorCount,
+                        onPressed:
+                            floorCount != null && floorCount + 1 > floorCount
+                            ? () => _setFloorCount(floorCount + 1)
+                            : null,
+                        icon: const Icon(Icons.add_rounded),
+                      ),
+                    ),
+                  );
+                },
               ),
               if (_showError) ...[
                 const SizedBox(height: AppSpacing.small),
@@ -599,9 +634,17 @@ class _BuildingEditorDialogState extends State<_BuildingEditorDialog> {
     );
   }
 
+  void _setFloorCount(int count) {
+    final text = count.toString();
+    _floorCountController.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+
   void _submit() {
     final name = _nameController.text.trim();
-    final floorCount = int.tryParse(_floorsController.text.trim());
+    final floorCount = _floorCount;
     if (name.isEmpty || floorCount == null || floorCount < 0) {
       setState(() => _showError = true);
       return;

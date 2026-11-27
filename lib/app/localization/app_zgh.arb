@@ -965,6 +965,8 @@
   "buildingName": "ⵉⵙⴻⵎ ⵏ ⵍⴻⴱⵏⵉ",
   "buildingNameHint": "ⴰⵎⴻⴷⵢⴰ: Afriwen A",
   "floorCount": "ⵉⴹⴰⵔⵔⴻⵏ ⵏⵏⵉⴳ ⵍⵇⴰⵄⴰ",
+  "decreaseFloorCount": "ⴽⴽⵙ ⵢⵉⵡⴻⵏ ⵓⴹⴰⵔ",
+  "increaseFloorCount": "ⵔⵏⵓ ⵢⵉⵡⴻⵏ ⵓⴹⴰⵔ",
   "buildingFloorCount": "ⵉⴹⴰⵔⵔⴻⵏ ⵏⵏⵉⴳ ⵍⵇⴰⵄⴰ: {count}",
   "@buildingFloorCount": {
     "placeholders": {

@@ -737,6 +737,8 @@
   "buildingName": "Building name",
   "buildingNameHint": "Example: Wing A",
   "floorCount": "Floors above ground",
+  "decreaseFloorCount": "Decrease floor count",
+  "increaseFloorCount": "Increase floor count",
   "buildingFloorCount": "Floors above ground: {count}",
   "@buildingFloorCount": {"placeholders": {"count": {"type": "int"}}},
   "addBuilding": "Add building",

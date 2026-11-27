@@ -747,6 +747,8 @@
   "buildingName": "اسم المبنى",
   "buildingNameHint": "مثال: جناح أ",
   "floorCount": "عدد الطوابق فوق الأرضي",
+  "decreaseFloorCount": "إنقاص عدد الطوابق",
+  "increaseFloorCount": "زيادة عدد الطوابق",
   "buildingFloorCount": "عدد الطوابق فوق الأرضي: {count}",
   "@buildingFloorCount": {"placeholders": {"count": {"type": "int"}}},
   "addBuilding": "إضافة مبنى",

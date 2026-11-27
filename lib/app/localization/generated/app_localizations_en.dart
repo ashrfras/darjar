@@ -2387,6 +2387,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get floorCount => 'Floors above ground';
 
   @override
+  String get decreaseFloorCount => 'Decrease floor count';
+
+  @override
+  String get increaseFloorCount => 'Increase floor count';
+
+  @override
   String buildingFloorCount(int count) {
     return 'Floors above ground: $count';
   }

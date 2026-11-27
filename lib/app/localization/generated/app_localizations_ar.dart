@@ -2336,6 +2336,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get floorCount => 'عدد الطوابق فوق الأرضي';
 
   @override
+  String get decreaseFloorCount => 'إنقاص عدد الطوابق';
+
+  @override
+  String get increaseFloorCount => 'زيادة عدد الطوابق';
+
+  @override
   String buildingFloorCount(int count) {
     return 'عدد الطوابق فوق الأرضي: $count';
   }

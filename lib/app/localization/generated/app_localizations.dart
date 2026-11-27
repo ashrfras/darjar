@@ -4326,6 +4326,18 @@ abstract class AppLocalizations {
   /// **'عدد الطوابق فوق الأرضي'**
   String get floorCount;
 
+  /// No description provided for @decreaseFloorCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنقاص عدد الطوابق'**
+  String get decreaseFloorCount;
+
+  /// No description provided for @increaseFloorCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'زيادة عدد الطوابق'**
+  String get increaseFloorCount;
+
   /// No description provided for @buildingFloorCount.
   ///
   /// In ar, this message translates to:

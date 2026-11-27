@@ -2372,6 +2372,12 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get floorCount => 'ⵉⴹⴰⵔⵔⴻⵏ ⵏⵏⵉⴳ ⵍⵇⴰⵄⴰ';
 
   @override
+  String get decreaseFloorCount => 'ⴽⴽⵙ ⵢⵉⵡⴻⵏ ⵓⴹⴰⵔ';
+
+  @override
+  String get increaseFloorCount => 'ⵔⵏⵓ ⵢⵉⵡⴻⵏ ⵓⴹⴰⵔ';
+
+  @override
   String buildingFloorCount(int count) {
     return 'ⵉⴹⴰⵔⵔⴻⵏ ⵏⵏⵉⴳ ⵍⵇⴰⵄⴰ: $count';
   }
