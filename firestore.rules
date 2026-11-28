@@ -571,6 +571,29 @@ service cloud.firestore {
       return ownsService(get(servicePath(serviceId)).data);
     }
 
+    // A new resident listing and its phone reservation are written together.
+    match /directoryServicePhones/{phone} {
+      function linksNewService() {
+        let path = servicePath(request.resource.data.serviceId);
+        let listing = getAfter(path).data;
+        return signedIn()
+          && request.resource.data.keys().hasOnly(['serviceId'])
+          && phone.matches('^[+][1-9][0-9]{7,14}$')
+          && !exists(path)
+          && listing.phone == phone
+          && listing.createdBy == request.auth.uid
+          && listing.status == 'active';
+      }
+
+      function previousServiceReleasedPhone() {
+        let path = servicePath(resource.data.serviceId);
+        return !exists(path) || get(path).data.phone != phone;
+      }
+
+      allow create: if linksNewService();
+      allow update: if linksNewService() && previousServiceReleasedPhone();
+    }
+
     match /services/{serviceId} {
       allow get: if signedIn()
         && (resource == null || resource.data.status == 'active' || ownsService(resource.data));

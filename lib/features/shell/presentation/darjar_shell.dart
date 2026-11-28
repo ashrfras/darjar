@@ -1096,7 +1096,7 @@ class SpaceSelector extends ConsumerWidget {
     final id = residenceContext.professionalServiceId;
     final listing = id == null
         ? null
-        : ref.watch(professionalEntryProvider(id)).value;
+        : ref.watch(directoryEntryProvider(id)).value;
     final professional =
         listing?.isOwnedBy(
               ref.watch(authRepositoryProvider).currentUser?.uid,

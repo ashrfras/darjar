@@ -1462,6 +1462,24 @@ abstract class AppLocalizations {
   /// **'إضافة الخدمة'**
   String get saveService;
 
+  /// No description provided for @servicePhoneAlreadyListed.
+  ///
+  /// In ar, this message translates to:
+  /// **'يوجد ملف مهني بنفس رقم الهاتف.'**
+  String get servicePhoneAlreadyListed;
+
+  /// No description provided for @servicePhonePausedListing.
+  ///
+  /// In ar, this message translates to:
+  /// **'يوجد ملف مهني بنفس رقم الهاتف، لكن صاحبه أوقف نشاطه مؤقتًا.'**
+  String get servicePhonePausedListing;
+
+  /// No description provided for @openProfessionalProfile.
+  ///
+  /// In ar, this message translates to:
+  /// **'الانتقال إلى الملف المهني'**
+  String get openProfessionalProfile;
+
   /// No description provided for @updateService.
   ///
   /// In ar, this message translates to:

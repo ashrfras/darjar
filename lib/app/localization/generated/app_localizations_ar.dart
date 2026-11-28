@@ -733,6 +733,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get saveService => 'إضافة الخدمة';
 
   @override
+  String get servicePhoneAlreadyListed => 'يوجد ملف مهني بنفس رقم الهاتف.';
+
+  @override
+  String get servicePhonePausedListing =>
+      'يوجد ملف مهني بنفس رقم الهاتف، لكن صاحبه أوقف نشاطه مؤقتًا.';
+
+  @override
+  String get openProfessionalProfile => 'الانتقال إلى الملف المهني';
+
+  @override
   String get updateService => 'حفظ التعديلات';
 
   @override

@@ -155,20 +155,6 @@ final professionalCandidateProvider = FutureProvider.autoDispose
       retry: (_, _) => null,
     );
 
-final professionalEntryProvider = StreamProvider.autoDispose
-    .family<DirectoryEntry?, String>((ref, id) {
-      ref.watch(authStateProvider.select((state) => state.value?.uid));
-      return ref.watch(directoryRepositoryProvider).watchEntry(id);
-    });
-
-final professionalRecommendationsProvider = StreamProvider.autoDispose
-    .family<List<DirectoryRecommendation>, String>((ref, id) {
-      ref.watch(authStateProvider.select((state) => state.value?.uid));
-      return ref
-          .watch(directoryRecommendationsRepositoryProvider)
-          .watch(entryId: id);
-    });
-
 void refreshProfessionalSpace(ProviderContainer container, AuthUser user) {
   container.invalidate(professionalCandidateProvider(user));
   container.invalidate(accountResolutionProvider);

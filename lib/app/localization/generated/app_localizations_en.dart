@@ -745,6 +745,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveService => 'Add service';
 
   @override
+  String get servicePhoneAlreadyListed =>
+      'A professional profile already uses this phone number.';
+
+  @override
+  String get servicePhonePausedListing =>
+      'A professional profile uses this phone number, and its owner has temporarily paused their activity.';
+
+  @override
+  String get openProfessionalProfile => 'Open professional profile';
+
+  @override
   String get updateService => 'Save changes';
 
   @override

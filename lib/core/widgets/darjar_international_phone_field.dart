@@ -53,7 +53,9 @@ class DarJarInternationalPhoneField extends StatelessWidget {
                 keyboardType: TextInputType.phone,
                 textDirection: TextDirection.ltr,
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[\d\s-]')),
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'[\d\u0660-\u0669\u06f0-\u06f9\s+().-]'),
+                  ),
                 ],
               ),
             ),

@@ -11,6 +11,35 @@ String normalizePhoneNumber(String value) {
   return digits;
 }
 
+String normalizeServicePhoneNumber(
+  String value, {
+  String countryCode = '+212',
+}) {
+  final input = value.trim().replaceAllMapped(
+    RegExp(r'[\u0660-\u0669\u06f0-\u06f9]'),
+    (match) {
+      final digit = match[0]!.codeUnitAt(0);
+      return (digit - (digit < 0x06f0 ? 0x0660 : 0x06f0)).toString();
+    },
+  );
+  if (!RegExp(r'^\+?[0-9\s().-]+$').hasMatch(input)) return '';
+  final unformatted = normalizePhoneNumber(input);
+  if (unformatted.startsWith('+')) {
+    if (unformatted.length == 14 && unformatted.startsWith('+2120')) {
+      return '+212${unformatted.substring(5)}';
+    }
+    return unformatted;
+  }
+  if (countryCode == '+212' &&
+      unformatted.length == 12 &&
+      unformatted.startsWith('212')) {
+    return '+$unformatted';
+  }
+  return normalizePhoneNumber(
+    formatInternationalPhoneNumber(countryCode, input),
+  );
+}
+
 enum CountryCallingCodeGroup { arab, europe, northAmerica }
 
 class CountryCallingCode {

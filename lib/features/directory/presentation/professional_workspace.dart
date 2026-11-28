@@ -65,7 +65,7 @@ class ProfessionalWorkspace extends ConsumerWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final entry = ref.watch(professionalEntryProvider(id));
+    final entry = ref.watch(directoryEntryProvider(id));
     final user = ref.watch(authRepositoryProvider).currentUser;
     return DarJarProfessionalShell(
       key: const Key('professional-workspace'),
@@ -75,7 +75,7 @@ class ProfessionalWorkspace extends ConsumerWidget {
         error: (_, _) => Center(
           child: DarJarButton(
             label: l10n.accountResolutionRetry,
-            onPressed: () => ref.invalidate(professionalEntryProvider(id)),
+            onPressed: () => ref.invalidate(directoryEntryProvider(id)),
           ),
         ),
         data: (listing) {
@@ -90,7 +90,7 @@ class ProfessionalWorkspace extends ConsumerWidget {
             );
           }
           final recommendations = ref.watch(
-            professionalRecommendationsProvider(id),
+            directoryEntryRecommendationsProvider(id),
           );
           return recommendations.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -98,7 +98,7 @@ class ProfessionalWorkspace extends ConsumerWidget {
               child: DarJarButton(
                 label: l10n.accountResolutionRetry,
                 onPressed: () =>
-                    ref.invalidate(professionalRecommendationsProvider(id)),
+                    ref.invalidate(directoryEntryRecommendationsProvider(id)),
               ),
             ),
             data: (recommendations) {
@@ -376,7 +376,7 @@ class _WorkspaceContentState extends ConsumerState<_WorkspaceContent> {
       final hasFeedback =
           error is DirectoryFailure && error.code == 'service-has-feedback';
       if (hasFeedback) {
-        container.invalidate(professionalRecommendationsProvider(entry.id));
+        container.invalidate(directoryEntryRecommendationsProvider(entry.id));
       }
       if (deleting && !mounted) refreshProfessionalSpace(container, user);
       messenger.showSnackBar(

@@ -63,24 +63,20 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
     final professional = widget.professional;
     final onboarding = professional && !editing;
     final currentUser = ref.watch(authRepositoryProvider).currentUser;
-    final existing = professional && editing
-        ? ref.watch(professionalEntryProvider(widget.entryId!))
+    final listedEntry = editing && !professional
+        ? ref
+              .watch(directoryEntriesProvider)
+              .where((entry) => entry.id == widget.entryId)
+              .firstOrNull
+        : null;
+    final existing = editing && listedEntry == null
+        ? ref.watch(directoryEntryProvider(widget.entryId!))
         : null;
     final profile = professional && !editing && currentUser != null
         ? ref.watch(professionalAccountProfileProvider(currentUser))
         : null;
-    DirectoryEntry? entry;
-    if (editing) {
-      if (professional) {
-        entry = existing?.value;
-      } else {
-        ref.watch(directoryEntriesProvider);
-        entry = ref
-            .read(directoryEntriesProvider.notifier)
-            .find(widget.entryId!);
-      }
-      if (entry != null && !_initializedFromEntry) _populateFrom(entry);
-    }
+    final entry = listedEntry ?? existing?.value;
+    if (entry != null && !_initializedFromEntry) _populateFrom(entry);
     final lockedPhone =
         professional || entry?.isOwnedBy(currentUser?.uid) == true;
     final fallback = professional
@@ -115,7 +111,7 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
         (entry == null ||
             (professional
                 ? !entry.isOwnedBy(currentUser?.uid)
-                : !entry.canEdit(currentUser?.uid)))) {
+                : entry.isPaused || !entry.canEdit(currentUser?.uid)))) {
       return Scaffold(
         backgroundColor: Colors.transparent,
         body: ListView(
@@ -390,12 +386,12 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
     required DirectoryEntry? professionalEntry,
     required bool needsName,
   }) async {
+    if (_saving) return;
     final localizations = AppLocalizations.of(context);
-    final digits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
-    final nationalNumber = digits.startsWith('0')
-        ? digits.substring(1)
-        : digits;
-    final phone = '$_countryCode$nationalNumber';
+    final phone = normalizeServicePhoneNumber(
+      _phoneController.text,
+      countryCode: _countryCode,
+    );
     final user = ref.read(authRepositoryProvider).currentUser;
     final id = widget.entryId;
     final lockedPhone =
@@ -417,6 +413,7 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
       return;
     }
 
+    DirectoryPhoneConflict? phoneConflict;
     setState(() => _saving = true);
     try {
       if (widget.professional) {
@@ -499,6 +496,8 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
           context,
         ).showSnackBar(SnackBar(content: Text(localizations.serviceUpdated)));
       }
+    } on DirectoryPhoneConflict catch (conflict) {
+      phoneConflict = conflict;
     } on DirectoryFailure catch (error) {
       if (mounted &&
           widget.professional &&
@@ -519,6 +518,40 @@ class _CreateServicePageState extends ConsumerState<CreateServicePage> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+    if (mounted && phoneConflict != null) {
+      await _showPhoneConflict(phoneConflict);
+    }
+  }
+
+  Future<void> _showPhoneConflict(DirectoryPhoneConflict conflict) async {
+    final localizations = AppLocalizations.of(context);
+    final open = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          conflict.isPaused
+              ? localizations.professionalActivityPaused
+              : localizations.servicePhoneAlreadyListed,
+        ),
+        content: conflict.isPaused
+            ? Text(localizations.servicePhonePausedListing)
+            : null,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(localizations.close),
+          ),
+          if (!conflict.isPaused)
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(localizations.openProfessionalProfile),
+            ),
+        ],
+      ),
+    );
+    if (open == true && mounted) {
+      context.push(AppRoutes.directoryProfile(conflict.entryId));
     }
   }
 

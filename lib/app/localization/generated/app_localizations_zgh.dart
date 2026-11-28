@@ -746,6 +746,16 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get saveService => 'ⵔⵏⵓ ⴰⵙⴻⵇⴷⴻⵛ';
 
   @override
+  String get servicePhoneAlreadyListed => 'ⵉⵍⵍⴰ ⵓⴼⴰⵢⵍⵓ ⵏ ⵜⵓⵡⵓⵔⵉ ⵙ ⵓⵟⵟⵓⵏ ⴰⴷ.';
+
+  @override
+  String get servicePhonePausedListing =>
+      'ⵉⵍⵍⴰ ⵓⴼⴰⵢⵍⵓ ⵏ ⵜⵓⵡⵓⵔⵉ ⵙ ⵓⵟⵟⵓⵏ ⴰⴷ. ⵉⵙⴱⴷⴷ ⴱⴰⴱ ⵏⵏⵙ ⵜⴰⵡⵓⵔⵉ ⵏⵏⵙ ⵉ ⵢⴰⵏ ⵡⴰⴽⵓⴷ.';
+
+  @override
+  String get openProfessionalProfile => 'ⵔⵥⵎ ⴰⴼⴰⵢⵍⵓ ⵏ ⵜⵓⵡⵓⵔⵉ';
+
+  @override
   String get updateService => 'ⵃⵔⴻⵣ ⵉⴱⴻⴷⴷⴰⵍⴻⵏ';
 
   @override

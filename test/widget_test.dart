@@ -893,7 +893,7 @@ void main() {
         categoryId: 'home-maintenance',
         subcategoryIds: const ['electrician'],
         profession: 'إصلاح الأعطال',
-        phone: '+212612345678',
+        phone: '+212612345679',
         neighborhood: 'المعاريف',
       );
 
@@ -1593,6 +1593,24 @@ void main() {
     test('normalizes equivalent international phone formats', () {
       expect(normalizePhoneNumber('+212 6 12-34-56-78'), '+212612345678');
       expect(normalizePhoneNumber('00212 6 12 34 56 78'), '+212612345678');
+    });
+
+    test('normalizes national and international service phone formats', () {
+      for (final number in [
+        '06 12 34 56 78',
+        '+212 (0)6-12-34-56-78',
+        '00212 6 12 34 56 78',
+        '212612345678',
+        '٠٦ ١٢ ٣٤ ٥٦ ٧٨',
+        '۰۶ ۱۲ ۳۴ ۵۶ ۷۸',
+      ]) {
+        expect(normalizeServicePhoneNumber(number), '+212612345678');
+      }
+      expect(
+        normalizeServicePhoneNumber('06 12 34 56 78', countryCode: '+33'),
+        '+33612345678',
+      );
+      expect(normalizeServicePhoneNumber('+33 6 12 34 56 78'), '+33612345678');
     });
 
     test('formats phone numbers with a parenthesized country code', () {
@@ -5208,14 +5226,7 @@ void main() {
     );
   });
 
-  testWidgets('resident can add a directory service', (tester) async {
-    await _pumpApp(
-      tester,
-      size: const Size(390, 844),
-      directoryRepository: _TestDirectoryRepository(emitCreateChange: false),
-    );
-    await _enterResidence(tester);
-
+  Future<void> submitDirectoryService(WidgetTester tester, String phone) async {
     await tester.tap(find.text('الخدمات'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('add-service-fab')));
@@ -5234,10 +5245,7 @@ void main() {
       find.byKey(const ValueKey('service-subcategory-electrician')),
     );
     await tester.tap(find.byKey(const ValueKey('service-subcategory-plumber')));
-    await tester.enterText(
-      find.byKey(const Key('service-phone-field')),
-      '6 12 34 56 78',
-    );
+    await tester.enterText(find.byKey(const Key('service-phone-field')), phone);
     await tester.enterText(
       find.byKey(const Key('service-neighborhood-field')),
       'المعاريف',
@@ -5245,12 +5253,102 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('save-service-button')));
     await tester.tap(find.byKey(const Key('save-service-button')));
     await tester.pumpAndSettle();
+  }
+
+  testWidgets('resident can add a directory service', (tester) async {
+    final directory = _TestDirectoryRepository(emitCreateChange: false);
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      directoryRepository: directory,
+    );
+    await _enterResidence(tester);
+    await submitDirectoryService(tester, '6 12 34 56 79');
 
     expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
     expect(find.text('شركة النور'), findsOneWidget);
     expect(find.text('كهربائي · سباك'), findsOneWidget);
     expect(find.text('إصلاح الأعطال والتركيبات الكهربائية'), findsNothing);
+    expect(directory.entries.first.phone, '+212612345679');
   });
+
+  testWidgets('resident cannot add the same phone as an existing service', (
+    tester,
+  ) async {
+    final directory = _TestDirectoryRepository();
+    await _pumpApp(
+      tester,
+      size: const Size(390, 844),
+      directoryRepository: directory,
+    );
+    await _enterResidence(tester);
+    await submitDirectoryService(tester, '06 12-34-56-78');
+
+    expect(find.text('يوجد ملف مهني بنفس رقم الهاتف.'), findsOneWidget);
+    expect(directory.entries, hasLength(1));
+    await tester.tap(find.text('الانتقال إلى الملف المهني'));
+    await tester.pumpAndSettle();
+    expect(find.text('محمد الكهربائي'), findsOneWidget);
+  });
+
+  for (final paused in [false, true]) {
+    testWidgets('shows a phone match for a ${paused ? 'paused' : 'active'} '
+        'professional profile outside the current city', (tester) async {
+      final directory = _TestDirectoryRepository();
+      directory.entries.add(
+        DirectoryEntry(
+          id: 'other-city-professional',
+          name: 'مهني من مدينة أخرى',
+          categoryId: 'home-maintenance',
+          subcategoryIds: const ['electrician'],
+          profession: 'صيانة',
+          phone: '+212612345680',
+          score: 0,
+          recommendationCount: 0,
+          localRecommendationCount: 0,
+          workedResidences: const [],
+          reviews: const [],
+          city: '4211010',
+          ownerUid: 'another-user',
+          selfListed: true,
+          isPaused: paused,
+        ),
+      );
+      await _pumpApp(
+        tester,
+        size: const Size(390, 844),
+        directoryRepository: directory,
+      );
+      await _enterResidence(tester);
+      await submitDirectoryService(tester, '٠٠٢١٢ ٦ ١٢ ٣٤ ٥٦ ٨٠');
+
+      expect(directory.entries, hasLength(2));
+      final openProfile = find.text('الانتقال إلى الملف المهني');
+      if (paused) {
+        expect(
+          find.text(
+            'يوجد ملف مهني بنفس رقم الهاتف، لكن صاحبه أوقف نشاطه مؤقتًا.',
+          ),
+          findsOneWidget,
+        );
+        expect(openProfile, findsNothing);
+        await tester.tap(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text('إغلاق'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('create-service-page')), findsOneWidget);
+      } else {
+        expect(find.text('يوجد ملف مهني بنفس رقم الهاتف.'), findsOneWidget);
+        await tester.tap(openProfile);
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('directory-profile-page')), findsOneWidget);
+        expect(find.text('مهني من مدينة أخرى'), findsOneWidget);
+      }
+    });
+  }
 
   testWidgets('service creator can edit their service from its profile', (
     tester,
@@ -9655,6 +9753,12 @@ class _TestDirectoryRepository implements DirectoryRepository {
     required String phone,
     required String neighborhood,
   }) async {
+    final match = entries
+        .where((entry) => normalizeServicePhoneNumber(entry.phone) == phone)
+        .firstOrNull;
+    if (match != null) {
+      throw DirectoryPhoneConflict(entryId: match.id, isPaused: match.isPaused);
+    }
     const id = 'created-service';
     entries.insert(
       0,

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:darjar/core/utils/phone_number.dart';
 import 'package:darjar/features/account/data/account_onboarding_repository.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
@@ -321,6 +322,14 @@ class DirectoryFailure implements Exception {
   final String? details;
 }
 
+class DirectoryPhoneConflict extends DirectoryFailure {
+  const DirectoryPhoneConflict({required this.entryId, required this.isPaused})
+    : super('directory-phone-exists');
+
+  final String entryId;
+  final bool isPaused;
+}
+
 class FirestoreDirectoryRepository implements DirectoryRepository {
   FirestoreDirectoryRepository(this._firestore);
 
@@ -367,7 +376,7 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
   }) async {
     final normalizedName = name.trim();
     final normalizedProfession = profession.trim();
-    final normalizedPhone = phone.trim();
+    final normalizedPhone = normalizeServicePhoneNumber(phone);
     final normalizedNeighborhood = neighborhood.trim();
     if (normalizedName.isEmpty ||
         normalizedName.length > 120 ||
@@ -404,8 +413,15 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
           !subcategoryIds.every(validSubcategoryIds.contains)) {
         throw const DirectoryFailure('invalid-category');
       }
+      if (await _findPhoneConflict(normalizedPhone) case final conflict?) {
+        throw conflict;
+      }
       final service = _firestore.collection('services').doc();
-      await service.set({
+      final phoneListing = _firestore
+          .collection('directoryServicePhones')
+          .doc(normalizedPhone);
+      final batch = _firestore.batch();
+      batch.set(service, {
         'name': normalizedName,
         'categoryId': categoryId,
         'subcategoryIds': subcategoryIds,
@@ -420,10 +436,63 @@ class FirestoreDirectoryRepository implements DirectoryRepository {
         'status': 'active',
         'createdAt': FieldValue.serverTimestamp(),
       });
+      batch.set(phoneListing, {'serviceId': service.id});
+      try {
+        await batch.commit();
+      } on FirebaseException catch (error) {
+        if (error.code == 'permission-denied') {
+          if (await _findPhoneConflict(normalizedPhone) case final conflict?) {
+            throw conflict;
+          }
+        }
+        rethrow;
+      }
       return service.id;
     } catch (error) {
       throw _failure(error);
     }
+  }
+
+  Future<DirectoryPhoneConflict?> _findPhoneConflict(String phone) async {
+    final digits = phone.substring(1);
+    final aliases = [phone, '00$digits', digits];
+    if (digits.startsWith('212') && digits.length == 12) {
+      final local = '0${digits.substring(3)}';
+      aliases.addAll([local, '(212)${digits.substring(3)}']);
+      for (final separator in [' ', '-', '.']) {
+        final groups = [
+          for (var offset = 2; offset < local.length; offset += 2)
+            local.substring(offset, offset + 2),
+        ].join(separator);
+        aliases.addAll([
+          '${local.substring(0, 2)}$separator$groups',
+          '+212$separator${local[1]}$separator$groups',
+          '00212$separator${local[1]}$separator$groups',
+        ]);
+      }
+    }
+    final matches = await _firestore
+        .collection('services')
+        .where('phone', whereIn: aliases)
+        .get(const GetOptions(source: Source.server));
+
+    DirectoryPhoneConflict? residentListing;
+    for (final document in matches.docs) {
+      final data = document.data();
+      final status = data['status'];
+      if (status != 'active' && status != 'paused') continue;
+      final conflict = DirectoryPhoneConflict(
+        entryId: document.id,
+        isPaused: status == 'paused',
+      );
+      if (conflict.isPaused ||
+          data['source'] == 'professional' ||
+          (data['ownerUid'] as String? ?? '').isNotEmpty) {
+        return conflict;
+      }
+      residentListing ??= conflict;
+    }
+    return residentListing;
   }
 
   @override
@@ -545,12 +614,26 @@ final directoryRepositoryProvider = Provider<DirectoryRepository>(
   (ref) => FirestoreDirectoryRepository(ref.watch(firebaseFirestoreProvider)),
 );
 
+final directoryEntryProvider = StreamProvider.autoDispose
+    .family<DirectoryEntry?, String>((ref, id) {
+      ref.watch(authStateProvider.select((state) => state.value?.uid));
+      return ref.watch(directoryRepositoryProvider).watchEntry(id);
+    });
+
 final directoryRecommendationsRepositoryProvider =
     Provider<DirectoryRecommendationsRepository>(
       (ref) => FirestoreDirectoryRecommendationsRepository(
         ref.watch(firebaseFirestoreProvider),
       ),
     );
+
+final directoryEntryRecommendationsProvider = StreamProvider.autoDispose
+    .family<List<DirectoryRecommendation>, String>((ref, id) {
+      ref.watch(authStateProvider.select((state) => state.value?.uid));
+      return ref
+          .watch(directoryRecommendationsRepositoryProvider)
+          .watch(entryId: id);
+    });
 
 final directoryEntriesProvider =
     NotifierProvider<DirectoryController, List<DirectoryEntry>>(

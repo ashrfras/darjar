@@ -13,6 +13,7 @@ import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/directory/data/directory_repository.dart';
 import 'package:darjar/features/directory/data/service_categories_repository.dart';
 import 'package:darjar/features/directory/presentation/service_phone_launcher.dart';
+import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,12 +27,19 @@ class DirectoryProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isPreview = preview != null;
-    final entry = isPreview
-        ? preview
-        : ref
-              .watch(directoryEntriesProvider)
-              .where((entry) => entry.id == entryId)
-              .firstOrNull;
+    final listedEntry =
+        preview ??
+        ref
+            .watch(directoryEntriesProvider)
+            .where((entry) => entry.id == entryId)
+            .firstOrNull;
+    final directEntry = listedEntry == null
+        ? ref.watch(directoryEntryProvider(entryId))
+        : null;
+    if (directEntry?.isLoading == true) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final entry = listedEntry ?? _unlistedEntry(ref, directEntry?.value);
     final fallback = isPreview ? AppRoutes.professional : AppRoutes.directory;
     final localizations = AppLocalizations.of(context);
     if (entry == null) {
@@ -289,6 +297,23 @@ class DirectoryProfilePage extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  DirectoryEntry? _unlistedEntry(WidgetRef ref, DirectoryEntry? entry) {
+    if (entry == null || entry.isPaused) return null;
+    final recommendations = ref
+        .watch(directoryEntryRecommendationsProvider(entryId))
+        .value;
+    final residenceId = ref.watch(
+      residenceContextProvider.select(
+        (state) => state.value?.activeResidence?.id,
+      ),
+    );
+    return mergeDirectoryRecommendations(
+      entry,
+      recommendations ?? const [],
+      activeResidenceId: residenceId,
     );
   }
 
