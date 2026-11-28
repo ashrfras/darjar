@@ -70,6 +70,7 @@ Future<void> main() async {
           '$projectId.firebasestorage.app',
     ),
     verifyProfessionalToken: identity.verifyProfessionalToken,
+    verifyResidenceDeletionToken: identity.verifyResidenceDeletionToken,
   ).handler;
   final port = int.tryParse(environment['PORT'] ?? '') ?? 8080;
   final server = await serve(handler, InternetAddress.anyIPv4, port);

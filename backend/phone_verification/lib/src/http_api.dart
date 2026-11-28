@@ -17,6 +17,7 @@ class PhoneVerificationApi {
     ResidenceDeletion? residenceDeletion,
     Future<VerifiedProfessionalIdentity> Function(String)?
     verifyProfessionalToken,
+    Future<String> Function(String)? verifyResidenceDeletionToken,
   }) : this._(
          service,
          allowedOrigins,
@@ -24,6 +25,7 @@ class PhoneVerificationApi {
          professionalProfiles,
          residenceDeletion,
          verifyProfessionalToken,
+         verifyResidenceDeletionToken,
        );
 
   PhoneVerificationApi._(
@@ -33,6 +35,7 @@ class PhoneVerificationApi {
     this._professionalProfiles,
     this._residenceDeletion,
     this._verifyProfessionalToken,
+    this._verifyResidenceDeletionToken,
   );
 
   final PhoneVerificationService _service;
@@ -42,6 +45,7 @@ class PhoneVerificationApi {
   final ResidenceDeletion? _residenceDeletion;
   final Future<VerifiedProfessionalIdentity> Function(String)?
   _verifyProfessionalToken;
+  final Future<String> Function(String)? _verifyResidenceDeletionToken;
 
   Handler get handler {
     final router = Router()
@@ -51,7 +55,7 @@ class PhoneVerificationApi {
     if (_professionalProfiles != null && _verifyProfessionalToken != null) {
       router.post('/v1/professional-profile/<action>', _professionalProfile);
     }
-    if (_residenceDeletion != null && _verifyProfessionalToken != null) {
+    if (_residenceDeletion != null && _verifyResidenceDeletionToken != null) {
       router.post('/v1/residences/delete', _deleteResidence);
     }
     return const Pipeline()
@@ -65,7 +69,7 @@ class PhoneVerificationApi {
   Future<Response> _professionalProfile(Request request, String action) async {
     try {
       final input = await _requestJson(request);
-      final identity = await _verifiedIdentity(request);
+      final identity = await _verifyProfessionalToken!(_bearerToken(request));
       final profiles = _professionalProfiles!;
       switch (action) {
         case 'discover':
@@ -121,11 +125,11 @@ class PhoneVerificationApi {
 
   Future<Response> _deleteResidence(Request request) async {
     try {
-      final identity = await _verifiedIdentity(request);
+      final uid = await _verifyResidenceDeletionToken!(_bearerToken(request));
       final input = await _requestJson(request);
       final id = input['residenceId'];
       if (id is! String) throw const FormatException();
-      await _residenceDeletion!.delete(id, identity.uid);
+      await _residenceDeletion!.delete(id, uid);
       return _jsonResponse(HttpStatus.ok, {'residenceId': id});
     } on ResidenceDeletionFailure catch (error) {
       return _jsonResponse(error.status, {'code': error.code});
@@ -141,7 +145,7 @@ class PhoneVerificationApi {
     }
   }
 
-  Future<VerifiedProfessionalIdentity> _verifiedIdentity(Request request) {
+  String _bearerToken(Request request) {
     final authorization = request.headers['authorization'] ?? '';
     if (!authorization.startsWith('Bearer ') || authorization.length > 8192) {
       throw const ProfessionalFailure(
@@ -149,7 +153,7 @@ class PhoneVerificationApi {
         HttpStatus.unauthorized,
       );
     }
-    return _verifyProfessionalToken!(authorization.substring(7));
+    return authorization.substring(7);
   }
 
   Future<Response> _start(Request request) async {

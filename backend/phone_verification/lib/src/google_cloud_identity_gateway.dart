@@ -13,14 +13,14 @@ const _customTokenAudience =
     'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit';
 
 class GoogleCloudIdentityGateway implements FirebaseIdentityGateway {
-  GoogleCloudIdentityGateway._({
+  GoogleCloudIdentityGateway({
     required String projectId,
     required String apiKey,
     required String signerEmail,
-    required AutoRefreshingAuthClient client,
-  }) : this._values(projectId, apiKey, signerEmail, client);
+    required http.Client client,
+  }) : this._(projectId, apiKey, signerEmail, client);
 
-  GoogleCloudIdentityGateway._values(
+  GoogleCloudIdentityGateway._(
     this._projectId,
     this._apiKey,
     this._signerEmail,
@@ -30,7 +30,7 @@ class GoogleCloudIdentityGateway implements FirebaseIdentityGateway {
   final String _projectId;
   final String _apiKey;
   final String _signerEmail;
-  final AutoRefreshingAuthClient _client;
+  final http.Client _client;
 
   static Future<GoogleCloudIdentityGateway> create({
     required String projectId,
@@ -40,7 +40,7 @@ class GoogleCloudIdentityGateway implements FirebaseIdentityGateway {
     final client = await clientViaApplicationDefaultCredentials(
       scopes: const [_cloudPlatformScope],
     );
-    return GoogleCloudIdentityGateway._(
+    return GoogleCloudIdentityGateway(
       projectId: projectId,
       apiKey: apiKey,
       signerEmail: signerEmail,
@@ -55,6 +55,21 @@ class GoogleCloudIdentityGateway implements FirebaseIdentityGateway {
   );
 
   Future<VerifiedProfessionalIdentity> verifyProfessionalToken(
+    String token,
+  ) async {
+    final identity = await _verifyFirebasePhoneToken(token);
+    if (identity.phone == localDevelopmentPhoneNumber) {
+      throw const ProfessionalFailure('invalid-identity', 401);
+    }
+    return identity;
+  }
+
+  Future<String> verifyResidenceDeletionToken(String token) async {
+    final identity = await _verifyFirebasePhoneToken(token);
+    return identity.uid;
+  }
+
+  Future<VerifiedProfessionalIdentity> _verifyFirebasePhoneToken(
     String token,
   ) async {
     const unauthorized = ProfessionalFailure('invalid-identity', 401);
@@ -107,8 +122,7 @@ class GoogleCloudIdentityGateway implements FirebaseIdentityGateway {
         authTime < validSince ||
         phone is! String ||
         phone != claims['phone_number'] ||
-        !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(phone) ||
-        phone == localDevelopmentPhoneNumber) {
+        !RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(phone)) {
       throw unauthorized;
     }
     return (uid: uid, phone: phone);

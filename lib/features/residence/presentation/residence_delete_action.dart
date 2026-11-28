@@ -1,4 +1,5 @@
 import 'package:darjar/app/localization/generated/app_localizations.dart';
+import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/app/theme/app_colors.dart';
 import 'package:darjar/features/auth/data/auth_failure.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
@@ -6,6 +7,7 @@ import 'package:darjar/features/residence/data/residence_deletion_repository.dar
 import 'package:darjar/features/residence/presentation/residence_progress_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class ResidenceDeleteAction extends ConsumerStatefulWidget {
   const ResidenceDeleteAction({
@@ -34,12 +36,7 @@ class _ResidenceDeleteActionState extends ConsumerState<ResidenceDeleteAction> {
       enabled: enabled,
       onTap: enabled ? _confirm : null,
       leading: const Icon(Icons.delete_outline_rounded),
-      title: Text(
-        strings.residenceDelete,
-        style: enabled
-            ? TextStyle(color: Theme.of(context).colorScheme.error)
-            : null,
-      ),
+      title: Text(strings.residenceDelete),
       subtitle: Text(strings.residenceDeleteDescription),
       trailing: Icon(
         Icons.chevron_left_rounded,
@@ -84,6 +81,7 @@ class _ResidenceDeleteActionState extends ConsumerState<ResidenceDeleteAction> {
 
     final container = ProviderScope.containerOf(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
     setState(() => _deleting = true);
     try {
       await showResidenceProgress(
@@ -91,11 +89,28 @@ class _ResidenceDeleteActionState extends ConsumerState<ResidenceDeleteAction> {
         label: strings.residenceDeleting,
         run: () => ref.read(deleteResidenceProvider)(target.residenceId),
       );
-      container.invalidate(residenceContextProvider);
       if (messenger.mounted) {
         messenger.showSnackBar(
           SnackBar(content: Text(strings.residenceDeleted)),
         );
+      }
+
+      final ResidenceContext updatedContext;
+      try {
+        updatedContext = await container.refresh(
+          residenceContextProvider.future,
+        );
+      } catch (_) {
+        // The shell displays the error and offers to reload the residence context.
+        return;
+      }
+      final activeId = updatedContext.activeResidence?.id;
+      if (messenger.mounted &&
+          activeId != null &&
+          activeId != target.residenceId &&
+          router.routeInformationProvider.value.uri.path ==
+              AppRoutes.administration) {
+        router.go(AppRoutes.community);
       }
     } catch (error) {
       if (!mounted) return;

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:darjar/app/localization/generated/app_localizations.dart';
+import 'package:darjar/app/routing/app_router.dart';
 import 'package:darjar/features/auth/data/auth_repository.dart';
 import 'package:darjar/features/residence/data/residence_context_repository.dart';
 import 'package:darjar/features/residence/data/residence_deletion_repository.dart';
@@ -8,6 +9,7 @@ import 'package:darjar/features/residence/presentation/residence_administration_
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 void main() {
   const target = (
@@ -65,8 +67,8 @@ void main() {
       expect(dividers, findsOneWidget);
       final row = tester.widget<ListTile>(action);
       expect(
-        (row.title as Text).style?.color,
-        Theme.of(tester.element(action)).colorScheme.error,
+        (row.title as Text).style,
+        (tester.widget<ListTile>(reset).title as Text).style,
       );
       expect((row.leading as Icon).icon, Icons.delete_outline_rounded);
       expect((row.subtitle as Text).data, 'حذف بيانات الإقامة وإبطال الدعوات');
@@ -79,11 +81,19 @@ void main() {
   );
 
   testWidgets(
-    'deletion requires confirmation and refreshes the residence context',
+    'confirmed deletion opens the feed of the next active residence',
     (tester) async {
       final deletion = Completer<void>();
       final calls = <String>[];
       var contextLoads = 0;
+      const nextResidence = UserResidence(
+        id: 'next-residence',
+        name: 'الإقامة التالية',
+        address: '',
+        city: '',
+        role: 'president',
+        apartmentId: '',
+      );
       final auth = await _signedInCreator();
       final container = ProviderContainer(
         overrides: [
@@ -97,7 +107,12 @@ void main() {
           }),
           residenceContextProvider.overrideWith((_) async {
             contextLoads++;
-            return residence;
+            return contextLoads == 1
+                ? residence
+                : const ResidenceContext(
+                    residences: [nextResidence],
+                    activeResidenceId: 'next-residence',
+                  );
           }),
         ],
       );
@@ -107,9 +122,42 @@ void main() {
         (_, _) {},
       );
       addTearDown(subscription.close);
+      final router = GoRouter(
+        initialLocation: AppRoutes.administration,
+        routes: [
+          GoRoute(
+            path: AppRoutes.administration,
+            builder: (_, _) =>
+                const Scaffold(body: ResidenceAdministrationPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.community,
+            builder: (_, _) => Consumer(
+              builder: (_, ref, _) => Scaffold(
+                body: Text(
+                  ref
+                      .watch(residenceContextProvider)
+                      .value!
+                      .activeResidence!
+                      .name,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
 
       await tester.pumpWidget(
-        UncontrolledProviderScope(container: container, child: _app()),
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('ar'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+          ),
+        ),
       );
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('حذف الإقامة'));
@@ -129,6 +177,11 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
       expect(contextLoads, 2);
+      expect(
+        router.routeInformationProvider.value.uri.path,
+        AppRoutes.community,
+      );
+      expect(find.text(nextResidence.name), findsOneWidget);
       expect(find.text('تم حذف الإقامة.'), findsOneWidget);
     },
   );
