@@ -5208,12 +5208,6 @@ abstract class AppLocalizations {
   /// **'اختيار الفضاء'**
   String get selectSpace;
 
-  /// No description provided for @spaceSwitcherDescription.
-  ///
-  /// In ar, this message translates to:
-  /// **'اختر الإقامة أو النشاط المهني الذي تريد الانتقال إليه.'**
-  String get spaceSwitcherDescription;
-
   /// No description provided for @addSpace.
   ///
   /// In ar, this message translates to:

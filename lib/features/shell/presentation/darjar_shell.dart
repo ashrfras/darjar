@@ -1353,7 +1353,7 @@ class _ResidenceSwitcherSheet extends ConsumerWidget {
     final localizations = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final optionHeight = _ResidenceSwitcherOption.height(context);
-    const visibleResidenceLimit = 3;
+    const visibleFullOptionCount = 3;
     final professional = this.professional;
     final categories = professional == null
         ? const <ServiceCategory>[]
@@ -1404,59 +1404,12 @@ class _ResidenceSwitcherSheet extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.primarySoft,
-                        borderRadius: BorderRadius.circular(AppRadius.medium),
-                      ),
-                      child: const Icon(
-                        Icons.apartment_rounded,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.medium),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            localizations.selectSpace,
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: AppSpacing.xSmall),
-                          Text(
-                            localizations.spaceSwitcherDescription,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: AppColors.inkMuted),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.small),
-                    IconButton(
-                      key: const Key('close-residence-switcher'),
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: AppColors.surface,
-                        foregroundColor: AppColors.inkMuted,
-                        side: BorderSide(color: AppColors.outline),
-                      ),
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xLarge),
                 Flexible(
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       maxHeight:
-                          visibleResidenceLimit * optionHeight +
-                          (visibleResidenceLimit - 1) * residenceGap,
+                          (visibleFullOptionCount + 0.5) * optionHeight +
+                          visibleFullOptionCount * residenceGap,
                     ),
                     child: ListView.separated(
                       key: const Key('residence-switcher-list'),

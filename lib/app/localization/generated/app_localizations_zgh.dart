@@ -2874,10 +2874,6 @@ class AppLocalizationsZgh extends AppLocalizations {
   String get selectSpace => 'ⴼⵔⵏ ⴰⵎⴽⴰⵏ';
 
   @override
-  String get spaceSwitcherDescription =>
-      'ⴼⵔⵏ ⵜⴰⵣⴷⵓⵖⵜ ⵏⵉⵖ ⵜⴰⵡⵓⵔⵉ ⵍⵍⵉ ⵜⵔⵉⴷ ⴰⴷ ⵜⵔⵣⵎⴷ.';
-
-  @override
   String get addSpace => 'ⵔⵏⵓ ⴰⵎⴽⴰⵏ ⴰⵎⴰⵢⵏⵓ';
 
   @override

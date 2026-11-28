@@ -2843,10 +2843,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get selectSpace => 'اختيار الفضاء';
 
   @override
-  String get spaceSwitcherDescription =>
-      'اختر الإقامة أو النشاط المهني الذي تريد الانتقال إليه.';
-
-  @override
   String get addSpace => 'إضافة فضاء جديد';
 
   @override

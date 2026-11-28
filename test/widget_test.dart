@@ -3472,6 +3472,7 @@ void main() {
     await tester.tap(selector);
     await tester.pumpAndSettle();
 
+    final sheet = find.byKey(const Key('residence-switcher-sheet'));
     final list = find.byKey(const Key('residence-switcher-list'));
     final firstResidence = find.byKey(
       const Key('residence-switcher-option-residence-1'),
@@ -3507,8 +3508,27 @@ void main() {
           tester.getRect(firstResidence).bottom,
       AppSpacing.xSmall,
     );
-    expect(tester.getRect(thirdResidence).bottom, tester.getRect(list).bottom);
-    expect(fourthResidence.hitTestable(), findsNothing);
+    final listRect = tester.getRect(list);
+    final thirdResidenceRect = tester.getRect(thirdResidence);
+    final fourthResidenceRect = tester.getRect(fourthResidence);
+    expect(listRect.top - tester.getRect(sheet).top, AppSpacing.xLarge);
+    expect(find.byKey(const Key('close-residence-switcher')), findsNothing);
+    expect(
+      fourthResidenceRect.top - thirdResidenceRect.bottom,
+      AppSpacing.xSmall,
+    );
+    expect(
+      listRect.bottom - fourthResidenceRect.top,
+      closeTo(fourthResidenceRect.height / 2, 0.01),
+    );
+    expect(
+      fourthResidence.hitTestable(at: const Alignment(0, -0.5)),
+      findsOneWidget,
+    );
+    expect(
+      fourthResidence.hitTestable(at: const Alignment(0, 0.5)),
+      findsNothing,
+    );
     final footerPosition = tester.getTopLeft(newResidence);
 
     await tester.drag(list, const Offset(0, -150));
@@ -3518,7 +3538,7 @@ void main() {
 
     await tester.tap(newResidence);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('residence-switcher-sheet')), findsNothing);
+    expect(sheet, findsNothing);
     expect(find.byKey(const Key('join-my-residence-option')), findsOneWidget);
     expect(
       find.byKey(const Key('create-new-residence-option')),
@@ -3529,6 +3549,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(selector, findsOneWidget);
     expect(find.text('إقامة 1'), findsOneWidget);
+
+    await tester.tap(selector);
+    await tester.pumpAndSettle();
+    expect(sheet, findsOneWidget);
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+    expect(sheet, findsNothing);
   });
 
   testWidgets(

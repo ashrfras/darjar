@@ -2899,10 +2899,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectSpace => 'Choose a space';
 
   @override
-  String get spaceSwitcherDescription =>
-      'Choose the residence or professional activity you want to open.';
-
-  @override
   String get addSpace => 'Add a new space';
 
   @override
